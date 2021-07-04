@@ -1,0 +1,21 @@
+# Project exclude paths
+/.gradle/
+/bukkit-all/build/
+/bukkit-imanity-impl/build/
+/bukkit-imanity-impl/build/classes/java/main/
+/bukkit-main/build/
+/bukkit-main/build/classes/java/main/
+/bukkit-timings/build/
+/bukkit-timings/build/classes/java/main/
+/core-all/build/
+/core-base/build/
+/core-base/build/classes/java/main/
+/core-base/build/classes/java/test/
+/core-main/build/
+/core-main/build/classes/java/main/
+/core-storage/build/
+/core-storage/build/classes/java/main/
+/core-storage/build/classes/java/test/
+/gradle/
+/mc-abstract/build/
+/mc-abstract/build/classes/java/main/

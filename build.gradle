@@ -1,0 +1,182 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 Imanity
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+plugins {
+    id "base"
+    id "io.freefair.aspectj.post-compile-weaving" version "4.1.4"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+}
+
+allprojects {
+    group "org.fairy"
+    version "0.4b1"
+
+    repositories {
+        jcenter()
+        mavenCentral()
+        maven { url "https://maven.imanity.dev/repository/imanity-libraries/" }
+        maven { url "https://nexus.funkemunky.cc/content/repositories/releases/" }
+        maven { url "https://jitpack.io" }
+        maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
+        maven { url "https://repo.viaversion.com/" }
+        maven { url "https://ci.athion.net/job/FastAsyncWorldEdit/ws/mvn/" }
+        maven { url "https://maven.sk89q.com/repo/" }
+        maven { url "https://repo.codemc.io/repository/maven-snapshots/" }
+        flatDir { dir("${this.projectDir.path}/libs") }
+    }
+
+    ext {
+        relocate = "org.imanity.framework.libs."
+
+        // Dependencies
+        AspectJRuntime = "org.aspectj:aspectjrt:" + findProperty("aspectj.version")
+
+        JacksonCore = "com.fasterxml.jackson.core:jackson-core:" + findProperty("jackson.version")
+        JacksonDataBind = "com.fasterxml.jackson.core:jackson-databind:" + findProperty("jackson.version")
+        JacksonAnnotations = "com.fasterxml.jackson.core:jackson-annotations:" + findProperty("jackson.version")
+        JacksonJsr310 = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:" + findProperty("jackson.version")
+
+        HikariCP = "com.zaxxer:HikariCP:3.4.5"
+        MongoDB_driver_sync = "org.mongodb:mongodb-driver-sync:4.0.4"
+        Mongojack = "org.mongojack:mongojack:" + findProperty("mongojack.version")
+        Redisson = "org.redisson:redisson:3.13.2"
+    }
+}
+
+subprojects {
+    apply plugin: "io.freefair.aspectj.post-compile-weaving"
+    apply plugin: "java-library"
+    apply plugin: "maven-publish"
+    apply plugin: "com.github.johnrengelman.shadow"
+
+    processResources {
+        expand projectVersion: project.version
+    }
+
+    if (findProperty("deploy.imanityLibraries") == "true") {
+        tasks.jar.configure {
+            classifier = "sources"
+        }
+
+        tasks.shadowJar.configure {
+            classifier = null
+        }
+
+        publishing {
+            publications {
+                shadow(MavenPublication) { publication ->
+                    from project.shadow.component(publication)
+                    pom {
+                        name = "Fairy " + project.name
+                        description = "Fairy is a compat & open-sourced Java Framework with useful features"
+                    }
+                }
+            }
+
+            repositories {
+                maven {
+                    credentials {
+                        username findProperty("imanityLibrariesUsername")
+                        password findProperty("imanityLibrariesPassword")
+                    }
+                    url "https://maven.imanity.dev/repository/imanity-libraries/"
+                }
+            }
+        }
+    }
+
+    publish.dependsOn build
+    shadowJar.dependsOn build
+
+    sourceCompatibility = targetCompatibility = "1.8"
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+
+    dependencies {
+        compileOnly "org.projectlombok:lombok:1.18.12"
+        annotationProcessor "org.projectlombok:lombok:1.18.12"
+
+        compileOnly "org.jetbrains:annotations:19.0.0"
+        annotationProcessor "org.jetbrains:annotations:19.0.0"
+
+        if (project.name.startsWith("core-")) {
+            // Compile javax.persistence-api to all
+            if (project.name == "core-all") {
+                api "javax.persistence:javax.persistence-api:2.2"
+            } else {
+                compileOnly "javax.persistence:javax.persistence-api:2.2"
+            }
+
+            // Include misc if not misc
+            if (project.name != "core-base") {
+                compileOnly project(":core-base")
+                compileOnly AspectJRuntime
+                compileOnly JacksonCore
+                compileOnly JacksonDataBind
+            }
+
+        } else if (project.name.startsWith("bukkit-")) {
+            // Compile core all if it's bukkit all
+            compileOnly project(":core-all")
+            compileOnly project(":mc-abstract")
+
+            if (name != "bukkit-timings") {
+                compileOnly project(":bukkit-timings")
+            }
+
+            if (name != "bukkit-imanity-impl") {
+                compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+            }
+        } else {
+            api project(":core-all")
+        }
+
+        compileOnly "com.google.guava:guava:" + findProperty("guava.version")
+        compileOnly "com.google.code.gson:gson:" + findProperty("gson.version")
+        compileOnly "org.yaml:snakeyaml:" + findProperty("yaml.version")
+        compileOnly "org.apache.logging.log4j:log4j-core:" + findProperty("log4j.version")
+        compileOnly "com.github.ben-manes.caffeine:caffeine:" + findProperty("caffeine.version")
+        compileOnly "org.apache.commons:commons-lang3:3.11"
+        compileOnly "commons-io:commons-io:2.7"
+        compileOnly "it.unimi.dsi:fastutil:8.1.0"
+        compileOnly "net.md-5:bungeecord-chat:1.16-R0.3"
+
+        // Test dependencies
+        testImplementation "junit:junit:4.13"
+        testImplementation "org.junit.platform:junit-platform-runner:1.0.3"
+        testImplementation "org.junit.platform:junit-platform-suite-api:1.0.3"
+        testImplementation "org.hamcrest:hamcrest-all:1.3"
+        testImplementation "com.google.jimfs:jimfs:1.1"
+        testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
+        testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.0"
+    }
+
+    sourceSets {
+        test.compileClasspath += configurations.compileOnly
+        test.runtimeClasspath += configurations.compileOnly
+    }
+
+    compileTestJava.ajc.options.aspectpath.from sourceSets.main.output
+}

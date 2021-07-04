@@ -1,0 +1,55 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021 Imanity
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package org.fairy.command;
+
+public abstract class PresenceProvider<T extends CommandEvent> {
+
+    final void sendUsage0(CommandEvent event, String usage) {
+        this.sendUsage((T) event, usage);
+    }
+
+    final void sendError0(CommandEvent event, Throwable throwable) {
+        this.sendError((T) event, throwable);
+    }
+
+    final void sendNoPermission0(CommandEvent event) {
+        this.sendNoPermission((T) event);
+    }
+
+    final void sendInternalError0(CommandEvent event, String message) {
+        this.sendInternalError((T) event, message);
+    }
+
+    public abstract Class<T> type();
+
+    public abstract void sendUsage(T event, String usage);
+
+    public abstract void sendError(T event, Throwable throwable);
+
+    public abstract void sendNoPermission(T event);
+
+    public abstract void sendInternalError(T event, String message);
+
+}
