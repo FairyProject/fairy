@@ -48,7 +48,7 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
 
     public void init() {
         // Don't lock if it's locked by parent provider
-        boolean shouldLock = !this.repositoryProvider.getIOLock().isLocked();
+        boolean shouldLock = !this.repositoryProvider.getIOLock().isHeldByCurrentThread();
 
         if (shouldLock) this.repositoryProvider.getIOLock().lock();
         this.getFactory().createTable(this.type());

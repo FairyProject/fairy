@@ -54,7 +54,7 @@ public class MongoRepository<T, ID extends Serializable> extends AbstractReposit
 
     public void init() {
         // Don't lock if it's locked by parent provider
-        boolean shouldLock = !this.repositoryProvider.getIOLock().isLocked();
+        boolean shouldLock = !this.repositoryProvider.getIOLock().isHeldByCurrentThread();
 
         if (shouldLock) this.repositoryProvider.getIOLock().lock();
         this.collection = this.repositoryProvider.createCollection(this.objectMapper(), this.repoId, this.type());

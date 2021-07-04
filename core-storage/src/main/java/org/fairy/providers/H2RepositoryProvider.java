@@ -32,7 +32,7 @@ import org.fairy.mysql.connection.file.H2ConnectionFactory;
 import java.nio.file.Path;
 import java.util.Map;
 
-public class H2RepositoryProvider extends AbstractSqlRepositoryProvider<H2ConnectionFactory> {
+public class H2RepositoryProvider extends AbstractSqlRepositoryProvider {
 
     private final Path parentFolder;
     private Path path;
