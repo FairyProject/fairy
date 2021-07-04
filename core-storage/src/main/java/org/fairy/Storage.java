@@ -46,4 +46,12 @@ public class Storage {
         return STORAGE_SERVICE.createRepository(repoId, entityType);
     }
 
+    public static void registerRepositoryProvider(RepositoryProvider repositoryProvider) {
+        STORAGE_SERVICE.registerRepositoryProvider(repositoryProvider);
+    }
+
+    public static void unregisterRepositoryProvider(RepositoryProvider repositoryProvider) {
+        STORAGE_SERVICE.unregisterRepositoryProvider(repositoryProvider);
+    }
+
 }
