@@ -117,17 +117,29 @@ public class LocaleService {
         return this.localeStorage.find(uuid).getLocale();
     }
 
+    public <Player> Locale getLocale(Player player) {
+        return this.localeStorage.find(this.localeStorage.getUuidByPlayer(player)).getLocale();
+    }
+
     public void setLocale(UUID uuid, @NonNull Locale locale) {
         try (DataClosable<LocaleData> data = this.localeStorage.findAndSave(uuid)) {
             data.val().setLocale(locale);
         }
     }
 
+    public <Player> void setLocale(Player player, @NonNull Locale locale) {
+        this.setLocale(this.localeStorage.getUuidByPlayer(player), locale);
+    }
+
     public void setLocale(UUID uuid, @NonNull String localeName) {
         final Locale locale = this.getLocaleByName(localeName);
         Preconditions.checkNotNull(locale, "Couldn't find locale with name " + localeName);
 
-        this.setLocale(uuid, localeName);
+        this.setLocale(uuid, locale);
+    }
+
+    public <Player> void setLocale(Player player, @NonNull String localeName) {
+        this.setLocale(this.localeStorage.getUuidByPlayer(player), localeName);
     }
 
     public String translate(UUID uuid, String key) {

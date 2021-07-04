@@ -41,4 +41,16 @@ public class Locales {
         return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(player, key));
     }
 
+    public <Player> void setLocale(Player player, Locale locale) {
+        LOCALE_SERVICE.runOrNull(localeService -> localeService.setLocale(player, locale));
+    }
+
+    public <Player> void setLocale(Player player, String localeName) {
+        LOCALE_SERVICE.runOrNull(localeService -> localeService.setLocale(player, localeName));
+    }
+
+    public <Player> Locale getLocale(Player player) {
+        return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.getLocale(player));
+    }
+
 }
