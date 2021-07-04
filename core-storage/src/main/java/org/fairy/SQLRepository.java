@@ -36,9 +36,9 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class SQLRepository<T, ID extends Serializable> extends AbstractRepository<T, ID, AbstractSqlRepositoryProvider<?>> {
+public class SQLRepository<T, ID extends Serializable> extends AbstractRepository<T, ID, AbstractSqlRepositoryProvider> {
 
-    public SQLRepository(AbstractSqlRepositoryProvider<?> repositoryProvider, Class<T> type, String repoId) {
+    public SQLRepository(AbstractSqlRepositoryProvider repositoryProvider, Class<T> type, String repoId) {
         super(repositoryProvider, type, repoId);
     }
 
@@ -55,8 +55,8 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
         if (shouldLock) this.repositoryProvider.getIOLock().unlock();
     }
 
-    public <T> T supplySession(Function<Session, T> sessionConsumer) {
-        T result = null;
+    public <R> R supplySession(Function<Session, R> sessionConsumer) {
+        R result = null;
 
         Transaction transaction = null;
 

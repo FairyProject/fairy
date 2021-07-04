@@ -24,49 +24,28 @@
 
 package org.fairy.mysql.config.hikari;
 
-import com.zaxxer.hikari.HikariConfig;
-import lombok.SneakyThrows;
-import org.fairy.mysql.config.AbstractSqlRepositoryProvider;
-import org.fairy.mysql.config.CustomSqlRepositoryProvider;
-import org.fairy.mysql.connection.hikari.HikariConnectionFactory;
+import org.fairy.RepositoryType;
 
-public abstract class SimpleHikariRepositoryProvider<T extends HikariConnectionFactory> extends CustomSqlRepositoryProvider<T> {
+import java.util.Collections;
+import java.util.Map;
 
-    public SimpleHikariRepositoryProvider(String id) {
-        super(id);
+public abstract class SimpleHikariRepositoryProvider extends AbstractHikariRepositoryProvider {
+
+    public SimpleHikariRepositoryProvider(String id, RepositoryType repositoryType) {
+        super(id, repositoryType);
     }
 
     @Override
-    @SneakyThrows
-    public T createFactory() {
-        T factory = this.factoryClass().newInstance();
-        factory.init();
-        this.setupFactory(factory);
-        return factory;
+    public final Map<String, String> getDefaultOptions() {
+        return Collections.emptyMap();
     }
 
-    public void setupFactory(T factory) {
-        factory.configureDatabase(this.address(), this.port(), this.databaseName(), this.username(), this.password());
-        HikariConfig config = factory.getConfig();
-
-        config.setConnectionTestQuery("SELECT 1");
-        config.setAutoCommit(true);
-        config.setMinimumIdle(1);
-        config.setMaximumPoolSize(10);
-        config.setValidationTimeout(3000);
-        config.setConnectionTimeout(10000);
-        config.setIdleTimeout(60000);
-        config.setMaxLifetime(60000);
+    @Override
+    public final void verify(Map<String, String> map) {
     }
 
-    public abstract String address();
-
-    public abstract String port();
-
-    public abstract String databaseName();
-
-    public abstract String username();
-
-    public abstract String password();
+    @Override
+    public final void registerOptions(Map<String, String> map) {
+    }
 
 }

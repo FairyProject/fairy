@@ -26,6 +26,7 @@ package org.fairy;
 
 import org.fairy.config.StorageConfiguration;
 import org.fairy.providers.H2RepositoryProvider;
+import org.fairy.providers.HikariRepositoryProvider;
 import org.fairy.providers.MongoRepositoryProvider;
 
 import java.io.Serializable;
@@ -41,6 +42,10 @@ public interface RepositoryProvider extends AutoCloseable {
                 return new H2RepositoryProvider(providerId, parentFolder);
             case MONGO:
                 return new MongoRepositoryProvider(providerId);
+            case MYSQL:
+            case MARIADB:
+            case POSTGRE:
+                return new HikariRepositoryProvider(providerId, type);
         }
 
         throw new NullPointerException();

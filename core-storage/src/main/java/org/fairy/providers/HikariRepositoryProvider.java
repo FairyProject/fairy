@@ -22,50 +22,65 @@
  * SOFTWARE.
  */
 
-package org.fairy.mysql.config.file;
+package org.fairy.providers;
 
+import com.google.common.collect.ImmutableMap;
 import org.fairy.RepositoryType;
-import org.fairy.mysql.config.AbstractSqlRepositoryProvider;
-import org.fairy.mysql.connection.file.H2ConnectionFactory;
+import org.fairy.mysql.config.hikari.AbstractHikariRepositoryProvider;
 
-import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Map;
 
-public abstract class SimpleFileRepositoryProvider extends AbstractSqlRepositoryProvider {
+public class HikariRepositoryProvider extends AbstractHikariRepositoryProvider {
 
-    public SimpleFileRepositoryProvider(String id) {
-        super(id);
+    private String address, port, database, username, password;
+
+    public HikariRepositoryProvider(String id, RepositoryType repositoryType) {
+        super(id, repositoryType);
     }
 
     @Override
-    public Class<H2ConnectionFactory> factoryClass() {
-        return H2ConnectionFactory.class;
+    public String address() {
+        return this.address;
     }
 
     @Override
-    public H2ConnectionFactory createFactory() {
-        return new H2ConnectionFactory(this.path());
+    public String port() {
+        return this.port;
     }
 
     @Override
-    public RepositoryType type() {
-        return RepositoryType.H2;
-    }
-
-    public abstract Path path();
-
-    @Override
-    public final Map<String, String> getDefaultOptions() {
-        return Collections.emptyMap();
+    public String databaseName() {
+        return this.database;
     }
 
     @Override
-    public final void verify(Map<String, String> map) {
+    public String username() {
+        return this.username;
     }
 
     @Override
-    public final void registerOptions(Map<String, String> map) {
+    public String password() {
+        return this.password;
+    }
+
+    @Override
+    public Map<String, String> getDefaultOptions() {
+        return ImmutableMap.of(
+                "address", "localhost",
+                "port", "3306",
+                "database", "database",
+                "username", "user",
+                "password", "password"
+        );
+    }
+
+    @Override
+    public void registerOptions(Map<String, String> map) {
+        this.address = map.get("address");
+        this.port = map.get("port");
+        this.database = map.get("database");
+        this.username = map.get("username");
+        this.password = map.get("password");
     }
 
 }

@@ -32,10 +32,10 @@ import org.fairy.util.Utility;
 import java.io.Serializable;
 import java.sql.SQLException;
 
-public abstract class AbstractSqlRepositoryProvider<T extends AbstractConnectionFactory> extends AbstractRepositoryProvider {
+public abstract class AbstractSqlRepositoryProvider extends AbstractRepositoryProvider {
 
     @Getter
-    private T factory;
+    private AbstractConnectionFactory factory;
 
     public AbstractSqlRepositoryProvider(String id) {
         super(id);
@@ -47,6 +47,7 @@ public abstract class AbstractSqlRepositoryProvider<T extends AbstractConnection
             Utility.sneaky(this.factory::shutdown);
         }
         this.factory = this.createFactory();
+        this.factory.init();
         try {
             this.factory.connect();
         } catch (SQLException ex) {
@@ -64,9 +65,9 @@ public abstract class AbstractSqlRepositoryProvider<T extends AbstractConnection
         return new SQLRepository<>(this, entityType, repoId);
     }
 
-    public abstract T createFactory();
+    public abstract AbstractConnectionFactory createFactory();
 
-    public abstract Class<T> factoryClass();
+    public abstract Class<? extends AbstractConnectionFactory> factoryClass();
 
     public abstract RepositoryType type();
 
