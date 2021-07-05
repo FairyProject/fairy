@@ -49,6 +49,9 @@ public class ItemListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+        if (ItemLocalization.PACKET_BASED_ITEM_LOCALIZATION) {
+            return;
+        }
         Player player = event.getPlayer();
 
         Item item = event.getItem();
@@ -65,7 +68,7 @@ public class ItemListener implements Listener {
             return;
         }
 
-        ItemStack resultItem = imanityItem.build(player);
+        ItemStack resultItem = imanityItem.get(player);
         resultItem.setAmount(itemStack.getAmount());
         resultItem.setDurability(itemStack.getDurability());
 

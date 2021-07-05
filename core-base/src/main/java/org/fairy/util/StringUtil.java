@@ -28,6 +28,7 @@ import lombok.experimental.UtilityClass;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 @UtilityClass
 public class StringUtil {
@@ -135,7 +136,7 @@ public class StringUtil {
         String toString(T object);
     }
 
-    public Iterable<String> separateLines(String string, final String delimiter) {
+    public List<String> separateLines(String string, final String delimiter) {
         return Arrays.asList(string.split(delimiter));
     }
 

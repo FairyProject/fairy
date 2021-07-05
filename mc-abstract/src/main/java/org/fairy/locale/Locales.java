@@ -30,6 +30,8 @@ import org.fairy.bean.BeanHolder;
 import org.fairy.util.RV;
 import org.fairy.util.StringUtil;
 
+import java.util.UUID;
+
 /**
  * Static extension for Locale translation
  */
@@ -38,6 +40,26 @@ public class Locales {
 
     @Autowired
     private BeanHolder<LocaleService> LOCALE_SERVICE;
+
+    public String translate(UUID uuid, String key) {
+        return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(uuid, key));
+    }
+
+    public String translate(UUID uuid, String key, RV... rvs) {
+        return LOCALE_SERVICE.supplyOrNull(localeService -> StringUtil.replace(localeService.translate(uuid, key), rvs));
+    }
+
+    public void setLocale(UUID uuid, Locale locale) {
+        LOCALE_SERVICE.runOrNull(localeService -> localeService.setLocale(uuid, locale));
+    }
+
+    public void setLocale(UUID uuid, String localeName) {
+        LOCALE_SERVICE.runOrNull(localeService -> localeService.setLocale(uuid, localeName));
+    }
+
+    public Locale getLocale(UUID uuid) {
+        return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.getLocale(uuid));
+    }
 
     public <Player> String translate(Player player, String key) {
         return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(player, key));

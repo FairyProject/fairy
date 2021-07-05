@@ -249,24 +249,24 @@ public final class ImanityItem implements Terminable {
         }
 
         ItemBuilder itemBuilder = this.itemBuilder.clone();
+        if (!ItemLocalization.PACKET_BASED_ITEM_LOCALIZATION || !this.submitted) {
+            if (displayNameLocale != null) {
+                String name = Locales.translate(receiver, displayNameLocale);
+                for (LocaleRV rv : this.displayNamePlaceholders) {
+                    name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(receiver));
+                }
 
-        if (displayNameLocale != null) {
-            String name = Locales.translate(receiver, displayNameLocale);
-            for (LocaleRV rv : this.displayNamePlaceholders) {
-                name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(receiver));
+                itemBuilder.name(name);
             }
 
-            itemBuilder.name(name);
-        }
+            if (displayLoreLocale != null) {
+                String lore = Locales.translate(receiver, displayLoreLocale);
+                for (LocaleRV rv : this.displayLorePlaceholders) {
+                    lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(receiver));
+                }
 
-        if (displayLoreLocale != null) {
-            String lore = Locales.translate(receiver, displayLoreLocale);
-            for (LocaleRV rv : this.displayLorePlaceholders) {
-                lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(receiver));
+                itemBuilder.lore(StringUtil.separateLines(lore, "\n"));
             }
-
-            itemBuilder.lore(StringUtil.separateLines(lore, "\n"));
-
         }
 
         if (!this.submitted) {

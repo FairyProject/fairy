@@ -90,10 +90,16 @@ public abstract class ItemBehaviour {
 
     public ItemBehaviour() {
         this.filters = new ArrayList<>(1);
-        this.filter((player, itemStack) -> {
-            final String key = ImanityItem.getItemKeyFromBukkit(itemStack);
-            return key != null && key.equals(this.item.getId());
-        });
+        if (this.shouldFilterItemKey()) {
+            this.filter((player, itemStack) -> {
+                final String key = ImanityItem.getItemKeyFromBukkit(itemStack);
+                return key != null && key.equals(this.item.getId());
+            });
+        }
+    }
+
+    public boolean shouldFilterItemKey() {
+        return true;
     }
 
     public final void init0(ImanityItem item) {

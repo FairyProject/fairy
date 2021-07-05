@@ -25,6 +25,7 @@
 package org.fairy.bukkit.reflection;
 
 import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.base.Preconditions;
 import org.bukkit.entity.Player;
@@ -48,10 +49,14 @@ public class ProtocolLibService {
     public void send(Player player, Object packetContainer) {
         Preconditions.checkArgument(packetContainer instanceof PacketContainer, "ProtocolLibService.send(Player, Object) must be PacketContainer in second parameter!");
         try {
-            ProtocolLibrary.getProtocolManager().sendServerPacket(player, (PacketContainer) packetContainer);
+            this.manager().sendServerPacket(player, (PacketContainer) packetContainer);
         } catch (Throwable throwable) {
             throw new IllegalArgumentException("Error while sending packet", throwable);
         }
+    }
+
+    public ProtocolManager manager() {
+        return ProtocolLibrary.getProtocolManager();
     }
 
 }
