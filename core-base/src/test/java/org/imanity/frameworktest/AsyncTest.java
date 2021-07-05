@@ -28,10 +28,7 @@ import org.hamcrest.MatcherAssert;
 import org.fairy.Async;
 import org.junit.Test;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public final class AsyncTest {
 
@@ -53,6 +50,18 @@ public final class AsyncTest {
                     CoreMatchers.not(Thread.currentThread().getName()),
                     CoreMatchers.startsWith("imanity-async")
             )
+        );
+    }
+
+    @Test
+    public void executesCompletableFutureValue() throws Exception {
+        MatcherAssert.assertThat(
+                new Foo().asyncMethodWithCompletableFuture()
+                        .get(5, TimeUnit.MINUTES),
+                CoreMatchers.allOf(
+                        CoreMatchers.not(Thread.currentThread().getName()),
+                        CoreMatchers.startsWith("imanity-async")
+                )
         );
     }
 
@@ -99,6 +108,11 @@ public final class AsyncTest {
                     return Thread.currentThread().getName();
                 }
             };
+        }
+
+        @Async
+        public CompletableFuture<String> asyncMethodWithCompletableFuture() {
+            return CompletableFuture.completedFuture(Thread.currentThread().getName());
         }
 
         @Async

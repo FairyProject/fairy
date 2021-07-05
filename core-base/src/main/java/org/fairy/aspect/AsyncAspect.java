@@ -31,6 +31,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.fairy.util.Stacktrace;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -51,7 +52,47 @@ public final class AsyncAspect {
     public Object wrap(final ProceedingJoinPoint point) {
         final Class<?> returned = ((MethodSignature) point.getSignature()).getMethod().getReturnType();
 
-        if (!Future.class.isAssignableFrom(returned) && !returned.equals(Void.TYPE)) {
+        Object resultObject = null;
+        if (CompletableFuture.class.isAssignableFrom(returned)) {
+            resultObject = new CompletableFuture<>();
+            CompletableFuture future = (CompletableFuture<?>) resultObject;
+            EXECUTOR.submit(() -> {
+               try {
+                   final Object proceed = point.proceed();
+                   if (proceed instanceof CompletableFuture) {
+                       ((CompletableFuture<?>) proceed).thenAccept(future::complete);
+                   } else {
+                       future.complete(null);
+                   }
+               } catch (Throwable ex) {
+                   throw new IllegalStateException(
+                           String.format("%s: Exception thrown", point.toShortString()),
+                           ex
+                   );
+               }
+            });
+        } else if (Future.class.isAssignableFrom(returned) || returned.equals(Void.TYPE)) {
+            final Future<?> future = EXECUTOR.submit(() -> {
+                        Object returned1 = null;
+                        try {
+                            final Object result1 = point.proceed();
+                            if (result1 instanceof Future) {
+                                returned1 = ((Future<?>) result1).get();
+                            }
+                        } catch (final Throwable ex) {
+                            throw new IllegalStateException(
+                                    String.format("%s: Exception thrown", point.toShortString()),
+                                    ex
+                            );
+                        }
+                        return returned1;
+                    }
+            );
+
+            if (Future.class.isAssignableFrom(returned)) {
+                resultObject = future;
+            }
+        } else {
             throw new IllegalStateException(
                     String.format(
                             "%s: Return type is %s, not void or Future, cannot use @Async",
@@ -61,26 +102,6 @@ public final class AsyncAspect {
             );
         }
 
-        final Future<?> future = EXECUTOR.submit(() -> {
-                    Object returned1 = null;
-                    try {
-                        final Object result1 = point.proceed();
-                        if (result1 instanceof Future) {
-                            returned1 = ((Future<?>) result1).get();
-                        }
-                    } catch (final Throwable ex) {
-                        throw new IllegalStateException(
-                                String.format("%s: Exception thrown", point.toShortString()),
-                                ex
-                        );
-                    }
-                    return returned1;
-                }
-        );
-        Object resultObject = null;
-        if (Future.class.isAssignableFrom(returned)) {
-            resultObject = future;
-        }
         return resultObject;
     }
 
