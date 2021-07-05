@@ -47,8 +47,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service(name = "locale")
 public class LocaleService {
 
-    private static final Logger LOGGER = LogManager.getLogger();
-
     private Map<String, Locale> locales;
     @Getter
     private Locale defaultLocale;
@@ -80,7 +78,10 @@ public class LocaleService {
     }
 
     public Locale registerLocale(String name) {
-        return this.locales.put(name, new Locale(name));
+        final Locale locale = new Locale(name);
+        this.locales.put(name, locale);
+
+        return locale;
     }
 
     public Locale unregisterLocale(String name) {

@@ -51,7 +51,7 @@ public class StorageService {
         ComponentRegistry.registerComponentHolder(new ComponentHolder() {
             @Override
             public Class<?>[] type() {
-                return new Class[] {RepositoryType.class};
+                return new Class[] {RepositoryProvider.class};
             }
 
             @Override
@@ -59,6 +59,7 @@ public class StorageService {
                 RepositoryProvider repositoryProvider = (RepositoryProvider) instance;
 
                 registerRepositoryProvider(repositoryProvider);
+                repositoryProvider.build();
             }
 
             @Override

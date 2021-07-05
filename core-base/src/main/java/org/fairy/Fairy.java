@@ -28,6 +28,7 @@ import lombok.experimental.UtilityClass;
 import org.fairy.config.BaseConfiguration;
 import org.fairy.library.LibraryHandler;
 import org.fairy.task.ITaskScheduler;
+import org.fairy.util.FastRandom;
 
 /**
  * Static extension of FairyBootstrap
@@ -36,6 +37,11 @@ import org.fairy.task.ITaskScheduler;
 public class Fairy {
 
     public final String METADATA_PREFIX = "Imanity_";
+    private final FastRandom RANDOM = new FastRandom();
+
+    public FastRandom random() {
+        return RANDOM;
+    }
 
     public boolean isRunning() {
         return FairyBootstrap.INSTANCE.getPlatform().isRunning();

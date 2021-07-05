@@ -42,6 +42,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.NumberConversions;
+import org.fairy.Fairy;
 import org.fairy.bukkit.Imanity;
 import org.fairy.config.annotation.ConfigurationElement;
 
@@ -235,7 +236,7 @@ public class CustomLocation {
 	}
 
 	public void teleport(Player player, double range, boolean safe) {
-		double rand = -range + (range * 2) * Imanity.RANDOM.nextDouble();
+		double rand = -range + (range * 2) * Fairy.random().nextDouble();
 		player.teleport(this.toBukkitLocation().add(rand, safe ? 0.5D : 0.0D, rand));
 	}
 

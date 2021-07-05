@@ -58,7 +58,6 @@ import java.util.List;
 public final class Imanity {
 
     public static final Logger LOGGER = LogManager.getLogger(Imanity.class);
-    public static FastRandom RANDOM;
 
     public static ImanityTabHandler TAB_HANDLER;
     public static BossBarHandler BOSS_BAR_HANDLER;
@@ -70,7 +69,6 @@ public final class Imanity {
     public static Plugin PLUGIN;
 
     public static ServerImplementation IMPLEMENTATION;
-    public static PluginClassLoader CLASS_LOADER;
     private static VisualBlockHandler VISUAL_BLOCK_HANDLER;
 
     public static VisualBlockHandler getVisualBlockHandler() {
