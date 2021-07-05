@@ -27,6 +27,8 @@ package org.fairy.locale;
 import lombok.experimental.UtilityClass;
 import org.fairy.bean.Autowired;
 import org.fairy.bean.BeanHolder;
+import org.fairy.util.RV;
+import org.fairy.util.StringUtil;
 
 /**
  * Static extension for Locale translation
@@ -39,6 +41,10 @@ public class Locales {
 
     public <Player> String translate(Player player, String key) {
         return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(player, key));
+    }
+
+    public <Player> String translate(Player player, String key, RV... rvs) {
+        return LOCALE_SERVICE.supplyOrNull(localeService -> StringUtil.replace(localeService.translate(player, key), rvs));
     }
 
     public <Player> void setLocale(Player player, Locale locale) {

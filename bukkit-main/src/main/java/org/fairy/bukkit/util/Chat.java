@@ -35,6 +35,7 @@ import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutTitle;
 import org.fairy.bukkit.reflection.wrapper.ChatComponentWrapper;
 import org.fairy.bukkit.util.sound.SoundData;
 import org.fairy.util.CC;
+import org.fairy.util.RV;
 import org.fairy.util.StringUtil;
 
 import java.util.List;
@@ -505,6 +506,37 @@ public class Chat {
         }
 
         return CC.translate(message);
+    }
+
+    public static String translate(Player player, String key) {
+        return CC.translate(Locales.translate(player.getUniqueId(), key));
+    }
+
+    public static Iterable<String> translateLines(Player player, String key) {
+        return StringUtil.separateLines(Chat.translate(player, key), "\n");
+    }
+
+    public static String translate(Player player, String key, RV... replaceValues) {
+        return StringUtil.replace(Chat.translate(player, key), replaceValues);
+    }
+
+    public static Iterable<String> translateLines(Player player, String key, RV... replaceValues) {
+        return StringUtil.separateLines(Chat.translate(player, key, replaceValues), "\n");
+    }
+
+    public static String translate(Player player, String key, LocaleRV... replaceValues) {
+
+        String result = Chat.translate(player, key);
+
+        for (LocaleRV rv : replaceValues) {
+            result = StringUtil.replace(result, rv.getTarget(), rv.getReplacement(player));
+        }
+
+        return result;
+    }
+
+    public static Iterable<String> translateLines(Player player, String key, LocaleRV... replaceValues) {
+        return StringUtil.separateLines(Chat.translate(player, key, replaceValues), "\n");
     }
 
 
