@@ -23,11 +23,11 @@
  */
 
 dependencies {
-    compileOnly "net.wesjd:anvilgui:1.4.0-SNAPSHOT"
+    api "net.wesjd:anvilgui:1.5.1-SNAPSHOT"
+
     compileOnly "us.myles:viaversion:3.2.1"
     compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
     compileOnly "org.imanity.paperspigot:1.7.10:1.7.10"
-    compileOnly "com.github.derklaro:requestbuilder:1.0.3"
     compileOnly "com.boydti:fawe-api:latest"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
     compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
