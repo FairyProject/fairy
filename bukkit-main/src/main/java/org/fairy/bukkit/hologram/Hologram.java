@@ -37,6 +37,7 @@ import org.fairy.bukkit.hologram.api.PlaceholderViewHandler;
 import org.fairy.bukkit.hologram.api.TextViewHandler;
 import org.fairy.bukkit.hologram.api.ViewHandler;
 import org.fairy.bukkit.hologram.player.RenderedHolograms;
+import org.fairy.bukkit.packet.wrapper.other.Vector3D;
 import org.fairy.util.RV;
 
 import java.util.ArrayList;
@@ -57,6 +58,7 @@ public class Hologram {
     private boolean spawned;
 
     private Entity attachedTo;
+    private InteractListener interactListener;
 
     private List<HologramSingle> lines = new ArrayList<>();
     private List<Player> renderedPlayers = Collections.synchronizedList(new ArrayList<>());
@@ -113,6 +115,8 @@ public class Hologram {
         if (index >= this.lines.size()) {
             HologramSingle single = new HologramSingle(this, viewHandler, -Y_PER_LINE * index, index);
             this.lines.add(index, single);
+            this.hologramHandler.registerEntityId(single.getHorseId(), this);
+            this.hologramHandler.registerEntityId(single.getArmorStandId(), this);
 
             if (this.isSpawned()) {
                 single.send(this.renderedPlayers);
@@ -135,6 +139,9 @@ public class Hologram {
             HologramSingle single = this.lines.get(index);
             single.sendRemove(this.renderedPlayers);
             this.lines.remove(index);
+
+            this.hologramHandler.unregisterEntityId(single.getHorseId());
+            this.hologramHandler.unregisterEntityId(single.getArmorStandId());
         }
     }
 
@@ -202,8 +209,12 @@ public class Hologram {
             holograms.removeHologram(player, this);
         }
         this.renderedPlayers.clear();
-
         this.hologramHandler.removeHologram(this);
+
+        for (HologramSingle line : this.lines) {
+            this.hologramHandler.unregisterEntityId(line.getHorseId());
+            this.hologramHandler.unregisterEntityId(line.getArmorStandId());
+        }
 
         this.spawned = false;
         return true;
@@ -228,6 +239,22 @@ public class Hologram {
         if (!Bukkit.isPrimaryThread()) {
             throw new IllegalStateException("Hologram doesn't support async");
         }
+    }
+
+    public interface InteractListener {
+
+        default void attack(Player player) {
+
+        }
+
+        default void interact(Player player) {
+
+        }
+
+        default void interactAt(Player player, Vector3D vector3D) {
+
+        }
+
     }
 
 }

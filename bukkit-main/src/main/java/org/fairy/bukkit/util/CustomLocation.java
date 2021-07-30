@@ -237,7 +237,7 @@ public class CustomLocation {
 
 	public void teleport(Player player, double range, boolean safe) {
 		double rand = -range + (range * 2) * Fairy.random().nextDouble();
-		player.teleport(this.toBukkitLocation().add(rand, safe ? 0.5D : 0.0D, rand));
+		player.teleport(this.toBukkitLocation().add(rand, safe ? 1.5D : 0.0D, rand));
 	}
 
 	public static class Serializer extends StdSerializer<CustomLocation> {

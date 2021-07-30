@@ -42,6 +42,7 @@ import org.fairy.bukkit.bossbar.BossBarHandler;
 import org.fairy.bukkit.chunk.block.CacheBlockSetHandler;
 import org.fairy.bukkit.hologram.HologramHandler;
 import org.fairy.bukkit.impl.server.ServerImplementation;
+import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.metadata.Metadata;
 import org.fairy.bukkit.player.movement.MovementListener;
 import org.fairy.bukkit.player.movement.impl.AbstractMovementImplementation;
@@ -84,7 +85,7 @@ public final class Imanity {
     }
 
     public static HologramHandler getHologramHandler(World world) {
-        return Metadata.provideForWorld(world).getOrPut(HologramHandler.WORLD_METADATA, HologramHandler::new);
+        return Metadata.provideForWorld(world).getOrPut(HologramHandler.WORLD_METADATA, () -> new HologramHandler(world));
     }
 
     public static AbstractMovementImplementation registerMovementListener(MovementListener movementListener) {
@@ -104,24 +105,9 @@ public final class Imanity {
         return implementation;
     }
 
+    @Deprecated
     public static void registerEvents(Listener... listeners) {
-        for (Listener listener : listeners) {
-            Plugin plugin = null;
-            try {
-                plugin = JavaPlugin.getProvidingPlugin(listener.getClass());
-            } catch (Throwable ignored) {}
-
-            if (plugin == null) {
-                plugin = Imanity.PLUGIN;
-            }
-
-            if (!plugin.isEnabled()) {
-                Imanity.LOGGER.error("The plugin hasn't enabled but trying to register listener " + listener.getClass().getSimpleName());
-                return;
-            } else {
-                PLUGIN.getServer().getPluginManager().registerEvents(listener, plugin);
-            }
-        }
+        Events.subscribe(listeners);
     }
 
     public static void unregisterEvents(Listener... listeners) {

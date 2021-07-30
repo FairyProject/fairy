@@ -152,7 +152,11 @@ public class ImanityItemBuilder {
     }
 
     public ImanityItem build() {
-        final ImanityItem item = new ImanityItem(
+        return this.buildNoTag().submit();
+    }
+
+    public ImanityItem buildNoTag() {
+        return new ImanityItem(
                 this.plugin,
                 this.id,
                 this.itemBuilder,
@@ -163,7 +167,6 @@ public class ImanityItemBuilder {
                 this.displayLorePlaceholders,
                 this.metadata
         );
-        return item.submit();
     }
 
 }

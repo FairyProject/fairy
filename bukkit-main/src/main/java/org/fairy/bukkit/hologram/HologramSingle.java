@@ -49,9 +49,9 @@ public class HologramSingle {
 
     private Hologram hologram;
 
+    private final int armorStandId;
+    private final int horseId;
     private int index;
-    private int armorStandId;
-    private int horseId;
     private float y;
 
     private ViewHandler viewHandler;

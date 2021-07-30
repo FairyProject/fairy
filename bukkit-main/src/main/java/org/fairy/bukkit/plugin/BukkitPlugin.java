@@ -24,13 +24,27 @@
 
 package org.fairy.bukkit.plugin;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.fairy.plugin.AbstractPlugin;
 import org.fairy.plugin.PluginManager;
 import org.fairy.util.Utility;
+import org.fairy.util.terminable.TerminableConsumer;
+import org.fairy.util.terminable.composite.CompositeTerminable;
+import org.jetbrains.annotations.NotNull;
 
-public abstract class BukkitPlugin extends JavaPlugin implements AbstractPlugin {
+public abstract class BukkitPlugin extends JavaPlugin implements AbstractPlugin, TerminableConsumer {
+
+    protected final Logger logger = LogManager.getLogger();
+    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
+
+    @NotNull
+    @Override
+    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+        return this.compositeTerminable.bind(terminable);
+    }
 
     @Override
     public final void onLoad() {
@@ -62,7 +76,16 @@ public abstract class BukkitPlugin extends JavaPlugin implements AbstractPlugin 
     public final void onDisable() {
         ClassLoader originalContextClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(getClassLoader());
-        this.onPluginDisable();
+        try {
+            this.onPluginDisable();
+        } catch (Throwable throwable) {
+            this.logger.error(throwable);
+        }
+        try {
+            this.compositeTerminable.close();
+        } catch (Throwable throwable) {
+            this.logger.error(throwable);
+        }
 
         PluginManager.INSTANCE.onPluginDisable(this);
         Thread.currentThread().setContextClassLoader(originalContextClassLoader);

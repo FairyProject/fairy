@@ -28,12 +28,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.util.nms.NBTEditor;
 
 import java.util.ArrayList;
@@ -151,6 +153,17 @@ public class ItemBuilder implements Listener, Cloneable {
 		if (itemStack.getType() == Material.SKULL_ITEM && itemStack.getDurability() == (byte) 3) {
 			SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
 			skullMeta.setOwner(owner);
+			itemStack.setItemMeta(skullMeta);
+			return this;
+		} else {
+			throw new IllegalArgumentException("skull() only applicable for human skull item!");
+		}
+	}
+
+	public ItemBuilder skull(Player owner) {
+		if (itemStack.getType() == Material.SKULL_ITEM && itemStack.getDurability() == (byte) 3) {
+			SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
+			Imanity.IMPLEMENTATION.setSkullGamwProfile(skullMeta, owner);
 			itemStack.setItemMeta(skullMeta);
 			return this;
 		} else {

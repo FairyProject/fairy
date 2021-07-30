@@ -42,11 +42,13 @@ public class Task {
 
     public Executor main(boolean forceMain) {
         return run -> {
-            if (Thread.currentThread() == MAIN || forceMain) {
+            if (Thread.currentThread() != MAIN || forceMain) {
                 Fairy.getTaskScheduler().runSync(() -> {
                     MAIN = Thread.currentThread();
                     run.run();
                 });
+            } else {
+                run.run();
             }
         };
     }
@@ -64,18 +66,10 @@ public class Task {
     }
 
     public Executor mainLater(long ticks) {
-        return mainLater(false, ticks);
-    }
-
-    public Executor mainLater(boolean forceMain, long ticks) {
-        return run -> {
-            if (Thread.currentThread() == MAIN || forceMain) {
-                Fairy.getTaskScheduler().runScheduled(() -> {
-                    MAIN = Thread.currentThread();
-                    run.run();
-                }, ticks);
-            }
-        };
+        return run -> Fairy.getTaskScheduler().runScheduled(() -> {
+            MAIN = Thread.currentThread();
+            run.run();
+        }, ticks);
     }
 
     public Executor asyncLater(long ticks) {

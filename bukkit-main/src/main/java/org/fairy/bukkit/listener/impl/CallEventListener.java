@@ -36,6 +36,7 @@ import org.fairy.bukkit.events.player.PlayerDamageByPlayerEvent;
 import org.fairy.bukkit.events.player.PlayerDamageEvent;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bean.Component;
+import org.fairy.bukkit.util.BukkitUtil;
 
 @Component
 public class CallEventListener implements Listener {
@@ -45,17 +46,18 @@ public class CallEventListener implements Listener {
         Entity entity = event.getEntity();
         if (event instanceof EntityDamageByEntityEvent) {
             EntityDamageByEntityEvent damageByEntityEvent = (EntityDamageByEntityEvent) event;
+            Player playerDamager = BukkitUtil.getDamager(damageByEntityEvent);
+
             if (entity instanceof Player) {
                 Player player = (Player) entity;
-                if (damageByEntityEvent.getDamager() instanceof Player) {
-                    Imanity.callEvent(new PlayerDamageByPlayerEvent(player, damageByEntityEvent));
+                if (playerDamager != null) {
+                    Imanity.callEvent(new PlayerDamageByPlayerEvent(player, playerDamager, damageByEntityEvent));
                     return;
                 }
                 Imanity.callEvent(new PlayerDamageByEntityEvent(player, damageByEntityEvent));
                 return;
-            } else if (damageByEntityEvent.getDamager() instanceof Player) {
-                Player player = (Player) damageByEntityEvent.getDamager();
-                Imanity.callEvent(new EntityDamageByPlayerEvent(player, damageByEntityEvent));
+            } else if (playerDamager != null) {
+                Imanity.callEvent(new EntityDamageByPlayerEvent(playerDamager, damageByEntityEvent));
             }
             return;
         }

@@ -24,8 +24,10 @@
 
 package org.fairy.storage;
 
+import com.google.common.collect.Lists;
 import org.fairy.bean.PostInitialize;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -60,6 +62,11 @@ public abstract class InMemoryPlayerStorage<T> implements PlayerStorage<T> {
     @Override
     public DataClosable<T> findAndSave(UUID uuid) {
         return new DataClosable<>(this, uuid, this.find(uuid));
+    }
+
+    @Override
+    public List<T> findAll() {
+        return Lists.newArrayList(this.storedObjects.values());
     }
 
     @Override

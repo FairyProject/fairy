@@ -27,6 +27,7 @@ package org.fairy.storage;
 import lombok.RequiredArgsConstructor;
 
 import java.io.Closeable;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,6 +39,8 @@ public interface PlayerStorage<T> {
     CompletableFuture<T> save(UUID uuid);
 
     CompletableFuture<T> save(UUID uuid, T t);
+
+    List<T> findAll();
 
     void unload(UUID uuid);
 

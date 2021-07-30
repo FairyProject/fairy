@@ -87,11 +87,6 @@ public class VisualBlockHandler implements Runnable {
             public void handleUpdateLocation(Player player, Location from, Location to) {
                 handlePositionChanged(player, to);
             }
-
-            @Override
-            public void handleUpdateRotation(Player player, Location from, Location to) {
-
-            }
         })
         .ignoreSameBlock();
 

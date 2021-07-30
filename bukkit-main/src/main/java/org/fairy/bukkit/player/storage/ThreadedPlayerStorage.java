@@ -24,6 +24,7 @@
 
 package org.fairy.bukkit.player.storage;
 
+import com.google.common.collect.Lists;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -44,10 +45,7 @@ import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bean.details.BeanDetails;
 import org.fairy.task.Task;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -296,4 +294,8 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                 .bindWith(beanDetails);
     }
 
+    @Override
+    public List<T> findAll() {
+        return Lists.newArrayList(this.storedObjects.values());
+    }
 }

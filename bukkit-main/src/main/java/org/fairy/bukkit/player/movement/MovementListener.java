@@ -29,8 +29,12 @@ import org.bukkit.entity.Player;
 
 public interface MovementListener {
 
-    void handleUpdateLocation(Player player, Location from, Location to);
+    default void handleUpdateLocation(Player player, Location from, Location to) {
 
-    void handleUpdateRotation(Player player, Location from, Location to);
+    }
+
+    default void handleUpdateRotation(Player player, Location from, Location to) {
+
+    }
 
 }

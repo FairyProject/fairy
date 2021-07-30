@@ -24,17 +24,23 @@
 
 package org.fairy.bukkit.impl.server;
 
+import com.google.common.collect.ForwardingMultimap;
 import com.google.common.collect.HashMultimap;
+import com.mojang.authlib.properties.PropertyMap;
+import net.minecraft.server.v1_8_R3.EntityPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
 import org.fairy.Fairy;
 import org.fairy.bukkit.impl.annotation.ServerImpl;
 import org.fairy.bukkit.metadata.Metadata;
 import org.fairy.bukkit.packet.PacketService;
 import org.fairy.bukkit.reflection.MinecraftReflection;
+import org.fairy.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import org.fairy.bukkit.reflection.wrapper.*;
 import org.fairy.bukkit.util.BlockPosition;
 import org.fairy.bukkit.util.BlockPositionData;
@@ -50,8 +56,11 @@ import org.fairy.bukkit.reflection.resolver.ResolverQuery;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.bukkit.reflection.resolver.ConstructorResolver;
 import org.fairy.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import org.fairy.reflect.ReflectObject;
+import org.fairy.util.AccessUtil;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -72,9 +81,11 @@ public class NormalImplementation implements ServerImplementation {
     private static Class<?> BLOCK_INFO_TYPE;
 
     private static FieldWrapper<Float> BLOCK_SLIPPERINESS_FIELD;
+    private static FieldWrapper GAME_PROFILE_FIELD;
 
     private static MethodWrapper<?> BLOCK_GET_BY_ID_METHOD;
     private static MethodWrapper<?> FROM_LEGACY_DATA_METHOD;
+    private static MethodWrapper<?> GET_PROFILE_ENTITY_HUMAN_METHOD;
     private static final MethodWrapper<?> GET_ENTITY_BY_ID_METHOD;
 
     private static ConstructorWrapper<?> BLOCK_INFO_CONSTRUCTOR;
@@ -83,9 +94,13 @@ public class NormalImplementation implements ServerImplementation {
     private static final ConstructorWrapper<?> DESTROY_ENTITY_CONSTRUCTOR;
 
     static {
-
-        NMSClassResolver CLASS_RESOLVER = new NMSClassResolver();
+        final NMSClassResolver CLASS_RESOLVER = new NMSClassResolver();
+        final OBCClassResolver OBC_RESOLVER = new OBCClassResolver();
         try {
+            final Field field = OBC_RESOLVER.resolve("inventory.CraftMetaSkull").getDeclaredField("profile");
+            AccessUtil.setAccessible(field);
+            GAME_PROFILE_FIELD = new FieldWrapper<>(field);
+            GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(CLASS_RESOLVER.resolve("EntityHuman").getMethod("getProfile"));
 
             Class<?> minecraftServerType = CLASS_RESOLVER.resolve("MinecraftServer");
             Object minecraftServer = minecraftServerType.getMethod("getServer").invoke(null);
@@ -393,6 +408,18 @@ public class NormalImplementation implements ServerImplementation {
 
         MinecraftReflection.sendPacket(player, packet);
 
+    }
+
+    @Override
+    public void setSkullGamwProfile(ItemMeta itemMeta, Player player) {
+        if (!(itemMeta instanceof SkullMeta)) {
+            throw new ClassCastException(itemMeta.getClass().getSimpleName() + " cannot be cast to " + SkullMeta.class.getSimpleName());
+        }
+
+        final Object handle = MinecraftReflection.getHandleSilent(player);
+        final Object profile = GET_PROFILE_ENTITY_HUMAN_METHOD.invoke(handle);
+
+        GAME_PROFILE_FIELD.set(itemMeta, profile);
     }
 
     @Override

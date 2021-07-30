@@ -31,6 +31,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.MaterialData;
 import org.fairy.bukkit.impl.annotation.ProviderTestImpl;
 import org.fairy.bukkit.impl.annotation.ServerImpl;
@@ -115,6 +116,8 @@ public interface ServerImplementation {
     void sendEntityTeleport(Player player, Location location, int id);
 
     void sendEntityAttach(Player player, int type, int toAttach, int attachTo);
+
+    void setSkullGamwProfile(ItemMeta itemMeta, Player player);
 
     boolean isServerThread();
 

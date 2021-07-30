@@ -42,6 +42,7 @@ import org.fairy.bukkit.tablist.util.TabEntry;
 import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.util.Skin;
 import org.fairy.bukkit.Imanity;
+import org.fairy.util.CC;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
@@ -88,8 +89,8 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
 
         final Player player = tablist.getPlayer();
         final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
-        String[] newStrings = ImanityTablist.splitStrings(text, tabEntry.getRawSlot());
         if (playerVersion == PlayerVersion.v1_7) {
+            String[] newStrings = ImanityTablist.splitStrings(text, tabEntry.getRawSlot());
             Imanity.IMPLEMENTATION.sendTeam(
                     player,
                     LegacyClientUtil.name(tabEntry.getRawSlot() - 1),
@@ -109,7 +110,7 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
                     profile,
                     1,
                     EnumWrappers.NativeGameMode.SURVIVAL,
-                    WrappedChatComponent.fromText(ChatColor.translateAlternateColorCodes('&', newStrings.length > 1 ? newStrings[0] + newStrings[1] : newStrings[0]))
+                    WrappedChatComponent.fromText(ChatColor.translateAlternateColorCodes('&', text))
             );
             packet.getPlayerInfoDataLists().write(0, Collections.singletonList(playerInfoData));
             sendPacket(player, packet);
@@ -145,19 +146,16 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
 
     @Override
     public void updateFakeSkin(ImanityTablist zigguratTablist, TabEntry tabEntry, Skin skin) {
-        if (tabEntry.getTexture() == skin) {
+        final Player player = zigguratTablist.getPlayer();
+        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
+        if (tabEntry.getTexture() == skin || playerVersion == PlayerVersion.v1_7) {
             return;
         }
 
-        final Player player = zigguratTablist.getPlayer();
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
+        WrappedGameProfile profile = new WrappedGameProfile(tabEntry.getUuid(), tabEntry.getId());
+        PlayerInfoData playerInfoData = new PlayerInfoData(profile, 1, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(CC.translate(tabEntry.getText())));
 
-        WrappedGameProfile profile = new WrappedGameProfile(tabEntry.getUuid(), playerVersion != PlayerVersion.v1_7  ? tabEntry.getId() : LegacyClientUtil.entry(tabEntry.getRawSlot() - 1) + "");
-        PlayerInfoData playerInfoData = new PlayerInfoData(profile, 1, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(playerVersion != PlayerVersion.v1_7 ?  "" : profile.getName()));
-
-        if (playerVersion != PlayerVersion.v1_7) {
-            playerInfoData.getProfile().getProperties().put("texture", new WrappedSignedProperty("textures", skin.skinValue, skin.skinSignature));
-        }
+        playerInfoData.getProfile().getProperties().put("texture", new WrappedSignedProperty("textures", skin.skinValue, skin.skinSignature));
 
         PacketContainer remove = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.PLAYER_INFO);
         remove.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);

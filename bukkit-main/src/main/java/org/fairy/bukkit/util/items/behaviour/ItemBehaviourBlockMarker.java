@@ -24,9 +24,11 @@
 
 package org.fairy.bukkit.util.items.behaviour;
 
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
@@ -47,7 +49,7 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         super.init(item);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         final Player player = event.getPlayer();
         Block block = event.getBlock();
@@ -64,7 +66,7 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         Metadata.provideForBlock(block).put(METADATA, itemKey);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
         Player player = event.getPlayer();
         final Block block = event.getBlock();
@@ -80,8 +82,11 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         if (item == null) {
             return;
         }
-        block.getDrops().clear();
-        block.getDrops().add(item.get(player));
+        event.setCancelled(true);
+        block.setType(Material.AIR);
+        final ItemStack itemStack = item.get(player);
+        itemStack.setAmount(1);
+        player.getWorld().dropItemNaturally(block.getLocation(), itemStack);
     }
 
     @Override

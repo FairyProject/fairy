@@ -31,6 +31,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.fairy.Fairy;
+import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.metadata.Metadata;
@@ -64,8 +65,7 @@ public class BossBarHandler implements Runnable {
             }
         }).ignoreSameBlock();
 
-        Imanity.registerEvents(new Listener() {
-
+        Events.subscribe(new Listener() {
             @EventHandler
             public void onPlayerQuit(PlayerQuitEvent event) {
                 Player player = event.getPlayer();
@@ -85,7 +85,6 @@ public class BossBarHandler implements Runnable {
                 BossBar bossBar = getOrCreate(player);
                 bossBar.destroy(player);
             }
-
         });
 
         Thread thread = new Thread(this);

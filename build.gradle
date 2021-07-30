@@ -121,6 +121,11 @@ subprojects {
         compileOnly "org.jetbrains:annotations:19.0.0"
         annotationProcessor "org.jetbrains:annotations:19.0.0"
 
+        compileOnly AspectJRuntime
+        if (project.name != "core-base") {
+            aspect project(":core-base")
+        }
+
         if (project.name.startsWith("core-")) {
             // Compile javax.persistence-api to all
             if (project.name == "core-all") {
@@ -132,7 +137,6 @@ subprojects {
             // Include misc if not misc
             if (project.name != "core-base") {
                 compileOnly project(":core-base")
-                compileOnly AspectJRuntime
                 compileOnly JacksonCore
                 compileOnly JacksonDataBind
             }
@@ -177,6 +181,9 @@ subprojects {
         test.compileClasspath += configurations.compileOnly
         test.runtimeClasspath += configurations.compileOnly
     }
+
+    compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
+    compileJava.ajc.options.compilerArgs += "-verbose"
 
     compileTestJava.ajc.options.aspectpath.from sourceSets.main.output
 }

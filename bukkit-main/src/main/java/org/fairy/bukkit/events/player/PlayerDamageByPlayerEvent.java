@@ -29,11 +29,14 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 public class PlayerDamageByPlayerEvent extends PlayerDamageEvent {
 
-    public PlayerDamageByPlayerEvent(Player player, EntityDamageByEntityEvent entityDamageEvent) {
+    private Player damager;
+
+    public PlayerDamageByPlayerEvent(Player player, Player damager, EntityDamageByEntityEvent entityDamageEvent) {
         super(player, entityDamageEvent);
+        this.damager = damager;
     }
 
     public Player getDamager() {
-        return (Player) ((EntityDamageByEntityEvent) this.getEntityDamageEvent()).getDamager();
+        return this.damager;
     }
 }

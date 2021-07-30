@@ -38,17 +38,33 @@ import org.fairy.library.Library;
 import org.fairy.plugin.PluginClassLoader;
 import org.fairy.plugin.PluginManager;
 import org.fairy.task.ITaskScheduler;
+import org.fairy.util.terminable.TerminableConsumer;
+import org.fairy.util.terminable.composite.CompositeClosingException;
+import org.fairy.util.terminable.composite.CompositeTerminable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public final class FairyBukkitPlatform extends JavaPlugin implements FairyPlatform {
+public final class FairyBukkitPlatform extends JavaPlugin implements FairyPlatform, TerminableConsumer {
+
+    public static FairyBukkitPlatform INSTANCE;
 
     private PluginClassLoader pluginClassLoader;
     private FairyBootstrap bootstrap;
 
+    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
+
+    @NotNull
+    @Override
+    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+        return this.compositeTerminable.bind(terminable);
+    }
+
     @Override
     public void onLoad() {
+        INSTANCE = this;
+
         Imanity.PLUGIN = this;
         PluginManager.initialize(new BukkitPluginHandler());
 
