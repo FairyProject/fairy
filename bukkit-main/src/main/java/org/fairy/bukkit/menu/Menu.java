@@ -199,7 +199,7 @@ public abstract class Menu implements TerminableConsumer {
 
         int limit = this.getSizeLimit();
 
-        for (int i = 0; i < limit - 1; i++) {
+        for (int i = 0; i < limit; i++) {
             if (this.isEmpty(i)) {
                 result.add(i);
             }

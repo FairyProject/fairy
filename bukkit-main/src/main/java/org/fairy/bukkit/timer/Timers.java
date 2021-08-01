@@ -22,18 +22,15 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.timer.event;
+package org.fairy.bukkit.timer;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.HandlerList;
-import org.fairy.bukkit.timer.Timer;
+import lombok.experimental.UtilityClass;
+import org.fairy.bean.Autowired;
 
-public class TimerElapsedEvent extends TimerEvent {
+@UtilityClass
+public class Timers {
 
-    public TimerElapsedEvent(Timer timer) {
-        super(timer);
-    }
+    @Autowired
+    private TimerService TIMER_HANDLER;
 
 }

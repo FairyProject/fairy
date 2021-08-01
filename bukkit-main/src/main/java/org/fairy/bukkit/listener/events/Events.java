@@ -26,6 +26,7 @@ package org.fairy.bukkit.listener.events;
 
 import lombok.experimental.UtilityClass;
 import org.apache.logging.log4j.LogManager;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -102,6 +103,11 @@ public class Events {
         listenerSubscription.register();
 
         return listenerSubscription;
+    }
+
+    public <T extends Event> T call(T t) {
+        Bukkit.getPluginManager().callEvent(t);
+        return t;
     }
 
     public <T extends Event> EventSubscribeBuilder<T> subscribe(Class<T> type) {

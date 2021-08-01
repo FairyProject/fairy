@@ -28,12 +28,12 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.event.Event;
+import org.fairy.bukkit.listener.events.CancellableEvent;
 import org.fairy.bukkit.timer.Timer;
 
 @Getter
-@Setter
 @RequiredArgsConstructor
-public abstract class TimerEvent extends Event {
+public abstract class TimerEvent extends CancellableEvent {
 
     private final Timer timer;
 

@@ -22,42 +22,12 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.timer.impl;
+package org.fairy.bukkit.timer.event;
 
-import lombok.Getter;
-import org.bukkit.entity.Player;
-import org.fairy.bukkit.metadata.Metadata;
 import org.fairy.bukkit.timer.Timer;
-import org.fairy.bukkit.timer.TimerList;
-import org.fairy.metadata.MetadataKey;
 
-import java.util.Collection;
-import java.util.Collections;
-
-@Getter
-public class PlayerTimer extends Timer {
-
-    public static final MetadataKey<TimerList> TIMER_METADATA_KEY = MetadataKey.create("Imanity-TimerList", TimerList.class);
-
-    public static TimerList getTimerList(Player player) {
-        return Metadata.provideForPlayer(player)
-                .getOrNull(TIMER_METADATA_KEY);
-    }
-
-    private final Player player;
-
-    public PlayerTimer(Player player, long beginTime, long duration) {
-        super(beginTime, duration, Metadata.provideForPlayer(player).getOrPut(TIMER_METADATA_KEY, TimerList::new));
-
-        this.player = player;
-    }
-
-    public PlayerTimer(Player player, long duration) {
-        this(player, System.currentTimeMillis(), duration);
-    }
-    
-    @Override
-    public Collection<? extends Player> getReceivers() {
-        return Collections.singleton(player);
+public class TimerUnpauseEvent extends TimerEvent {
+    public TimerUnpauseEvent(Timer timer) {
+        super(timer);
     }
 }

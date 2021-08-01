@@ -25,59 +25,69 @@
 package org.fairy.bukkit.timer;
 
 import com.google.common.collect.Sets;
-import org.bukkit.scheduler.BukkitTask;
-import org.fairy.bukkit.util.TaskUtil;
-import org.fairy.bean.PostDestroy;
+import org.fairy.ScheduledAtFixedRate;
 import org.fairy.bean.PostInitialize;
 import org.fairy.bean.Service;
-import org.fairy.bukkit.Imanity;
-import org.fairy.bukkit.timer.event.TimerStartEvent;
+import org.fairy.bukkit.timer.event.TimerClearEvent;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Service(name = "timer")
-public class TimerHandler implements Runnable {
+public class TimerService {
 
     private Set<Timer> timers;
-
-    private BukkitTask task;
+    private ReentrantLock lock;
 
     @PostInitialize
-    public void init() {
+    public void onPostInitialize() {
+        this.lock = new ReentrantLock();
         this.timers = Sets.newConcurrentHashSet();
-        this.task = TaskUtil.runRepeated(this, 5L);
+        this.startScheduler();
     }
 
-    @PostDestroy
-    public void stop() {
-        this.task.cancel();
+    protected void add(Timer timer) {
+        this.lock.lock();
+        this.timers.add(timer);
+        this.lock.unlock();
     }
 
-    public void add(Timer timer) {
-        TimerStartEvent event = new TimerStartEvent(timer);
-        Imanity.callEvent(event);
-
-        if (event.isCancelled()) {
-            return;
-        }
-
-        synchronized (this) {
-            this.timers.add(timer);
-        }
-        timer.start();
+    protected void clear(Timer timer) {
+        this.lock.lock();
+        this.timers.remove(timer);
+        this.lock.unlock();
     }
 
-    public void clear(Timer timer) {
-        synchronized (this) {
-            this.timers.remove(timer);
-        }
+    public void clearByTimerClass(Class<? extends Timer> timerClass) {
+        this.lock.lock();
+        this.timers.removeIf(timer -> {
+            if (timerClass.isInstance(timer) && timer.clear()) {
+                return true;
+            }
+            return false;
+        });
+        this.lock.unlock();
     }
 
-    public void clear(Class<? extends Timer> timerClass) {
-        synchronized (this) {
-            this.timers.removeIf(timerClass::isInstance);
+    @ScheduledAtFixedRate(async = false, ticks = 2, delay = 2)
+    public void startScheduler() {
+        this.lock.lock();
+        Iterator<Timer> iterator = this.timers.iterator();
+        while (iterator.hasNext()) {
+            Timer timer = iterator.next();
+            if (timer.isPaused()) {
+                continue;
+            }
+            timer.tick();
+            if (timer.isElapsed() && timer.elapsed()) {
+                if (!timer.clear(false, TimerClearEvent.Reason.ELAPSED)) {
+                    continue;
+                }
+                iterator.remove();
+            }
         }
+        this.lock.unlock();
     }
 
     public boolean isTimerRunning(Class<? extends Timer> timerClass) {
@@ -85,35 +95,17 @@ public class TimerHandler implements Runnable {
     }
 
     public <T extends Timer> T getTimer(Class<T> timerClass) {
-        synchronized (this) {
-            return (T) this.timers
+        T ret;
+        this.lock.lock();
+        try {
+            ret = timerClass.cast(this.timers
                     .stream()
                     .filter(timerClass::isInstance)
                     .findFirst()
-                    .orElse(null);
+                    .orElse(null));
+        } finally {
+            this.lock.unlock();
         }
-    }
-
-    @Override
-    public void run() {
-
-        synchronized (this) {
-            Iterator<Timer> iterator = this.timers.iterator();
-
-            while (iterator.hasNext()) {
-
-                Timer timer = iterator.next();
-
-                if (!timer.isPaused()) {
-
-                    timer.tick();
-                    if (timer.isTimerElapsed() && timer.finish()) {
-                        timer.clear(false);
-                        iterator.remove();
-                    }
-
-                }
-            }
-        }
+        return ret;
     }
 }

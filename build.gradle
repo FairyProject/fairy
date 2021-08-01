@@ -30,7 +30,7 @@ plugins {
 
 allprojects {
     group "org.fairy"
-    version "0.4b2"
+    version "0.4b3"
 
     repositories {
         jcenter()

@@ -53,18 +53,18 @@ public class TimerList extends LinkedList<Timer> {
 
     public boolean removeTimer(Class<? extends Timer> timerClass) {
         Iterator<Timer> iterator = this.iterator();
-
         while (iterator.hasNext()) {
             Timer timer = iterator.next();
             if (timerClass.isInstance(timer)) {
-                if (!timer.isTimerElapsed()) {
-                    timer.clear(true);
+                if (!timer.isElapsed()) {
+                    if (!timer.clear()) {
+                        continue;
+                    }
                 }
                 iterator.remove();
                 return true;
             }
         }
-
         return false;
     }
 
@@ -73,7 +73,7 @@ public class TimerList extends LinkedList<Timer> {
         Iterator<Timer> iterator = this.iterator();
 
         while (iterator.hasNext()) {
-            iterator.next().clear(true);
+            iterator.next().clear();
             iterator.remove();
         }
     }

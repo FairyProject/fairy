@@ -24,40 +24,32 @@
 
 package org.fairy.bukkit.timer.impl;
 
-import lombok.Getter;
 import org.bukkit.entity.Player;
-import org.fairy.bukkit.metadata.Metadata;
+import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.timer.Timer;
 import org.fairy.bukkit.timer.TimerList;
-import org.fairy.metadata.MetadataKey;
 
 import java.util.Collection;
-import java.util.Collections;
 
-@Getter
-public class PlayerTimer extends Timer {
-
-    public static final MetadataKey<TimerList> TIMER_METADATA_KEY = MetadataKey.create("Imanity-TimerList", TimerList.class);
-
-    public static TimerList getTimerList(Player player) {
-        return Metadata.provideForPlayer(player)
-                .getOrNull(TIMER_METADATA_KEY);
+public class ServerTimer extends Timer {
+    public ServerTimer(long startTime, long duration, TimerList timerList) {
+        super(startTime, duration, timerList);
     }
 
-    private final Player player;
-
-    public PlayerTimer(Player player, long beginTime, long duration) {
-        super(beginTime, duration, Metadata.provideForPlayer(player).getOrPut(TIMER_METADATA_KEY, TimerList::new));
-
-        this.player = player;
+    public ServerTimer(long startTime, long duration) {
+        super(startTime, duration);
     }
 
-    public PlayerTimer(Player player, long duration) {
-        this(player, System.currentTimeMillis(), duration);
+    public ServerTimer(long duration, TimerList timerList) {
+        super(duration, timerList);
     }
-    
+
+    public ServerTimer(long duration) {
+        super(duration);
+    }
+
     @Override
     public Collection<? extends Player> getReceivers() {
-        return Collections.singleton(player);
+        return Imanity.getPlayers();
     }
 }

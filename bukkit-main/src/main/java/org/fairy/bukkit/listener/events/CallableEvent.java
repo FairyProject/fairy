@@ -22,42 +22,25 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.timer.impl;
+package org.fairy.bukkit.listener.events;
 
-import lombok.Getter;
-import org.bukkit.entity.Player;
-import org.fairy.bukkit.metadata.Metadata;
-import org.fairy.bukkit.timer.Timer;
-import org.fairy.bukkit.timer.TimerList;
-import org.fairy.metadata.MetadataKey;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
 
-import java.util.Collection;
-import java.util.Collections;
+public class CallableEvent extends Event {
 
-@Getter
-public class PlayerTimer extends Timer {
+    protected static final HandlerList HANDLER_LIST = new HandlerList();
 
-    public static final MetadataKey<TimerList> TIMER_METADATA_KEY = MetadataKey.create("Imanity-TimerList", TimerList.class);
-
-    public static TimerList getTimerList(Player player) {
-        return Metadata.provideForPlayer(player)
-                .getOrNull(TIMER_METADATA_KEY);
+    public void call() {
+        Events.call(this);
     }
 
-    private final Player player;
-
-    public PlayerTimer(Player player, long beginTime, long duration) {
-        super(beginTime, duration, Metadata.provideForPlayer(player).getOrPut(TIMER_METADATA_KEY, TimerList::new));
-
-        this.player = player;
-    }
-
-    public PlayerTimer(Player player, long duration) {
-        this(player, System.currentTimeMillis(), duration);
-    }
-    
     @Override
-    public Collection<? extends Player> getReceivers() {
-        return Collections.singleton(player);
+    public HandlerList getHandlers() {
+        return HANDLER_LIST;
+    }
+
+    protected static HandlerList getHandlerList() {
+        return HANDLER_LIST;
     }
 }

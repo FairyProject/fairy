@@ -31,30 +31,26 @@ import org.bukkit.event.HandlerList;
 import org.fairy.bukkit.timer.Timer;
 
 @Getter
-public class TimerExtendEvent extends TimerEvent implements Cancellable {
+public class TimerExtendEvent extends TimerEvent {
 
-    private static HandlerList HANDLER_LIST = new HandlerList();
+    @Setter private boolean cancelled;
+    private final long oldDuration;
+    private final long newDuration;
+    private final Reason reason;
+    @Setter private long extended;
 
-    @Setter
-    private boolean cancelled;
-    private long oldDuration;
-    private long newDuration;
-    @Setter
-    private long extended;
-
-    public TimerExtendEvent(Timer timer, long oldDuration, long newDuration, long extended) {
+    public TimerExtendEvent(Timer timer, long oldDuration, long newDuration, long extended, Reason reason) {
         super(timer);
         this.oldDuration = oldDuration;
         this.newDuration = newDuration;
         this.extended = extended;
+        this.reason = reason;
     }
 
-    public static HandlerList getHandlerList() {
-        return HANDLER_LIST;
-    }
+    public enum Reason {
 
-    @Override
-    public HandlerList getHandlers() {
-        return HANDLER_LIST;
+        PLUGIN,
+        UNPAUSE
+
     }
 }

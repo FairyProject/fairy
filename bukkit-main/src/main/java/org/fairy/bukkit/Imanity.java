@@ -48,10 +48,8 @@ import org.fairy.bukkit.player.movement.MovementListener;
 import org.fairy.bukkit.player.movement.impl.AbstractMovementImplementation;
 import org.fairy.bukkit.tablist.ImanityTabAdapter;
 import org.fairy.bukkit.tablist.ImanityTabHandler;
-import org.fairy.bukkit.timer.TimerHandler;
+import org.fairy.bukkit.timer.TimerService;
 import org.fairy.bukkit.visual.VisualBlockHandler;
-import org.fairy.plugin.PluginClassLoader;
-import org.fairy.util.FastRandom;
 
 import java.util.List;
 
@@ -64,7 +62,7 @@ public final class Imanity {
     public static BossBarHandler BOSS_BAR_HANDLER;
 
     @Autowired
-    public static TimerHandler TIMER_HANDLER;
+    public static TimerService TIMER_HANDLER;
 
     @Deprecated
     public static Plugin PLUGIN;
@@ -120,6 +118,7 @@ public final class Imanity {
         return ImmutableList.copyOf(Imanity.PLUGIN.getServer().getOnlinePlayers());
     }
 
+    @Deprecated
     public static void callEvent(Event event) {
         PLUGIN.getServer().getPluginManager().callEvent(event);
     }
