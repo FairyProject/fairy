@@ -37,6 +37,9 @@ Get started by importing Fairy via the immanity repository!
 </dependency>
 ```
 
+## Gradle distribution
+You can also importing with Gradle distribution!
+
 ```groovy
     maven {
         url 'https://maven.imanity.dev/repository/imanity-libraries/'
