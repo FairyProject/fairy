@@ -43,7 +43,7 @@ import java.util.*;
  * Processes the {@link Plugin} annotation and generates a plugin.yml file.
  */
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-@SupportedAnnotationTypes({"org.imanity.framework.plugin.Plugin", "org.imanity.framework.plugin.PluginDependency"})
+@SupportedAnnotationTypes({"org.fairy.plugin.Plugin", "org.fairy.plugin.PluginDependency"})
 public class PluginProcessor extends AbstractProcessor {
 
     @Override
