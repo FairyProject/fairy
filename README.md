@@ -1,6 +1,6 @@
 <p align="center">
   <img width="20%" height="20%" src="https://i.imgur.com/CIxPcyV.png">
-  <br>
+  <br>temporary logo thanks to terminalsin xd<br>
   <a><img alt="Issues" src="https://img.shields.io/github/issues/FairyProject/fairy"></a>
   <a><img alt="Forks" src="https://img.shields.io/github/forks/FairyProject/fairy"></a>
   <a><img alt="Stars" src="https://img.shields.io/github/stars/FairyProject/fairy"></a>
@@ -32,9 +32,19 @@ Get started by importing Fairy via the immanity repository!
 <dependency>
   <groupId>org.fairy</groupId>
   <artifactId>bukkit-all</artifactId>
-  <version>0.4b2</version>
+  <version>VERSION</version>
   <scope>provided</scope>
 </dependency>
+```
+
+```groovy
+    maven {
+        url 'https://maven.imanity.dev/repository/imanity-libraries/'
+    }
+```
+
+```groovy
+    compileOnly 'org.fairy:bukkit-all:VERSION'
 ```
 
 
