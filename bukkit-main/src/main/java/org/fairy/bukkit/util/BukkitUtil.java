@@ -48,29 +48,21 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+// TODO - completely remove this class
 @UtilityClass
 public class BukkitUtil {
 
-    public Function<Object, UUID> PLAYER_OBJECT_TO_UUID = obj -> {
-        if (!(obj instanceof Player)) {
-            throw new ClassCastException(obj.getClass().getName() + " is not a Player");
-        }
-
-        return ((Player) obj).getUniqueId();
-    };
-
+    @Deprecated
     public List<Player> getPlayersFromUuids(Collection<UUID> uuids) {
-        return uuids
-                .stream()
-                .map(Bukkit::getPlayer)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+        return Players.transformUuids(uuids);
     }
 
+    @Deprecated
     public List<Player> getPlayersFromUuids(UUID... uuids) {
-        return BukkitUtil.getPlayersFromUuids(Arrays.asList(uuids));
+        return Players.transformUuids(uuids);
     }
 
+    // TODO - better replacement
     @Nullable
     public Player getDamager(EntityDamageEvent event) {
         if (event instanceof EntityDamageByEntityEvent) {
@@ -91,8 +83,8 @@ public class BukkitUtil {
         return null;
     }
 
+    // TODO - move to core-misc
     public String getProgressBar(int current, int max, int totalBars, String symbol, String completedColor, String notCompletedColor){
-
         float percent = (float) current / max;
 
         int progressBars = (int) ((int) totalBars * percent);
@@ -111,20 +103,12 @@ public class BukkitUtil {
         return sb.toString();
     }
 
+    @Deprecated
     public void clear(final Player player) {
-        player.setHealth(20.0);
-        player.setFoodLevel(20);
-        player.setExp(0.0f);
-        player.setTotalExperience(0);
-        player.setLevel(0);
-        player.setFireTicks(0);
-        player.getInventory().clear();
-        player.getInventory().setArmorContents(null);
-        player.updateInventory();
-        player.setGameMode(GameMode.SURVIVAL);
-        player.getActivePotionEffects().stream().map(PotionEffect::getType).forEach(player::removePotionEffect);
+        Players.clear(player);
     }
 
+    @Deprecated
     public void sendMessages(Player player, Iterable<String> iterable) {
         for (String message : iterable) {
             player.sendMessage(message);
@@ -138,25 +122,22 @@ public class BukkitUtil {
 
     }
 
+    @Deprecated
     public void delayedUpdateInventory(Player player) {
-        TaskUtil.runScheduled(() -> {
-            if (player.isOnline()) {
-                player.updateInventory();
-            }
-        }, 1L);
+        Players.updateInventoryLater(player);
     }
 
+    // TODO - move to Players
     public boolean isPlayerEvent(Class<?> event) {
-
         if (PlayerEvent.class.isAssignableFrom(event)) {
             return true;
         }
 
         MethodResolver resolver = new MethodResolver(event);
         return resolver.resolveWrapper("getPlayer").exists();
-
     }
 
+    // TODO - move to Players
     public Block getBlockLookingAt(final Player player, final int distance) {
         final Location location = player.getEyeLocation();
         final BlockIterator blocksToAdd = new BlockIterator(location, 0.0D, distance);
@@ -197,11 +178,6 @@ public class BukkitUtil {
 
     public File getFile(String fileName) {
         return new File(getDataFolder(4), fileName);
-    }
-
-    @Deprecated
-    public String color(String msg) {
-        return CC.translate(msg);
     }
 
     public boolean isNPC(Player player) {

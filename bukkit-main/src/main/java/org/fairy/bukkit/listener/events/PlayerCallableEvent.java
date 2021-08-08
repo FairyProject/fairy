@@ -22,21 +22,31 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.hologram.api;
+package org.fairy.bukkit.listener.events;
 
-import lombok.AllArgsConstructor;
 import org.bukkit.entity.Player;
-import org.fairy.util.CC;
+import org.bukkit.event.Event;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
 
-import javax.annotation.Nullable;
+public class PlayerCallableEvent extends PlayerEvent {
 
-@AllArgsConstructor
-public class TextViewHandler implements ViewHandler {
+    protected static final HandlerList HANDLER_LIST = new HandlerList();
 
-    private final String text;
+    public PlayerCallableEvent(Player who) {
+        super(who);
+    }
+
+    public void call() {
+        Events.call(this);
+    }
 
     @Override
-    public String view(@Nullable Player player) {
-        return CC.translate(text);
+    public HandlerList getHandlers() {
+        return HANDLER_LIST;
+    }
+
+    protected static HandlerList getHandlerList() {
+        return HANDLER_LIST;
     }
 }

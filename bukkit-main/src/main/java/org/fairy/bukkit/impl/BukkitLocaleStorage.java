@@ -31,7 +31,7 @@ import org.fairy.bukkit.events.player.PlayerLocaleLoadedEvent;
 import org.fairy.bukkit.player.storage.ThreadedPlayerStorage;
 import org.fairy.bukkit.player.storage.ThreadedPlayerStorageConfiguration;
 import org.fairy.bukkit.player.storage.ThreadedPlayerStorageConfigurationRepository;
-import org.fairy.bukkit.util.BukkitUtil;
+import org.fairy.bukkit.util.Players;
 import org.fairy.locale.LocaleData;
 import org.fairy.locale.LocaleService;
 import org.fairy.locale.PlayerLocaleStorage;
@@ -61,7 +61,7 @@ public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> imple
 
     @Override
     public UUID getUuidByPlayer(Object player) {
-        return BukkitUtil.PLAYER_OBJECT_TO_UUID.apply(player);
+        return Players.tryGetUniqueId(player);
     }
 
     @Override

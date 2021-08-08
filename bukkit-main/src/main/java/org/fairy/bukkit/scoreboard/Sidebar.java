@@ -29,12 +29,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.fairy.Fairy;
 import org.fairy.bukkit.packet.PacketService;
-import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardDisplayObjective;
 import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardObjective;
 import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardScore;
 import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardTeam;
 import org.fairy.metadata.MetadataKey;
+import org.fairy.util.CC;
 
 import java.util.List;
 
@@ -91,7 +91,7 @@ public class Sidebar {
         int lineCount = 1;
 
         for (int i = lines.size() - 1; i >= 0; --i) {
-            this.setLine(lineCount, BukkitUtil.color(lines.get(i)));
+            this.setLine(lineCount, CC.translate(lines.get(i)));
 
             lineCount++;
         }

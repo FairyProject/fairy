@@ -39,11 +39,11 @@ import org.fairy.bukkit.tablist.util.IImanityTabImpl;
 import org.fairy.bukkit.tablist.util.LegacyClientUtil;
 import org.fairy.bukkit.tablist.util.TabColumn;
 import org.fairy.bukkit.tablist.util.TabEntry;
-import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.util.Skin;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.packet.wrapper.server.playerinfo.PlayerInfoAction;
 import org.fairy.bukkit.packet.wrapper.server.playerinfo.WrappedPacketOutPlayerInfo;
+import org.fairy.util.CC;
 
 import java.util.Collections;
 import java.util.UUID;
@@ -101,14 +101,14 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
             Imanity.IMPLEMENTATION.sendTeam(
                     player,
                     LegacyClientUtil.name(tabEntry.getRawSlot() - 1),
-                    BukkitUtil.color(newStrings[0]),
-                    newStrings.length > 1 ? BukkitUtil.color(newStrings[1]) : "",
+                    CC.translate(newStrings[0]),
+                    newStrings.length > 1 ? CC.translate(newStrings[1]) : "",
                     Collections.singleton(LegacyClientUtil.entry(tabEntry.getRawSlot() - 1)),
                     2
             );
 
         } else {
-            ChatComponentWrapper listName = ChatComponentWrapper.fromText(BukkitUtil.color(text));
+            ChatComponentWrapper listName = ChatComponentWrapper.fromText(CC.translate(text));
 
             GameProfileWrapper profile = this.getGameProfile(playerVersion, tabEntry);
 
@@ -126,7 +126,7 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
     public void updateFakeLatency(ImanityTablist imanityTablist, TabEntry tabEntry, Integer latency) {
         if (tabEntry.getLatency() == latency) return;
 
-        ChatComponentWrapper listName = ChatComponentWrapper.fromText(BukkitUtil.color(tabEntry.getText()));
+        ChatComponentWrapper listName = ChatComponentWrapper.fromText(CC.translate(tabEntry.getText()));
 
         final PlayerVersion playerVersion = MinecraftReflection.getProtocol(imanityTablist.getPlayer());
         GameProfileWrapper profile = this.getGameProfile(playerVersion, tabEntry);
@@ -156,7 +156,7 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
         gameProfile.getProperties().clear();
         gameProfile.getProperties().put("textures", new SignedPropertyWrapper("textures", skin.skinValue, skin.skinSignature));
 
-        ChatComponentWrapper listName = ChatComponentWrapper.fromText(BukkitUtil.color(tabEntry.getText()));
+        ChatComponentWrapper listName = ChatComponentWrapper.fromText(CC.translate(tabEntry.getText()));
 
         WrappedPlayerInfoData playerInfoData = new WrappedPlayerInfoData(tabEntry.getLatency(), GameMode.SURVIVAL, gameProfile, listName);
 

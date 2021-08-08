@@ -39,7 +39,6 @@ import org.fairy.bukkit.tablist.util.IImanityTabImpl;
 import org.fairy.bukkit.tablist.util.LegacyClientUtil;
 import org.fairy.bukkit.tablist.util.TabColumn;
 import org.fairy.bukkit.tablist.util.TabEntry;
-import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.util.Skin;
 import org.fairy.bukkit.Imanity;
 import org.fairy.util.CC;
@@ -94,8 +93,8 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
             Imanity.IMPLEMENTATION.sendTeam(
                     player,
                     LegacyClientUtil.name(tabEntry.getRawSlot() - 1),
-                    BukkitUtil.color(newStrings[0]),
-                    newStrings.length > 1 ? BukkitUtil.color(newStrings[1]) : "",
+                    CC.translate(newStrings[0]),
+                    newStrings.length > 1 ? CC.translate(newStrings[1]) : "",
                     Collections.singleton(LegacyClientUtil.entry(tabEntry.getRawSlot() - 1)),
                     2
             );

@@ -32,11 +32,11 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.fairy.Fairy;
 import org.fairy.bukkit.listener.events.Events;
-import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.metadata.Metadata;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.bukkit.player.movement.MovementListener;
+import org.fairy.util.CC;
 
 public class BossBarHandler implements Runnable {
 
@@ -148,7 +148,7 @@ public class BossBarHandler implements Runnable {
                 bossBarData.setText("");
             }
 
-            bossBarData.setText(BukkitUtil.color(bossBarData.getText()));
+            bossBarData.setText(CC.translate(bossBarData.getText()));
             bossBar.send(bossBarData);
 
         }

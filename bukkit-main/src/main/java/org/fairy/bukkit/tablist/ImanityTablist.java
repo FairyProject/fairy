@@ -31,11 +31,11 @@ import org.fairy.bukkit.tablist.util.BufferedTabObject;
 import org.fairy.bukkit.tablist.util.LegacyClientUtil;
 import org.fairy.bukkit.tablist.util.TabColumn;
 import org.fairy.bukkit.tablist.util.TabEntry;
-import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.util.Skin;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.reflection.MinecraftReflection;
 import org.fairy.bukkit.reflection.version.PlayerVersion;
+import org.fairy.util.CC;
 
 import java.util.*;
 
@@ -123,8 +123,8 @@ public class ImanityTablist {
 
         previous.clear();
 
-        String headerNow = BukkitUtil.color(adapter.getHeader(player));
-        String footerNow = BukkitUtil.color(adapter.getFooter(player));
+        String headerNow = CC.translate(adapter.getHeader(player));
+        String footerNow = CC.translate(adapter.getFooter(player));
 
         if (!headerNow.equals(this.header) || !footerNow.equals(this.footer)) {
             ImanityTabHandler.getInstance().getImplementation().updateHeaderAndFooter(this, headerNow, footerNow);
