@@ -22,36 +22,41 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.util.items;
+package org.fairy.state;
 
-import lombok.Getter;
-import org.bukkit.Material;
+import com.google.common.collect.Lists;
+import java.util.List;
 
-import javax.annotation.Nullable;
+public class StateGroup extends StateCollection {
 
-public enum ArmorPart {
-
-    HELMET(3),
-    CHESTPLATE(2),
-    LEGGINGS(1),
-    BOOTS(0);
-
-    @Getter
-    private final int slot;
-
-    ArmorPart(int slot) {
-        this.slot = slot;
+    public StateGroup(List<State> states) {
+        super(states);
     }
 
-    @Nullable
-    public ArmorPart getByType(Material material) {
-        for (ArmorPart part : ArmorPart.values()) {
-            if (material.name().contains(part.name())) {
-                return part;
-            }
+    public StateGroup(State... states) {
+        super(Lists.newArrayList(states));
+    }
+
+    @Override
+    protected void onStart() {
+        this.forEach(State::start);
+    }
+
+    @Override
+    protected void onUpdate() {
+        this.forEach(State::update);
+        if (this.allMatch(State::isEnded)) {
+            this.end();
         }
-
-        return null;
     }
 
+    @Override
+    protected void onEnded() {
+        this.forEach(State::end);
+    }
+
+    @Override
+    protected boolean canEnd() {
+        return this.allMatch(State::isReadyToEnd);
+    }
 }

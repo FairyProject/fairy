@@ -22,36 +22,33 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.util.items;
+package org.fairy.state;
 
-import lombok.Getter;
-import org.bukkit.Material;
+import lombok.NonNull;
 
-import javax.annotation.Nullable;
+public class StateHolder<T extends State> {
 
-public enum ArmorPart {
+    protected T state;
 
-    HELMET(3),
-    CHESTPLATE(2),
-    LEGGINGS(1),
-    BOOTS(0);
-
-    @Getter
-    private final int slot;
-
-    ArmorPart(int slot) {
-        this.slot = slot;
+    public StateHolder(@NonNull T startState) {
+        this.set(startState);
     }
 
-    @Nullable
-    public ArmorPart getByType(Material material) {
-        for (ArmorPart part : ArmorPart.values()) {
-            if (material.name().contains(part.name())) {
-                return part;
-            }
-        }
+    public StateHolder() {
+    }
 
-        return null;
+    public void set(@NonNull T state) {
+        if (this.state != null) {
+            this.state.end();
+        }
+        this.state = state;
+        this.state.start();
+    }
+
+    public void update() {
+        if (this.state != null) {
+            this.state.update();
+        }
     }
 
 }

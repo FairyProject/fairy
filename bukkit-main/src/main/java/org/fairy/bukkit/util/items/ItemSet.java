@@ -25,12 +25,35 @@
 package org.fairy.bukkit.util.items;
 
 import lombok.Getter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemSet {
 
-    public Slot createSlotBy(Object t) {
+    private static final int CONTENT_SIZE = 36;
+
+    public static ItemSetBuilder builder(int slots) {
+        return new ItemSetBuilder(slots);
+    }
+
+    public static ItemSetBuilder builderHotbar() {
+        return new ItemSetBuilder(9);
+    }
+
+    public static ItemSetBuilder builderContents() {
+        return new ItemSetBuilder(CONTENT_SIZE);
+    }
+
+    public static ItemSetBuilder builderArmorContents() {
+        return new ItemSetBuilder.Armor();
+    }
+
+    public static ItemSetBuilder builderPlayerInventory() {
+        return new ItemSetBuilder.PlayerInventory();
+    }
+
+    public static Slot createSlotBy(Object t) {
         if (t == null) {
             return null;
         }
@@ -63,7 +86,24 @@ public class ItemSet {
     }
 
     public void setSlot(int index, Object t) {
-        this.slots[index] = this.createSlotBy(t);
+        this.slots[index] = ItemSet.createSlotBy(t);
+    }
+
+    public ItemStack[] toItems(Player player) {
+        ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 36)];
+        for (int i = 0; i < itemStacks.length; i++) {
+            final Slot slot = this.getSlot(i);
+            if (slot != null) {
+                itemStacks[i] = slot.getItem(player);
+            }
+        }
+        return itemStacks;
+    }
+
+    public void apply(Player player) {
+        ItemStack[] itemStacks = this.toItems(player);
+        player.getInventory().setContents(itemStacks);
+        player.updateInventory();
     }
 
     public interface Slot {
@@ -108,7 +148,11 @@ public class ItemSet {
 
     public static class ItemSetBuilder {
 
-        private final ItemSet itemSet;
+        protected ItemSet itemSet;
+
+        private ItemSetBuilder() {
+
+        }
 
         private ItemSetBuilder(int slotCount) {
             this.itemSet = new ItemSet(slotCount);
@@ -137,6 +181,145 @@ public class ItemSet {
             return this.itemSet;
         }
 
+        public static class Armor extends ItemSetBuilder {
+
+            private Armor() {
+                this.itemSet = new ItemSet.Armors();
+            }
+
+            public void set(ArmorPart part, ItemStack itemStack) {
+                this.set(part.getSlot(), itemStack);
+            }
+
+            public void set(ArmorPart part, ImanityItem imanityItem) {
+                this.set(part.getSlot(), imanityItem);
+            }
+
+            @Override
+            public Armors build() {
+                return (Armors) super.build();
+            }
+        }
+
+        public static class PlayerInventory extends ItemSetBuilder {
+
+            private PlayerInventory() {
+                this.itemSet = new ItemSet.PlayerInventory();
+            }
+
+            public void set(ArmorPart part, ItemStack itemStack) {
+                this.set(CONTENT_SIZE + part.getSlot(), itemStack);
+            }
+
+            public void set(ArmorPart part, ImanityItem imanityItem) {
+                this.set(CONTENT_SIZE + part.getSlot(), imanityItem);
+            }
+
+            @Override
+            public ItemSet.PlayerInventory build() {
+                return (ItemSet.PlayerInventory) super.build();
+            }
+
+        }
+
+    }
+
+    public static class Armors extends ItemSet {
+
+        public Armors() {
+            super(4);
+        }
+
+        public ItemStack getItem(ArmorPart part, Player viewer) {
+            return this.getItem(part.getSlot(), viewer);
+        }
+
+        public void setSlot(ArmorPart part, Object t) {
+            this.setSlot(part.getSlot(), t);
+        }
+
+        @Override
+        public ItemStack[] toItems(Player player) {
+            ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 4)];
+            for (int i = 0; i < itemStacks.length; i++) {
+                final Slot slot = this.getSlot(i);
+                if (slot != null) {
+                    itemStacks[i] = this.getItem(i, player);
+                }
+            }
+            return itemStacks;
+        }
+
+        @Override
+        public void apply(Player player) {
+            ItemStack[] itemStacks = this.toItems(player);
+            player.getInventory().setArmorContents(itemStacks);
+            player.updateInventory();
+        }
+    }
+
+    public static class PlayerInventory extends ItemSet {
+
+        @Getter
+        private final Armors armors;
+
+        public PlayerInventory() {
+            super(CONTENT_SIZE);
+            this.armors = new Armors();
+        }
+
+        @Override
+        public int getSlotCount() {
+            return CONTENT_SIZE + 4;
+        }
+
+        @Override
+        public Slot[] getSlots() {
+            return ArrayUtils.addAll(super.getSlots(), this.armors.getSlots());
+        }
+
+        @Override
+        public Slot getSlot(int index) {
+            if (index >= CONTENT_SIZE) {
+                return this.armors.getSlot(index - CONTENT_SIZE);
+            }
+            return super.getSlot(index);
+        }
+
+        @Override
+        public void setSlot(int index, Object t) {
+            if (index >= CONTENT_SIZE) {
+                this.armors.setSlot(index - CONTENT_SIZE, t);
+            }
+            super.setSlot(index, t);
+        }
+
+        public ItemStack getItem(ArmorPart part, Player viewer) {
+            return this.armors.getItem(part.getSlot(), viewer);
+        }
+
+        public void setSlot(ArmorPart part, Object t) {
+            this.armors.setSlot(part.getSlot(), t);
+        }
+
+        @Override
+        public ItemStack[] toItems(Player player) {
+            ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 40)];
+            for (int i = 0; i < itemStacks.length; i++) {
+                final Slot slot = this.getSlot(i);
+                if (slot != null) {
+                    itemStacks[i] = this.getItem(i, player);
+                }
+            }
+            return itemStacks;
+        }
+
+        @Override
+        public void apply(Player player) {
+            ItemStack[] itemStacks = super.toItems(player);
+            player.getInventory().setContents(itemStacks);
+            this.armors.apply(player);
+        }
     }
 
 }

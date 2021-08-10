@@ -58,7 +58,7 @@ public class FilteredEventList {
 
     }
 
-    public static void putCustomPlayerMethod(Class<?> eventClass, Function<Event, Player> method) {
+    public static void registerPlayerGetter(Class<?> eventClass, Function<Event, Player> method) {
         EVENT_PLAYER_METHODS.put(eventClass, method);
     }
 
