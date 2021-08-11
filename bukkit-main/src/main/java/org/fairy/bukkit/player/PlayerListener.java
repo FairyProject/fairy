@@ -33,17 +33,17 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.fairy.Fairy;
 import org.fairy.bean.Autowired;
 import org.fairy.bean.BeanHolder;
-import org.fairy.bukkit.scoreboard.SidebarService;
-import org.fairy.bukkit.util.TaskUtil;
+import org.fairy.bean.Component;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.events.player.PlayerPostJoinEvent;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.metadata.Metadata;
-import org.fairy.bean.Component;
+import org.fairy.bukkit.scoreboard.SidebarService;
 import org.fairy.bukkit.timer.TimerList;
 import org.fairy.bukkit.timer.impl.PlayerTimer;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.metadata.MetadataMap;
+import org.fairy.task.Task;
 
 @Component
 public class PlayerListener implements Listener {
@@ -65,7 +65,7 @@ public class PlayerListener implements Listener {
             Imanity.TAB_HANDLER.registerPlayerTablist(player);
         }
 
-        TaskUtil.runScheduled(() -> Imanity.callEvent(new PlayerPostJoinEvent(player)), 1L);
+        Task.runMainLater(() -> Events.call(new PlayerPostJoinEvent(player)), 1L);
     }
 
     @EventHandler

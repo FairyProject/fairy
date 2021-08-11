@@ -47,7 +47,7 @@ public class EntityDamageByPlayerEvent extends PlayerEvent implements Cancellabl
     }
 
     @Getter
-    private EntityDamageByEntityEvent entityDamageEvent;
+    private final EntityDamageByEntityEvent entityDamageEvent;
 
     public EntityDamageByPlayerEvent(Player player, EntityDamageByEntityEvent entityDamageEvent) {
         super(player);

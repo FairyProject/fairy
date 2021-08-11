@@ -33,12 +33,16 @@ import org.fairy.bukkit.timer.event.*;
 import org.fairy.bukkit.Imanity;
 import org.fairy.util.RV;
 import org.fairy.util.StringUtil;
+import org.fairy.util.terminable.Terminable;
+import org.fairy.util.terminable.TerminableConsumer;
+import org.fairy.util.terminable.composite.CompositeTerminable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
 
 @Getter
-public abstract class Timer {
+public abstract class Timer implements Terminable, TerminableConsumer {
 
     @Autowired
     private static TimerService TIMER_SERVICE;
@@ -74,7 +78,9 @@ public abstract class Timer {
     private long duration;
     private long elapsedTime;
     private int currentAnnounceSeconds;
+    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
+    private boolean closed;
     private final TimerList timerList;
 
     public Timer(long startTime, long duration, TimerList timerList) {
@@ -191,6 +197,21 @@ public abstract class Timer {
 
     public abstract Collection<? extends Player> getReceivers();
 
+    @Override
+    public void close() {
+        this.clear();
+    }
+
+    public boolean isClosed() {
+        return this.closed;
+    }
+
+    @NotNull
+    @Override
+    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+        return this.compositeTerminable.bind(terminable);
+    }
+
     public final boolean clear() {
         return this.clear(true, TimerClearEvent.Reason.PLUGIN);
     }
@@ -207,7 +228,9 @@ public abstract class Timer {
             if (this.timerList != null) {
                 this.timerList.remove(this);
             }
+            this.closed = true;
             this.onClear();
+            this.compositeTerminable.closeAndReportException();
             return true;
         });
     }

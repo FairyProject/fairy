@@ -28,6 +28,8 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.Setter;
 import org.fairy.Fairy;
+import org.fairy.task.TaskRunnable;
+import org.fairy.util.terminable.Terminable;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -79,16 +81,14 @@ public class KeyframeValues {
 
     public void run(KeyframeRunner runner) {
         Iterator<Keyframe> iterator = this.keyframes.values().iterator();
-
-        AtomicInteger id = new AtomicInteger();
-        Runnable runnable = new Runnable() {
+        TaskRunnable runnable = new TaskRunnable() {
 
             private int time = 0;
             private Keyframe previous = null;
             private Keyframe now = null;
 
             @Override
-            public void run() {
+            public void run(Terminable terminable) {
                 while (true) {
                     if (now == null) {
                         if (iterator.hasNext()) {
@@ -97,7 +97,7 @@ public class KeyframeValues {
                             if (debug) {
                                 System.out.println("ended");
                             }
-                            Fairy.getTaskScheduler().cancel(id.get());
+                            terminable.closeAndReportException();
                             if (post != null) {
                                 post.run();
                             }
@@ -121,7 +121,7 @@ public class KeyframeValues {
             }
         };
 
-        id.set(Fairy.getTaskScheduler().runRepeated(runnable, 0, 1));
+        Fairy.getTaskScheduler().runRepeated(runnable, 0, 1);
     }
 
     public static class Keyframe {

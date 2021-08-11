@@ -26,10 +26,17 @@ package org.fairy.bukkit.events.player;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.fairy.bukkit.player.PlayerEventRecognizer;
 
 public class PlayerDamageByPlayerEvent extends PlayerDamageEvent {
 
-    private Player damager;
+    public static final PlayerEventRecognizer.Attribute<PlayerDamageByPlayerEvent> DAMAGER = new PlayerEventRecognizer.Attribute<>(
+            "PlayerDamageByPlayerEvent.Damager",
+            PlayerDamageByPlayerEvent.class,
+            (event, player) -> event.getDamager()
+    );
+
+    private final Player damager;
 
     public PlayerDamageByPlayerEvent(Player player, Player damager, EntityDamageByEntityEvent entityDamageEvent) {
         super(player, entityDamageEvent);

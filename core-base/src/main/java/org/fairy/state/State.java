@@ -24,148 +24,33 @@
 
 package org.fairy.state;
 
-import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.fairy.util.terminable.Terminable;
 import org.fairy.util.terminable.TerminableConsumer;
-import org.fairy.util.terminable.composite.CompositeTerminable;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.concurrent.locks.ReentrantLock;
+public interface State extends Terminable, TerminableConsumer {
+    void start();
 
-@Getter
-public abstract class State implements Terminable, TerminableConsumer {
+    void update();
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    void end();
 
-    private boolean started = false;
-    private boolean ended = false;
-    private boolean paused = false;
-    private boolean updating = false;
+    long getTimePast();
 
-    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
-    private final ReentrantLock lock = new ReentrantLock();
+    boolean isReadyToEnd();
 
-    private long startTimestamp;
+    void pause();
 
-    public void start() {
-        this.lock.lock();
-        if (this.started || this.ended) {
-            return;
-        }
-        this.started = true;
-        this.lock.unlock();
+    void unpause();
 
-        this.startTimestamp = System.currentTimeMillis();
-        try {
-            this.onStart();
-        } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onStart() in State", throwable);
-        }
-    }
+    boolean isStarted();
 
-    public void update() {
-        this.lock.lock();
-        if (!this.started || this.ended || this.updating) {
-            return;
-        }
-        this.updating = true;
-        this.lock.unlock();
+    boolean isEnded();
 
-        if (this.isReadyToEnd() && !this.paused) {
-            this.end();
-            this.updating = false;
-            return;
-        }
+    boolean isPaused();
 
-        try {
-            this.onUpdate();
-        } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onUpdate() in State", throwable);
-        }
-        this.updating = false;
-    }
+    boolean isUpdating();
 
-    public void end() {
-        this.lock.lock();
-        if (!this.started || this.ended) {
-            return;
-        }
-        this.ended = true;
-        this.lock.unlock();
+    void onSuspend();
 
-        try {
-            this.onEnded();
-        } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onEnded() in State", throwable);
-        }
-
-        this.compositeTerminable.closeAndReportException();
-    }
-
-    public long getTimePast() {
-        return System.currentTimeMillis() - this.startTimestamp;
-    }
-
-    public final boolean isReadyToEnd() {
-        return this.ended || this.canEnd();
-    }
-
-    public void pause() {
-        this.paused = true;
-        try {
-            this.onPause();
-        } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onPause() in State", throwable);
-        }
-    }
-
-    public void unpause() {
-        this.paused = false;
-        try {
-            this.onUnpause();
-        } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onUnpause() in State", throwable);
-        }
-    }
-
-    @NotNull
-    @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
-        return this.compositeTerminable.bind(terminable);
-    }
-
-    @Override
-    public void close() throws Exception {
-        this.end();
-    }
-
-    @Override
-    public boolean isClosed() {
-        return this.isEnded();
-    }
-
-    protected abstract void onStart();
-
-    protected abstract void onUpdate();
-
-    protected void onSuspend() {
-
-    }
-
-    protected void onPause() {
-
-    }
-
-    protected void onUnpause() {
-
-    }
-
-    protected abstract void onEnded();
-
-    protected boolean canEnd() {
-        return true;
-    }
-
+    long getStartTimestamp();
 }

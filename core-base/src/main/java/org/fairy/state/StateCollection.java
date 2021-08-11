@@ -32,7 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
 
-public abstract class StateCollection extends State implements Iterable<State> {
+public abstract class StateCollection extends StateBase implements Iterable<State> {
 
     protected final List<State> states;
 

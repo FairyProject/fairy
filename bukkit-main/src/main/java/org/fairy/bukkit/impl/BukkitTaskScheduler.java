@@ -24,52 +24,99 @@
 
 package org.fairy.bukkit.impl;
 
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.task.ITaskScheduler;
 import org.fairy.bukkit.Imanity;
+import org.fairy.task.TaskRunnable;
+import org.fairy.util.terminable.Terminable;
+
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class BukkitTaskScheduler implements ITaskScheduler {
     @Override
-    public int runAsync(Runnable runnable) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTaskAsynchronously(Imanity.PLUGIN, runnable).getTaskId();
+    public Terminable runAsync(Runnable runnable) {
+        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskAsynchronously(FairyBukkitPlatform.INSTANCE, runnable));
     }
 
     @Override
-    public int runAsyncScheduled(Runnable runnable, long time) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTaskLaterAsynchronously(Imanity.PLUGIN, runnable, time).getTaskId();
+    public Terminable runAsyncScheduled(Runnable runnable, long time) {
+        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskLaterAsynchronously(FairyBukkitPlatform.INSTANCE, runnable, time));
     }
 
     @Override
-    public int runAsyncRepeated(Runnable runnable, long time) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTaskTimerAsynchronously(Imanity.PLUGIN, runnable, time, time).getTaskId();
+    public Terminable runAsyncRepeated(TaskRunnable runnable, long time) {
+        return this.runAsyncRepeated(runnable, time, time);
     }
 
     @Override
-    public int runAsyncRepeated(Runnable runnable, long delay, long time) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTaskTimerAsynchronously(Imanity.PLUGIN, runnable, delay, time).getTaskId();
+    public Terminable runAsyncRepeated(TaskRunnable runnable, long delay, long time) {
+        AtomicReference<Terminable> terminable = new AtomicReference<>();
+        AtomicBoolean closed = new AtomicBoolean(false);
+        final Terminable instance = this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskTimerAsynchronously(FairyBukkitPlatform.INSTANCE, () -> {
+            if (closed.get()) {
+                return;
+            }
+
+            runnable.run(terminable.get());
+        }, delay, time));
+        terminable.set(instance);
+        return instance;
     }
 
     @Override
-    public int runSync(Runnable runnable) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTask(Imanity.PLUGIN, runnable).getTaskId();
+    public Terminable runSync(Runnable runnable) {
+        AtomicBoolean closed = new AtomicBoolean();
+        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTask(FairyBukkitPlatform.INSTANCE, () -> {
+            if (closed.compareAndSet(false, true)) {
+                runnable.run();
+            }
+        }), closed);
     }
 
     @Override
-    public int runScheduled(Runnable runnable, long time) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTaskLater(Imanity.PLUGIN, runnable, time).getTaskId();
+    public Terminable runScheduled(Runnable runnable, long time) {
+        AtomicBoolean closed = new AtomicBoolean();
+        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskLater(FairyBukkitPlatform.INSTANCE, () -> {
+            if (closed.compareAndSet(false, true)) {
+                runnable.run();
+            }
+        }, time), closed);
     }
 
     @Override
-    public int runRepeated(Runnable runnable, long time) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTaskTimer(Imanity.PLUGIN, runnable, time, time).getTaskId();
+    public Terminable runRepeated(TaskRunnable runnable, long time) {
+        return this.runRepeated(runnable, time, time);
     }
 
     @Override
-    public int runRepeated(Runnable runnable, long delay, long time) {
-        return Imanity.PLUGIN.getServer().getScheduler().runTaskTimer(Imanity.PLUGIN, runnable, delay, time).getTaskId();
+    public Terminable runRepeated(TaskRunnable runnable, long delay, long time) {
+        AtomicReference<Terminable> terminable = new AtomicReference<>();
+        AtomicBoolean closed = new AtomicBoolean(false);
+        final Terminable instance = this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskTimer(FairyBukkitPlatform.INSTANCE, () -> {
+            if (closed.get()) {
+                return;
+            }
+
+            runnable.run(terminable.get());
+        }, delay, time));
+        terminable.set(instance);
+        return instance;
     }
 
-    @Override
-    public void cancel(int taskId) {
-        Imanity.PLUGIN.getServer().getScheduler().cancelTask(taskId);
+    private Terminable toTerminable(BukkitTask bukkitTask) {
+        return this.toTerminable(bukkitTask, new AtomicBoolean());
+    }
+
+    private Terminable toTerminable(BukkitTask bukkitTask, AtomicBoolean closed) {
+        return () -> {
+            if (!closed.compareAndSet(false, true)) {
+                return;
+            }
+
+            bukkitTask.cancel();
+        };
     }
 }

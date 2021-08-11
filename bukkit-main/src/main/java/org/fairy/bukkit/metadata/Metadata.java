@@ -30,13 +30,13 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.fairy.bukkit.util.BlockPosition;
-import org.fairy.bukkit.util.TaskUtil;
+import org.fairy.ScheduledAtFixedRate;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.metadata.type.BlockMetadataRegistry;
 import org.fairy.bukkit.metadata.type.EntityMetadataRegistry;
 import org.fairy.bukkit.metadata.type.PlayerMetadataRegistry;
 import org.fairy.bukkit.metadata.type.WorldMetadataRegistry;
+import org.fairy.bukkit.util.BlockPosition;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.metadata.MetadataMap;
 import org.fairy.metadata.MetadataRegistry;
@@ -82,12 +82,14 @@ public final class Metadata {
                         });
                     });
 
-            // cache housekeeping task
-            TaskUtil.runAsyncRepeated(() -> {
-                for (MetadataRegistry<?> registry : BukkitMetadataRegistries.values()) {
-                    registry.cleanup();
-                }
-            }, 20 * 60L);
+            scheduleCleanup();
+        }
+    }
+
+    @ScheduledAtFixedRate(async = true, delay = 20, ticks = 20 * 60)
+    private static void scheduleCleanup() {
+        for (MetadataRegistry<?> registry : BukkitMetadataRegistries.values()) {
+            registry.cleanup();
         }
     }
 

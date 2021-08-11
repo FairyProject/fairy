@@ -31,17 +31,18 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
-import org.fairy.bukkit.events.NetworkCommandExecuteEvent;
-import org.fairy.bukkit.events.PostServicesInitialEvent;
-import org.fairy.bukkit.util.TaskUtil;
+import org.fairy.bean.Autowired;
+import org.fairy.bean.Component;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.command.event.BukkitCommandEvent;
+import org.fairy.bukkit.events.NetworkCommandExecuteEvent;
+import org.fairy.bukkit.events.PostServicesInitialEvent;
+import org.fairy.bukkit.listener.events.Events;
+import org.fairy.command.CommandEvent;
 import org.fairy.command.CommandProvider;
 import org.fairy.command.CommandService;
-import org.fairy.command.CommandEvent;
-import org.fairy.bean.Component;
-import org.fairy.bean.Autowired;
 import org.fairy.redis.server.ImanityServer;
+import org.fairy.task.Task;
 import org.fairy.util.AccessUtil;
 
 import java.lang.reflect.Field;
@@ -87,7 +88,7 @@ public class CommandListener implements Listener {
             @Override
             public void execute(String command, String context, String executor, ImanityServer server) {
                 NetworkCommandExecuteEvent event = new NetworkCommandExecuteEvent(server, command, context, executor);
-                Imanity.callEvent(event);
+                Events.call(event);
 
                 if (event.isCancelled()) {
                     return;
@@ -98,7 +99,7 @@ public class CommandListener implements Listener {
             }
         });
 
-        TaskUtil.runScheduled(() -> {
+        Task.runMainLater(() -> {
             try {
                 // Command map field (we have to use reflection to get this)
                 final Field commandMapField = Imanity.PLUGIN.getServer().getClass().getDeclaredField("commandMap");

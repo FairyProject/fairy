@@ -29,6 +29,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.fairy.FairyBootstrap;
 import org.fairy.bukkit.events.PostServicesInitialEvent;
 import org.fairy.bukkit.impl.ComponentHolderBukkitListener;
+import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.util.SpigotUtil;
 import org.fairy.bean.ComponentRegistry;
 import org.fairy.FairyPlatform;
@@ -90,7 +91,7 @@ public final class FairyBukkitPlatform extends JavaPlugin implements FairyPlatfo
 
     @Override
     public void onPostServicesInitial() {
-        Imanity.callEvent(new PostServicesInitialEvent());
+        Events.call(new PostServicesInitialEvent());
     }
 
     @Override

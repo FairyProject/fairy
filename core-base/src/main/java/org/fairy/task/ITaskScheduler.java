@@ -24,24 +24,24 @@
 
 package org.fairy.task;
 
+import org.fairy.util.terminable.Terminable;
+
 public interface ITaskScheduler {
 
-    int runAsync(Runnable runnable);
+    Terminable runAsync(Runnable runnable);
 
-    int runAsyncScheduled(Runnable runnable, long time);
+    Terminable runAsyncScheduled(Runnable runnable, long time);
 
-    int runAsyncRepeated(Runnable runnable, long time);
+    Terminable runAsyncRepeated(TaskRunnable runnable, long time);
 
-    int runAsyncRepeated(Runnable runnable, long delay, long time);
+    Terminable runAsyncRepeated(TaskRunnable runnable, long delay, long time);
 
-    int runSync(Runnable runnable);
+    Terminable runSync(Runnable runnable);
 
-    int runScheduled(Runnable runnable, long time);
+    Terminable runScheduled(Runnable runnable, long time);
 
-    int runRepeated(Runnable runnable, long time);
+    Terminable runRepeated(TaskRunnable runnable, long time);
 
-    int runRepeated(Runnable runnable, long delay, long time);
-
-    void cancel(int taskId);
+    Terminable runRepeated(TaskRunnable runnable, long delay, long time);
 
 }

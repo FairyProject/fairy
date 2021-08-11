@@ -30,6 +30,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.fairy.Fairy;
 import org.fairy.ScheduledAtFixedRate;
+import org.fairy.task.TaskRunnable;
 
 import java.lang.reflect.Method;
 
@@ -53,7 +54,7 @@ public class ScheduleAspect {
         final Method method = ((MethodSignature) point.getSignature()).getMethod();
 
         final ScheduledAtFixedRate annotation = method.getAnnotation(ScheduledAtFixedRate.class);
-        Runnable runnable = () -> {
+        TaskRunnable runnable = task -> {
             try {
                 point.proceed();
             } catch (Throwable throwable) {

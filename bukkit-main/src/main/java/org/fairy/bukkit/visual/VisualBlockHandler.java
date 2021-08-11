@@ -39,24 +39,26 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
+import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.player.movement.MovementListener;
 import org.fairy.bukkit.util.BlockPosition;
 import org.fairy.bukkit.util.CoordXZ;
 import org.fairy.bukkit.util.CoordinatePair;
-import org.fairy.bukkit.util.TaskUtil;
-import org.fairy.bukkit.Imanity;
-import org.fairy.bukkit.player.movement.MovementListener;
 import org.fairy.bukkit.visual.event.PreHandleVisualClaimEvent;
 import org.fairy.bukkit.visual.event.PreHandleVisualEvent;
 import org.fairy.bukkit.visual.type.VisualType;
 import org.fairy.plugin.AbstractPlugin;
 import org.fairy.plugin.PluginListenerAdapter;
 import org.fairy.plugin.PluginManager;
+import org.fairy.task.Task;
+import org.fairy.task.TaskRunnable;
+import org.fairy.util.terminable.Terminable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class VisualBlockHandler implements Runnable {
+public class VisualBlockHandler implements TaskRunnable {
 
     private static final Logger LOGGER = LogManager.getLogger(VisualBlockHandler.class);
 
@@ -81,7 +83,7 @@ public class VisualBlockHandler implements Runnable {
                         return Optional.ofNullable(claimPositionTable.get(new CoordinatePair(coordinatePair.getWorldName(), chunkX, chunkZ), new CoordXZ((byte) posX, (byte) posZ)));
                     }
                 });
-        TaskUtil.runAsyncRepeated(this, 1L);
+        Task.asyncRepeated(this, 1L);
         Imanity.registerMovementListener(new MovementListener() {
             @Override
             public void handleUpdateLocation(Player player, Location from, Location to) {
@@ -349,7 +351,7 @@ public class VisualBlockHandler implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run(Terminable terminable) {
         VisualTask visualTask;
         while ((visualTask = visualTasks.poll()) != null) {
             this.setVisualType(visualTask.getPlayer(), visualTask.getBlockPositions(), true);

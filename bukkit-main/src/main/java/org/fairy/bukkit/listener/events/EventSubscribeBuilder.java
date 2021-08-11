@@ -27,18 +27,18 @@ package org.fairy.bukkit.listener.events;
 import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.plugin.Plugin;
-import org.fairy.bukkit.util.BukkitUtil;
-import org.fairy.bukkit.reflection.resolver.MethodResolver;
-import org.fairy.bukkit.reflection.wrapper.MethodWrapper;
+import org.fairy.bukkit.player.PlayerEventRecognizer;
+import org.fairy.util.terminable.TerminableConsumer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -65,6 +65,8 @@ public class EventSubscribeBuilder<T extends Event> {
     private final List<BiPredicate<EventSubscription<T>, T>> postExpiryTest;
 
     private final List<BiConsumer<EventSubscription<T>, ? super T>> handlers;
+    private Plugin plugin;
+    private TerminableConsumer bindWith;
 
     public EventSubscribeBuilder(Class<T> type) {
         this.eventType = type;
@@ -74,6 +76,20 @@ public class EventSubscribeBuilder<T extends Event> {
         this.midExpiryTest = new ArrayList<>(0);
         this.postExpiryTest = new ArrayList<>(0);
         this.handlers = new ArrayList<>(1);
+    }
+
+    public EventSubscribeBuilder(EventSubscribeBuilder<T> original) {
+        this.eventType = original.getEventType();
+        this.priority = original.getPriority();
+        this.filters = original.getFilters();
+        this.beforeExpiryTest = original.getBeforeExpiryTest();
+        this.midExpiryTest = original.getMidExpiryTest();
+        this.postExpiryTest = original.getPostExpiryTest();
+        this.handlers = original.getHandlers();
+        this.handleSubClasses = original.isHandleSubClasses();
+        this.exceptionHandler = original.getExceptionHandler();
+        this.plugin = original.getPlugin();
+        this.bindWith = original.getBindWith();
     }
 
     public EventSubscribeBuilder<T> priority(EventPriority priority) {
@@ -107,44 +123,29 @@ public class EventSubscribeBuilder<T extends Event> {
         return expireIf((handler, event) -> handler.getAccessCount() >= maxCalls, ExpiryStage.BEOFORE, ExpiryStage.POST_EXECUTE);
     }
 
-    private Player player;
-    private String metadata;
+    public PlayerEventSubscribeBuilder forPlayer(Player player) {
+        return this.forPlayer(player, null);
+    }
 
-    public EventSubscribeBuilder<T> forPlayer(Player player, String metadata) {
-        if (!BukkitUtil.isPlayerEvent(this.eventType)) {
-            throw new IllegalStateException("forPlayer() wouldn't work for non player event!");
-        }
-
-        this.player = player;
-        this.metadata = metadata;
-        return this;
+    public PlayerEventSubscribeBuilder forPlayer(Player player, String metadata) {
+        return new PlayerEventSubscribeBuilder(this, player, metadata);
     }
 
     public EventSubscribeBuilder<T> expireIf(@NonNull BiPredicate<EventSubscription<T>, T> predicate, @NonNull ExpiryStage... stages) {
-
         for (ExpiryStage stage : stages) {
-
             switch (stage) {
-
                 case BEOFORE:
                     this.beforeExpiryTest.add(predicate);
                     break;
-
                 case POST_FILTER:
                     this.midExpiryTest.add(predicate);
                     break;
-
                 case POST_EXECUTE:
                     this.postExpiryTest.add(predicate);
                     break;
-
-
             }
-
         }
-
         return this;
-
     }
 
     @SafeVarargs
@@ -162,36 +163,86 @@ public class EventSubscribeBuilder<T extends Event> {
         return this;
     }
 
+    public final EventSubscribeBuilder<T> plugin(Plugin plugin) {
+        this.plugin = plugin;
+        return this;
+    }
+
+    public final EventSubscribeBuilder<T> bindWith(TerminableConsumer terminableConsumer) {
+        this.bindWith = terminableConsumer;
+        return this;
+    }
+
     public EventSubscription<T> build(Plugin plugin) {
+        this.plugin = plugin;
+        return this.build();
+    }
 
-        if (this.player != null) {
-
-            MethodWrapper<Player> method;
-
-            if (PlayerEvent.class.isAssignableFrom(this.eventType)) {
-                method = new MethodResolver(PlayerEvent.class).resolveWrapper("getPlayer");
-            } else {
-                method = new MethodResolver(this.eventType).resolveWrapper("getPlayer");
-            }
-
-            if (!method.exists()) {
-                throw new IllegalStateException("Couldn't find getPlayer method in event " + this.eventType.getSimpleName() + " !");
-            }
-
-            this.filter(event -> method.invoke(event) == player);
+    public EventSubscription<T> build() {
+        if (this.plugin == null) {
+            throw new IllegalArgumentException("No plugin were registered in EventSubscribeBuilder.");
         }
 
         EventSubscription<T> subscription = new EventSubscription<>(this);
-        subscription.register(plugin);
-
-        if (this.player != null &&
-                this.metadata != null) {
-
-            Events.getSubscriptionList(player).put(metadata, subscription);
-
+        subscription.register(this.plugin);
+        if (this.bindWith != null) {
+            subscription.bindWith(this.bindWith);
         }
 
         return subscription;
+    }
+
+    @RequiredArgsConstructor
+    private static class PlayerPredicate<T extends Event> implements Predicate<T> {
+
+        private final UUID uuid;
+        private final PlayerEventRecognizer.Attribute<T>[] attributes;
+
+        @Override
+        public boolean test(T event) {
+            final Player player = PlayerEventRecognizer.tryRecognize(event, attributes);
+            if (player != null) {
+                return player.getUniqueId().equals(this.uuid);
+            }
+            return false;
+        }
+    }
+
+    @Getter
+    public class PlayerEventSubscribeBuilder extends EventSubscribeBuilder<T> {
+
+        private final Player player;
+        private final String metadata;
+        private final List<PlayerEventRecognizer.Attribute<T>> recognizeAttributes;
+
+        public PlayerEventSubscribeBuilder(EventSubscribeBuilder<T> original, Player player, String metadata) {
+            super(original);
+            this.player = player;
+            this.metadata = metadata;
+            this.recognizeAttributes = new ArrayList<>(0);
+        }
+
+        public PlayerEventSubscribeBuilder recognizeAttribute(PlayerEventRecognizer.Attribute<T>... attributes) {
+            this.recognizeAttributes.addAll(Arrays.asList(attributes));
+            return this;
+        }
+
+        @Override
+        public EventSubscription<T> build(Plugin plugin) {
+            if (this.recognizeAttributes.isEmpty() && !PlayerEventRecognizer.isTypePossible(this.getEventType())) {
+                throw new IllegalStateException("used forPlayer() but type " + this.getEventType().getSimpleName() + " seems to be impossible to get Player!");
+            }
+            this.filter(new PlayerPredicate<>(this.player.getUniqueId(), this.recognizeAttributes.toArray(new PlayerEventRecognizer.Attribute[0])));
+
+            EventSubscription<T> subscription = new EventSubscription<>(this);
+            subscription.register(plugin);
+
+            if (this.metadata != null) {
+                Events.getSubscriptionList(player).put(metadata, subscription);
+            }
+
+            return subscription;
+        }
 
     }
 }

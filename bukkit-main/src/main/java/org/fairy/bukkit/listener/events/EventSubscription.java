@@ -76,8 +76,14 @@ public class EventSubscription<T extends Event> implements Listener, EventExecut
         this.midExpiryTest = subscribe.getMidExpiryTest().toArray(new BiPredicate[0]);
         this.postExpiryTest = subscribe.getPostExpiryTest().toArray(new BiPredicate[0]);
 
-        this.activePlayer = subscribe.getPlayer();
-        this.activeMetadata = subscribe.getMetadata();
+        if (subscribe instanceof EventSubscribeBuilder.PlayerEventSubscribeBuilder) {
+            final EventSubscribeBuilder<T>.PlayerEventSubscribeBuilder playerBuilder = (EventSubscribeBuilder<T>.PlayerEventSubscribeBuilder) subscribe;
+            this.activePlayer = playerBuilder.getPlayer();
+            this.activeMetadata = playerBuilder.getMetadata();
+        } else {
+            this.activePlayer = null;
+            this.activeMetadata = null;
+        }
     }
 
     public int getAccessCount() {

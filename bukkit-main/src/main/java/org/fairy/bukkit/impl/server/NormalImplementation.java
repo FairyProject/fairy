@@ -24,10 +24,7 @@
 
 package org.fairy.bukkit.impl.server;
 
-import com.google.common.collect.ForwardingMultimap;
 import com.google.common.collect.HashMultimap;
-import com.mojang.authlib.properties.PropertyMap;
-import net.minecraft.server.v1_8_R3.EntityPlayer;
 import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -36,27 +33,26 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
 import org.fairy.Fairy;
+import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.impl.annotation.ServerImpl;
 import org.fairy.bukkit.metadata.Metadata;
 import org.fairy.bukkit.packet.PacketService;
+import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardTeam;
+import org.fairy.bukkit.player.movement.MovementListener;
+import org.fairy.bukkit.player.movement.impl.AbstractMovementImplementation;
+import org.fairy.bukkit.player.movement.impl.BukkitMovementImplementation;
 import org.fairy.bukkit.reflection.MinecraftReflection;
+import org.fairy.bukkit.reflection.resolver.ConstructorResolver;
+import org.fairy.bukkit.reflection.resolver.MethodResolver;
+import org.fairy.bukkit.reflection.resolver.ResolverQuery;
+import org.fairy.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import org.fairy.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import org.fairy.bukkit.reflection.wrapper.*;
 import org.fairy.bukkit.util.BlockPosition;
 import org.fairy.bukkit.util.BlockPositionData;
 import org.fairy.bukkit.util.CoordXZ;
-import org.fairy.bukkit.util.TaskUtil;
-import org.fairy.bukkit.Imanity;
-import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardTeam;
-import org.fairy.bukkit.player.movement.MovementListener;
-import org.fairy.bukkit.player.movement.impl.AbstractMovementImplementation;
-import org.fairy.bukkit.player.movement.impl.BukkitMovementImplementation;
-import org.fairy.bukkit.reflection.resolver.MethodResolver;
-import org.fairy.bukkit.reflection.resolver.ResolverQuery;
 import org.fairy.metadata.MetadataKey;
-import org.fairy.bukkit.reflection.resolver.ConstructorResolver;
-import org.fairy.bukkit.reflection.resolver.minecraft.NMSClassResolver;
-import org.fairy.reflect.ReflectObject;
+import org.fairy.task.Task;
 import org.fairy.util.AccessUtil;
 
 import java.lang.reflect.Array;
@@ -220,7 +216,7 @@ public class NormalImplementation implements ServerImplementation {
             MinecraftReflection.sendPacket(other, statusPacket);
         }
 
-        TaskUtil.runScheduled(() -> players.forEach(other -> {
+        Task.runMainLater(() -> players.forEach(other -> {
 //            ((CraftPlayer) other).getHandle().playerConnection.fakeEntities.remove(i); // TODO
             MinecraftReflection.sendPacket(other, destroyPacket);
         }), 20L);

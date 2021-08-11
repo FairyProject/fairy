@@ -29,9 +29,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Multimap;
 import lombok.Getter;
 import org.bukkit.entity.Player;
-import org.fairy.*;
+import org.fairy.Fairy;
 import org.fairy.bean.*;
-import org.fairy.bukkit.util.TaskUtil;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.packet.netty.INettyInjection;
 import org.fairy.bukkit.packet.netty.NettyInjection1_8;
@@ -43,6 +42,7 @@ import org.fairy.bukkit.packet.wrapper.WrappedPacket;
 import org.fairy.bukkit.packet.wrapper.annotation.AutowiredWrappedPacket;
 import org.fairy.bukkit.reflection.MinecraftReflection;
 import org.fairy.reflect.ReflectLookup;
+import org.fairy.task.Task;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -88,7 +88,7 @@ public class PacketService {
             nettyInjection.registerChannels();
         } catch (Throwable throwable) {
             Imanity.LOGGER.info("Late Bind was enabled, late inject channels.");
-            TaskUtil.runScheduled(() -> {
+            Task.runMainLater(() -> {
                 try {
                     nettyInjection.registerChannels();
                 } catch (Throwable throwable1) {

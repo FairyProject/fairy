@@ -64,12 +64,12 @@ public class StateSequences extends StateCollection {
             return;
         }
 
-        this.get(this.index).start();
+        this.getCurrentState().start();
     }
 
     @Override
     protected void onUpdate() {
-        final State currentState = this.get(this.index);
+        final State currentState = this.getCurrentState();
         currentState.update();
 
         final boolean readyToEnd = currentState.isReadyToEnd();
@@ -89,19 +89,23 @@ public class StateSequences extends StateCollection {
                 return;
             }
 
-            this.get(this.index).start();
+            this.getCurrentState().start();
         }
     }
 
     @Override
     protected boolean canEnd() {
-        return this.index == this.lastIndex() && this.get(this.index).isReadyToEnd();
+        return this.index == this.lastIndex() && this.getCurrentState().isReadyToEnd();
     }
 
     @Override
     protected void onEnded() {
         if (this.index < this.size()) {
-            this.get(this.index).end();
+            this.getCurrentState().end();
         }
+    }
+
+    public State getCurrentState() {
+        return this.get(this.index);
     }
 }

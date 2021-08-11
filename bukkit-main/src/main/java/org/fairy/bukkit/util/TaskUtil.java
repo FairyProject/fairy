@@ -29,6 +29,11 @@ import org.fairy.bukkit.Imanity;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * @deprecated Old structure
+ * @see org.fairy.task.Task
+ */
+@Deprecated
 public class TaskUtil {
 
     public static BukkitTask runAsync(Runnable runnable) {

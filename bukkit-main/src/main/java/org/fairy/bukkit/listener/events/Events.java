@@ -48,6 +48,7 @@ import org.fairy.util.terminable.TerminableConsumer;
 import org.fairy.util.terminable.composite.CompositeTerminable;
 
 import javax.annotation.Nullable;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @UtilityClass
@@ -55,6 +56,7 @@ public class Events {
 
     public final MetadataKey<EventSubscriptionList> SUBSCRIPTION_LIST = MetadataKey.create(Fairy.METADATA_PREFIX + "SubscriptionList", EventSubscriptionList.class);
 
+    public final Consumer<Cancellable> CANCEL = e -> e.setCancelled(true);
     public final Predicate<Cancellable> IGNORE_CANCELLED = e -> !e.isCancelled();
     public final Predicate<Cancellable> IGNORE_UNCANCELLED = Cancellable::isCancelled;
     public final Predicate<PlayerLoginEvent> IGNORE_DISALLOWED_LOGIN = e -> e.getResult() == PlayerLoginEvent.Result.ALLOWED;

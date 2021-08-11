@@ -26,6 +26,7 @@ package org.fairy.task;
 
 import lombok.experimental.UtilityClass;
 import org.fairy.Fairy;
+import org.fairy.util.terminable.Terminable;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -76,12 +77,36 @@ public class Task {
         return run -> Fairy.getTaskScheduler().runAsyncScheduled(run, ticks);
     }
 
+    public CompletableFuture<Void> runMainLater(Runnable runnable, long ticks) {
+        return CompletableFuture.runAsync(runnable, mainLater(ticks));
+    }
+
+    public CompletableFuture<Void> runAsyncLater(Runnable runnable, long ticks) {
+        return CompletableFuture.runAsync(runnable, asyncLater(ticks));
+    }
+
     public <T> CompletableFuture<T> supplyAsync(Supplier<T> supplier) {
         return CompletableFuture.supplyAsync(supplier, async());
     }
 
     public CompletableFuture<Void> runAsync(Runnable runnable) {
         return CompletableFuture.runAsync(runnable, async());
+    }
+
+    public Terminable asyncRepeated(TaskRunnable runnable, long time) {
+        return Fairy.getTaskScheduler().runAsyncRepeated(runnable, time);
+    }
+
+    public Terminable asyncRepeated(TaskRunnable runnable, long delay, long time) {
+        return Fairy.getTaskScheduler().runAsyncRepeated(runnable, time, time);
+    }
+
+    public Terminable mainRepeated(TaskRunnable runnable, long time) {
+        return Fairy.getTaskScheduler().runRepeated(runnable, time);
+    }
+
+    public Terminable mainRepeated(TaskRunnable runnable, long delay, long time) {
+        return Fairy.getTaskScheduler().runRepeated(runnable, delay, time);
     }
 
 }

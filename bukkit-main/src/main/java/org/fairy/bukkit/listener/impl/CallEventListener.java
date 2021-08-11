@@ -34,8 +34,8 @@ import org.fairy.bukkit.events.player.EntityDamageByPlayerEvent;
 import org.fairy.bukkit.events.player.PlayerDamageByEntityEvent;
 import org.fairy.bukkit.events.player.PlayerDamageByPlayerEvent;
 import org.fairy.bukkit.events.player.PlayerDamageEvent;
-import org.fairy.bukkit.Imanity;
 import org.fairy.bean.Component;
+import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.util.BukkitUtil;
 
 @Component
@@ -47,22 +47,18 @@ public class CallEventListener implements Listener {
         if (event instanceof EntityDamageByEntityEvent) {
             EntityDamageByEntityEvent damageByEntityEvent = (EntityDamageByEntityEvent) event;
             Player playerDamager = BukkitUtil.getDamager(damageByEntityEvent);
-
             if (entity instanceof Player) {
                 Player player = (Player) entity;
                 if (playerDamager != null) {
-                    Imanity.callEvent(new PlayerDamageByPlayerEvent(player, playerDamager, damageByEntityEvent));
+                    Events.call(new PlayerDamageByPlayerEvent(player, playerDamager, damageByEntityEvent));
                     return;
                 }
-                Imanity.callEvent(new PlayerDamageByEntityEvent(player, damageByEntityEvent));
-                return;
+                Events.call(new PlayerDamageByEntityEvent(player, damageByEntityEvent));
             } else if (playerDamager != null) {
-                Imanity.callEvent(new EntityDamageByPlayerEvent(playerDamager, damageByEntityEvent));
+                Events.call(new EntityDamageByPlayerEvent(playerDamager, damageByEntityEvent));
             }
-            return;
-        }
-        if (event.getEntity() instanceof Player) {
-            Imanity.callEvent(new PlayerDamageEvent((Player) entity, event));
+        } else if (event.getEntity() instanceof Player) {
+            Events.call(new PlayerDamageEvent((Player) entity, event));
         }
     }
 

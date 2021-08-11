@@ -22,33 +22,12 @@
  * SOFTWARE.
  */
 
-package org.fairy.state;
+package org.fairy.task;
 
-import lombok.NonNull;
+import org.fairy.util.terminable.Terminable;
 
-public class StateHolder<T extends StateBase> {
+public interface TaskRunnable {
 
-    protected T state;
-
-    public StateHolder(@NonNull T startState) {
-        this.set(startState);
-    }
-
-    public StateHolder() {
-    }
-
-    public void set(@NonNull T state) {
-        if (this.state != null) {
-            this.state.end();
-        }
-        this.state = state;
-        this.state.start();
-    }
-
-    public void update() {
-        if (this.state != null) {
-            this.state.update();
-        }
-    }
+    void run(Terminable terminable);
 
 }

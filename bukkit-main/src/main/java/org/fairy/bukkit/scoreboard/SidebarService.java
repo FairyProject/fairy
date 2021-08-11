@@ -26,17 +26,17 @@ package org.fairy.bukkit.scoreboard;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitTask;
 import org.fairy.Fairy;
 import org.fairy.bean.*;
-import org.fairy.bukkit.util.TaskRunnable;
-import org.fairy.bukkit.util.TaskUtil;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.metadata.Metadata;
+import org.fairy.task.Task;
+import org.fairy.task.TaskRunnable;
 import org.fairy.util.CC;
 import org.fairy.util.Stacktrace;
 import org.fairy.util.entry.Entry;
+import org.fairy.util.terminable.Terminable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -69,7 +69,7 @@ public class SidebarService implements TaskRunnable {
 
     @PostInitialize
     public void postInit() {
-        TaskUtil.runRepeated(this, this.getUpdateTick());
+        Task.mainRepeated(this, this.getUpdateTick());
         Events.subscribe(PlayerQuitEvent.class).listen((subscription, event) -> remove(event.getPlayer()));
     }
 
@@ -81,7 +81,7 @@ public class SidebarService implements TaskRunnable {
 
     private void activate() {
         if (activated.compareAndSet(false, true)) {
-            TaskUtil.runRepeated(this, this.getUpdateTick());
+            Task.mainRepeated(this, this.getUpdateTick());
         }
     }
 
@@ -99,13 +99,13 @@ public class SidebarService implements TaskRunnable {
     }
 
     @Override
-    public void run(BukkitTask task) {
+    public void run(Terminable terminable) {
         try {
             this.tick();
 
             this.runQueue();
             if (this.adapters.isEmpty()) {
-                task.cancel();
+                terminable.close();
                 this.activated.set(false);
             }
         } catch (Exception ex) {
