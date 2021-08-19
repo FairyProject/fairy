@@ -22,17 +22,42 @@
  * SOFTWARE.
  */
 
-rootProject.name = "fairy-parent"
-include "bukkit-all"
-include "bukkit-imanity-impl"
-include "bukkit-main"
-include "bukkit-timings"
+package org.fairy.bukkit.timer;
 
-include "mc-abstract"
+public abstract class TimerBase extends Timer {
 
-include "core-all"
-include "core-main"
-include "core-storage"
-include "core-base"
-include 'annotationProcessor'
+    private final TimerList timerList;
 
+    public TimerBase(long startTime, long duration, TimerList timerList) {
+        super(startTime, duration);
+        this.timerList = timerList;
+
+        if (this.timerList != null) {
+            this.timerList.add(this);
+        }
+    }
+
+    public TimerBase(long startTime, long duration) {
+        this(startTime, duration, null);
+    }
+
+    public TimerBase(long duration, TimerList timerList) {
+        this(System.currentTimeMillis(), duration, timerList);
+    }
+
+    public TimerBase(long duration) {
+        this(System.currentTimeMillis(), duration);
+    }
+
+    @Override
+    protected final void onPreClear() {
+        if (this.timerList != null) {
+            this.timerList.remove(this);
+        }
+    }
+
+    @Override
+    protected final void onPostStart() {
+        TIMER_SERVICE.add(this);
+    }
+}

@@ -34,6 +34,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.fairy.bukkit.player.PlayerEventRecognizer;
 import org.fairy.reflect.Reflect;
 
 import java.lang.invoke.MethodHandle;
@@ -62,16 +63,15 @@ public class FilteredEventList {
         EVENT_PLAYER_METHODS.put(eventClass, method);
     }
 
-    private final Predicate<Event>[] filters;
+    private final BiPredicate<Event, Class<? extends PlayerEventRecognizer.Attribute<?>>[]>[] filters;
 
     private FilteredEventList(Builder builder) {
-        this.filters = builder.filters.toArray(new Predicate[0]);
+        this.filters = builder.filters.toArray(new BiPredicate[0]);
     }
 
-    public boolean check(Event event) {
-
-        for (Predicate<Event> filter : this.filters) {
-            if (!filter.test(event)) {
+    public boolean check(Event event, Class<? extends PlayerEventRecognizer.Attribute<?>>[] attributes) {
+        for (BiPredicate<Event, Class<? extends PlayerEventRecognizer.Attribute<?>>[]> filter : this.filters) {
+            if (!filter.test(event, attributes)) {
                 return false;
             }
         }
@@ -85,53 +85,20 @@ public class FilteredEventList {
 
     public static class Builder {
 
-        private final List<Predicate<Event>> filters;
+        private final List<BiPredicate<Event, Class<? extends PlayerEventRecognizer.Attribute<?>>[]>> filters;
 
         public Builder() {
             this.filters = new ArrayList<>(1);
         }
 
         public Builder filter(Predicate<Event> filter) {
-            this.filters.add(filter);
+            this.filters.add((event, ignored) -> filter.test(event));
             return this;
         }
 
         public Builder filter(BiPredicate<Player, Event> filter) {
-            this.filters.add(event -> {
-                Player player = null;
-                Class<?> type = event.getClass();
-                if (event instanceof PlayerEvent) {
-                    player = ((PlayerEvent) event).getPlayer();
-                } else if (EVENT_PLAYER_METHODS.containsKey(type)) {
-                    player = EVENT_PLAYER_METHODS.get(type).apply(event);
-                } else {
-                    MethodHandle methodHandle = null;
-
-                    if (!NO_METHODS.contains(type)) {
-                        for (Method method : Reflect.getDeclaredMethods(type)) {
-                            if (method.getParameterCount() == 0) {
-                                Class<?> returnType = method.getReturnType();
-                                if (Player.class.isAssignableFrom(returnType) || HumanEntity.class.isAssignableFrom(returnType)) {
-                                    try {
-                                        methodHandle = Reflect.lookup().unreflect(method);
-
-                                        MethodHandleFunction methodHandleFunction = new MethodHandleFunction(methodHandle);
-                                        EVENT_PLAYER_METHODS.put(event.getClass(), methodHandleFunction);
-
-                                        player = methodHandleFunction.apply(event);
-                                        break;
-                                    } catch (Throwable throwable) {
-                                        throw new IllegalArgumentException("Something wrong while looking for player", throwable);
-                                    }
-                                }
-                            }
-                        }
-
-                        if (methodHandle == null) {
-                            NO_METHODS.add(type);
-                        }
-                    }
-                }
+            this.filters.add((event, attributes) -> {
+                Player player = PlayerEventRecognizer.tryRecognize(event, attributes);
 
                 if (player != null) {
                     return filter.test(player, event);

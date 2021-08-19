@@ -22,17 +22,19 @@
  * SOFTWARE.
  */
 
-rootProject.name = "fairy-parent"
-include "bukkit-all"
-include "bukkit-imanity-impl"
-include "bukkit-main"
-include "bukkit-timings"
+package org.fairy.bukkit.listener.annotation;
 
-include "mc-abstract"
+import org.fairy.bukkit.player.PlayerEventRecognizer;
 
-include "core-all"
-include "core-main"
-include "core-storage"
-include "core-base"
-include 'annotationProcessor'
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface PlayerSearchAttribute {
+
+    Class<PlayerEventRecognizer.Attribute<?>>[] value();
+
+}

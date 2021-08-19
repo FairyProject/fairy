@@ -111,12 +111,20 @@ public class BukkitTaskScheduler implements ITaskScheduler {
     }
 
     private Terminable toTerminable(BukkitTask bukkitTask, AtomicBoolean closed) {
-        return () -> {
-            if (!closed.compareAndSet(false, true)) {
-                return;
+        return new Terminable() {
+            @Override
+            public void close() {
+                if (!closed.compareAndSet(false, true)) {
+                    return;
+                }
+
+                bukkitTask.cancel();
             }
 
-            bukkitTask.cancel();
+            @Override
+            public boolean isClosed() {
+                return closed.get();
+            }
         };
     }
 }

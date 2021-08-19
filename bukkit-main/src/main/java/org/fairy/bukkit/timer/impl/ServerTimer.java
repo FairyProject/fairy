@@ -27,11 +27,12 @@ package org.fairy.bukkit.timer.impl;
 import org.bukkit.entity.Player;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.timer.Timer;
+import org.fairy.bukkit.timer.TimerBase;
 import org.fairy.bukkit.timer.TimerList;
 
 import java.util.Collection;
 
-public class ServerTimer extends Timer {
+public class ServerTimer extends TimerBase {
     public ServerTimer(long startTime, long duration, TimerList timerList) {
         super(startTime, duration, timerList);
     }

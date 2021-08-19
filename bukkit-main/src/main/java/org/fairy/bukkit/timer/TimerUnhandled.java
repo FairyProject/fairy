@@ -22,17 +22,25 @@
  * SOFTWARE.
  */
 
-rootProject.name = "fairy-parent"
-include "bukkit-all"
-include "bukkit-imanity-impl"
-include "bukkit-main"
-include "bukkit-timings"
+package org.fairy.bukkit.timer;
 
-include "mc-abstract"
+public abstract class TimerUnhandled extends Timer {
 
-include "core-all"
-include "core-main"
-include "core-storage"
-include "core-base"
-include 'annotationProcessor'
+    public TimerUnhandled(long startTime, long duration) {
+        super(startTime, duration);
+    }
 
+    public TimerUnhandled(long duration) {
+        super(duration);
+    }
+
+    @Override
+    protected final void onPreClear() {
+
+    }
+
+    @Override
+    protected final void onPostStart() {
+
+    }
+}

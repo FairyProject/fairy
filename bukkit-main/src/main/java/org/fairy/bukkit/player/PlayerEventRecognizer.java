@@ -37,6 +37,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.fairy.bukkit.events.player.IPlayerEvent;
 import org.fairy.reflect.Reflect;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,6 +51,7 @@ import java.util.function.Function;
 @UtilityClass
 public class PlayerEventRecognizer {
 
+    private static final Map<Class<? extends Attribute<?>>, Attribute<?>> ATTRIBUTE_INSTANCE = new ConcurrentHashMap<>();
     private static final Map<Class<?>, Function<Event, Player>> EVENT_PLAYER_METHODS = new ConcurrentHashMap<>();
     private static final Set<Class<?>> NO_METHODS = Sets.newConcurrentHashSet();
 
@@ -66,6 +68,10 @@ public class PlayerEventRecognizer {
             return true;
         }
 
+        if (IPlayerEvent.class.isAssignableFrom(type)) {
+            return true;
+        }
+
         if (EntityEvent.class.isAssignableFrom(type)) {
             return true;
         }
@@ -77,16 +83,21 @@ public class PlayerEventRecognizer {
         return searchMethod(type) != null;
     }
 
+    @SafeVarargs
     @Nullable
-    public Player tryRecognize(Event event, Attribute<?>... attributes) {
+    public Player tryRecognize(Event event, Class<? extends Attribute<?>>... attributes) {
         Player player = tryRecognize0(event);
         player = transformEvent(event, player, attributes);
         return player;
     }
 
     private Player tryRecognize0(Event event) {
-        if (event instanceof Player) {
-            return ((Player) event).getPlayer();
+        if (event instanceof PlayerEvent) {
+            return ((PlayerEvent) event).getPlayer();
+        }
+
+        if (event instanceof IPlayerEvent) {
+            return ((IPlayerEvent) event).getPlayer();
         }
 
         if (event instanceof EntityEvent) {
@@ -139,30 +150,38 @@ public class PlayerEventRecognizer {
         return null;
     }
 
-    private Player transformEvent(Event event, Player player, Attribute<?>... attributes) {
-        for (Attribute<?> attribute : attributes) {
-            if (attribute.getEventType().isInstance(event)) {
-                player = attribute.transform(event, player);
+    @SafeVarargs
+    private Player transformEvent(Event event, Player player, Class<? extends Attribute<?>>... attributes) {
+        for (Class<? extends Attribute<?>> type : attributes) {
+            final Attribute<?> attribute = getAttributeInstance(type);
+            if (attribute.type().isInstance(event)) {
+                player = attribute.transform0(event, player);
             }
         }
 
         return player;
     }
 
-    @RequiredArgsConstructor
-    @Data
-    public class Attribute<T extends Event> {
-        private final String name;
-        private final Class<T> eventType;
-        private final AttributeFunc<T> transformer;
-
-        public Player transform(Event event, Player player) {
-            return this.transformer.transform(this.eventType.cast(event), player);
-        }
+    private Attribute<?> getAttributeInstance(Class<? extends Attribute<?>> type) {
+        return ATTRIBUTE_INSTANCE.computeIfAbsent(type, ignored -> {
+            try {
+                return type.newInstance();
+            } catch (Throwable throwable) {
+                throw new RuntimeException(throwable);
+            }
+        });
     }
 
-    public interface AttributeFunc<T> {
+    public interface Attribute<T extends Event> {
+
+        Class<T> type();
+
+        default Player transform0(Event event, Player player) {
+            return this.transform(this.type().cast(event), player);
+        }
+
         Player transform(T t, @Nullable Player player);
+
     }
 
     @RequiredArgsConstructor

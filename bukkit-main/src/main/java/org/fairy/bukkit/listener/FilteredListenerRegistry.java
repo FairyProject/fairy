@@ -38,11 +38,13 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 import org.fairy.bukkit.listener.annotation.IgnoredFilters;
+import org.fairy.bukkit.listener.annotation.PlayerSearchAttribute;
 import org.fairy.bukkit.listener.asm.ASMEventExecutorGenerator;
 import org.fairy.bukkit.listener.asm.ClassDefiner;
 import org.fairy.bukkit.listener.asm.MethodHandleEventExecutor;
 import org.fairy.bukkit.listener.asm.StaticMethodHandleEventExecutor;
 import org.fairy.bukkit.listener.timings.TimedEventExecutor;
+import org.fairy.bukkit.player.PlayerEventRecognizer;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -146,11 +148,19 @@ public final class FilteredListenerRegistry {
                 return definer.defineClass(m.getDeclaringClass().getClassLoader(), name, classData).asSubclass(EventExecutor.class);
             });
 
+            Class<? extends PlayerEventRecognizer.Attribute<?>>[] attributes;
+            final PlayerSearchAttribute annotation = m.getAnnotation(PlayerSearchAttribute.class);
+            if (annotation != null) {
+                attributes = annotation.value();
+            } else {
+                attributes = new Class[0];
+            }
+
             try {
                 EventExecutor asmExecutor = executorClass.newInstance();
                 // Define a wrapper to conform to bukkit stupidity (passing in events that don't match and wrapper exception)
                 return (listener, event) -> {
-                    if (eventClass.isInstance(event) && (ignoredFilters || eventList.check(event))) {
+                    if (eventClass.isInstance(event) && (ignoredFilters || eventList.check(event, attributes))) {
                         asmExecutor.execute(listener, event);
                     }
                 };

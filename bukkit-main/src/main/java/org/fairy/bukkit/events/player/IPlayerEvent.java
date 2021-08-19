@@ -22,17 +22,12 @@
  * SOFTWARE.
  */
 
-rootProject.name = "fairy-parent"
-include "bukkit-all"
-include "bukkit-imanity-impl"
-include "bukkit-main"
-include "bukkit-timings"
+package org.fairy.bukkit.events.player;
 
-include "mc-abstract"
+import org.bukkit.entity.Player;
 
-include "core-all"
-include "core-main"
-include "core-storage"
-include "core-base"
-include 'annotationProcessor'
+public interface IPlayerEvent {
 
+    Player getPlayer();
+
+}

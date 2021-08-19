@@ -196,7 +196,7 @@ public class EventSubscribeBuilder<T extends Event> {
     private static class PlayerPredicate<T extends Event> implements Predicate<T> {
 
         private final UUID uuid;
-        private final PlayerEventRecognizer.Attribute<T>[] attributes;
+        private final Class<PlayerEventRecognizer.Attribute<?>>[] attributes;
 
         @Override
         public boolean test(T event) {
@@ -213,7 +213,7 @@ public class EventSubscribeBuilder<T extends Event> {
 
         private final Player player;
         private final String metadata;
-        private final List<PlayerEventRecognizer.Attribute<T>> recognizeAttributes;
+        private final List<Class<PlayerEventRecognizer.Attribute<?>>> recognizeAttributes;
 
         public PlayerEventSubscribeBuilder(EventSubscribeBuilder<T> original, Player player, String metadata) {
             super(original);
@@ -222,7 +222,7 @@ public class EventSubscribeBuilder<T extends Event> {
             this.recognizeAttributes = new ArrayList<>(0);
         }
 
-        public PlayerEventSubscribeBuilder recognizeAttribute(PlayerEventRecognizer.Attribute<T>... attributes) {
+        public PlayerEventSubscribeBuilder recognizeAttribute(Class<PlayerEventRecognizer.Attribute<?>>... attributes) {
             this.recognizeAttributes.addAll(Arrays.asList(attributes));
             return this;
         }
@@ -232,7 +232,7 @@ public class EventSubscribeBuilder<T extends Event> {
             if (this.recognizeAttributes.isEmpty() && !PlayerEventRecognizer.isTypePossible(this.getEventType())) {
                 throw new IllegalStateException("used forPlayer() but type " + this.getEventType().getSimpleName() + " seems to be impossible to get Player!");
             }
-            this.filter(new PlayerPredicate<>(this.player.getUniqueId(), this.recognizeAttributes.toArray(new PlayerEventRecognizer.Attribute[0])));
+            this.filter(new PlayerPredicate<>(this.player.getUniqueId(), this.recognizeAttributes.toArray(new Class[0])));
 
             EventSubscription<T> subscription = new EventSubscription<>(this);
             subscription.register(plugin);

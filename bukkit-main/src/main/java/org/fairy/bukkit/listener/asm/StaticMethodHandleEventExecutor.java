@@ -32,6 +32,8 @@ import org.bukkit.event.EventException;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.fairy.bukkit.listener.FilteredEventList;
+import org.fairy.bukkit.listener.annotation.PlayerSearchAttribute;
+import org.fairy.bukkit.player.PlayerEventRecognizer;
 import org.fairy.reflect.Reflect;
 
 import java.lang.invoke.MethodHandle;
@@ -44,10 +46,10 @@ public class StaticMethodHandleEventExecutor implements EventExecutor {
     private final FilteredEventList eventList;
     private final Class<? extends Event> eventClass;
     private final MethodHandle handle;
+    private final Class<? extends PlayerEventRecognizer.Attribute<?>>[] attributes;
 
     public StaticMethodHandleEventExecutor(@NonNull Class<? extends Event> eventClass, @NonNull Method m, boolean ignoredFilters, FilteredEventList eventList) {
         Preconditions.checkArgument(Modifier.isStatic(m.getModifiers()), "Not a static method: %s", m);
-        Preconditions.checkArgument(eventClass != null, "eventClass is null");
         this.eventClass = eventClass;
         this.ignoredFilters = ignoredFilters;
         this.eventList = eventList;
@@ -57,12 +59,19 @@ public class StaticMethodHandleEventExecutor implements EventExecutor {
         } catch (IllegalAccessException e) {
             throw new AssertionError("Unable to set accessible", e);
         }
+
+        final PlayerSearchAttribute annotation = m.getAnnotation(PlayerSearchAttribute.class);
+        if (annotation != null) {
+            this.attributes = annotation.value();
+        } else {
+            this.attributes = new Class[0];
+        }
     }
 
     @Override
     @SneakyThrows
     public void execute(@NonNull Listener listener, @NonNull Event event) throws EventException {
-        if (eventClass.isInstance(event) && (ignoredFilters || eventList.check(event))) {
+        if (eventClass.isInstance(event) && (ignoredFilters || eventList.check(event, this.attributes))) {
             handle.invoke(event);
         }
     }

@@ -27,14 +27,22 @@ package org.fairy.bukkit.events.player;
 import org.bukkit.entity.Player;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.fairy.bukkit.player.PlayerEventRecognizer;
+import org.jetbrains.annotations.Nullable;
 
 public class PlayerDamageByPlayerEvent extends PlayerDamageEvent {
 
-    public static final PlayerEventRecognizer.Attribute<PlayerDamageByPlayerEvent> DAMAGER = new PlayerEventRecognizer.Attribute<>(
-            "PlayerDamageByPlayerEvent.Damager",
-            PlayerDamageByPlayerEvent.class,
-            (event, player) -> event.getDamager()
-    );
+    public static class DamagerAttribute implements PlayerEventRecognizer.Attribute<PlayerDamageByPlayerEvent> {
+
+        @Override
+        public Class<PlayerDamageByPlayerEvent> type() {
+            return PlayerDamageByPlayerEvent.class;
+        }
+
+        @Override
+        public Player transform(PlayerDamageByPlayerEvent event, @Nullable Player player) {
+            return event.getDamager();
+        }
+    }
 
     private final Player damager;
 

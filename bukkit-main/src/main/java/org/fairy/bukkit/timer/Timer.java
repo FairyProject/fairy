@@ -45,9 +45,9 @@ import java.util.concurrent.TimeUnit;
 public abstract class Timer implements Terminable, TerminableConsumer {
 
     @Autowired
-    private static TimerService TIMER_SERVICE;
+    protected static TimerService TIMER_SERVICE;
 
-    private static final IntOpenHashSet COUNTDOWNS;
+    protected static final IntOpenHashSet COUNTDOWNS;
 
     static {
         COUNTDOWNS = new IntOpenHashSet(ImmutableSet.of(3200,
@@ -81,26 +81,12 @@ public abstract class Timer implements Terminable, TerminableConsumer {
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     private boolean closed;
-    private final TimerList timerList;
 
-    public Timer(long startTime, long duration, TimerList timerList) {
+    public Timer(long startTime, long duration) {
         this.startTime = startTime;
         this.duration = duration;
         this.pauseTime = -1;
         this.elapsedTime = this.startTime + this.duration;
-        this.timerList = timerList;
-
-        if (this.timerList != null) {
-            this.timerList.add(this);
-        }
-    }
-
-    public Timer(long startTime, long duration) {
-        this(startTime, duration, null);
-    }
-
-    public Timer(long duration, TimerList timerList) {
-        this(System.currentTimeMillis(), duration, timerList);
     }
 
     public Timer(long duration) {
@@ -130,6 +116,11 @@ public abstract class Timer implements Terminable, TerminableConsumer {
 
     public int getSecondsRemaining() {
         return (int) TimeUnit.MILLISECONDS.toSeconds(this.getTimeMillisRemaining());
+    }
+
+    public void restart(long startTime) {
+        long diff = startTime - this.startTime;
+        this.extend(diff);
     }
 
     public void extend(long millis) {
@@ -225,15 +216,15 @@ public abstract class Timer implements Terminable, TerminableConsumer {
             if (removeFromHandler) {
                 Imanity.TIMER_HANDLER.clear(this);
             }
-            if (this.timerList != null) {
-                this.timerList.remove(this);
-            }
+            this.onPreClear();
             this.closed = true;
             this.onClear();
             this.compositeTerminable.closeAndReportException();
             return true;
         });
     }
+
+    protected abstract void onPreClear();
 
     protected boolean shouldClear() {
         return true;
@@ -253,7 +244,7 @@ public abstract class Timer implements Terminable, TerminableConsumer {
             if (!this.shouldUnpause())
                 return false;
             final long toExtend = System.currentTimeMillis() - this.pauseTime;
-            this.extend(toExtend);
+            this.extend(toExtend, TimerExtendEvent.Reason.UNPAUSE);
 
             this.pauseTime = -1;
             this.onUnpause();
@@ -303,10 +294,12 @@ public abstract class Timer implements Terminable, TerminableConsumer {
             if (!this.shouldStart())
                 return false;
             this.onStart();
-            TIMER_SERVICE.add(this);
+            this.onPostStart();
             return true;
         });
     }
+
+    protected abstract void onPostStart();
 
     protected boolean shouldStart() {
         return true;
