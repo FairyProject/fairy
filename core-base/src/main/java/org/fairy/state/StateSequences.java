@@ -45,12 +45,12 @@ public class StateSequences extends StateCollection {
         this.skipping = true;
     }
 
-    public void add(State state) {
-        this.states.add(this.index + 1, state);
+    public void addNext(State state) {
+        this.states.add(this.index, state);
     }
 
-    public void add(List<State> states) {
-        int i = 1;
+    public void addNext(List<State> states) {
+        int i = 0;
         for (State state : states) {
             this.states.add(this.index + i, state);
             i++;
