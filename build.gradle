@@ -24,8 +24,8 @@
 
 plugins {
     id "base"
-    id "io.freefair.aspectj.post-compile-weaving" version "4.1.4"
-    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0"
+    id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
 allprojects {
@@ -33,7 +33,6 @@ allprojects {
     version "0.4b6"
 
     repositories {
-        jcenter()
         mavenCentral()
         maven { url "https://maven.imanity.dev/repository/imanity-libraries/" }
         maven { url "https://nexus.funkemunky.cc/content/repositories/releases/" }
@@ -69,6 +68,14 @@ subprojects {
     apply plugin: "java-library"
     apply plugin: "maven-publish"
     apply plugin: "com.github.johnrengelman.shadow"
+
+    configurations {
+
+        compileOnly {
+            canBeResolved = true
+        }
+
+    }
 
     processResources {
         expand projectVersion: project.version
