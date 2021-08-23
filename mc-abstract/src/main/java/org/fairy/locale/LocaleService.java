@@ -30,15 +30,17 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.fairy.bean.PostInitialize;
-import org.fairy.bean.Service;
+import org.fairy.bean.*;
+import org.fairy.config.yaml.YamlConfiguration;
 import org.fairy.storage.DataClosable;
 import org.fairy.storage.PlayerStorage;
 import org.fairy.util.CC;
+import org.fairy.util.FileUtil;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
@@ -56,8 +58,23 @@ public class LocaleService {
     private PlayerLocaleStorage localeStorage;
     private LocalizationConfiguration localizationConfiguration;
 
+    @PreInitialize
+    public void onPreInitialize() {
+        ComponentRegistry.registerComponentHolder(new ComponentHolder() {
+            @Override
+            public Class<?>[] type() {
+                return new Class[] {LocaleDirectory.class};
+            }
+
+            @Override
+            public void onEnable(Object instance) {
+                loadLocaleDirectory((LocaleDirectory) instance);
+            }
+        });
+    }
+
     @PostInitialize
-    public void init() {
+    public void onPostInitialize() {
         this.localizationConfiguration = new LocalizationConfiguration();
         this.localizationConfiguration.loadAndSave();
 
@@ -65,6 +82,25 @@ public class LocaleService {
         this.defaultLocale = this.getOrRegister(this.localizationConfiguration.getDefaultLocale());
 
         this.yaml = new Yaml();
+    }
+
+    public void loadLocaleDirectory(LocaleDirectory localeDirectory) {
+        final File directory = localeDirectory.directory();
+        if (!directory.exists()) {
+            directory.mkdirs();
+            final String resourceDirectory = localeDirectory.resourceDirectory();
+            if (resourceDirectory != null) {
+                FileUtil.forEachDirectoryInResources(localeDirectory.getClass(), resourceDirectory, (name, inputStream) -> {
+                    final File file = new File(directory, name);
+
+                    FileUtil.writeInputStreamToFile(inputStream, file);
+                });
+            }
+        }
+
+        for (File file : directory.listFiles()) {
+            this.registerFromYaml(localeDirectory.config(file));
+        }
     }
 
     public Locale getOrRegister(String name) {
@@ -104,6 +140,21 @@ public class LocaleService {
         locale.registerEntries("", map);
 
         return locale;
+    }
+
+    public Locale registerFromYaml(YamlConfiguration yamlConfiguration) {
+        try {
+            final Map<String, Object> entries = yamlConfiguration.loadEntries();
+
+            String name = entries.get("locale").toString();
+
+            Locale locale = this.getOrRegister(name);
+            locale.registerEntries("", entries);
+
+            return locale;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Locale getLocaleByName(String name) {

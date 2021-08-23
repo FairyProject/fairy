@@ -26,14 +26,15 @@ package org.fairy.util;
 
 import lombok.experimental.UtilityClass;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @UtilityClass
 public class FileUtil {
@@ -42,7 +43,49 @@ public class FileUtil {
 		return new File(FileUtil.class.getProtectionDomain().getCodeSource().getLocation()
 				.toURI());
 	}
-	
+
+	public void forEachDirectoryInResources(Class<?> searchBy, String folderName, BiConsumer<String, InputStream> inputStreamConsumer) {
+		ClassLoader classLoader = searchBy.getClassLoader();
+
+		URI uri;
+		try {
+			uri = classLoader.getResource(folderName).toURI();
+		} catch (URISyntaxException | NullPointerException e) {
+			throw new RuntimeException(e);
+		}
+
+		if (uri.getScheme().contains("jar")) {
+			// jar
+			try {
+				URL jar = searchBy.getProtectionDomain().getCodeSource().getLocation();
+
+				Path jarFile = Paths.get(jar.toString().substring("file:".length()));
+				FileSystem fs = FileSystems.newFileSystem(jarFile, null);
+				final DirectoryStream<Path> directoryStream = Files.newDirectoryStream(fs.getPath(folderName));
+				directoryStream.forEach(p -> {
+					InputStream inputStream = searchBy.getResourceAsStream(p.toString());
+					inputStreamConsumer.accept(p.getFileName().toString(), inputStream);
+				});
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		} else {
+			// IDE
+			Path path = Paths.get(uri);
+			try {
+				DirectoryStream<Path> directoryStream = Files.newDirectoryStream(path);
+				for(Path p : directoryStream){
+					InputStream inputStream = new FileInputStream(p.toFile());
+					inputStreamConsumer.accept(p.getFileName().toString(), inputStream);
+				}
+			} catch (IOException e) {
+				throw new RuntimeException(e.getMessage());
+			}
+		}
+
+
+	}
+
 	@SuppressWarnings("rawtypes")
 	public InputStream getResource(Class target, String filename) {
 		try {
@@ -58,9 +101,8 @@ public class FileUtil {
 			return null;
 		}
 	}
-
 	
-	public void inputStreamToFile(InputStream inputStream, File file) {
+	public void writeInputStreamToFile(InputStream inputStream, File file) {
 		try {
 			final String text = new String(IOUtil.readFully(inputStream), StandardCharsets.UTF_8);
 			final FileWriter fileWriter = new FileWriter(FileUtil.createNewFile(file));

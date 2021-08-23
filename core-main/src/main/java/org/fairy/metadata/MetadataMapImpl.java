@@ -26,6 +26,7 @@ package org.fairy.metadata;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -253,6 +254,15 @@ final class MetadataMapImpl implements MetadataMap {
         } finally {
             this.lock.unlock();
         }
+    }
+
+    @Override
+    public <T> T getOrThrow(@NotNull MetadataKey<T> key) {
+        T t = this.getOrNull(key);
+        if (t == null) {
+            throw new NullPointerException(key.getId());
+        }
+        return t;
     }
 
     @Nonnull

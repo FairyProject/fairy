@@ -149,6 +149,17 @@ public interface MetadataMap {
     <T> T getOrNull(@Nonnull MetadataKey<T> key);
 
     /**
+     * Gets a value for the given key, or throw if one isn't present.
+     *
+     * @param key the metadata key to get
+     * @param <T> the value type
+     * @return the value, or null if no key is present.
+     * @throws ClassCastException if there is a key held in the map with the same id but differing type to the given key.
+     * @throws NullPointerException if the value isn't present.
+     */
+    <T> T getOrThrow(@Nonnull MetadataKey<T> key);
+
+    /**
      * Gets a value for the given key, or returns the default if one isn't present.
      *
      * @param key the metadata key to get

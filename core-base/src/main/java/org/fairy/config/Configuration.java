@@ -60,6 +60,16 @@ public abstract class Configuration<C extends Configuration<C>> {
     }
 
     /**
+     * Load all entries from the map
+     *
+     * @return entries
+     * @throws IOException IO Error
+     */
+    public final Map<String, Object> loadEntries() throws IOException {
+        return getSource().loadConfiguration(getThis());
+    }
+
+    /**
      * Saves this {@code Configuration}.
      *
      * @throws ConfigurationException      if any field is not properly configured
@@ -88,7 +98,7 @@ public abstract class Configuration<C extends Configuration<C>> {
      */
     public final void load() {
         try {
-            Map<String, Object> map = getSource().loadConfiguration(getThis());
+            Map<String, Object> map = this.loadEntries();
             FieldMapper.MappingInfo mappingInfo = FieldMapper.MappingInfo.from(this);
             FieldMapper.instanceFromMap(this, map, mappingInfo);
             postLoad();
