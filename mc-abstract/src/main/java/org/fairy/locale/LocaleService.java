@@ -28,6 +28,7 @@ import com.google.common.base.Preconditions;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.fairy.bean.*;
@@ -99,7 +100,14 @@ public class LocaleService {
         }
 
         for (File file : directory.listFiles()) {
-            this.registerFromYaml(localeDirectory.config(file));
+            String name = FilenameUtils.removeExtension(file.getName());
+            this.registerFromYaml(name, localeDirectory.config(file));
+        }
+
+        final String defaultLocale = localeDirectory.defaultLocale();
+        File defaultLocaleFile = new File(directory, defaultLocale + ".yml");
+        if (!defaultLocaleFile.exists()) {
+            this.registerFromYaml(defaultLocale, localeDirectory.config(defaultLocaleFile));
         }
     }
 
@@ -142,11 +150,9 @@ public class LocaleService {
         return locale;
     }
 
-    public Locale registerFromYaml(YamlConfiguration yamlConfiguration) {
+    public Locale registerFromYaml(String name, YamlConfiguration yamlConfiguration) {
         try {
             final Map<String, Object> entries = yamlConfiguration.loadEntries();
-
-            String name = entries.get("locale").toString();
 
             Locale locale = this.getOrRegister(name);
             locale.registerEntries("", entries);

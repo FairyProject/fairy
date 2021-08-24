@@ -18,7 +18,6 @@ public interface LocaleDirectory {
      */
     File directory();
 
-
     /**
      * Tell where the resource folder is (in Jar)
      * If not null, we will copy every locale file from the folder
@@ -37,10 +36,10 @@ public interface LocaleDirectory {
     YamlConfiguration config(File file);
 
     /**
+     * Default Locale that default configuration generates
      *
-     *
-     * @return
+     * @return locale name
      */
-    String[] defaults();
+    String defaultLocale();
 
 }
