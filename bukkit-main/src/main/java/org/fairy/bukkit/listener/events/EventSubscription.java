@@ -29,6 +29,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.*;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
+import org.fairy.bean.Autowired;
+import org.fairy.bean.Beans;
+import org.fairy.timings.MCTiming;
+import org.fairy.timings.TimingService;
 import org.fairy.util.terminable.Terminable;
 
 import java.lang.reflect.Method;
@@ -40,6 +44,9 @@ import java.util.function.Predicate;
 
 @Getter
 public class EventSubscription<T extends Event> implements Listener, EventExecutor, Terminable {
+
+    @Autowired
+    private static TimingService TIMING_SERVICE;
 
     private final Class<T> type;
     private final EventPriority priority;
@@ -56,12 +63,13 @@ public class EventSubscription<T extends Event> implements Listener, EventExecut
 
     private final AtomicLong callCount = new AtomicLong(0);
     private final AtomicBoolean active = new AtomicBoolean(true);
+    private Plugin plugin;
+    private MCTiming timing;
 
     private final Player activePlayer;
     private final String activeMetadata;
 
     EventSubscription(EventSubscribeBuilder<T> subscribe) {
-
         this.type = subscribe.getEventType();
         this.priority = subscribe.getPriority();
 
@@ -92,6 +100,8 @@ public class EventSubscription<T extends Event> implements Listener, EventExecut
 
     public void register(Plugin plugin) {
         plugin.getServer().getPluginManager().registerEvent(type, this, priority, this, plugin, false);
+        this.plugin = plugin;
+        this.timing = TIMING_SERVICE.of(plugin, "EventSubscription - " + this.type.getName());
     }
 
     public boolean isActive() {
@@ -100,51 +110,49 @@ public class EventSubscription<T extends Event> implements Listener, EventExecut
 
     @Override
     public void execute(Listener listener, Event event) throws EventException {
-
-        if (this.handleSubClasses) {
-            if (!this.type.isInstance(event)) {
-                return;
-            }
-        } else {
-            if (event.getClass() != this.type) {
-                return;
-            }
-        }
-
-        if (!this.active.get()) {
-            event.getHandlers().unregister(listener);
-            return;
-        }
-
-        T eventInstance = this.type.cast(event);
-
-        if (this.testExpiry(ExpiryStage.BEOFORE, listener, eventInstance)) {
-            return;
-        }
-
-        try {
-
-            for (Predicate<T> filter : this.filters) {
-                if (!filter.test(eventInstance)) {
+        try (MCTiming ignored = this.timing.startTiming()) {
+            if (this.handleSubClasses) {
+                if (!this.type.isInstance(event)) {
+                    return;
+                }
+            } else {
+                if (event.getClass() != this.type) {
                     return;
                 }
             }
 
-            this.testExpiry(ExpiryStage.POST_FILTER, listener, eventInstance);
-
-            for (BiConsumer<EventSubscription<T>, ? super T> realListener : this.listeners) {
-                realListener.accept(this, eventInstance);
+            if (!this.active.get()) {
+                event.getHandlers().unregister(listener);
+                return;
             }
 
-            this.callCount.incrementAndGet();
-        } catch (Throwable throwable) {
+            T eventInstance = this.type.cast(event);
+            if (this.testExpiry(ExpiryStage.BEOFORE, listener, eventInstance)) {
+                return;
+            }
 
-            this.exceptionHandler.accept(eventInstance, throwable);
+            try {
 
+                for (Predicate<T> filter : this.filters) {
+                    if (!filter.test(eventInstance)) {
+                        return;
+                    }
+                }
+
+                this.testExpiry(ExpiryStage.POST_FILTER, listener, eventInstance);
+                for (BiConsumer<EventSubscription<T>, ? super T> realListener : this.listeners) {
+                    try (MCTiming ignored1 = TIMING_SERVICE.of(this.plugin, realListener.getClass().getName(), this.timing)) {
+                        realListener.accept(this, eventInstance);
+                    }
+                }
+
+                this.callCount.incrementAndGet();
+            } catch (Throwable throwable) {
+                this.exceptionHandler.accept(eventInstance, throwable);
+            }
+
+            this.testExpiry(ExpiryStage.POST_EXECUTE, listener, eventInstance);
         }
-
-        this.testExpiry(ExpiryStage.POST_EXECUTE, listener, eventInstance);
-
     }
 
     private boolean testExpiry(ExpiryStage stage, Listener listener, T event) {
