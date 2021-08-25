@@ -97,6 +97,9 @@ public class Locale {
     }
 
     public String get(String key) {
+        if (key == null || key.isEmpty()) {
+            return null;
+        }
         char c = this.getEntry(key);
 
         if (this.translateEntries.containsKey(c)) {
