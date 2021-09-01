@@ -24,18 +24,47 @@
 
 package org.fairy.util;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.logging.log4j.LogManager;
+import org.fairy.task.Task;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.*;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Utility {
+
+    public static <T> CompletableFuture<Void> forEachSlowly(Consumer<T> consumer, Collection<? extends T> collection) {
+        ImmutableList<T> list = ImmutableList.copyOf(collection);
+        int size = collection.size();
+        int diff = (int) Math.ceil(collection.size() / 20.0);
+
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+        for (int i = 0, ticks = 0; i < size; i+= diff) {
+            int start = i;
+            int end = i + diff;
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            Task.runMainLater(() -> {
+                for (int i1 = start; i1 < end; ++i1) {
+                    if (i1 >= list.size()) {
+                        break;
+                    }
+
+                    consumer.accept(list.get(i1));
+                }
+                future.complete(null);
+            }, ++ticks);
+            futures.add(future);
+        }
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+    }
 
     @Nullable
     public static <T> T sneaky(SupplierExceptionally<T> supplier) {

@@ -32,6 +32,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerEvent;
+import org.fairy.bukkit.util.BukkitUtil;
 
 public class EntityDamageByPlayerEvent extends PlayerEvent implements Cancellable {
 
@@ -85,7 +86,7 @@ public class EntityDamageByPlayerEvent extends PlayerEvent implements Cancellabl
     }
 
     public Player getDamager() {
-        return (Player) this.entityDamageEvent.getDamager();
+        return BukkitUtil.getDamager(this.entityDamageEvent);
     }
 
 }

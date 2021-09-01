@@ -76,7 +76,7 @@ public class Players {
     }
 
     public void clear(final Player player) {
-        player.setHealth(20.0);
+        player.setHealth(player.getMaxHealth());
         player.setFoodLevel(20);
         player.setExp(0.0f);
         player.setTotalExperience(0);
