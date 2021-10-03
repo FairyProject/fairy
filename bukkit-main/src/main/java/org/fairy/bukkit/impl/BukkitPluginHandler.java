@@ -26,9 +26,9 @@ package org.fairy.bukkit.impl;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.plugin.PluginHandler;
 import org.fairy.reflect.ReflectObject;
-import org.fairy.bukkit.Imanity;
 import org.jetbrains.annotations.Nullable;
 
 public class BukkitPluginHandler implements PluginHandler {
@@ -49,7 +49,7 @@ public class BukkitPluginHandler implements PluginHandler {
             Plugin plugin = reflectObject.get("plugin");
             return plugin.getName();
         } catch (Throwable ignored) {
-            return Imanity.PLUGIN.getName();
+            return FairyBukkitPlatform.PLUGIN.getName();
         }
     }
 

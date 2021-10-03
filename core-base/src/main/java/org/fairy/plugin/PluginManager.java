@@ -46,7 +46,7 @@ public class PluginManager {
         INSTANCE = new PluginManager(pluginHandler);
     }
 
-    private final Map<String, AbstractPlugin> plugins;
+    private final Map<String, Plugin> plugins;
     private final Set<PluginListenerAdapter> listenerAdapters;
     private final PluginHandler pluginHandler;
 
@@ -60,42 +60,42 @@ public class PluginManager {
     public Collection<ClassLoader> getClassLoaders() {
         return this.plugins.values()
                 .stream()
-                .map(AbstractPlugin::getPluginClassLoader)
+                .map(Plugin::getPluginClassLoader)
                 .collect(Collectors.toList());
     }
 
-    public void onPluginInitial(AbstractPlugin plugin) {
+    public void onPluginInitial(Plugin plugin) {
         synchronized (this.listenerAdapters) {
             this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginInitial(plugin));
         }
     }
 
-    public void onPluginEnable(AbstractPlugin plugin) {
+    public void onPluginEnable(Plugin plugin) {
         synchronized (this.listenerAdapters) {
             this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginEnable(plugin));
         }
     }
 
-    public void onPluginDisable(AbstractPlugin plugin) {
+    public void onPluginDisable(Plugin plugin) {
         synchronized (this.listenerAdapters) {
             this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginDisable(plugin));
         }
     }
 
-    public Collection<AbstractPlugin> getPlugins() {
+    public Collection<Plugin> getPlugins() {
         return this.plugins.values();
     }
 
-    public AbstractPlugin getPlugin(String name) {
+    public Plugin getPlugin(String name) {
         return this.plugins.get(name);
     }
 
-    public void addPlugin(AbstractPlugin plugin) {
+    public void addPlugin(Plugin plugin) {
         this.plugins.put(plugin.getName(), plugin);
     }
 
     public void callFrameworkFullyDisable() {
-        this.plugins.values().forEach(AbstractPlugin::onFrameworkFullyDisable);
+        this.plugins.values().forEach(Plugin::onFrameworkFullyDisable);
     }
 
     public void registerListener(PluginListenerAdapter listenerAdapter) {
@@ -105,7 +105,7 @@ public class PluginManager {
     }
 
     @Nullable
-    public AbstractPlugin getPluginByClass(Class<?> type) {
+    public Plugin getPluginByClass(Class<?> type) {
         String name = this.pluginHandler.getPluginByClass(type);
         if (name == null) {
             return null;

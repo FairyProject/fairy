@@ -22,13 +22,14 @@
  * SOFTWARE.
  */
 
-package org.fairy.plugin;
+package org.fairy;
 
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -36,15 +37,15 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 
-public class PluginClassLoader {
+public class ExtendedClassLoader {
 
-    private static final Logger LOGGER = LogManager.getLogger(PluginClassLoader.class);
+    private static final Logger LOGGER = LogManager.getLogger(ExtendedClassLoader.class);
     private final URLClassLoader classLoader;
 
     @SuppressWarnings("Guava") // we can't use java.util.Function because old Guava versions are used at runtime
     private final Supplier<Method> addUrlMethod;
 
-    public PluginClassLoader(ClassLoader classLoader) throws IllegalStateException {
+    public ExtendedClassLoader(ClassLoader classLoader) throws IllegalStateException {
         if (classLoader instanceof URLClassLoader) {
             this.classLoader = (URLClassLoader) classLoader;
         } else {
@@ -75,6 +76,10 @@ public class PluginClassLoader {
         } catch (IllegalAccessException | InvocationTargetException | MalformedURLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public URL getResource(String name) {
+        return this.classLoader.getResource(name);
     }
 
     @SuppressWarnings("JavaReflectionMemberAccess")

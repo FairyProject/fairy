@@ -24,18 +24,56 @@
 
 package org.fairy.plugin;
 
-public enum PluginType {
+import lombok.Getter;
+import org.fairy.util.terminable.TerminableConsumer;
+import org.fairy.util.terminable.composite.CompositeTerminable;
+import org.jetbrains.annotations.NotNull;
 
-    BUKKIT("plugin.yml"),
-    BUNGEE("bungee.yml");
+@Getter
+public abstract class Plugin implements TerminableConsumer {
 
-    private final String fileName;
+    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
-    private PluginType(String fileName) {
-        this.fileName = fileName;
+    private ClassLoader classLoader;
+    private PluginDescription description;
+
+    public void onInitial() {
+
     }
 
-    public String getFileName() {
-        return fileName;
+    public void onPreEnable() {
+
     }
+
+    public void onPluginEnable() {
+
+    }
+
+    public void onPluginDisable() {
+
+    }
+
+    public void onFrameworkFullyDisable() {
+
+    }
+
+    public final void initializePlugin(PluginDescription description, ClassLoader classLoader) {
+        this.description = description;
+        this.classLoader = classLoader;
+    }
+
+    @NotNull
+    @Override
+    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+        return this.compositeTerminable.bind(terminable);
+    }
+
+    public final ClassLoader getPluginClassLoader() {
+        return this.classLoader;
+    }
+
+    public final String getName() {
+        return this.description.getName();
+    }
+
 }

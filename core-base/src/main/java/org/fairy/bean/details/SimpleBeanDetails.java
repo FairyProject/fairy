@@ -26,7 +26,7 @@ package org.fairy.bean.details;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.fairy.plugin.AbstractPlugin;
+import org.fairy.plugin.Plugin;
 import org.fairy.util.terminable.composite.CompositeClosingException;
 import org.fairy.util.terminable.composite.CompositeTerminable;
 import org.fairy.bean.ServiceDependencyType;
@@ -35,7 +35,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 @Getter
@@ -46,7 +45,7 @@ public class SimpleBeanDetails implements BeanDetails {
     private String name;
     private Class<?> type;
 
-    private AbstractPlugin plugin;
+    private Plugin plugin;
     private Set<String> children;
 
     public SimpleBeanDetails(Object instance, String name, Class<?> type) {
@@ -132,12 +131,12 @@ public class SimpleBeanDetails implements BeanDetails {
     }
 
     @Override
-    public void bindWith(AbstractPlugin plugin) {
+    public void bindWith(Plugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public AbstractPlugin getBindPlugin() {
+    public Plugin getBindPlugin() {
         return this.plugin;
     }
 

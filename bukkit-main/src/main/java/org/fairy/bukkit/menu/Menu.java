@@ -42,7 +42,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.metadata.Metadata;
 import org.fairy.bukkit.util.BukkitUtil;
@@ -301,7 +301,7 @@ public abstract class Menu implements TerminableConsumer {
         try {
             plugin = JavaPlugin.getProvidingPlugin(this.getClass());
         } catch (Throwable ignored) {
-            plugin = Imanity.PLUGIN;
+            plugin = FairyBukkitPlatform.PLUGIN;
         }
 
         Events.subscribe(PlayerQuitEvent.class)

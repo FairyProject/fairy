@@ -31,6 +31,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.util.BukkitUtil;
 import org.fairy.bukkit.util.LocaleRV;
 import org.fairy.bukkit.util.text.IText;
@@ -57,7 +58,7 @@ public class ImanityItemBuilder {
                 // add behaviour that has a cooldown which print out a "SLEEP" message on right click air
                 .addBehaviour(ItemBehaviour.cooldown(ItemBehaviour.interact((player, itemStack, action, event) -> {
                     player.sendMessage("SHEEP WOOL");
-                }, Action.RIGHT_CLICK_AIR), 5000L, IText.of("&e&lCOOLDOWN"), null, Imanity.PLUGIN))
+                }, Action.RIGHT_CLICK_AIR), 5000L, IText.of("&e&lCOOLDOWN"), null, FairyBukkitPlatform.PLUGIN))
                 // add behaviour on block place and print a "you placed the bed" message
                 .addBehaviour(ItemBehaviour.blockPlace((player, itemStack, block, event) -> {
                     player.sendMessage("you placed the wool");

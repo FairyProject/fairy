@@ -34,7 +34,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.fairy.Fairy;
-import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.packet.wrapper.other.Vector3D;
 import org.fairy.bukkit.reflection.ProtocolLibService;
 import org.fairy.bean.Autowired;
@@ -64,7 +64,7 @@ public class HologramHandler {
         this.world = world;
         PROTOCOL_LIB_SERVICE.validEnabled();
 
-        PROTOCOL_LIB_SERVICE.manager().addPacketListener(new PacketAdapter(Imanity.PLUGIN, PacketType.Play.Client.USE_ENTITY) {
+        PROTOCOL_LIB_SERVICE.manager().addPacketListener(new PacketAdapter(FairyBukkitPlatform.PLUGIN, PacketType.Play.Client.USE_ENTITY) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 final Player player = event.getPlayer();

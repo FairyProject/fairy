@@ -33,7 +33,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.fairy.bean.*;
-import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.reflection.ProtocolLibService;
 import org.fairy.bukkit.util.LocaleRV;
 import org.fairy.locale.Locales;
@@ -53,7 +53,7 @@ public class ItemLocalization {
     @PostInitialize
     public void onPostInitialize() {
         PACKET_BASED_ITEM_LOCALIZATION = true;
-        this.protocolLibService.manager().addPacketListener(new PacketAdapter(Imanity.PLUGIN, PacketType.Play.Server.SET_SLOT) {
+        this.protocolLibService.manager().addPacketListener(new PacketAdapter(FairyBukkitPlatform.PLUGIN, PacketType.Play.Server.SET_SLOT) {
             @Override
             public void onPacketSending(PacketEvent event) {
                 final Player player = event.getPlayer();
@@ -66,7 +66,7 @@ public class ItemLocalization {
                 }
             }
         });
-        this.protocolLibService.manager().addPacketListener(new PacketAdapter(Imanity.PLUGIN, PacketType.Play.Server.WINDOW_ITEMS) {
+        this.protocolLibService.manager().addPacketListener(new PacketAdapter(FairyBukkitPlatform.PLUGIN, PacketType.Play.Server.WINDOW_ITEMS) {
             @Override
             public void onPacketSending(PacketEvent event) {
                 final Player player = event.getPlayer();

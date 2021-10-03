@@ -31,7 +31,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.fairy.bukkit.plugin.BukkitPlugin;
 import org.fairy.util.terminable.TerminableConsumer;
-import org.fairy.util.terminable.composite.CompositeTerminable;
 
 import javax.annotation.Nullable;
 import java.util.List;

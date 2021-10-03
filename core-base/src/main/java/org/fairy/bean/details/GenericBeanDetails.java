@@ -28,7 +28,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
 import org.fairy.bean.*;
-import org.fairy.plugin.AbstractPlugin;
+import org.fairy.plugin.Plugin;
 import org.fairy.util.Utility;
 import org.fairy.util.terminable.composite.CompositeClosingException;
 import org.fairy.util.terminable.composite.CompositeTerminable;
@@ -57,7 +57,7 @@ public class GenericBeanDetails implements BeanDetails {
     private Map<Class<? extends Annotation>, String> disallowAnnotations;
     private Map<Class<? extends Annotation>, Collection<Method>> annotatedMethods;
 
-    private AbstractPlugin plugin;
+    private Plugin plugin;
 
     @Nullable
     private Object instance;
@@ -277,12 +277,12 @@ public class GenericBeanDetails implements BeanDetails {
     }
 
     @Override
-    public void bindWith(AbstractPlugin plugin) {
+    public void bindWith(Plugin plugin) {
         this.plugin = plugin;
     }
 
     @Override
-    public AbstractPlugin getBindPlugin() {
+    public Plugin getBindPlugin() {
         return this.plugin;
     }
 

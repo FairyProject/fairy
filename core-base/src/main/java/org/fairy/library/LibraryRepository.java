@@ -34,9 +34,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Base64;
 
-public enum LibraryRepository {
+public class LibraryRepository {
 
-    MAVEN_CENTRAL("https://repo1.maven.org/maven2/");
+    public static final LibraryRepository MAVEN_CENTRAL = new LibraryRepository("https://repo1.maven.org/maven2/");
 
     private final String url;
 

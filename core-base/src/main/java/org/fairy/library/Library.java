@@ -24,6 +24,7 @@
 
 package org.fairy.library;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import org.fairy.library.relocate.Relocate;
 
@@ -180,6 +181,7 @@ public class Library {
     private final String version;
     private final String name;
     private final byte[] checksum;
+    private final LibraryRepository repository;
     private final List<Relocate> relocations;
 
     private static final String MAVEN_FORMAT = "%s/%s/%s/%s-%s.jar";
@@ -189,6 +191,10 @@ public class Library {
     }
 
     public Library(String groupId, String artifactId, String versionPackage, String version, String checksum, Relocate... relocations) {
+        this(groupId, artifactId, version, version, checksum, null, relocations);
+    }
+
+    public Library(String groupId, String artifactId, String versionPackage, String version, String checksum, LibraryRepository repository, Relocate... relocations) {
         this.mavenRepoPath = String.format(MAVEN_FORMAT,
                 rewriteEscaping(groupId).replace(".", "/"),
                 rewriteEscaping(artifactId),
@@ -203,6 +209,7 @@ public class Library {
         } else {
             this.checksum = null;
         }
+        this.repository = repository != null ? repository : LibraryRepository.MAVEN_CENTRAL;
 
         this.relocations = new ArrayList<>();
         for (Relocate relocate : relocations) {
@@ -240,6 +247,38 @@ public class Library {
     @Override
     public String toString() {
         return this.name;
+    }
+
+    public static Library fromJsonObject(JsonObject jsonObject, String shadedPackage) {
+        final String groupId = jsonObject.get("groupId").getAsString();
+        final String artifactId = jsonObject.get("artifactId").getAsString();
+        final String version = jsonObject.get("version").getAsString();
+
+        LibraryRepository libraryRepository = null;
+        if (jsonObject.has("repository")) {
+            final String repository = jsonObject.get("repository").getAsString();
+            if (repository.equals("#mavenCentral")) {
+                libraryRepository = LibraryRepository.MAVEN_CENTRAL;
+            } else {
+                libraryRepository = new LibraryRepository(repository);
+            }
+        }
+
+        Relocate[] relocates;
+        if (jsonObject.has("relocatePattern")) {
+            final String relocatePattern = jsonObject.get("relocatePattern").getAsString();
+
+            relocates = new Relocate[] { new Relocate(relocatePattern, shadedPackage + relocatePattern) };
+        } else {
+            relocates = new Relocate[0];
+        }
+
+        String checksum = null;
+        if (jsonObject.has("checksum")) {
+            checksum = jsonObject.get("checksum").getAsString();
+        }
+
+        return new Library(groupId, artifactId, null, version, checksum, libraryRepository, relocates);
     }
 
 }

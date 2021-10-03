@@ -39,13 +39,10 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.fairy.Fairy;
 import org.fairy.bukkit.FairyBukkitPlatform;
-import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.listener.ListenerSubscription;
 import org.fairy.bukkit.metadata.Metadata;
-import org.fairy.bukkit.plugin.BukkitPlugin;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.util.terminable.TerminableConsumer;
-import org.fairy.util.terminable.composite.CompositeTerminable;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -90,15 +87,15 @@ public class Events {
         } catch (Throwable ignored) {}
 
         if (plugin == null) {
-            plugin = FairyBukkitPlatform.INSTANCE;
+            plugin = FairyBukkitPlatform.PLUGIN;
         }
         if (!plugin.isEnabled()) {
             LogManager.getLogger().error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
         }
 
         TerminableConsumer terminable = FairyBukkitPlatform.INSTANCE;
-        if (plugin instanceof BukkitPlugin) {
-            terminable = (BukkitPlugin) plugin;
+        if (plugin instanceof TerminableConsumer) {
+            terminable = (TerminableConsumer) plugin;
         }
 
         final ListenerSubscription listenerSubscription = new ListenerSubscription(listeners, plugin, terminable);

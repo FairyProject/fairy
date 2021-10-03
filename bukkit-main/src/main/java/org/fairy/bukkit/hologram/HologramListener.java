@@ -32,6 +32,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.timings.MCTiming;
 import org.fairy.timings.TimingService;
 import org.fairy.bean.BeanConstructor;
@@ -64,7 +65,7 @@ public class HologramListener implements Listener {
 
             }
         }).ignoreSameBlockAndY();
-        this.timing = timingService.of(Imanity.PLUGIN, "Holograms Update");
+        this.timing = timingService.of(FairyBukkitPlatform.PLUGIN, "Holograms Update");
         this.runScheduler();
     }
 

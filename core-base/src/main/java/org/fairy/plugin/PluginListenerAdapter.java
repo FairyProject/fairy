@@ -26,15 +26,15 @@ package org.fairy.plugin;
 
 public interface PluginListenerAdapter {
 
-    default void onPluginInitial(AbstractPlugin plugin) {
+    default void onPluginInitial(Plugin plugin) {
 
     }
 
-    default void onPluginEnable(AbstractPlugin plugin) {
+    default void onPluginEnable(Plugin plugin) {
 
     }
 
-    default void onPluginDisable(AbstractPlugin plugin) {
+    default void onPluginDisable(Plugin plugin) {
 
     }
 

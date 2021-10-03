@@ -26,10 +26,10 @@ package org.fairy.bukkit.util.items.behaviour;
 
 import lombok.Getter;
 import org.bukkit.event.Event;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.listener.events.EventSubscription;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.util.items.ImanityItem;
-import org.fairy.bukkit.Imanity;
 
 @Getter
 public abstract class ItemBehaviourEvent<E extends Event> extends ItemBehaviour {
@@ -46,7 +46,7 @@ public abstract class ItemBehaviourEvent<E extends Event> extends ItemBehaviour 
         super.init(item);
         this.subscription = Events.subscribe(classToRegister)
                 .listen((subscription, e) -> this.call(e))
-                .build(Imanity.PLUGIN);
+                .build(FairyBukkitPlatform.PLUGIN);
     }
 
     @Override

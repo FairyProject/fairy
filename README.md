@@ -1,6 +1,7 @@
 <p align="center">
   <img width="20%" height="20%" src="https://i.imgur.com/CIxPcyV.png">
   <br>temporary logo thanks to terminalsin xd<br>
+  <a href="https://www.codacy.com/gh/FairyProject/fairy/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=FairyProject/fairy&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/521e578f30d64d7d9e4d4eb30057c086"/></a>
   <a><img alt="Issues" src="https://img.shields.io/github/issues/FairyProject/fairy"></a>
   <a><img alt="Forks" src="https://img.shields.io/github/forks/FairyProject/fairy"></a>
   <a><img alt="Stars" src="https://img.shields.io/github/stars/FairyProject/fairy"></a>

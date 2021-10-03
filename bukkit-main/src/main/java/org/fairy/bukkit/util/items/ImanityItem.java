@@ -69,7 +69,6 @@ public final class ImanityItem implements Terminable {
 
     public static ImanityItemBuilder builder(String id) {
         final Plugin plugin = ImanityItemBuilder.findPlugin(4);
-        System.out.println(plugin.getName());
         return new ImanityItemBuilder(id, plugin);
     }
 

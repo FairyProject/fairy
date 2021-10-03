@@ -47,7 +47,7 @@ import org.fairy.bukkit.util.CoordinatePair;
 import org.fairy.bukkit.visual.event.PreHandleVisualClaimEvent;
 import org.fairy.bukkit.visual.event.PreHandleVisualEvent;
 import org.fairy.bukkit.visual.type.VisualType;
-import org.fairy.plugin.AbstractPlugin;
+import org.fairy.plugin.Plugin;
 import org.fairy.plugin.PluginListenerAdapter;
 import org.fairy.plugin.PluginManager;
 import org.fairy.task.Task;
@@ -68,7 +68,7 @@ public class VisualBlockHandler implements TaskRunnable {
     private final Queue<VisualTask> visualTasks = new ConcurrentLinkedQueue<>();
 
     private final VisualBlockGenerator mainGenerator;
-    private final Map<AbstractPlugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
+    private final Map<Plugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
 
     public VisualBlockHandler() {
         this.claimPositionTable = HashBasedTable.create();
@@ -144,14 +144,14 @@ public class VisualBlockHandler implements TaskRunnable {
 
         PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
             @Override
-            public void onPluginDisable(AbstractPlugin plugin) {
+            public void onPluginDisable(Plugin plugin) {
                 dynamicVisualGenerator.remove(plugin);
             }
         });
     }
 
     public void registerGenerator(VisualBlockGenerator blockGenerator) {
-        AbstractPlugin plugin = PluginManager.INSTANCE.getPluginByClass(blockGenerator.getClass());
+        Plugin plugin = PluginManager.INSTANCE.getPluginByClass(blockGenerator.getClass());
 
         if (plugin == null) {
             throw new IllegalArgumentException("Not a Plugin?");
@@ -300,7 +300,7 @@ public class VisualBlockHandler implements TaskRunnable {
 
         final Set<VisualPosition> blockPositions = new HashSet<>();
         this.mainGenerator.generate(player, location, blockPositions);
-        for (Map.Entry<AbstractPlugin, List<VisualBlockGenerator>> blockGenerators : this.dynamicVisualGenerator.entrySet()) {
+        for (Map.Entry<Plugin, List<VisualBlockGenerator>> blockGenerators : this.dynamicVisualGenerator.entrySet()) {
             blockGenerators.getValue().forEach(blockGenerator -> blockGenerator.generate(player, location, blockPositions));
         }
 

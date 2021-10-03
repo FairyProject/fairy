@@ -30,7 +30,7 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.fairy.Fairy;
 import org.fairy.bean.PostDestroy;
 import org.fairy.bean.PostInitialize;
-import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.listener.events.EventSubscription;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bean.Service;
@@ -54,7 +54,7 @@ public class KeepChunkHandler {
                     if (Fairy.isRunning() && isChunkToKeep(chunk.getX(), chunk.getZ())) {
                         event.setCancelled(true);
                     }
-                }).build(Imanity.PLUGIN);
+                }).build(FairyBukkitPlatform.PLUGIN);
     }
 
     @PostDestroy

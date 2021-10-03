@@ -28,6 +28,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.fairy.Fairy;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.packet.PacketDto;
 import org.fairy.bukkit.packet.PacketListener;
 import org.fairy.bukkit.packet.PacketService;
@@ -85,7 +86,7 @@ public class ImanityTabHandler {
     private void registerImplementation() {
         if (Bukkit.getPluginManager().getPlugin("ProtocolLib") != null) {
             this.implementation = new ProtocolLibTabImpl();
-            Imanity.PLUGIN.getLogger().info("Registered Tablist Implementation with ProtocolLib");
+            FairyBukkitPlatform.PLUGIN.getLogger().info("Registered Tablist Implementation with ProtocolLib");
             return;
         }
 
@@ -94,7 +95,7 @@ public class ImanityTabHandler {
             this.implementation = new NMS1_8TabImpl();
             return;
         }
-        Imanity.PLUGIN.getLogger().info("Unable to register ImanityTablist with a proper implementation");
+        FairyBukkitPlatform.PLUGIN.getLogger().info("Unable to register ImanityTablist with a proper implementation");
     }
 
     public void registerPlayerTablist(Player player) {

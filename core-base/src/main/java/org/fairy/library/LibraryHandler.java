@@ -31,8 +31,8 @@ import org.apache.logging.log4j.Logger;
 import org.fairy.Fairy;
 import org.fairy.library.classloader.IsolatedClassLoader;
 import org.fairy.library.relocate.RelocateHandler;
-import org.fairy.plugin.AbstractPlugin;
-import org.fairy.plugin.PluginClassLoader;
+import org.fairy.plugin.Plugin;
+import org.fairy.ExtendedClassLoader;
 import org.fairy.plugin.PluginListenerAdapter;
 import org.fairy.plugin.PluginManager;
 import org.fairy.util.Stacktrace;
@@ -45,7 +45,6 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -57,7 +56,7 @@ public class LibraryHandler {
     private final RelocateHandler relocateHandler;
 
     private final Map<Library, Path> loaded = new ConcurrentHashMap<>();
-    private final Map<AbstractPlugin, PluginClassLoader> pluginClassLoaders = new ConcurrentHashMap<>();
+    private final Map<Plugin, ExtendedClassLoader> pluginClassLoaders = new ConcurrentHashMap<>();
     private final Map<ImmutableSet<Library>, IsolatedClassLoader> loaders = new HashMap<>();
 
     private final Logger LOGGER = LogManager.getLogger();
@@ -84,8 +83,8 @@ public class LibraryHandler {
         if (PluginManager.isInitialized()) {
             PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
                 @Override
-                public void onPluginInitial(AbstractPlugin plugin) {
-                    PluginClassLoader classLoader = new PluginClassLoader(plugin.getPluginClassLoader());
+                public void onPluginInitial(Plugin plugin) {
+                    ExtendedClassLoader classLoader = new ExtendedClassLoader(plugin.getPluginClassLoader());
 
                     pluginClassLoaders.put(plugin, classLoader);
                     for (Path path : loaded.values()) {
@@ -94,7 +93,7 @@ public class LibraryHandler {
                 }
 
                 @Override
-                public void onPluginDisable(AbstractPlugin plugin) {
+                public void onPluginDisable(Plugin plugin) {
                     pluginClassLoaders.remove(plugin);
                 }
             });
@@ -177,7 +176,7 @@ public class LibraryHandler {
         if (addToUCP) {
 //            this.classLoader.addJarToClasspath(file);
             Fairy.getPlatform().getClassloader().addJarToClasspath(file);
-            for (PluginClassLoader classLoader : this.pluginClassLoaders.values()) {
+            for (ExtendedClassLoader classLoader : this.pluginClassLoaders.values()) {
                 classLoader.addJarToClasspath(file);
             }
         }
@@ -210,17 +209,11 @@ public class LibraryHandler {
             return file;
         }
 
-        LibraryDownloadException lastError = null;
-
-        for (LibraryRepository repository : LibraryRepository.values()) {
-            try {
-                repository.download(library, file);
-                return file;
-            } catch (LibraryDownloadException ex) {
-                lastError = ex;
-            }
+        try {
+            library.getRepository().download(library, file);
+            return file;
+        } catch (LibraryDownloadException ex) {
+            throw ex;
         }
-
-        throw Objects.requireNonNull(lastError);
     }
 }

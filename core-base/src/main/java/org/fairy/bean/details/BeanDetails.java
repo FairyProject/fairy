@@ -25,14 +25,12 @@
 package org.fairy.bean.details;
 
 import org.fairy.bean.ServiceDependencyType;
-import org.fairy.plugin.AbstractPlugin;
+import org.fairy.plugin.Plugin;
 import org.fairy.util.terminable.TerminableConsumer;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -92,9 +90,9 @@ public interface BeanDetails extends TerminableConsumer {
 
     Map<String, String> getTags();
 
-    void bindWith(AbstractPlugin plugin);
+    void bindWith(Plugin plugin);
 
-    AbstractPlugin getBindPlugin();
+    Plugin getBindPlugin();
 
     boolean isBind();
 

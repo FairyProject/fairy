@@ -64,9 +64,6 @@ public final class Imanity {
     @Autowired
     public static TimerService TIMER_HANDLER;
 
-    @Deprecated
-    public static Plugin PLUGIN;
-
     public static ServerImplementation IMPLEMENTATION;
     private static VisualBlockHandler VISUAL_BLOCK_HANDLER;
 
@@ -94,7 +91,7 @@ public final class Imanity {
         } catch (Throwable ignored) {}
 
         if (plugin == null) {
-            plugin = Imanity.PLUGIN;
+            plugin = FairyBukkitPlatform.PLUGIN;
         }
 
         AbstractMovementImplementation implementation = Imanity.IMPLEMENTATION.movement(movementListener);
@@ -115,12 +112,12 @@ public final class Imanity {
     }
 
     public static List<? extends Player> getPlayers() {
-        return ImmutableList.copyOf(Imanity.PLUGIN.getServer().getOnlinePlayers());
+        return ImmutableList.copyOf(FairyBukkitPlatform.PLUGIN.getServer().getOnlinePlayers());
     }
 
     @Deprecated
     public static void callEvent(Event event) {
-        PLUGIN.getServer().getPluginManager().callEvent(event);
+        FairyBukkitPlatform.PLUGIN.getServer().getPluginManager().callEvent(event);
     }
 
     public static void registerTablistHandler(ImanityTabAdapter adapter) {

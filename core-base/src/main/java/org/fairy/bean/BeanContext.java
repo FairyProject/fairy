@@ -35,7 +35,7 @@ import org.fairy.FairyBootstrap;
 import org.fairy.bean.details.*;
 import org.fairy.bean.details.constructor.BeanParameterDetailsMethod;
 import org.fairy.bean.exception.ServiceAlreadyExistsException;
-import org.fairy.plugin.AbstractPlugin;
+import org.fairy.plugin.Plugin;
 import org.fairy.plugin.PluginListenerAdapter;
 import org.fairy.plugin.PluginManager;
 import org.fairy.reflect.Reflect;
@@ -106,7 +106,7 @@ public class BeanContext {
 
             PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
                 @Override
-                public void onPluginEnable(AbstractPlugin plugin) {
+                public void onPluginEnable(Plugin plugin) {
                     BeanDetails beanDetails = new SimpleBeanDetails(plugin, plugin.getName(), plugin.getClass());
 
                     try {
@@ -128,7 +128,7 @@ public class BeanContext {
                 }
 
                 @Override
-                public void onPluginDisable(AbstractPlugin plugin) {
+                public void onPluginDisable(Plugin plugin) {
                     Collection<BeanDetails> beanDetailsList = findDetailsBindWith(plugin);
                     try {
                         call(PreDestroy.class, beanDetailsList);
@@ -270,7 +270,7 @@ public class BeanContext {
         return this.isBean(bean.getClass());
     }
 
-    public Collection<BeanDetails> findDetailsBindWith(AbstractPlugin plugin) {
+    public Collection<BeanDetails> findDetailsBindWith(Plugin plugin) {
         return this.beanByType.values()
                 .stream()
                 .filter(beanDetails -> beanDetails.isBind() && beanDetails.getBindPlugin().equals(plugin))
@@ -381,7 +381,7 @@ public class BeanContext {
 
     private void attemptBindPlugin(BeanDetails beanDetails) {
         if (PluginManager.isInitialized()) {
-            AbstractPlugin plugin = PluginManager.INSTANCE.getPluginByClass(beanDetails.getType());
+            Plugin plugin = PluginManager.INSTANCE.getPluginByClass(beanDetails.getType());
 
             if (plugin != null) {
                 beanDetails.bindWith(plugin);

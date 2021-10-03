@@ -30,7 +30,7 @@ plugins {
 
 allprojects {
     group "org.fairy"
-    version "0.4b6"
+    version "0.5b1"
 
     repositories {
         mavenCentral()
@@ -133,7 +133,10 @@ subprojects {
             aspect project(":core-base")
         }
 
-        if (project.name.startsWith("core-")) {
+
+        if (project.name.contains("bootstrap")) {
+            compileOnly project(":core-all")
+        } else if (project.name.startsWith("core-")) {
             // Compile javax.persistence-api to all
             if (project.name == "core-all") {
                 api "javax.persistence:javax.persistence-api:2.2"

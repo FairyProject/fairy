@@ -32,6 +32,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.*;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.reflection.MinecraftReflection;
 import org.fairy.bukkit.reflection.version.PlayerVersion;
 import org.fairy.bukkit.tablist.ImanityTablist;
@@ -54,7 +55,7 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
 
     @Override
     public void registerLoginListener() {
-        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(Imanity.PLUGIN, PacketType.Play.Server.LOGIN) {
+        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(FairyBukkitPlatform.PLUGIN, PacketType.Play.Server.LOGIN) {
             @Override
             public void onPacketSending(PacketEvent event) {
                 event.getPacket().getIntegers().write(2, 60);

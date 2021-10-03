@@ -33,7 +33,7 @@ import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.server.ServerCommandEvent;
 import org.fairy.bean.Autowired;
 import org.fairy.bean.Component;
-import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.command.event.BukkitCommandEvent;
 import org.fairy.bukkit.events.NetworkCommandExecuteEvent;
 import org.fairy.bukkit.events.PostServicesInitialEvent;
@@ -95,18 +95,18 @@ public class CommandListener implements Listener {
                 }
 
                 command = event.getCommand();
-                Imanity.PLUGIN.getServer().dispatchCommand(Imanity.PLUGIN.getServer().getConsoleSender(), command);
+                FairyBukkitPlatform.PLUGIN.getServer().dispatchCommand(FairyBukkitPlatform.PLUGIN.getServer().getConsoleSender(), command);
             }
         });
 
         Task.runMainLater(() -> {
             try {
                 // Command map field (we have to use reflection to get this)
-                final Field commandMapField = Imanity.PLUGIN.getServer().getClass().getDeclaredField("commandMap");
+                final Field commandMapField = FairyBukkitPlatform.PLUGIN.getServer().getClass().getDeclaredField("commandMap");
                 AccessUtil.setAccessible(commandMapField);
 
-                final Object oldCommandMap = commandMapField.get(Imanity.PLUGIN.getServer());
-                final CommandMap newCommandMap = new CommandMap(Imanity.PLUGIN.getServer());
+                final Object oldCommandMap = commandMapField.get(FairyBukkitPlatform.PLUGIN.getServer());
+                final CommandMap newCommandMap = new CommandMap(FairyBukkitPlatform.PLUGIN.getServer());
 
                 // Start copying the knownCommands field over
                 // (so any commands registered before we hook in are kept)
@@ -119,7 +119,7 @@ public class CommandListener implements Listener {
                 knownCommandsField.set(newCommandMap, knownCommandsField.get(oldCommandMap));
                 // End copying the knownCommands field over
 
-                commandMapField.set(Imanity.PLUGIN.getServer(), newCommandMap);
+                commandMapField.set(FairyBukkitPlatform.PLUGIN.getServer(), newCommandMap);
             } catch (final Exception e) {
                 // Shouldn't happen, so we can just
                 // printout the exception (and do nothing else)

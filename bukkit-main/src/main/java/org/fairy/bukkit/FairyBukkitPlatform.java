@@ -24,37 +24,44 @@
 
 package org.fairy.bukkit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.fairy.FairyBootstrap;
 import org.fairy.bukkit.events.PostServicesInitialEvent;
 import org.fairy.bukkit.impl.ComponentHolderBukkitListener;
 import org.fairy.bukkit.listener.events.Events;
+import org.fairy.bukkit.plugin.FairyInternalPlugin;
 import org.fairy.bukkit.util.SpigotUtil;
 import org.fairy.bean.ComponentRegistry;
 import org.fairy.FairyPlatform;
 import org.fairy.bukkit.impl.BukkitPluginHandler;
 import org.fairy.bukkit.impl.BukkitTaskScheduler;
 import org.fairy.library.Library;
-import org.fairy.plugin.PluginClassLoader;
+import org.fairy.ExtendedClassLoader;
 import org.fairy.plugin.PluginManager;
 import org.fairy.task.ITaskScheduler;
 import org.fairy.util.terminable.TerminableConsumer;
-import org.fairy.util.terminable.composite.CompositeClosingException;
 import org.fairy.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 
-public final class FairyBukkitPlatform extends JavaPlugin implements FairyPlatform, TerminableConsumer {
+public final class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static FairyBukkitPlatform INSTANCE;
+    public static FairyInternalPlugin PLUGIN = new FairyInternalPlugin();
 
-    private PluginClassLoader pluginClassLoader;
-    private FairyBootstrap bootstrap;
-
-    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
+    private final ExtendedClassLoader classLoader;
+    private final File dataFolder;
+    private final CompositeTerminable compositeTerminable;
 
     @NotNull
     @Override
@@ -62,31 +69,33 @@ public final class FairyBukkitPlatform extends JavaPlugin implements FairyPlatfo
         return this.compositeTerminable.bind(terminable);
     }
 
-    @Override
-    public void onLoad() {
-        INSTANCE = this;
-
-        Imanity.PLUGIN = this;
-        PluginManager.initialize(new BukkitPluginHandler());
-
-        this.pluginClassLoader = new PluginClassLoader(this.getClassLoader());
+    public FairyBukkitPlatform(File dataFolder) {
+        this.dataFolder = dataFolder;
+        this.compositeTerminable = CompositeTerminable.create();
+        this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
     }
 
     @Override
-    public void onEnable() {
+    public void load() {
+        super.load();
+
+        PluginManager.initialize(new BukkitPluginHandler());
+    }
+
+    @Override
+    public void enable() {
         SpigotUtil.init();
         ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
 
-        this.bootstrap = new FairyBootstrap(this);
-        this.bootstrap.enable();
+        super.enable();
     }
 
     @Override
-    public void onDisable() {
+    public void disable() {
         if (Imanity.TAB_HANDLER != null) {
             Imanity.TAB_HANDLER.stop();
         }
-        this.bootstrap.disable();
+        super.disable();
     }
 
     @Override
@@ -95,8 +104,72 @@ public final class FairyBukkitPlatform extends JavaPlugin implements FairyPlatfo
     }
 
     @Override
-    public PluginClassLoader getClassloader() {
-        return this.pluginClassLoader;
+    public void saveResource(String name, boolean replace) {
+        if (name != null && !name.equals("")) {
+            name = name.replace('\\', '/');
+            InputStream in = this.getResource(name);
+            if (in == null) {
+                throw new IllegalArgumentException("The embedded resource '" + name + "' cannot be found");
+            } else {
+                File outFile = new File(this.dataFolder, name);
+                int lastIndex = name.lastIndexOf(47);
+                File outDir = new File(this.dataFolder, name.substring(0, Math.max(lastIndex, 0)));
+                if (!outDir.exists()) {
+                    outDir.mkdirs();
+                }
+
+                try {
+                    if (outFile.exists() && !replace) {
+                        LOGGER.warn("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
+                    } else {
+                        OutputStream out = new FileOutputStream(outFile);
+                        byte[] buf = new byte[1024];
+
+                        int len;
+                        while((len = in.read(buf)) > 0) {
+                            out.write(buf, 0, len);
+                        }
+
+                        out.close();
+                        in.close();
+                    }
+                } catch (IOException var10) {
+                    LOGGER.info("Could not save " + outFile.getName() + " to " + outFile, var10);
+                }
+
+            }
+        } else {
+            throw new IllegalArgumentException("ResourcePath cannot be null or empty");
+        }
+    }
+
+    public InputStream getResource(String filename) {
+        if (filename == null) {
+            throw new IllegalArgumentException("Filename cannot be null");
+        } else {
+            try {
+                URL url = this.getClass().getClassLoader().getResource(filename);
+                if (url == null) {
+                    return null;
+                } else {
+                    URLConnection connection = url.openConnection();
+                    connection.setUseCaches(false);
+                    return connection.getInputStream();
+                }
+            } catch (IOException var4) {
+                return null;
+            }
+        }
+    }
+
+    @Override
+    public ExtendedClassLoader getClassloader() {
+        return this.classLoader;
+    }
+
+    @Override
+    public File getDataFolder() {
+        return this.dataFolder;
     }
 
     @Override
@@ -106,7 +179,7 @@ public final class FairyBukkitPlatform extends JavaPlugin implements FairyPlatfo
 
     @Override
     public boolean isRunning() {
-        return this.isEnabled();
+        return true; // TODO
     }
 
     @Override

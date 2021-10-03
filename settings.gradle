@@ -35,4 +35,7 @@ include "core-main"
 include "core-storage"
 include "core-base"
 include 'annotationProcessor'
+include 'core-proxy'
+include 'bootstrap'
+include 'bukkit-bootstrap'
 

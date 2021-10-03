@@ -303,13 +303,4 @@ public class Utility {
         return result;
     }
 
-    public static void resolveLinkageError() {
-        try {
-            Class.forName("org.fairy.cache.CacheableAspect");
-            Class.forName("org.springframework.expression.ExpressionParser");
-        } catch (Throwable throwable) {
-            System.out.println("Something wrong while resolving LinkageError...");
-        }
-    }
-
 }
