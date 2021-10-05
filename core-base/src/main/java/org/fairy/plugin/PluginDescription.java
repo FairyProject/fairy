@@ -16,6 +16,7 @@ public class PluginDescription {
     private final String mainClass;
     private final String shadedPackage;
     private final List<String> modules;
+    private final List<String> extensions;
     private final List<Library> libraries;
 
     public PluginDescription(JsonObject jsonObject) {
@@ -31,6 +32,13 @@ public class PluginDescription {
         if (jsonObject.has("modules")) {
             for (JsonElement jsonElement : jsonObject.getAsJsonArray("modules")) {
                 this.modules.add(jsonElement.getAsString());
+            }
+        }
+
+        this.extensions = new ArrayList<>();
+        if (jsonObject.has("extensions")) {
+            for (JsonElement jsonElement : jsonObject.getAsJsonArray("extensions")) {
+                this.extensions.add(jsonElement.getAsString());
             }
         }
 

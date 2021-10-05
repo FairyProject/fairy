@@ -115,7 +115,11 @@ public class BeanContext {
                         log("Plugin " + plugin.getName() + " has been registered as bean.");
                     } catch (Throwable throwable) {
                         LOGGER.error("An error occurs while registering plugin", throwable);
-                        plugin.close();
+                        try {
+                            plugin.close();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                         return;
                     }
 
@@ -123,7 +127,11 @@ public class BeanContext {
                         scanClasses(plugin.getName(), plugin.getPluginClassLoader(), findClassPaths(plugin.getClass()), beanDetails);
                     } catch (Throwable throwable) {
                         LOGGER.error("An error occurs while handling scanClasses()", throwable);
-                        plugin.close();
+                        try {
+                            plugin.close();
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
                     }
                 }
 

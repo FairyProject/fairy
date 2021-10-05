@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 
 public final class BukkitPlugin extends JavaPlugin {
 
-    protected static final String FAIRY_JSON_PATH = "fairy.json";
+    private static final String FAIRY_JSON_PATH = "fairy.json";
     public static BukkitPlugin INSTANCE;
 
     private BukkitBootstrap bootstrap;
@@ -28,7 +28,7 @@ public final class BukkitPlugin extends JavaPlugin {
             throw new IllegalArgumentException("Unable to load " + FAIRY_JSON_PATH, throwable);
         }
 
-        this.pluginHolder = new BukkitPluginHolder(jsonObject, this.getClassLoader());
+        this.pluginHolder = new BukkitPluginHolder(jsonObject, this);
         this.pluginHolder.onLoad();
     }
 
@@ -42,5 +42,10 @@ public final class BukkitPlugin extends JavaPlugin {
     public void onDisable() {
         this.bootstrap.disable();
         this.pluginHolder.onDisable();
+    }
+
+    // public extension
+    public ClassLoader getPluginClassLoader() {
+        return this.getClassLoader();
     }
 }

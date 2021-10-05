@@ -24,18 +24,22 @@
 
 package org.fairy.plugin;
 
+import com.google.common.base.Preconditions;
 import lombok.Getter;
+import org.fairy.util.terminable.Terminable;
 import org.fairy.util.terminable.TerminableConsumer;
 import org.fairy.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 
 @Getter
-public abstract class Plugin implements TerminableConsumer {
+public abstract class Plugin implements TerminableConsumer, Terminable {
 
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     private ClassLoader classLoader;
+
     private PluginDescription description;
+    private PluginAction action;
 
     public void onInitial() {
 
@@ -57,8 +61,9 @@ public abstract class Plugin implements TerminableConsumer {
 
     }
 
-    public final void initializePlugin(PluginDescription description, ClassLoader classLoader) {
+    public final void initializePlugin(PluginDescription description, PluginAction action, ClassLoader classLoader) {
         this.description = description;
+        this.action = action;
         this.classLoader = classLoader;
     }
 
@@ -76,4 +81,15 @@ public abstract class Plugin implements TerminableConsumer {
         return this.description.getName();
     }
 
+    @Override
+    public void close() throws Exception {
+        Preconditions.checkNotNull(this.action, "The plugin hasn't been initialized.");
+
+        this.action.close();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.action.isClosed();
+    }
 }

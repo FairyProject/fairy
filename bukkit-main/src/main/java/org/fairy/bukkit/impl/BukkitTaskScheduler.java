@@ -24,6 +24,7 @@
 
 package org.fairy.bukkit.impl;
 
+import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.fairy.bukkit.FairyBukkitPlatform;
@@ -38,12 +39,12 @@ import java.util.concurrent.atomic.AtomicReference;
 public class BukkitTaskScheduler implements ITaskScheduler {
     @Override
     public Terminable runAsync(Runnable runnable) {
-        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskAsynchronously(FairyBukkitPlatform.INSTANCE, runnable));
+        return this.toTerminable(Bukkit.getServer().getScheduler().runTaskAsynchronously(FairyBukkitPlatform.PLUGIN, runnable));
     }
 
     @Override
     public Terminable runAsyncScheduled(Runnable runnable, long time) {
-        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskLaterAsynchronously(FairyBukkitPlatform.INSTANCE, runnable, time));
+        return this.toTerminable(Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(FairyBukkitPlatform.PLUGIN, runnable, time));
     }
 
     @Override
@@ -55,7 +56,7 @@ public class BukkitTaskScheduler implements ITaskScheduler {
     public Terminable runAsyncRepeated(TaskRunnable runnable, long delay, long time) {
         AtomicReference<Terminable> terminable = new AtomicReference<>();
         AtomicBoolean closed = new AtomicBoolean(false);
-        final Terminable instance = this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskTimerAsynchronously(FairyBukkitPlatform.INSTANCE, () -> {
+        final Terminable instance = this.toTerminable(Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(FairyBukkitPlatform.PLUGIN, () -> {
             if (closed.get()) {
                 return;
             }
@@ -69,7 +70,7 @@ public class BukkitTaskScheduler implements ITaskScheduler {
     @Override
     public Terminable runSync(Runnable runnable) {
         AtomicBoolean closed = new AtomicBoolean();
-        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTask(FairyBukkitPlatform.INSTANCE, () -> {
+        return this.toTerminable(Bukkit.getServer().getScheduler().runTask(FairyBukkitPlatform.PLUGIN, () -> {
             if (closed.compareAndSet(false, true)) {
                 runnable.run();
             }
@@ -79,7 +80,7 @@ public class BukkitTaskScheduler implements ITaskScheduler {
     @Override
     public Terminable runScheduled(Runnable runnable, long time) {
         AtomicBoolean closed = new AtomicBoolean();
-        return this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskLater(FairyBukkitPlatform.INSTANCE, () -> {
+        return this.toTerminable(Bukkit.getServer().getScheduler().runTaskLater(FairyBukkitPlatform.PLUGIN, () -> {
             if (closed.compareAndSet(false, true)) {
                 runnable.run();
             }
@@ -95,7 +96,7 @@ public class BukkitTaskScheduler implements ITaskScheduler {
     public Terminable runRepeated(TaskRunnable runnable, long delay, long time) {
         AtomicReference<Terminable> terminable = new AtomicReference<>();
         AtomicBoolean closed = new AtomicBoolean(false);
-        final Terminable instance = this.toTerminable(FairyBukkitPlatform.INSTANCE.getServer().getScheduler().runTaskTimer(FairyBukkitPlatform.INSTANCE, () -> {
+        final Terminable instance = this.toTerminable(Bukkit.getServer().getScheduler().runTaskTimer(FairyBukkitPlatform.PLUGIN, () -> {
             if (closed.get()) {
                 return;
             }

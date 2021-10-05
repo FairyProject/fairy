@@ -13,11 +13,12 @@ final class BukkitPluginHolder {
     private final Plugin plugin;
     private final ClassLoader classLoader;
 
-    public BukkitPluginHolder(JsonObject jsonObject, ClassLoader classLoader) {
+    public BukkitPluginHolder(JsonObject jsonObject, BukkitPlugin bukkitPlugin) {
         PluginDescription pluginDescription = new PluginDescription(jsonObject);
 
-        this.classLoader = classLoader;
+        this.classLoader = bukkitPlugin.getPluginClassLoader();
         this.plugin = this.findMainClass(pluginDescription.getMainClass());
+        this.plugin.initializePlugin(pluginDescription, new BukkitPluginAction(bukkitPlugin), this.classLoader);
     }
 
     private Plugin findMainClass(String mainClassPath) {
@@ -35,7 +36,7 @@ final class BukkitPluginHolder {
         try {
             return (Plugin) mainClass.getDeclaredConstructor().newInstance();
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-            throw new IllegalStateException("Failed to new instance " + mainClassPath + " (Do you have no args constructor in the class?)");
+            throw new IllegalStateException("Failed to new instance " + mainClassPath + " (Do it has no args constructor in the class?)");
         }
     }
 

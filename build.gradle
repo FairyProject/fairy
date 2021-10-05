@@ -26,6 +26,7 @@ plugins {
     id "base"
     id "io.freefair.aspectj.post-compile-weaving" version "6.1.0"
     id "com.github.johnrengelman.shadow" version "7.0.0"
+    id "com.gradle.plugin-publish" version "0.14.0"
 }
 
 allprojects {
@@ -63,11 +64,20 @@ allprojects {
     }
 }
 
+static boolean isIndependentModule(String name) {
+    return name.contains("bootstrap") || name == "gradle-plugin"
+}
+
 subprojects {
-    apply plugin: "io.freefair.aspectj.post-compile-weaving"
+
     apply plugin: "java-library"
     apply plugin: "maven-publish"
-    apply plugin: "com.github.johnrengelman.shadow"
+    if (project.name != "gradle-plugin") {
+        if (!isIndependentModule(project.name)) {
+            apply plugin: "io.freefair.aspectj.post-compile-weaving"
+        }
+        apply plugin: "com.github.johnrengelman.shadow"
+    }
 
     configurations {
 
@@ -81,40 +91,44 @@ subprojects {
         expand projectVersion: project.version
     }
 
-    if (findProperty("deploy.imanityLibraries") == "true") {
-        tasks.jar.configure {
-            classifier = "sources"
-        }
-
-        tasks.shadowJar.configure {
-            classifier = null
-        }
-
-        publishing {
-            publications {
-                shadow(MavenPublication) { publication ->
-                    from project.shadow.component(publication)
-                    pom {
-                        name = "Fairy " + project.name
-                        description = "Fairy is a compat & open-sourced Java Framework with useful features"
-                    }
-                }
+    if (project.name != "gradle-plugin") {
+        if (findProperty("deploy.imanityLibraries") == "true") {
+            tasks.jar.configure {
+                classifier = "sources"
             }
 
-            repositories {
-                maven {
-                    credentials {
-                        username findProperty("imanityLibrariesUsername")
-                        password findProperty("imanityLibrariesPassword")
+            tasks.shadowJar.configure {
+                classifier = null
+            }
+
+            publishing {
+                publications {
+                    shadow(MavenPublication) { publication ->
+                        from project.shadow.component(publication)
+                        pom {
+                            name = "Fairy " + project.name
+                            description = "Fairy is a compat & open-sourced Java Framework with useful features"
+                        }
                     }
-                    url "https://maven.imanity.dev/repository/imanity-libraries/"
+                }
+
+                repositories {
+                    maven {
+                        credentials {
+                            username findProperty("imanityLibrariesUsername")
+                            password findProperty("imanityLibrariesPassword")
+                        }
+                        url "https://maven.imanity.dev/repository/imanity-libraries/"
+                    }
                 }
             }
         }
     }
 
     publish.dependsOn build
-    shadowJar.dependsOn build
+    if (project.name != "gradle-plugin") {
+        shadowJar.dependsOn build
+    }
 
     sourceCompatibility = targetCompatibility = "1.8"
     tasks.withType(JavaCompile) {
@@ -129,12 +143,11 @@ subprojects {
         annotationProcessor "org.jetbrains:annotations:19.0.0"
 
         compileOnly AspectJRuntime
-        if (project.name != "core-base") {
+        if (!isIndependentModule(project.name) && project.name != "core-base") {
             aspect project(":core-base")
         }
 
-
-        if (project.name.contains("bootstrap")) {
+        if (isIndependentModule(project.name)) {
             compileOnly project(":core-all")
         } else if (project.name.startsWith("core-")) {
             // Compile javax.persistence-api to all
@@ -192,8 +205,10 @@ subprojects {
         test.runtimeClasspath += configurations.compileOnly
     }
 
-    compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
-    compileJava.ajc.options.compilerArgs += "-verbose"
+    if (!isIndependentModule(project.name)) {
+        compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
+        compileJava.ajc.options.compilerArgs += "-verbose"
 
-    compileTestJava.ajc.options.aspectpath.from sourceSets.main.output
+        compileTestJava.ajc.options.aspectpath.from sourceSets.main.output
+    }
 }

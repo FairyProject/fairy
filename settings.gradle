@@ -34,8 +34,8 @@ include "core-all"
 include "core-main"
 include "core-storage"
 include "core-base"
-include 'annotationProcessor'
-include 'core-proxy'
-include 'bootstrap'
-include 'bukkit-bootstrap'
+include "core-proxy"
+include "bootstrap"
+include "bukkit-bootstrap"
+include "gradle-plugin"
 
