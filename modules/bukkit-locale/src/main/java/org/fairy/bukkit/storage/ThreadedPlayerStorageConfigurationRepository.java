@@ -22,8 +22,29 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.storage;
+
+import org.fairy.Repository;
+
+import java.util.UUID;
+
+public abstract class ThreadedPlayerStorageConfigurationRepository<T> implements ThreadedPlayerStorageConfiguration<T> {
+    @Override
+    public final String getName() {
+        return this.getRepository().getRepoId();
+    }
+
+    @Override
+    public final T loadAsync(UUID uuid, String name) {
+        return this.getRepository().findById(uuid).orElseGet(() -> this.create(uuid, name));
+    }
+
+    @Override
+    public final void saveAsync(UUID uuid, T t) {
+        this.getRepository().save(t);
+    }
+
+    public abstract T create(UUID uuid, String name);
+
+    public abstract Repository<T, UUID> getRepository();
 }

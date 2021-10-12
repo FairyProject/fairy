@@ -23,7 +23,15 @@
  */
 
 dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    compileOnly Mongojack
+    compileOnly MongoDB_driver_sync
+    compileOnly HikariCP
+    compileOnly "net.bytebuddy:byte-buddy:1.10.9"
+
+    testImplementation "mysql:mysql-connector-java:8.0.17"
+    testImplementation "org.postgresql:postgresql:42.2.8"
+    testImplementation "com.h2database:h2:1.4.199"
+
+    implementation project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotations")
 }

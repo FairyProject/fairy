@@ -22,8 +22,21 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.timings;
+
+
+class EmptyTiming extends MCTiming {
+    EmptyTiming() {
+        super();
+    }
+
+    @Override
+    public final MCTiming startTiming() {
+        return this;
+    }
+
+    @Override
+    public final void stopTiming() {
+
+    }
 }

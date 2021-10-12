@@ -22,8 +22,30 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bean;
+
+import lombok.experimental.UtilityClass;
+import org.fairy.bean.controller.AutowiredBeanController;
+
+/**
+ * Static extension for BeanContext
+ */
+@UtilityClass
+public class Beans {
+
+    @Autowired
+    private BeanContext BEAN_CONTEXT;
+
+    public <T> T get(Class<T> type) {
+        return type.cast(BEAN_CONTEXT.getBean(type));
+    }
+
+    public void inject(Object instance) {
+        try {
+            AutowiredBeanController.INSTANCE.applyObject(instance);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

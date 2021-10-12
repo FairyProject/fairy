@@ -23,7 +23,12 @@
  */
 
 dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    compileOnly HikariCP
+    compileOnly MongoDB_driver_sync
+    compileOnly Redisson
+
+    compileOnly project(":modules:core-storage")
+
+    implementation project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotations")
 }

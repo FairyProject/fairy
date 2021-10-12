@@ -22,8 +22,31 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.timings;
+
+import org.bukkit.Bukkit;
+import org.spigotmc.CustomTimingsHandler;
+
+public class SpigotCustomTiming extends MCTiming {
+    private final CustomTimingsHandler timing;
+
+    SpigotCustomTiming(String name) {
+        super();
+        this.timing = new CustomTimingsHandler(name);
+    }
+
+    @Override
+    public MCTiming startTiming() {
+        if (Bukkit.isPrimaryThread()) {
+            timing.startTiming();
+        }
+        return this;
+    }
+
+    @Override
+    public void stopTiming() {
+        if (Bukkit.isPrimaryThread()) {
+            timing.stopTiming();
+        }
+    }
 }

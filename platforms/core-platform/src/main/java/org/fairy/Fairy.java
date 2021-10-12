@@ -22,8 +22,45 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy;
+
+import lombok.experimental.UtilityClass;
+import org.fairy.config.BaseConfiguration;
+import org.fairy.library.LibraryHandler;
+import org.fairy.task.ITaskScheduler;
+import org.fairy.util.FastRandom;
+
+/**
+ * Static extension of FairyBootstrap
+ */
+@UtilityClass
+public class Fairy {
+
+    public final String METADATA_PREFIX = "Imanity_";
+    private final FastRandom RANDOM = new FastRandom();
+
+    public FastRandom random() {
+        return RANDOM;
+    }
+
+    public boolean isRunning() {
+        return FairyPlatform.INSTANCE.isRunning();
+    }
+
+    public ITaskScheduler getTaskScheduler() {
+        return FairyPlatform.INSTANCE.getTaskScheduler();
+    }
+
+    public LibraryHandler getLibraryHandler() {
+        return FairyPlatform.INSTANCE.getLibraryHandler();
+    }
+
+    public FairyPlatform getPlatform() {
+        return FairyPlatform.INSTANCE;
+    }
+
+    public BaseConfiguration getBaseConfiguration() {
+        return FairyPlatform.INSTANCE.getBaseConfiguration();
+    }
+
 }

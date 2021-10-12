@@ -22,8 +22,15 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.timings;
+
+abstract public class MCTiming implements AutoCloseable {
+    public abstract MCTiming startTiming();
+    public abstract void stopTiming();
+
+    @Override
+    public void close() {
+        stopTiming();
+    }
 }
+

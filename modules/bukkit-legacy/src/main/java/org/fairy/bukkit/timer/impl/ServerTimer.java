@@ -22,8 +22,34 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.timer.impl;
+
+import org.bukkit.entity.Player;
+import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.timer.TimerBase;
+import org.fairy.bukkit.timer.TimerList;
+
+import java.util.Collection;
+
+public class ServerTimer extends TimerBase {
+    public ServerTimer(long startTime, long duration, TimerList timerList) {
+        super(startTime, duration, timerList);
+    }
+
+    public ServerTimer(long startTime, long duration) {
+        super(startTime, duration);
+    }
+
+    public ServerTimer(long duration, TimerList timerList) {
+        super(duration, timerList);
+    }
+
+    public ServerTimer(long duration) {
+        super(duration);
+    }
+
+    @Override
+    public Collection<? extends Player> getReceivers() {
+        return Imanity.getPlayers();
+    }
 }

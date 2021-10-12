@@ -22,8 +22,34 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.impl;
+
+import org.bukkit.event.Listener;
+import org.fairy.bean.ComponentHolder;
+import org.fairy.bukkit.Imanity;
+import org.fairy.bukkit.listener.FilteredListener;
+import org.fairy.bukkit.listener.events.Events;
+
+public class ComponentHolderBukkitListener extends ComponentHolder {
+
+    @Override
+    public Object newInstance(Class<?> type) {
+        Object object = super.newInstance(type);
+
+        if (FilteredListener.class.isAssignableFrom(type)) {
+            return object;
+        } else if (Listener.class.isAssignableFrom(type)) {
+            Events.subscribe((Listener) object);
+        } else {
+            Imanity.LOGGER.error("The Class " + type.getSimpleName() + " wasn't implement Listener or FunctionListener!");
+            return null;
+        }
+
+        return object;
+    }
+
+    @Override
+    public Class<?>[] type() {
+        return new Class[] {FilteredListener.class, Listener.class};
+    }
 }

@@ -22,8 +22,14 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.timer.event;
+
+import org.fairy.bukkit.timer.Timer;
+
+public class TimerElapsedEvent extends TimerEvent {
+
+    public TimerElapsedEvent(Timer timer) {
+        super(timer);
+    }
+
 }

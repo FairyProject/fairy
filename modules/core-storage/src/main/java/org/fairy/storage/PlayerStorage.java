@@ -22,8 +22,29 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.storage;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+public interface PlayerStorage<T> {
+    T find(UUID uuid);
+
+    DataClosable<T> findAndSave(UUID uuid);
+
+    CompletableFuture<T> save(UUID uuid);
+
+    CompletableFuture<T> save(UUID uuid, T t);
+
+    List<T> findAll();
+
+    void unload(UUID uuid);
+
+    enum LoginRejectReason {
+
+        ERROR,
+        DATA_UNLOADED
+
+    }
 }

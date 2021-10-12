@@ -22,8 +22,23 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.listener.events;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.event.Cancellable;
+
+import java.util.function.Function;
+
+public class CancellableEvent extends CallableEvent implements Cancellable {
+
+    @Getter
+    @Setter
+    protected boolean cancelled;
+
+    public <T> T supplyCancelled(Function<Boolean, T> f) {
+        this.call();
+        return f.apply(this.cancelled);
+    }
+
 }

@@ -22,8 +22,33 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.timer.event;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.fairy.bukkit.timer.Timer;
+
+@Getter
+public class TimerExtendEvent extends TimerEvent {
+
+    @Setter private boolean cancelled;
+    private final long oldDuration;
+    private final long newDuration;
+    private final Reason reason;
+    @Setter private long extended;
+
+    public TimerExtendEvent(Timer timer, long oldDuration, long newDuration, long extended, Reason reason) {
+        super(timer);
+        this.oldDuration = oldDuration;
+        this.newDuration = newDuration;
+        this.extended = extended;
+        this.reason = reason;
+    }
+
+    public enum Reason {
+
+        PLUGIN,
+        UNPAUSE
+
+    }
 }

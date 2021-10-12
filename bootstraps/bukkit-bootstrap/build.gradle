@@ -1,0 +1,6 @@
+dependencies {
+    implementation project(":bootstraps:bootstrap")
+    compileOnly project(":platforms:bukkit-platform")
+
+    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+}

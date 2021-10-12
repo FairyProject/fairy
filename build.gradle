@@ -21,17 +21,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+//file:noinspection GroovyAssignabilityCheck
 
 plugins {
-    id "base"
-    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0"
-    id "com.github.johnrengelman.shadow" version "7.0.0"
-    id "com.gradle.plugin-publish" version "0.14.0"
+    id "maven-publish"
+    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0" apply false
+    id "com.github.johnrengelman.shadow" version "7.0.0" apply false
+    id "com.gradle.plugin-publish" version "0.14.0" apply false
 }
 
 allprojects {
-    group "org.fairy"
-    version "0.5b1"
+    group = "org.fairy"
+    version = "0.5b1"
 
     repositories {
         mavenCentral()
@@ -68,117 +69,142 @@ static boolean isIndependentModule(String name) {
     return name.contains("bootstrap") || name == "gradle-plugin"
 }
 
-subprojects {
+static boolean isExludedModule(String name) {
+    return name == "module-annotations" || name == "gradle-plugin"
+}
 
+if (findProperty("deploy.imanityLibraries") == "true") {
+    publishing {
+        publications {
+            shadow(MavenPublication) { publication ->
+                artifactId = "framework"
+                groupId = "org.fairy"
+                version = project.version
+
+                System.out.println("| version = ${version}")
+
+                def files = file("$buildDir/libs").listFiles()
+                if (files != null) {
+                    for (file in files) {
+                        if (file.name.endsWith(".jar")) {
+                            artifact(file) {
+                                String fileName = file.getName();
+                                int pos = fileName.lastIndexOf(".");
+                                if (pos > 0 && pos < (fileName.length() - 1)) {
+                                    fileName = fileName.substring(0, pos);
+                                }
+                                classifier = fileName.substring(0, fileName.length() - project.version.toString().length() - 1)
+
+                                System.out.println("| module = $classifier ($file.name)")
+                            }
+                        }
+                    }
+                }
+                pom {
+                    name = "Fairy " + project.name
+                    description = "Fairy is a compat & open-sourced Java Framework with useful features"
+                }
+            }
+        }
+        repositories {
+            maven {
+                credentials {
+                    username = findProperty("imanityLibrariesUsername")
+                    password = findProperty("imanityLibrariesPassword")
+                }
+                url "https://maven.imanity.dev/repository/imanity-libraries/"
+            }
+        }
+    }
+}
+
+subprojects {
     apply plugin: "java-library"
-    apply plugin: "maven-publish"
     if (project.name != "gradle-plugin") {
         if (!isIndependentModule(project.name)) {
             apply plugin: "io.freefair.aspectj.post-compile-weaving"
         }
         apply plugin: "com.github.johnrengelman.shadow"
+
+        tasks.jar.configure {
+            classifier = "sources"
+        }
+        tasks.shadowJar.configure {
+            classifier = null
+        }
     }
-
     configurations {
-
         compileOnly {
             canBeResolved = true
         }
-
     }
-
     processResources {
         expand projectVersion: project.version
-    }
-
-    if (project.name != "gradle-plugin") {
-        if (findProperty("deploy.imanityLibraries") == "true") {
-            tasks.jar.configure {
-                classifier = "sources"
-            }
-
-            tasks.shadowJar.configure {
-                classifier = null
-            }
-
-            publishing {
-                publications {
-                    shadow(MavenPublication) { publication ->
-                        from project.shadow.component(publication)
-                        pom {
-                            name = "Fairy " + project.name
-                            description = "Fairy is a compat & open-sourced Java Framework with useful features"
-                        }
-                    }
-                }
-
-                repositories {
-                    maven {
-                        credentials {
-                            username findProperty("imanityLibrariesUsername")
-                            password findProperty("imanityLibrariesPassword")
-                        }
-                        url "https://maven.imanity.dev/repository/imanity-libraries/"
-                    }
-                }
-            }
-        }
     }
 
     publish.dependsOn build
     if (project.name != "gradle-plugin") {
         shadowJar.dependsOn build
     }
-
     sourceCompatibility = targetCompatibility = "1.8"
+    tasks.withType(Jar) {
+        it.destinationDir(file("$rootDir/build/libs"))
+    }
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
     }
 
     dependencies {
-        compileOnly "org.projectlombok:lombok:1.18.12"
-        annotationProcessor "org.projectlombok:lombok:1.18.12"
-
+        compileOnly "org.projectlombok:lombok:1.18.22"
+        annotationProcessor "org.projectlombok:lombok:1.18.22"
         compileOnly "org.jetbrains:annotations:19.0.0"
         annotationProcessor "org.jetbrains:annotations:19.0.0"
 
         compileOnly AspectJRuntime
-        if (!isIndependentModule(project.name) && project.name != "core-base") {
-            aspect project(":core-base")
+        compileOnly "javax.persistence:javax.persistence-api:2.2"
+        if (!isIndependentModule(project.name) && project.name != "core-platform") {
+            aspect project(":platforms:core-platform")
         }
 
-        if (isIndependentModule(project.name)) {
-            compileOnly project(":core-all")
-        } else if (project.name.startsWith("core-")) {
-            // Compile javax.persistence-api to all
-            if (project.name == "core-all") {
-                api "javax.persistence:javax.persistence-api:2.2"
-            } else {
-                compileOnly "javax.persistence:javax.persistence-api:2.2"
-            }
+        if (project.name.contains("-")) {
+            def names = project.name.split("-")
 
-            // Include misc if not misc
-            if (project.name != "core-base") {
-                compileOnly project(":core-base")
-                compileOnly JacksonCore
-                compileOnly JacksonDataBind
-            }
+            if (names[1] == "platform") {
+                if (names[0] != "core") {
+                    api project(":platforms:core-platform")
+                }
+            } else if (!isExludedModule(project.name)) {
+                def platformName = names[0]
 
-        } else if (project.name.startsWith("bukkit-")) {
-            // Compile core all if it's bukkit all
-            compileOnly project(":core-all")
-            compileOnly project(":mc-abstract")
-
-            if (name != "bukkit-timings") {
-                compileOnly project(":bukkit-timings")
+                compileOnly project(":platforms:$platformName-platform")
             }
-
-            if (name != "bukkit-imanity-impl") {
-                compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
-            }
-        } else {
-            api project(":core-all")
         }
+
+//        if (project.name.startsWith("core-")) {
+//            // Compile javax.persistence-api to all
+//            compileOnly "javax.persistence:javax.persistence-api:2.2"
+//
+//            // Include misc if not misc
+//            if (project.name != "platforms:core-base") {
+//                compileOnly project(":platforms:core-base")
+//                compileOnly JacksonCore
+//                compileOnly JacksonDataBind
+//            }
+//
+//        } else if (project.name.startsWith("bukkit-")) {
+//            // Compile core all if it's bukkit all
+//            compileOnly project(":modules:mc-abstract")
+//
+//            if (name != "modules:bukkit-timings") {
+//                compileOnly project(":modules:bukkit-timings")
+//            }
+//
+//            if (name != "bukkit-imanity-impl") {
+//                compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+//            }
+//        } else {
+//            api project(":core-all")
+//        }
 
         compileOnly "com.google.guava:guava:" + findProperty("guava.version")
         compileOnly "com.google.code.gson:gson:" + findProperty("gson.version")
@@ -199,12 +225,10 @@ subprojects {
         testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
         testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.0"
     }
-
     sourceSets {
         test.compileClasspath += configurations.compileOnly
         test.runtimeClasspath += configurations.compileOnly
     }
-
     if (!isIndependentModule(project.name)) {
         compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
         compileJava.ajc.options.compilerArgs += "-verbose"

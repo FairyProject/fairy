@@ -22,8 +22,37 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.locale;
+
+import org.fairy.bean.Autowired;
+import org.fairy.bean.Component;
+import org.fairy.bukkit.command.event.BukkitCommandEvent;
+import org.fairy.command.annotation.Command;
+import org.fairy.command.annotation.CommandHolder;
+import org.fairy.locale.LocaleData;
+import org.fairy.locale.LocaleService;
+
+@Component
+public class LocaleCommand implements CommandHolder {
+
+    @Autowired
+    private BukkitLocaleStorage localeStorage;
+
+    @Autowired
+    private LocaleService localeService;
+
+    @Command(names = "bruh")
+    public void taiwan(BukkitCommandEvent event) {
+        final LocaleData localeData = this.localeStorage.find(event.getPlayer().getUniqueId());
+        localeData.setLocale(this.localeService.getOrRegister("zh_tw"));
+        this.localeStorage.save(event.getPlayer().getUniqueId());
+        System.out.println(localeData.getLocale());
+    }
+
+    @Command(names = "hiya")
+    public void tai1wan(BukkitCommandEvent event) {
+        final LocaleData localeData = this.localeStorage.find(event.getPlayer().getUniqueId());
+        System.out.println(localeData.getLocale());
+    }
+
 }

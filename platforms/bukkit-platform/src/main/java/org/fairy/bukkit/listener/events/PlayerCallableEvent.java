@@ -22,8 +22,30 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.listener.events;
+
+import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
+
+public class PlayerCallableEvent extends PlayerEvent {
+
+    protected static final HandlerList HANDLER_LIST = new HandlerList();
+
+    public PlayerCallableEvent(Player who) {
+        super(who);
+    }
+
+    public void call() {
+        Events.call(this);
+    }
+
+    @Override
+    public HandlerList getHandlers() {
+        return HANDLER_LIST;
+    }
+
+    protected static HandlerList getHandlerList() {
+        return HANDLER_LIST;
+    }
 }

@@ -22,8 +22,32 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.storage;
+
+import lombok.Getter;
+import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.player.PlayerEvent;
+import org.fairy.locale.LocaleData;
+
+public class PlayerLocaleLoadedEvent extends PlayerEvent {
+
+    private static final HandlerList HANDLER_LIST = new HandlerList();
+
+    @Getter
+    private final LocaleData localeData;
+
+    public PlayerLocaleLoadedEvent(Player who, LocaleData localeData) {
+        super(who);
+        this.localeData = localeData;
+    }
+
+    @Override
+    public HandlerList getHandlers() {
+        return HANDLER_LIST;
+    }
+
+    public static HandlerList getHandlerList() {
+        return HANDLER_LIST;
+    }
 }

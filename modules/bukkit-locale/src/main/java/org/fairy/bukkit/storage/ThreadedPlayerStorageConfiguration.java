@@ -22,8 +22,31 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package org.fairy.bukkit.storage;
+
+import org.bukkit.entity.Player;
+
+import java.util.UUID;
+
+public interface ThreadedPlayerStorageConfiguration<T> {
+
+    String getName();
+
+    T loadAsync(UUID uuid, String name);
+
+    void saveAsync(UUID uuid, T t);
+
+    default String getLoginRejectMessage(UUID uuid, String name, ThreadedPlayerStorage.LoginRejectReason rejectReason) {
+        switch (rejectReason) {
+            case ERROR:
+                return "An error has been occur in server side, Please try again later.";
+            case DATA_UNLOADED:
+                return "You data got unloaded during processing, Please try again later.";
+        }
+
+        return "Your login request has been rejected.";
+    }
+
+    boolean shouldUnloadOnQuit(Player player);
+
 }

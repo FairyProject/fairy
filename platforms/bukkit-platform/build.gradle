@@ -23,7 +23,17 @@
  */
 
 dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
+    api "net.wesjd:anvilgui:1.4.0-SNAPSHOT"
+    api project(":platforms:mc-platform")
+
     compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    compileOnly "us.myles:viaversion:3.2.1"
+    compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
+    compileOnly "org.imanity.paperspigot:1.7.10:1.7.10"
+    compileOnly "com.boydti:fawe-api:latest"
+    compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
+    compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
+    compileOnly name: "ProtocolSupport"
+    compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
+    compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
 }

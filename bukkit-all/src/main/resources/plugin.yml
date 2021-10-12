@@ -1,7 +1,0 @@
-name: fairy
-version: ${projectVersion}
-main: org.fairy.bukkit.FairyBukkitPlatform
-author: LeeGod
-load: STARTUP
-softdepend:
-  - ProtocolLib
