@@ -30,7 +30,7 @@ import org.fairy.bukkit.packet.PacketService;
 import org.fairy.bukkit.packet.wrapper.server.WrappedPacketOutPlayerListHeaderAndFooter;
 import org.fairy.bukkit.packet.wrapper.server.playerinfo.WrappedPlayerInfoData;
 import org.fairy.bukkit.reflection.MinecraftReflection;
-import org.fairy.bukkit.reflection.version.PlayerVersion;
+import org.fairy.mc.protocol.MCVersion;
 import org.fairy.bukkit.reflection.wrapper.ChatComponentWrapper;
 import org.fairy.bukkit.reflection.wrapper.GameProfileWrapper;
 import org.fairy.bukkit.reflection.wrapper.SignedPropertyWrapper;
@@ -56,7 +56,7 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
 
         Imanity.getPlayers()
                 .stream()
-                .filter(online -> MinecraftReflection.getProtocol(online) == PlayerVersion.v1_7)
+                .filter(online -> MinecraftReflection.getProtocol(online) == MCVersion.v1_7)
                 .forEach(online -> PacketService.send(online, packet));
     }
 
@@ -68,11 +68,11 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
     @Override
     public TabEntry createFakePlayer(ImanityTablist imanityTablist, String string, TabColumn column, Integer slot, Integer rawSlot) {
         final Player player = imanityTablist.getPlayer();
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(player);
 
-        GameProfileWrapper profile = new GameProfileWrapper(UUID.randomUUID(), playerVersion != PlayerVersion.v1_7  ? string : LegacyClientUtil.entry(rawSlot - 1) + "");
+        GameProfileWrapper profile = new GameProfileWrapper(UUID.randomUUID(), MCVersion != MCVersion.v1_7  ? string : LegacyClientUtil.entry(rawSlot - 1) + "");
 
-        if (playerVersion != PlayerVersion.v1_7) {
+        if (MCVersion != MCVersion.v1_7) {
             profile.getProperties().put("textures", new SignedPropertyWrapper("textures", Skin.GRAY.skinValue, Skin.GRAY.skinSignature));
         }
 
@@ -92,11 +92,11 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
         }
 
         final Player player = imanityTablist.getPlayer();
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(player);
 
         String[] newStrings = ImanityTablist.splitStrings(text, tabEntry.getRawSlot());
 
-        if (playerVersion == PlayerVersion.v1_7) {
+        if (MCVersion == MCVersion.v1_7) {
 
             Imanity.IMPLEMENTATION.sendTeam(
                     player,
@@ -110,7 +110,7 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
         } else {
             ChatComponentWrapper listName = ChatComponentWrapper.fromText(CC.translate(text));
 
-            GameProfileWrapper profile = this.getGameProfile(playerVersion, tabEntry);
+            GameProfileWrapper profile = this.getGameProfile(MCVersion, tabEntry);
 
             WrappedPacketOutPlayerInfo packet = new WrappedPacketOutPlayerInfo();
             packet.setAction(PlayerInfoAction.UPDATE_DISPLAY_NAME);
@@ -128,8 +128,8 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
 
         ChatComponentWrapper listName = ChatComponentWrapper.fromText(CC.translate(tabEntry.getText()));
 
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(imanityTablist.getPlayer());
-        GameProfileWrapper profile = this.getGameProfile(playerVersion, tabEntry);
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(imanityTablist.getPlayer());
+        GameProfileWrapper profile = this.getGameProfile(MCVersion, tabEntry);
 
         WrappedPacketOutPlayerInfo packet = new WrappedPacketOutPlayerInfo();
         packet.setAction(PlayerInfoAction.UPDATE_LATENCY);
@@ -146,12 +146,12 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
             return;
         }
 
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(imanityTablist.getPlayer());
-        if (playerVersion == PlayerVersion.v1_7) {
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(imanityTablist.getPlayer());
+        if (MCVersion == MCVersion.v1_7) {
             return;
         }
 
-        GameProfileWrapper gameProfile = this.getGameProfile(playerVersion, tabEntry);
+        GameProfileWrapper gameProfile = this.getGameProfile(MCVersion, tabEntry);
 
         gameProfile.getProperties().clear();
         gameProfile.getProperties().put("textures", new SignedPropertyWrapper("textures", skin.skinValue, skin.skinSignature));
@@ -173,7 +173,7 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
     public void updateHeaderAndFooter(ImanityTablist imanityTablist, String header, String footer) {
 
         Player player = imanityTablist.getPlayer();
-        if (MinecraftReflection.getProtocol(player) == PlayerVersion.v1_7) {
+        if (MinecraftReflection.getProtocol(player) == MCVersion.v1_7) {
             return;
         }
 
@@ -186,7 +186,7 @@ public class NMS1_8TabImpl implements IImanityTabImpl {
 
     }
 
-    private GameProfileWrapper getGameProfile(PlayerVersion playerVersion, TabEntry tabEntry) {
-        return new GameProfileWrapper(tabEntry.getUuid(), playerVersion != PlayerVersion.v1_7  ? tabEntry.getId() : LegacyClientUtil.entry(tabEntry.getRawSlot() - 1) + "");
+    private GameProfileWrapper getGameProfile(MCVersion MCVersion, TabEntry tabEntry) {
+        return new GameProfileWrapper(tabEntry.getUuid(), MCVersion != MCVersion.v1_7  ? tabEntry.getId() : LegacyClientUtil.entry(tabEntry.getRawSlot() - 1) + "");
     }
 }

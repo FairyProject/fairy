@@ -42,7 +42,7 @@ import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.WorldData;
 import org.bukkit.Location;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.util.schematic.Schematic;
 
 import java.io.File;

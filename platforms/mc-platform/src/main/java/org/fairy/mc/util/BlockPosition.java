@@ -22,42 +22,49 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.util;
+package org.fairy.mc.util;
 
 import lombok.Data;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-
-import java.util.Objects;
 
 @Data
 public class BlockPosition {
 
-    private String world;
     private int x;
     private int y;
     private int z;
 
-    public BlockPosition(int x, int y, int z, String world) {
+    public BlockPosition(int x, int y, int z) {
         this.x = x;
         this.y = y;
         this.z = z;
-        this.world = world;
     }
 
     public BlockPosition() {
-        this(0 , 0, 0, Bukkit.getWorlds().get(0).getName());
+        this(0, 0, 0);
     }
 
-    public static BlockPosition of(Location location) {
-        Objects.requireNonNull(location, "location");
-        return new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ(), location.getWorld().getName());
+    public static int getX(long packedPos) {
+        return (int) (packedPos >> 38); // Paper - simplify/inline
     }
 
-    public static BlockPosition of(Block block) {
-        Objects.requireNonNull(block, "block");
-        return of(block.getLocation());
+    public static int getY(long packedPos) {
+        return (int) ((packedPos << 52) >> 52); // Paper - simplify/inline
+    }
+
+    public static int getZ(long packedPos) {
+        return (int) ((packedPos << 26) >> 38);  // Paper - simplify/inline
+    }
+
+    public static BlockPosition of(long packedPos) {
+        return new BlockPosition((int) (packedPos >> 38), (int) ((packedPos << 52) >> 52), (int) ((packedPos << 26) >> 38)); // Paper - simplify/inline
+    }
+
+    public long asLong() {
+        return asLong(this.getX(), this.getY(), this.getZ());
+    }
+
+    public static long asLong(int x, int y, int z) {
+        return (((long) x & (long) 67108863) << 38) | (((long) y & (long) 4095)) | (((long) z & (long) 67108863) << 12); // Paper - inline constants and simplify
     }
 
 }

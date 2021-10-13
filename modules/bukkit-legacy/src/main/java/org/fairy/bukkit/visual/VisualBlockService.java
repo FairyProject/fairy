@@ -42,7 +42,7 @@ import org.bukkit.util.Vector;
 import org.fairy.bean.Service;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.player.movement.MovementListener;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.util.CoordXZ;
 import org.fairy.bukkit.util.CoordinatePair;
 import org.fairy.bukkit.visual.event.PreHandleVisualClaimEvent;

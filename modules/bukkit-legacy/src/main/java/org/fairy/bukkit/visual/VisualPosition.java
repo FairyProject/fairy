@@ -25,7 +25,7 @@
 package org.fairy.bukkit.visual;
 
 import lombok.Getter;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.visual.type.VisualType;
 
 @Getter

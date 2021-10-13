@@ -35,7 +35,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.fairy.bean.*;
 import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.reflection.ProtocolLibService;
-import org.fairy.bukkit.util.LocaleRV;
+import org.fairy.mc.PlaceholderEntry;
 import org.fairy.locale.Locales;
 import org.fairy.util.StringUtil;
 
@@ -97,7 +97,7 @@ public class ItemLocalization {
 
             if (item.getDisplayNameLocale() != null) {
                 String name = Locales.translate(player, item.getDisplayNameLocale());
-                for (LocaleRV rv : item.getDisplayNamePlaceholders()) {
+                for (PlaceholderEntry rv : item.getDisplayNamePlaceholders()) {
                     name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(player));
                 }
 
@@ -109,7 +109,7 @@ public class ItemLocalization {
 
             if (item.getDisplayLoreLocale() != null) {
                 String lore = Locales.translate(player, item.getDisplayLoreLocale());
-                for (LocaleRV rv : item.getDisplayLorePlaceholders()) {
+                for (PlaceholderEntry rv : item.getDisplayLorePlaceholders()) {
                     lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(player));
                 }
 

@@ -27,7 +27,7 @@ package org.fairy.bukkit.tablist.util;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.fairy.bukkit.reflection.MinecraftReflection;
-import org.fairy.bukkit.reflection.version.PlayerVersion;
+import org.fairy.mc.protocol.MCVersion;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,7 +79,7 @@ public enum TabColumn {
 
     public static TabColumn getFromSlot(Player player, Integer slot) {
         /* Player Version 1.7 */
-        if (MinecraftReflection.getProtocol(player) == PlayerVersion.v1_7) {
+        if (MinecraftReflection.getProtocol(player) == MCVersion.v1_7) {
             return Arrays.stream(TabColumn.values())
                     .filter(tabColumn -> tabColumn.getNumbers().contains(slot))
                     .findFirst().get();
@@ -99,7 +99,7 @@ public enum TabColumn {
 
     public Integer getNumb(Player player, int raw){
         /* Check if the Player is not a 1.7 User */
-        if (MinecraftReflection.getProtocol(player) != PlayerVersion.v1_7){
+        if (MinecraftReflection.getProtocol(player) != MCVersion.v1_7){
             return raw - startNumber + 1;
         }
         int number = 0;

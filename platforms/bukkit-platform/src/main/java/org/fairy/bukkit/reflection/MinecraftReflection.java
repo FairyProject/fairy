@@ -50,7 +50,7 @@ import org.fairy.bukkit.reflection.wrapper.MethodWrapper;
 import org.fairy.reflect.ReflectLookup;
 import org.fairy.util.AccessUtil;
 import org.fairy.bukkit.reflection.wrapper.PacketWrapper;
-import org.fairy.bukkit.reflection.version.PlayerVersion;
+import org.fairy.mc.protocol.MCVersion;
 import org.fairy.util.EquivalentConverter;
 import org.jetbrains.annotations.Nullable;
 
@@ -115,8 +115,8 @@ public class MinecraftReflection {
 
     private static ProtocolCheck PROTOCOL_CHECK;
 
-    public static PlayerVersion getProtocol(Player player) {
-        return PlayerVersion.getVersionFromRaw(PROTOCOL_CHECK.getVersion(player));
+    public static MCVersion getProtocol(Player player) {
+        return MCVersion.getVersionFromRaw(PROTOCOL_CHECK.getVersion(player));
     }
 
     static {

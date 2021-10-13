@@ -40,7 +40,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
-import org.fairy.bukkit.util.LocaleRV;
+import org.fairy.mc.PlaceholderEntry;
 import org.fairy.bukkit.util.nms.NBTEditor;
 import org.fairy.locale.Locales;
 import org.fairy.bukkit.util.items.behaviour.ItemBehaviour;
@@ -111,8 +111,8 @@ public final class ImanityItem implements Terminable {
     private ItemPlaceCallback placeCallback;
 
     private final List<ItemBehaviour> behaviours = new ArrayList<>();
-    private final List<LocaleRV> displayNamePlaceholders = new ArrayList<>();
-    private final List<LocaleRV> displayLorePlaceholders = new ArrayList<>();
+    private final List<PlaceholderEntry> displayNamePlaceholders = new ArrayList<>();
+    private final List<PlaceholderEntry> displayLorePlaceholders = new ArrayList<>();
 
     private final Map<String, Object> metadata = new HashMap<>();
 
@@ -126,8 +126,8 @@ public final class ImanityItem implements Terminable {
                           String displayNameLocale,
                           String displayLoreLocale,
                           List<ItemBehaviour> behaviours,
-                          List<LocaleRV> displayNamePlaceholders,
-                          List<LocaleRV> displayLorePlaceholders,
+                          List<PlaceholderEntry> displayNamePlaceholders,
+                          List<PlaceholderEntry> displayLorePlaceholders,
                           Map<String, Object> metadata) {
         this.plugin = plugin;
         this.id = id;
@@ -160,12 +160,12 @@ public final class ImanityItem implements Terminable {
     }
 
     public ImanityItem appendNameReplace(String target, Function<Player, String> replacement) {
-        this.displayNamePlaceholders.add(LocaleRV.o(target, replacement));
+        this.displayNamePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
     public ImanityItem appendLoreReplace(String target, Function<Player, String> replacement) {
-        this.displayLorePlaceholders.add(LocaleRV.o(target, replacement));
+        this.displayLorePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
@@ -251,7 +251,7 @@ public final class ImanityItem implements Terminable {
         if (!ItemLocalization.PACKET_BASED_ITEM_LOCALIZATION || !this.submitted) {
             if (displayNameLocale != null) {
                 String name = Locales.translate(receiver, displayNameLocale);
-                for (LocaleRV rv : this.displayNamePlaceholders) {
+                for (PlaceholderEntry rv : this.displayNamePlaceholders) {
                     name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(receiver));
                 }
 
@@ -260,7 +260,7 @@ public final class ImanityItem implements Terminable {
 
             if (displayLoreLocale != null) {
                 String lore = Locales.translate(receiver, displayLoreLocale);
-                for (LocaleRV rv : this.displayLorePlaceholders) {
+                for (PlaceholderEntry rv : this.displayLorePlaceholders) {
                     lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(receiver));
                 }
 

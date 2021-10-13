@@ -31,6 +31,7 @@ import lombok.Setter;
 import org.apache.commons.io.FilenameUtils;
 import org.fairy.bean.*;
 import org.fairy.config.yaml.YamlConfiguration;
+import org.fairy.mc.MCPlayer;
 import org.fairy.module.Depend;
 import org.fairy.module.Modular;
 import org.fairy.storage.DataClosable;
@@ -209,7 +210,7 @@ public class LocaleService {
     }
 
     public <Player> String translate(Player player, String key) {
-        return this.translate(this.localeStorage.getUuidByPlayer(player), key);
+        return this.translate(MCPlayer.from(player).getUUID(), key);
     }
 
 }

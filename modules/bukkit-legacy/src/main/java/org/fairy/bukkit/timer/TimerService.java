@@ -25,10 +25,15 @@
 package org.fairy.bukkit.timer;
 
 import com.google.common.collect.Sets;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.fairy.ScheduledAtFixedRate;
 import org.fairy.bean.PostInitialize;
 import org.fairy.bean.Service;
+import org.fairy.bukkit.FairyBukkitPlatform;
+import org.fairy.bukkit.listener.events.Events;
+import org.fairy.bukkit.metadata.Metadata;
 import org.fairy.bukkit.timer.event.TimerClearEvent;
+import org.fairy.bukkit.timer.impl.PlayerTimer;
 
 import java.util.Iterator;
 import java.util.Set;
@@ -45,6 +50,10 @@ public class TimerService {
         this.lock = new ReentrantLock();
         this.timers = Sets.newConcurrentHashSet();
         this.startScheduler();
+
+        Events.subscribe(PlayerQuitEvent.class).listen(event -> {
+            Metadata.provideForPlayer(event.getPlayer()).ifPresent(PlayerTimer.TIMER_METADATA_KEY, TimerList::clear);
+        }).build(FairyBukkitPlatform.PLUGIN);
     }
 
     protected void add(Timer timer) {

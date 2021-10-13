@@ -34,7 +34,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.reflection.MinecraftReflection;
-import org.fairy.bukkit.reflection.version.PlayerVersion;
+import org.fairy.mc.protocol.MCVersion;
 import org.fairy.bukkit.tablist.ImanityTablist;
 import org.fairy.bukkit.tablist.util.IImanityTabImpl;
 import org.fairy.bukkit.tablist.util.LegacyClientUtil;
@@ -67,13 +67,13 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
     public TabEntry createFakePlayer(ImanityTablist tablist, String string, TabColumn column, Integer slot, Integer rawSlot) {
         UUID uuid = UUID.randomUUID();
         final Player player = tablist.getPlayer();
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(player);
 
         PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.PLAYER_INFO);
         packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
-        WrappedGameProfile profile = new WrappedGameProfile(uuid, playerVersion != PlayerVersion.v1_7  ? string : LegacyClientUtil.entry(rawSlot - 1) + "");
-        PlayerInfoData playerInfoData = new PlayerInfoData(profile, 1, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(playerVersion != PlayerVersion.v1_7 ?  "" : profile.getName()));
-        if (playerVersion != PlayerVersion.v1_7) {
+        WrappedGameProfile profile = new WrappedGameProfile(uuid, MCVersion != MCVersion.v1_7  ? string : LegacyClientUtil.entry(rawSlot - 1) + "");
+        PlayerInfoData playerInfoData = new PlayerInfoData(profile, 1, EnumWrappers.NativeGameMode.SURVIVAL, WrappedChatComponent.fromText(MCVersion != MCVersion.v1_7 ?  "" : profile.getName()));
+        if (MCVersion != MCVersion.v1_7) {
             playerInfoData.getProfile().getProperties().put("texture", new WrappedSignedProperty("textures", Skin.GRAY.skinValue, Skin.GRAY.skinSignature));
         }
         packet.getPlayerInfoDataLists().write(0, Collections.singletonList(playerInfoData));
@@ -88,8 +88,8 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
         }
 
         final Player player = tablist.getPlayer();
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
-        if (playerVersion == PlayerVersion.v1_7) {
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(player);
+        if (MCVersion == MCVersion.v1_7) {
             String[] newStrings = ImanityTablist.splitStrings(text, tabEntry.getRawSlot());
             Imanity.IMPLEMENTATION.sendTeam(
                     player,
@@ -147,8 +147,8 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
     @Override
     public void updateFakeSkin(ImanityTablist zigguratTablist, TabEntry tabEntry, Skin skin) {
         final Player player = zigguratTablist.getPlayer();
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
-        if (tabEntry.getTexture() == skin || playerVersion == PlayerVersion.v1_7) {
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(player);
+        if (tabEntry.getTexture() == skin || MCVersion == MCVersion.v1_7) {
             return;
         }
 
@@ -177,9 +177,9 @@ public class ProtocolLibTabImpl implements IImanityTabImpl {
         PacketContainer headerAndFooter = new PacketContainer(PacketType.Play.Server.PLAYER_LIST_HEADER_FOOTER);
 
         final Player player = tablist.getPlayer();
-        final PlayerVersion playerVersion = MinecraftReflection.getProtocol(player);
+        final MCVersion MCVersion = MinecraftReflection.getProtocol(player);
 
-        if (playerVersion != PlayerVersion.v1_7) {
+        if (MCVersion != MCVersion.v1_7) {
 
             headerAndFooter.getChatComponents().write(0, WrappedChatComponent.fromText(header));
             headerAndFooter.getChatComponents().write(1, WrappedChatComponent.fromText(footer));

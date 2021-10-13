@@ -31,6 +31,7 @@ import org.fairy.bukkit.events.PostServicesInitialEvent;
 import org.fairy.bukkit.impl.ComponentHolderBukkitListener;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.plugin.FairyInternalPlugin;
+import org.fairy.bukkit.util.Players;
 import org.fairy.bukkit.util.SpigotUtil;
 import org.fairy.bean.ComponentRegistry;
 import org.fairy.FairyPlatform;
@@ -38,6 +39,7 @@ import org.fairy.bukkit.impl.BukkitPluginHandler;
 import org.fairy.bukkit.impl.BukkitTaskScheduler;
 import org.fairy.library.Library;
 import org.fairy.ExtendedClassLoader;
+import org.fairy.mc.MCPlayer;
 import org.fairy.plugin.PluginManager;
 import org.fairy.task.ITaskScheduler;
 import org.fairy.util.terminable.TerminableConsumer;
@@ -78,6 +80,7 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
         super.load();
 
         PluginManager.initialize(new BukkitPluginHandler());
+        MCPlayer.Companion.PLAYER_TO_UUID = Players::tryGetUniqueId;
     }
 
     @Override

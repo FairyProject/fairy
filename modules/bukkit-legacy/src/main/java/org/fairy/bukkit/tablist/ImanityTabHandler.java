@@ -27,8 +27,11 @@ package org.fairy.bukkit.tablist;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.fairy.Fairy;
 import org.fairy.bukkit.FairyBukkitPlatform;
+import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.packet.PacketDto;
 import org.fairy.bukkit.packet.PacketListener;
 import org.fairy.bukkit.packet.PacketService;
@@ -86,6 +89,13 @@ public class ImanityTabHandler {
 
         this.registerImplementation();
         this.setup();
+
+        Events.subscribe(PlayerJoinEvent.class).listen(event -> {
+            this.registerPlayerTablist(event.getPlayer());
+        }).build(FairyBukkitPlatform.PLUGIN);
+        Events.subscribe(PlayerQuitEvent.class).listen(event -> {
+            this.removePlayerTablist(event.getPlayer());
+        }).build(FairyBukkitPlatform.PLUGIN);
     }
 
     private void registerImplementation() {
@@ -153,7 +163,7 @@ public class ImanityTabHandler {
             .build());
 
         this.thread.scheduleAtFixedRate(() -> {
-            for (Player player : Imanity.getPlayers()) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
                 ImanityTablist tablist = Metadata
                         .provideForPlayer(player)
                         .getOrNull(TABLIST_KEY);
@@ -170,11 +180,9 @@ public class ImanityTabHandler {
     }
 
     public void stop() {
-
         if (this.thread != null) {
             this.thread.shutdown();
             this.thread = null;
         }
-
     }
 }

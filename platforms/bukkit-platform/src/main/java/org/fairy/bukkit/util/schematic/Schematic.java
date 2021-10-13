@@ -28,7 +28,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.util.schematic.impl.FAWESchematic;
 import org.fairy.bukkit.util.schematic.impl.WorldEditSchematic;
 

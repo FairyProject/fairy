@@ -22,21 +22,21 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.locale;
+package org.fairy.locale;
 
-import org.bukkit.entity.Player;
-import org.fairy.bukkit.util.LocaleRV;
-import org.fairy.locale.Locales;
+import org.fairy.mc.message.MCMessage;
+import org.fairy.mc.MCPlayer;
+import org.fairy.mc.PlaceholderEntry;
 import org.fairy.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
-public class LocaleMessage {
+public class LocaleMessage implements MCMessage {
 
     private final String localeName;
-    private final List<LocaleRV> replaceValues;
+    private final List<PlaceholderEntry> replaceValues;
 
     public LocaleMessage(String localeName) {
         this.localeName = localeName;
@@ -44,33 +44,33 @@ public class LocaleMessage {
     }
 
     public LocaleMessage appendReplacement(String target, String replacement) {
-        this.replaceValues.add(LocaleRV.o(target, replacement));
+        this.replaceValues.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
     public LocaleMessage appendReplacement(String target, Object replacement) {
-        this.replaceValues.add(LocaleRV.o(target, replacement));
+        this.replaceValues.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
-    public LocaleMessage appendReplacement(String target, Function<Player, String> replacement) {
-        this.replaceValues.add(LocaleRV.o(target, replacement));
+    public LocaleMessage appendReplacement(String target, Function<MCPlayer, String> replacement) {
+        this.replaceValues.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
     public LocaleMessage appendLocaleReplacement(String target, String localeReplacement) {
-        this.replaceValues.add(LocaleRV.oT(target, localeReplacement));
+        this.replaceValues.add(Locales.entry(target, localeReplacement));
         return this;
     }
 
-    public void send(Player player) {
+    @Override
+    public String get(MCPlayer player) {
         String result = Locales.translate(player, this.localeName);
 
-        for (LocaleRV rv : this.replaceValues) {
+        for (PlaceholderEntry rv : this.replaceValues) {
             result = StringUtil.replace(result, rv.getTarget(), rv.getReplacement(player));
         }
 
-        player.sendMessage(result);
+        return result;
     }
-
 }

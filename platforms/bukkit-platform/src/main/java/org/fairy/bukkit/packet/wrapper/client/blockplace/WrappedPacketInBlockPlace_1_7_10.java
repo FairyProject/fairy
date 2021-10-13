@@ -28,7 +28,7 @@ import net.minecraft.server.v1_7_R4.PacketPlayInBlockPlace;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.fairy.bukkit.packet.wrapper.WrappedPacket;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 
 final class WrappedPacketInBlockPlace_1_7_10 extends WrappedPacket {
     private BlockPosition blockPosition;

@@ -27,6 +27,9 @@ package org.fairy.locale;
 import lombok.experimental.UtilityClass;
 import org.fairy.bean.Autowired;
 import org.fairy.bean.BeanHolder;
+import org.fairy.mc.MCPlayer;
+import org.fairy.mc.PlaceholderEntry;
+import org.fairy.mc.message.MCMessage;
 import org.fairy.util.RV;
 import org.fairy.util.StringUtil;
 
@@ -79,6 +82,14 @@ public class Locales {
 
     public <Player> Locale getLocale(Player player) {
         return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.getLocale(player));
+    }
+
+    public PlaceholderEntry entry(String placeholder, String localeEntry) {
+        return PlaceholderEntry.entry(placeholder, mcPlayer -> LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(mcPlayer, localeEntry)));
+    }
+
+    public LocaleMessage message(String localeEntry) {
+        return new LocaleMessage(localeEntry);
     }
 
 }

@@ -22,41 +22,43 @@
  * SOFTWARE.
  */
 
-package org.fairy.bukkit.reflection.version;
+package org.fairy.mc;
 
-import java.util.Arrays;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-public enum PlayerVersion {
-    v1_7(4, 5),
-    v1_8(47),
-    v1_9(107, 108, 109, 110),
-    v1_10(210),
-    v1_11(315, 316),
-    v1_12(335, 338, 340),
-    v1_13(393, 401, 404);
+import java.util.function.Function;
 
-    private Integer[] rawVersion;
+@Getter
+@AllArgsConstructor
+public class PlaceholderEntry {
 
-    PlayerVersion(Integer... rawVersionNumbers) {
-        this.rawVersion = rawVersionNumbers;
+    private final String target;
+    private final Function<MCPlayer, String> replacement;
+
+    public PlaceholderEntry(String target, String replacement) {
+        this.target = target;
+        this.replacement = player -> replacement;
     }
 
-    public static PlayerVersion getVersionFromRaw(Integer input) {
-        PlayerVersion[] var1 = values();
-        int var2 = var1.length;
-
-        for (int var3 = 0; var3 < var2; ++var3) {
-            PlayerVersion playerVersion = var1[var3];
-            if (Arrays.asList(playerVersion.rawVersion).contains(input)) {
-                return playerVersion;
-            }
-        }
-
-        return v1_8;
+    public PlaceholderEntry(String target, Object replacement) {
+        this(target, replacement.toString());
     }
 
-    public Integer[] getRawVersion() {
-        return this.rawVersion;
+    public String getReplacement(MCPlayer player) {
+        return this.replacement.apply(player);
     }
+
+    public static PlaceholderEntry entry(final String target, final String replacement) {
+        return new PlaceholderEntry(target, replacement);
+    }
+
+    public static PlaceholderEntry entry(final String target, final Object replacement) {
+        return new PlaceholderEntry(target, replacement);
+    }
+
+    public static PlaceholderEntry entry(String target, Function<MCPlayer, String> replacement) {
+        return new PlaceholderEntry(target, replacement);
+    }
+
 }
-

@@ -25,7 +25,7 @@
 package org.fairy.bukkit.metadata.type;
 
 import org.bukkit.block.Block;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.metadata.MetadataMap;
 import org.fairy.metadata.MetadataRegistry;

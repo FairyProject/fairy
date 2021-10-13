@@ -36,7 +36,7 @@ import org.bukkit.material.MaterialData;
 import org.fairy.bukkit.impl.annotation.ProviderTestImpl;
 import org.fairy.bukkit.impl.annotation.ServerImpl;
 import org.fairy.bukkit.impl.test.ImplementationFactory;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.reflect.ReflectLookup;
 import org.fairy.bean.BeanContext;
 import org.fairy.bukkit.player.movement.MovementListener;

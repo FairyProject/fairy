@@ -31,7 +31,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.metadata.type.BlockMetadataRegistry;
 import org.fairy.bukkit.metadata.type.EntityMetadataRegistry;
@@ -166,14 +166,14 @@ final class BukkitMetadataRegistries {
         @Override
         public MetadataMap provide(@Nonnull Block block) {
             Objects.requireNonNull(block, "block");
-            return provide(BlockPosition.of(block));
+            return provide(new BlockPosition(block.getX(), block.getY(), block.getZ()));
         }
 
         @Nonnull
         @Override
         public Optional<MetadataMap> get(@Nonnull Block block) {
             Objects.requireNonNull(block, "block");
-            return get(BlockPosition.of(block));
+            return get(new BlockPosition(block.getX(), block.getY(), block.getZ()));
         }
 
         @Nonnull

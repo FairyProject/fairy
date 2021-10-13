@@ -25,9 +25,11 @@
 package org.fairy.bukkit.scoreboard;
 
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.fairy.Fairy;
 import org.fairy.bean.*;
+import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.metadata.Metadata;
@@ -70,7 +72,8 @@ public class SidebarService implements TaskRunnable {
     @PostInitialize
     public void postInit() {
         Task.mainRepeated(this, this.getUpdateTick());
-        Events.subscribe(PlayerQuitEvent.class).listen((subscription, event) -> remove(event.getPlayer()));
+        Events.subscribe(PlayerJoinEvent.class).listen((subscription, event) -> getOrCreateScoreboard(event.getPlayer())).build(FairyBukkitPlatform.PLUGIN);
+        Events.subscribe(PlayerQuitEvent.class).listen((subscription, event) -> remove(event.getPlayer())).build(FairyBukkitPlatform.PLUGIN);
     }
 
     public void addAdapter(SidebarAdapter adapter) {

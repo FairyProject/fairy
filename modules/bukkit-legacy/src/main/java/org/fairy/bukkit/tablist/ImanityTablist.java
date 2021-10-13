@@ -34,7 +34,7 @@ import org.fairy.bukkit.tablist.util.TabEntry;
 import org.fairy.bukkit.util.Skin;
 import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.reflection.MinecraftReflection;
-import org.fairy.bukkit.reflection.version.PlayerVersion;
+import org.fairy.mc.protocol.MCVersion;
 import org.fairy.util.CC;
 
 import java.util.*;
@@ -54,7 +54,7 @@ public class ImanityTablist {
     }
 
     private void setup() {
-        final int possibleSlots = MinecraftReflection.getProtocol(player) == PlayerVersion.v1_7 ? 60 : 80;
+        final int possibleSlots = MinecraftReflection.getProtocol(player) == MCVersion.v1_7 ? 60 : 80;
 
         for (int i = 1; i <= possibleSlots; i++) {
             final TabColumn tabColumn = TabColumn.getFromSlot(player, i);
@@ -69,7 +69,7 @@ public class ImanityTablist {
                     tabColumn.getNumb(player, i),
                     i
             );
-            if (MinecraftReflection.getProtocol(player) == PlayerVersion.v1_7) {
+            if (MinecraftReflection.getProtocol(player) == MCVersion.v1_7) {
 
                 Imanity.IMPLEMENTATION.sendTeam(
                         player,
@@ -105,7 +105,7 @@ public class ImanityTablist {
                 }
 
                 ImanityTabHandler.getInstance().getImplementation().updateFakeName(this, tabEntry, scoreObject.getText());
-                if (MinecraftReflection.getProtocol(player) != PlayerVersion.v1_7) {
+                if (MinecraftReflection.getProtocol(player) != MCVersion.v1_7) {
                     if (!tabEntry.getTexture().toString().equals(scoreObject.getSkin().toString())) {
                         ImanityTabHandler.getInstance().getImplementation().updateFakeSkin(this, tabEntry, scoreObject.getSkin());
                     }
@@ -116,7 +116,7 @@ public class ImanityTablist {
         for (TabEntry tabEntry : previous) {
             ImanityTabHandler.getInstance().getImplementation().updateFakeName(this, tabEntry, "");
             ImanityTabHandler.getInstance().getImplementation().updateFakeLatency(this, tabEntry, 0);
-            if (MinecraftReflection.getProtocol(player) != PlayerVersion.v1_7) {
+            if (MinecraftReflection.getProtocol(player) != MCVersion.v1_7) {
                 ImanityTabHandler.getInstance().getImplementation().updateFakeSkin(this, tabEntry, Skin.GRAY);
             }
         }

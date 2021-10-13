@@ -32,7 +32,7 @@ import org.fairy.bukkit.packet.wrapper.WrappedPacket;
 import org.fairy.bukkit.packet.wrapper.other.EnumDirection;
 import org.fairy.bukkit.reflection.resolver.FieldResolver;
 import org.fairy.bukkit.reflection.wrapper.ObjectWrapper;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.util.MinecraftVersion;
 import org.fairy.bukkit.packet.wrapper.annotation.AutowiredWrappedPacket;
 

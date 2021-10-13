@@ -32,7 +32,7 @@ import org.fairy.bukkit.packet.PacketDirection;
 import org.fairy.bukkit.packet.type.PacketType;
 import org.fairy.bukkit.packet.wrapper.WrappedPacket;
 import org.fairy.bukkit.packet.wrapper.annotation.AutowiredWrappedPacket;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.util.MinecraftVersion;
 
 @Getter

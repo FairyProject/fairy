@@ -48,7 +48,7 @@ import org.fairy.bukkit.reflection.resolver.ResolverQuery;
 import org.fairy.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import org.fairy.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import org.fairy.bukkit.reflection.wrapper.*;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.util.BlockPositionData;
 import org.fairy.bukkit.util.CoordXZ;
 import org.fairy.metadata.MetadataKey;

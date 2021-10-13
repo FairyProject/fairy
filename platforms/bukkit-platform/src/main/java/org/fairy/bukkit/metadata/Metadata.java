@@ -36,7 +36,7 @@ import org.fairy.bukkit.metadata.type.BlockMetadataRegistry;
 import org.fairy.bukkit.metadata.type.EntityMetadataRegistry;
 import org.fairy.bukkit.metadata.type.PlayerMetadataRegistry;
 import org.fairy.bukkit.metadata.type.WorldMetadataRegistry;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.metadata.MetadataMap;
 import org.fairy.metadata.MetadataRegistry;

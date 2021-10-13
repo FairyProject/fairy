@@ -25,6 +25,7 @@
 package org.fairy.bukkit.util;
 
 import org.bukkit.material.MaterialData;
+import org.fairy.mc.util.BlockPosition;
 
 public class BlockPositionData {
     private final BlockPosition blockPosition;

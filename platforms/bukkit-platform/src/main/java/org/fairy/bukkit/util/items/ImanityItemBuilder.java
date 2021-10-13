@@ -33,7 +33,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.fairy.bukkit.FairyBukkitPlatform;
 import org.fairy.bukkit.util.BukkitUtil;
-import org.fairy.bukkit.util.LocaleRV;
+import org.fairy.mc.PlaceholderEntry;
 import org.fairy.bukkit.util.text.IText;
 import org.fairy.bukkit.util.items.behaviour.ItemBehaviour;
 
@@ -88,8 +88,8 @@ public class ImanityItemBuilder {
     private String displayNameLocale;
     private String displayLoreLocale;
     private final List<ItemBehaviour> behaviours = new ArrayList<>();
-    private final List<LocaleRV> displayNamePlaceholders = new ArrayList<>();
-    private final List<LocaleRV> displayLorePlaceholders = new ArrayList<>();
+    private final List<PlaceholderEntry> displayNamePlaceholders = new ArrayList<>();
+    private final List<PlaceholderEntry> displayLorePlaceholders = new ArrayList<>();
 
     private final Map<String, Object> metadata = new HashMap<>();
 
@@ -132,12 +132,12 @@ public class ImanityItemBuilder {
     }
 
     public ImanityItemBuilder appendNameReplace(String target, Function<Player, String> replacement) {
-        this.displayNamePlaceholders.add(LocaleRV.o(target, replacement));
+        this.displayNamePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
     public ImanityItemBuilder appendLoreReplace(String target, Function<Player, String> replacement) {
-        this.displayLorePlaceholders.add(LocaleRV.o(target, replacement));
+        this.displayLorePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 

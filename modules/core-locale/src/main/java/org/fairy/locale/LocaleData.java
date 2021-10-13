@@ -28,6 +28,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.fairy.bean.Autowired;
+import org.fairy.bean.BeanHolder;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -43,18 +44,15 @@ import java.util.UUID;
 public class LocaleData {
 
     @Autowired
-    private static Optional<LocaleService> LOCALE_HANDLER;
+    private static BeanHolder<LocaleService> LOCALE_HANDLER;
 
     @Id
     private UUID uuid;
     private Locale locale;
 
     public LocaleData(UUID uuid) {
-        if (!LOCALE_HANDLER.isPresent()) {
-            throw new IllegalStateException("Trying to register Locale while Locale is not enabled!");
-        }
         this.uuid = uuid;
-        this.locale = LOCALE_HANDLER.get().getDefaultLocale();
+        this.locale = LOCALE_HANDLER.getOrNull().getDefaultLocale();
     }
 
 }

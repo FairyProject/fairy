@@ -24,7 +24,7 @@
 
 package org.fairy.bukkit.visual;
 
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 import org.fairy.bukkit.visual.type.VisualType;
 
 public class VisualBlock {

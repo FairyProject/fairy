@@ -36,7 +36,7 @@ import org.fairy.bukkit.reflection.resolver.ConstructorResolver;
 import org.fairy.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import org.fairy.bukkit.reflection.wrapper.DataWatcherWrapper;
 import org.fairy.bukkit.reflection.wrapper.PacketWrapper;
-import org.fairy.bukkit.reflection.version.PlayerVersion;
+import org.fairy.mc.protocol.MCVersion;
 import org.fairy.util.Utility;
 
 import static org.fairy.bukkit.reflection.minecraft.DataWatcher.V1_9.ValueType.*;
@@ -53,7 +53,7 @@ public class BossBar {
     private final int entityId;
 
     private final Player player;
-    private final PlayerVersion version;
+    private final MCVersion version;
 
     private boolean visible;
     private String previousText;
@@ -76,7 +76,7 @@ public class BossBar {
     }
 
     public float getMaxHealth() {
-        return this.version == PlayerVersion.v1_7 ? DRAGON_MAX_HEALTH : WITHER_MAX_HEALTH;
+        return this.version == MCVersion.v1_7 ? DRAGON_MAX_HEALTH : WITHER_MAX_HEALTH;
     }
 
     public Location makeLocation(Location base) {
@@ -114,7 +114,7 @@ public class BossBar {
     private void buildDataWatcher() {
         this.dataWatcher = DataWatcherWrapper.create(null);
 
-        if (this.version != PlayerVersion.v1_7) {
+        if (this.version != MCVersion.v1_7) {
             this.dataWatcher.setValue(17, ENTITY_WITHER_a, 0);
             this.dataWatcher.setValue(18, ENTITY_WIHER_b, 0);
             this.dataWatcher.setValue(19, ENTITY_WITHER_c, 0);

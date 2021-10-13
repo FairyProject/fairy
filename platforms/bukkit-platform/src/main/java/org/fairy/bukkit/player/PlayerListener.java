@@ -29,18 +29,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.fairy.Fairy;
-import org.fairy.bean.Autowired;
-import org.fairy.bean.BeanHolder;
 import org.fairy.bean.Component;
-import org.fairy.bukkit.Imanity;
 import org.fairy.bukkit.events.player.PlayerPostJoinEvent;
 import org.fairy.bukkit.listener.events.Events;
 import org.fairy.bukkit.metadata.Metadata;
-import org.fairy.bukkit.scoreboard.SidebarService;
-import org.fairy.bukkit.timer.TimerList;
-import org.fairy.bukkit.timer.impl.PlayerTimer;
+import org.fairy.mc.MCPlayer;
 import org.fairy.metadata.MetadataKey;
 import org.fairy.metadata.MetadataMap;
 import org.fairy.task.Task;
@@ -48,48 +44,35 @@ import org.fairy.task.Task;
 @Component
 public class PlayerListener implements Listener {
 
-    @Autowired
-    public BeanHolder<SidebarService> sidebarService;
-
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerJoinScoreboard(PlayerJoinEvent event) {
-        if (!Fairy.isRunning()) {
-            return;
-        }
+    public void onPlayerLogin(PlayerLoginEvent event) {
+        final Player player = event.getPlayer();
 
-        Player player = event.getPlayer();
-
-        this.sidebarService.supplyOrNull(service -> service.getOrCreateScoreboard(player));
-
-        if (Imanity.TAB_HANDLER != null) {
-            Imanity.TAB_HANDLER.registerPlayerTablist(player);
-        }
-
-        Task.runMainLater(() -> Events.call(new PlayerPostJoinEvent(player)), 1L);
+        Metadata.provideForPlayer(player).put(MCPlayer.METADATA, new BukkitMCPlayer(player));
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
-        if (!Fairy.isRunning()) {
-            return;
-        }
+        final Player player = event.getPlayer();
 
-        Player player = event.getPlayer();
-
-        this.sidebarService.runOrNull(service -> service.remove(player));
-
-        if (Imanity.TAB_HANDLER != null) {
-            Imanity.TAB_HANDLER.removePlayerTablist(player);
-        }
-
+        Metadata.provideForPlayer(player).remove(MCPlayer.METADATA);
         Events.unregisterAll(player);
         MetadataMap metadataMap = Metadata.provideForPlayer(player);
-        metadataMap.ifPresent(PlayerTimer.TIMER_METADATA_KEY, TimerList::clear);
         for (MetadataKey<?> key : metadataMap.asMap().keySet()) {
             if (key.removeOnNonExists()) {
                 metadataMap.remove(key);
             }
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (!Fairy.isRunning()) {
+            return;
+        }
+
+        Player player = event.getPlayer();
+        Task.runMainLater(() -> Events.call(new PlayerPostJoinEvent(player)), 1L);
     }
 
 }

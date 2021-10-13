@@ -28,7 +28,7 @@ import lombok.Getter;
 import org.bukkit.inventory.ItemStack;
 import org.fairy.bukkit.packet.wrapper.WrappedPacket;
 import org.fairy.bukkit.reflection.wrapper.ObjectWrapper;
-import org.fairy.bukkit.util.BlockPosition;
+import org.fairy.mc.util.BlockPosition;
 
 @Getter
 final class WrappedPacketInBlockPlace_1_8 extends WrappedPacket {
