@@ -1,3 +1,10 @@
 dependencies {
-    implementation "io.netty:netty-all:4.1.69.Final"
+    compileOnly "io.netty:netty-all:" + findProperty("netty.version")
+
+    // Adventure, for user-interface
+    api "net.kyori:adventure-api:" + findProperty("adventure.version")
+    api "net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT"
+    api "net.kyori:adventure-text-serializer-gson:" + findProperty("adventure.version")
+    api "net.kyori:adventure-text-serializer-plain:" + findProperty("adventure.version")
+    api "net.kyori:adventure-text-serializer-legacy:" + findProperty("adventure.version")
 }

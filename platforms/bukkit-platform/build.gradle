@@ -26,8 +26,10 @@ dependencies {
     api "net.wesjd:anvilgui:1.4.0-SNAPSHOT"
     api project(":platforms:mc-platform")
 
+    implementation "net.kyori:adventure-platform-bukkit:4.0.0"
+
     compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
-    compileOnly "us.myles:viaversion:3.2.1"
+    compileOnly "com.viaversion:viaversion:4.0.1"
     compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
     compileOnly "org.imanity.paperspigot:1.7.10:1.7.10"
     compileOnly "com.boydti:fawe-api:latest"

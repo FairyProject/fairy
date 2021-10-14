@@ -25,7 +25,7 @@ package org.imanity.frameworktest;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
-import org.fairy.Async;
+import io.fairyproject.Async;
 import org.junit.Test;
 
 import java.util.concurrent.*;

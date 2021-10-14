@@ -9,8 +9,8 @@ apply plugin: "com.gradle.plugin-publish"
 gradlePlugin {
     plugins {
         fairy {
-            id = "org.fairy"
-            implementationClass = "org.fairy.gradle.FairyPlugin"
+            id = "io.fairyproject"
+            implementationClass = "io.fairyproject.gradle.FairyPlugin"
         }
     }
 }

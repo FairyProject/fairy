@@ -26,10 +26,10 @@ package org.imanity.frameworktest;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
-import org.fairy.CacheEvict;
-import org.fairy.CachePut;
-import org.fairy.Cacheable;
-import org.fairy.cache.EnableOwnCacheManager;
+import io.fairyproject.CacheEvict;
+import io.fairyproject.CachePut;
+import io.fairyproject.Cacheable;
+import io.fairyproject.cache.EnableOwnCacheManager;
 import org.junit.Test;
 import org.springframework.util.Assert;
 
