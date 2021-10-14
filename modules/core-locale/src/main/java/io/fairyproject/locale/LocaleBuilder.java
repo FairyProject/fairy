@@ -32,6 +32,7 @@ import io.fairyproject.util.Utility;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated // TODO - remove
 public class LocaleBuilder {
 
     @Autowired

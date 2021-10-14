@@ -26,8 +26,6 @@ package io.fairyproject.locale;
 
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.bean.*;
-import org.fairy.*;
-import org.fairy.bean.*;
 
 @Component
 @ServiceDependency(dependencies = "locale", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))

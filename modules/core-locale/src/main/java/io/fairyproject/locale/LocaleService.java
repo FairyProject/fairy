@@ -34,7 +34,6 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.apache.commons.io.FilenameUtils;
-import org.fairy.bean.*;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.util.CC;
@@ -49,7 +48,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Modular(
-        value = "core-locale",
+        value = "core-locale", // TODO - rename to mc-translate
         abstraction = true,
         depends = @Depend("core-storage")
 )

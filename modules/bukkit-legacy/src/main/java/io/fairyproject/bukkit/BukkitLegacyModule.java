@@ -5,12 +5,7 @@ import io.fairyproject.module.Modular;
 
 @Modular(
         value = "bukkit-legacy",
-        abstraction = false,
-        depends = {
-                @Depend("mc-abstract"),
-                @Depend("bukkit-legacy"),
-                @Depend("bukkit-timings")
-        }
+        abstraction = false
 )
 public class BukkitLegacyModule {
     /*

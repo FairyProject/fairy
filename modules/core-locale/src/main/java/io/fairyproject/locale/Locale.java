@@ -32,6 +32,7 @@ import lombok.Getter;
 import java.util.List;
 import java.util.Map;
 
+@Deprecated // TODO - remove
 public class Locale {
 
     private final Char2ObjectOpenHashMap<Map<String, String>> translateEntries = new Char2ObjectOpenHashMap<>();

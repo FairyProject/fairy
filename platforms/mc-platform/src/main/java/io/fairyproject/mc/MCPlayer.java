@@ -41,11 +41,11 @@ public interface MCPlayer extends Audience {
     String getName();
 
     /**
-     * get player's locale
+     * get player's in-game locale
      *
      * @return locale
      */
-    String getLocale();
+    String getGameLocale();
 
     /**
      * send message to the player with legacy color code
@@ -135,7 +135,7 @@ public interface MCPlayer extends Audience {
 
         final ByteBuf buffer = this.getChannel().alloc().buffer();
         final FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(buffer);
-        friendlyByteBuf.setLocale(Locale.forLanguageTag(this.getLocale()));
+        friendlyByteBuf.setLocale(Locale.forLanguageTag(this.getGameLocale()));
 
         friendlyByteBuf.writeVarInt(id);
         packet.write(friendlyByteBuf);

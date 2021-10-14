@@ -53,7 +53,6 @@ import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
-import org.fairy.bukkit.reflection.wrapper.*;
 import io.fairyproject.mc.util.BlockPosition;
 
 import java.lang.reflect.Array;
@@ -256,7 +255,7 @@ public class NormalImplementation implements ServerImplementation {
                 final int chunkZ = z >> 4;
                 final int posX = x - (chunkX << 4);
                 final int posZ = z - (chunkZ << 4);
-                map.put(new CoordXZ(chunkX, chunkZ), new BlockPositionData(new BlockPosition(posX, y, posZ, player.getWorld().getName()), materialData));
+                map.put(new CoordXZ(chunkX, chunkZ), new BlockPositionData(new BlockPosition(posX, y, posZ), materialData));
             }
         }
         for (final BlockPosition blockPosition : replace) {
@@ -271,7 +270,7 @@ public class NormalImplementation implements ServerImplementation {
                 final int chunkZ2 = z2 >> 4;
                 final int posX2 = x2 - (chunkX2 << 4);
                 final int posZ2 = z2 - (chunkZ2 << 4);
-                map.put(new CoordXZ(chunkX2, chunkZ2), new BlockPositionData(new BlockPosition(posX2, y2, posZ2, player.getWorld().getName()), new MaterialData(type, (byte) data)));
+                map.put(new CoordXZ(chunkX2, chunkZ2), new BlockPositionData(new BlockPosition(posX2, y2, posZ2), new MaterialData(type, (byte) data)));
             }
         }
         if (send) {

@@ -34,8 +34,6 @@ import io.fairyproject.bukkit.storage.ThreadedPlayerStorageConfigurationReposito
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.locale.LocaleService;
 import org.bukkit.entity.Player;
-import org.fairy.*;
-import org.fairy.bean.*;
 import io.fairyproject.bukkit.storage.PlayerLocaleLoadedEvent;
 import io.fairyproject.locale.LocaleData;
 import io.fairyproject.locale.PlayerLocaleStorage;

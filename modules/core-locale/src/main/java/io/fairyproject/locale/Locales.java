@@ -30,6 +30,8 @@ import io.fairyproject.mc.PlaceholderEntry;
 import io.fairyproject.util.RV;
 import io.fairyproject.util.StringUtil;
 import lombok.experimental.UtilityClass;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.Template;
 
 import java.util.UUID;
 
@@ -86,8 +88,8 @@ public class Locales {
         return PlaceholderEntry.entry(placeholder, mcPlayer -> LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(mcPlayer, localeEntry)));
     }
 
-    public LocaleMessage message(String localeEntry) {
-        return new LocaleMessage(localeEntry);
+    public Template template(String placeholder, String localeKey) {
+        return Template.of(placeholder, Component.translatable(localeKey));
     }
 
 }

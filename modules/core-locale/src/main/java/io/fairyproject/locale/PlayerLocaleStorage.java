@@ -28,6 +28,7 @@ import io.fairyproject.storage.PlayerStorage;
 
 import java.util.UUID;
 
+@Deprecated // TODO - remove
 public interface PlayerLocaleStorage extends PlayerStorage<LocaleData> {
 
     UUID getUuidByPlayer(Object player);

@@ -30,7 +30,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import io.fairyproject.Fairy;
-import org.fairy.bean.*;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.listener.events.Events;

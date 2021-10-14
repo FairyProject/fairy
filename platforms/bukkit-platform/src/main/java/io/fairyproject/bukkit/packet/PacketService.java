@@ -41,7 +41,6 @@ import io.fairyproject.reflect.ReflectLookup;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import io.fairyproject.Fairy;
-import org.fairy.bean.*;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.task.Task;
 
