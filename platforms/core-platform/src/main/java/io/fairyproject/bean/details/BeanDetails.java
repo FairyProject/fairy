@@ -26,6 +26,7 @@ package io.fairyproject.bean.details;
 
 import io.fairyproject.bean.ServiceDependencyType;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public interface BeanDetails extends TerminableConsumer {
+public interface BeanDetails extends TerminableConsumer, Terminable {
 
     /**
      * Should this bean be initialized

@@ -33,6 +33,7 @@ import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.Template;
 
+import java.util.Locale;
 import java.util.UUID;
 
 /**
@@ -44,14 +45,6 @@ public class Locales {
     @Autowired
     private BeanHolder<LocaleService> LOCALE_SERVICE;
 
-    public String translate(UUID uuid, String key) {
-        return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(uuid, key));
-    }
-
-    public String translate(UUID uuid, String key, RV... rvs) {
-        return LOCALE_SERVICE.supplyOrNull(localeService -> StringUtil.replace(localeService.translate(uuid, key), rvs));
-    }
-
     public void setLocale(UUID uuid, Locale locale) {
         LOCALE_SERVICE.runOrNull(localeService -> localeService.setLocale(uuid, locale));
     }
@@ -62,14 +55,6 @@ public class Locales {
 
     public Locale getLocale(UUID uuid) {
         return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.getLocale(uuid));
-    }
-
-    public <Player> String translate(Player player, String key) {
-        return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(player, key));
-    }
-
-    public <Player> String translate(Player player, String key, RV... rvs) {
-        return LOCALE_SERVICE.supplyOrNull(localeService -> StringUtil.replace(localeService.translate(player, key), rvs));
     }
 
     public <Player> void setLocale(Player player, Locale locale) {
@@ -84,8 +69,8 @@ public class Locales {
         return LOCALE_SERVICE.supplyOrNull(localeService -> localeService.getLocale(player));
     }
 
-    public PlaceholderEntry entry(String placeholder, String localeEntry) {
-        return PlaceholderEntry.entry(placeholder, mcPlayer -> LOCALE_SERVICE.supplyOrNull(localeService -> localeService.translate(mcPlayer, localeEntry)));
+    public Component translate(String key) {
+        return Component.translatable(key);
     }
 
     public Template template(String placeholder, String localeKey) {

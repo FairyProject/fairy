@@ -9,4 +9,7 @@ import io.fairyproject.module.Modular;
         depends = @Depend("core-storage")
 )
 public class BukkitStorageModule {
+
+
+
 }

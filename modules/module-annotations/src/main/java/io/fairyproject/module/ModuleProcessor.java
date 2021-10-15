@@ -43,6 +43,7 @@ public class ModuleProcessor extends AbstractProcessor {
             Modular annotation = type.getAnnotation(Modular.class);
 
             jsonObject.addProperty("name", annotation.value());
+            jsonObject.addProperty("classPath", annotation.classPath());
             jsonObject.addProperty("abstraction", annotation.abstraction());
 
             JsonArray array = new JsonArray();

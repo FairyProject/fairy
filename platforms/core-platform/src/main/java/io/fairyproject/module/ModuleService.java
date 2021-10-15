@@ -4,15 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.fairyproject.bean.*;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.fairyproject.Fairy;
 import io.fairyproject.FairyPlatform;
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.Beans;
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
@@ -22,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +28,9 @@ import java.util.zip.ZipEntry;
 
 @Service(name = "module")
 public class ModuleService {
+
+    @Autowired
+    private static BeanContext BEAN_CONTEXT;
 
     public static final int PLUGIN_LISTENER_PRIORITY = BeanContext.PLUGIN_LISTENER_PRIORITY - 1;
 
@@ -153,8 +154,11 @@ public class ModuleService {
 
             final JsonObject jsonObject = new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
             final String name = jsonObject.get("name").getAsString();
+            final String classPath = jsonObject.get("classPath").getAsString();
 
-            module = new Module(name);
+            ClassLoader classLoader = new ModuleClassloader(path);
+
+            module = new Module(name, classPath, classLoader);
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             if (!canAbstract && module.isAbstraction()) {
@@ -178,6 +182,7 @@ public class ModuleService {
             }
 
             this.moduleByName.put(name, module);
+            BEAN_CONTEXT.scanClasses("Module " + name, classLoader, Collections.singleton(classPath));
             return module;
         } catch (Exception e) {
             LOGGER.error(e);
@@ -196,6 +201,7 @@ public class ModuleService {
 
     public void unregister(@NonNull Module module) {
         this.moduleByName.remove(module.getName());
+        module.closeAndReportException();
 
         for (Module dependModule : module.getDependModules()) {
             if (dependModule.removeRef() <= 0) {

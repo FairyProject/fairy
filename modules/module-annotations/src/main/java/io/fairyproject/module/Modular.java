@@ -15,9 +15,14 @@ public @interface Modular {
     String value();
 
     /**
+     * @return the class path of the module
+     */
+    String classPath() default "io.fairyproject";
+
+    /**
      * @return is this module abstract
      */
-    boolean abstraction();
+    boolean abstraction() default false;
 
     /**
      * @return the modules to depend on

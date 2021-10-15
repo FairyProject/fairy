@@ -26,10 +26,13 @@ package io.fairyproject.locale;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.config.annotation.Comment;
+import io.fairyproject.config.annotation.Convert;
 import io.fairyproject.config.yaml.YamlConfiguration;
+import io.fairyproject.locale.converter.LocaleConverter;
 import lombok.Getter;
 
 import java.io.File;
+import java.util.Locale;
 
 @Getter
 public class LocalizationConfiguration extends YamlConfiguration {
@@ -40,7 +43,9 @@ public class LocalizationConfiguration extends YamlConfiguration {
             "FULL - Fully functional Localization Player Data, will be stored based on storage type"
     })
     private StorageMode storageMode = StorageMode.TEMPORARY;
-    private String defaultLocale = "en_us";
+
+    @Convert(LocaleConverter.class)
+    private Locale defaultLocale = Locale.ENGLISH;
 
     public LocalizationConfiguration() {
         super(new File(Fairy.getPlatform().getDataFolder(), "modules/localization.yml").toPath());

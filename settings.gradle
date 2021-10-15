@@ -38,7 +38,7 @@ void initBootstrap() {
 void initModules() {
     include "modules:bukkit-legacy"
     include "modules:bukkit-locale"
-    include "modules:core-locale"
+    include "modules:mc-locale"
     include "modules:core-storage"
     include "modules:core-legacy"
     include "modules:module-annotations"

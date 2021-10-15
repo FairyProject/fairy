@@ -29,6 +29,7 @@ dependencies {
 
     compileOnly project(":modules:core-storage")
 
+    implementation "dev.akkinoc.util:yaml-resource-bundle:2.1.0"
     implementation project(":modules:module-annotations")
     annotationProcessor project(":modules:module-annotations")
 }

@@ -37,7 +37,6 @@ import org.apache.logging.log4j.Logger;
 import io.fairyproject.Fairy;
 import io.fairyproject.bean.controller.AutowiredBeanController;
 import io.fairyproject.bean.controller.BeanController;
-import org.fairy.bean.details.*;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.reflect.ReflectLookup;
@@ -161,16 +160,7 @@ public class BeanContext {
                         LOGGER.error(throwable);
                     }
 
-                    beanDetailsList.forEach(details -> {
-                        log("Bean " + details.getName() + " Disabled, due to plugin " + plugin.getName() + " disabled.");
-
-                        try {
-                            details.onDisable();
-                            unregisterBean(details);
-                        } catch (Throwable throwable) {
-                            LOGGER.error(throwable);
-                        }
-                    });
+                    beanDetailsList.forEach(BeanDetails::closeAndReportException);
 
                     try {
                         call(PostDestroy.class, beanDetailsList);

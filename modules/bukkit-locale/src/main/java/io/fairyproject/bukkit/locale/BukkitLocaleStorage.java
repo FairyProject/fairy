@@ -27,22 +27,20 @@ package io.fairyproject.bukkit.locale;
 import io.fairyproject.Repository;
 import io.fairyproject.Storage;
 import io.fairyproject.bean.*;
-import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.storage.PlayerLocaleLoadedEvent;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorage;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorageConfiguration;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorageConfigurationRepository;
-import io.fairyproject.bukkit.util.Players;
+import io.fairyproject.locale.LocaleData;
 import io.fairyproject.locale.LocaleService;
 import org.bukkit.entity.Player;
-import io.fairyproject.bukkit.storage.PlayerLocaleLoadedEvent;
-import io.fairyproject.locale.LocaleData;
-import io.fairyproject.locale.PlayerLocaleStorage;
 
 import java.util.UUID;
 
 @Service(name = "bukkit:locale-storage")
 @ServiceDependency(dependencies = "locale", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))
-public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> implements PlayerLocaleStorage {
+public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> {
 
     private Repository<LocaleData, UUID> localeRepository;
 
@@ -58,11 +56,6 @@ public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> imple
     @Override
     public boolean isDebugging() {
         return true;
-    }
-
-    @Override
-    public UUID getUuidByPlayer(Object player) {
-        return Players.tryGetUniqueId(player);
     }
 
     @Override
@@ -87,6 +80,6 @@ public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> imple
 
     @Override
     protected void onLoadedMain(Player player, LocaleData localeData) {
-        Imanity.callEvent(new PlayerLocaleLoadedEvent(player, localeData));
+        Events.call(new PlayerLocaleLoadedEvent(player, localeData));
     }
 }

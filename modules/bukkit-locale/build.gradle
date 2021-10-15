@@ -1,5 +1,5 @@
 dependencies {
-    compileOnly project(":modules:core-locale")
+    compileOnly project(":modules:mc-locale")
     compileOnly project(":modules:core-storage")
 
     compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"

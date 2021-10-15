@@ -173,4 +173,14 @@ public class SimpleBeanDetails implements BeanDetails {
     public Set<Map.Entry<ServiceDependencyType, List<String>>> getDependencyEntries() {
         return Collections.emptySet();
     }
+
+    @Override
+    public boolean isClosed() {
+        return this.plugin.isClosed();
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.plugin.close();
+    }
 }

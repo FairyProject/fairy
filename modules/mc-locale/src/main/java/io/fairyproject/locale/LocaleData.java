@@ -24,8 +24,6 @@
 
 package io.fairyproject.locale;
 
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.BeanHolder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,6 +31,7 @@ import lombok.Setter;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.util.Locale;
 import java.util.UUID;
 
 @Getter
@@ -42,16 +41,13 @@ import java.util.UUID;
 @Table(name = "locale")
 public class LocaleData {
 
-    @Autowired
-    private static BeanHolder<LocaleService> LOCALE_HANDLER;
-
     @Id
     private UUID uuid;
     private Locale locale;
 
     public LocaleData(UUID uuid) {
         this.uuid = uuid;
-        this.locale = LOCALE_HANDLER.getOrNull().getDefaultLocale();
+        this.locale = LocaleService.DEFAULT;
     }
 
 }

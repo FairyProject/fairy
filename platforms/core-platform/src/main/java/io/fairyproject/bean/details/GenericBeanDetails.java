@@ -30,7 +30,6 @@ import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import org.fairy.bean.*;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.Utility;
 import org.jetbrains.annotations.NotNull;
@@ -45,6 +44,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 @Setter
 public class GenericBeanDetails implements BeanDetails {
+
+    @Autowired
+    private static BeanContext BEAN_CONTEXT;
 
     private static final Class<? extends Annotation>[] ANNOTATIONS = new Class[] {
             PreInitialize.class, PostInitialize.class,
@@ -66,6 +68,8 @@ public class GenericBeanDetails implements BeanDetails {
 
     private Set<String> children;
     private Map<String, String> tags;
+
+    private boolean closed;
 
     public GenericBeanDetails(Object instance) {
         this(instance.getClass(), instance, "dummy");
@@ -306,4 +310,14 @@ public class GenericBeanDetails implements BeanDetails {
         return this.plugin != null;
     }
 
+    @Override
+    public void close() throws Exception {
+        if (this.isClosed()) {
+            return;
+        }
+        this.closed = true;
+
+        this.onDisable();
+        BEAN_CONTEXT.unregisterBean(this);
+    }
 }
