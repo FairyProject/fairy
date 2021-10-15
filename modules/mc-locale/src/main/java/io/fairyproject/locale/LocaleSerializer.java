@@ -26,6 +26,9 @@ package io.fairyproject.locale;
 
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.bean.*;
+import net.kyori.adventure.translation.Translator;
+
+import java.util.Locale;
 
 @Component
 @ServiceDependency(dependencies = "locale", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))
@@ -36,12 +39,12 @@ public class LocaleSerializer implements ObjectSerializer<Locale, String> {
 
     @Override
     public String serialize(Locale input) {
-        return input.getName();
+        return input.toString();
     }
 
     @Override
     public Locale deserialize(String output) {
-        return this.localeService.getOrRegister(output);
+        return Translator.parseLocale(output);
     }
 
     @Override
