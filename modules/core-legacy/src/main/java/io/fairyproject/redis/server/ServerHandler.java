@@ -32,8 +32,6 @@ import io.fairyproject.redis.server.message.ServerStateChangedMessage;
 import io.fairyproject.redis.server.thread.FetchThread;
 import io.fairyproject.redis.server.thread.PushThread;
 import lombok.Getter;
-import org.fairy.*;
-import org.fairy.bean.*;
 import io.fairyproject.redis.RedisService;
 import io.fairyproject.redis.message.MessageService;
 

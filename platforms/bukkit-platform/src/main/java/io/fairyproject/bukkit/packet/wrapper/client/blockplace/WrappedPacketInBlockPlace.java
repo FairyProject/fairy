@@ -63,7 +63,7 @@ public final class WrappedPacketInBlockPlace extends WrappedPacket {
 
                 final WrappedPacketInBlockPlace_1_9 blockPlace_1_9 = new WrappedPacketInBlockPlace_1_9(getPlayer(), packet);
                 final Block block = blockPlace_1_9.getBlock();
-                position = new BlockPosition(block.getX(), block.getY(), block.getZ(), this.getWorld().getName());
+                position = new BlockPosition(block.getX(), block.getY(), block.getZ());
                 itemStack = new ItemStack(block.getType());
 
             } else if (MinecraftVersion.newerThan(MinecraftVersion.V.v1_7)) {

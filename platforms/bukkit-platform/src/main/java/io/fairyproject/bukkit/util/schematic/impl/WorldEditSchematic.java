@@ -101,8 +101,8 @@ public class WorldEditSchematic extends Schematic {
         Vector top = region.getMaximumPoint();
         Vector bottom = region.getMinimumPoint();
 
-        this.top = new BlockPosition(top.getBlockX(), top.getBlockY(), top.getBlockZ(), location.getWorld().getName());
-        this.bottom = new BlockPosition(bottom.getBlockX(), bottom.getBlockY(), bottom.getBlockZ(), location.getWorld().getName());
+        this.top = new BlockPosition(top.getBlockX(), top.getBlockY(), top.getBlockZ());
+        this.bottom = new BlockPosition(bottom.getBlockX(), bottom.getBlockY(), bottom.getBlockZ());
 
         try {
             Operations.completeLegacy(copy);

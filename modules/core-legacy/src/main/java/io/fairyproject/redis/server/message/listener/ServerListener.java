@@ -31,7 +31,6 @@ import io.fairyproject.redis.server.enums.ServerState;
 import io.fairyproject.redis.server.message.ServerAddMessage;
 import io.fairyproject.redis.server.message.ServerDeleteMessage;
 import io.fairyproject.redis.server.message.ServerStateChangedMessage;
-import org.fairy.bean.*;
 import io.fairyproject.redis.message.MessageListener;
 import io.fairyproject.redis.message.annotation.HandleMessage;
 

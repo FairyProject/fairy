@@ -31,7 +31,6 @@ import io.fairyproject.bean.Service;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.command.presence.DefaultPresenceProvider;
 import io.fairyproject.bukkit.impl.server.ServerImplementation;
-import org.fairy.bean.*;
 import io.fairyproject.command.CommandService;
 
 @Service(name = "bukkit-impl", dependencies = "command")

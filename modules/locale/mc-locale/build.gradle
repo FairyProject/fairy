@@ -1,0 +1,7 @@
+dependencies {
+    compileOnly project(":modules:storage:core-storage")
+    compileOnly project(":platforms:mc-platform")
+
+    implementation project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotations")
+}

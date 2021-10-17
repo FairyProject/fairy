@@ -29,6 +29,7 @@ import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
@@ -108,7 +109,7 @@ public class VisualBlockService implements TaskRunnable {
                     final VisualBlockClaim color = getTeamAt(location.getWorld(), x, z);
                     PreHandleVisualClaimEvent claimEvent = new PreHandleVisualClaimEvent(player, color);
 
-                    Imanity.callEvent(claimEvent);
+                    Events.call(claimEvent);
 
                     if (color != null && !claimEvent.isCancelled()) {
                         claimCache.add(color);

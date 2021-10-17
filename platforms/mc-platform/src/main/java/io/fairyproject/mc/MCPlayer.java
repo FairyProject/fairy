@@ -9,9 +9,11 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.translation.Translator;
 
 import java.util.Locale;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * A proxy player class for cross-platform purposes
@@ -46,6 +48,15 @@ public interface MCPlayer extends Audience {
      * @return locale
      */
     String getGameLocale();
+
+    /**
+     * get player's locale
+     *
+     * @return locale
+     */
+    default Locale getLocale() {
+        return Companion.GET_LOCALE.apply(this);
+    }
 
     /**
      * send message to the player with legacy color code
@@ -188,6 +199,7 @@ public interface MCPlayer extends Audience {
     class Companion {
 
         public static Bridge BRIDGE = null;
+        public static Function<MCPlayer, Locale> GET_LOCALE = mcPlayer -> Translator.parseLocale(mcPlayer.getGameLocale());
 
     }
 

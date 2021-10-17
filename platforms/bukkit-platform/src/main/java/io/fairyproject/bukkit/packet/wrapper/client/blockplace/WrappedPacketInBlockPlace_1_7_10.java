@@ -44,7 +44,7 @@ final class WrappedPacketInBlockPlace_1_7_10 extends WrappedPacket {
     protected void setup() {
         final PacketPlayInBlockPlace blockPlace = (PacketPlayInBlockPlace) packet.getPacket();
 
-        this.blockPosition = new BlockPosition(blockPlace.c(), blockPlace.d(), blockPlace.e(), this.getWorld().getName());
+        this.blockPosition = new BlockPosition(blockPlace.c(), blockPlace.d(), blockPlace.e());
 
         this.blockFace = blockPlace.d();
 

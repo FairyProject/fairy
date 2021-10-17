@@ -35,7 +35,6 @@ import io.fairyproject.command.parameter.ParameterMeta;
 import io.fairyproject.util.Stacktrace;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.fairy.bean.*;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Method;

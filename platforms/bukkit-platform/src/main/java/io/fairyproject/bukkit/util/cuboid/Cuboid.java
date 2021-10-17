@@ -24,7 +24,6 @@
 
 package io.fairyproject.bukkit.util.cuboid;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.Preconditions;
 import io.fairyproject.config.annotation.ConfigurationElement;
 import lombok.Getter;
@@ -45,13 +44,13 @@ import java.util.*;
 @Setter
 public class Cuboid implements Iterable<Block>, Cloneable, ConfigurationSerializable {
 
-    @JsonProperty protected String worldName = "world";
-    @JsonProperty protected int x1 = 0;
-    @JsonProperty protected int y1 = 0;
-    @JsonProperty protected int z1 = 0;
-    @JsonProperty protected int x2 = 0;
-    @JsonProperty protected int y2 = 0;
-    @JsonProperty protected int z2 = 0;
+    protected String worldName = "world";
+    protected int x1 = 0;
+    protected int y1 = 0;
+    protected int z1 = 0;
+    protected int x2 = 0;
+    protected int y2 = 0;
+    protected int z2 = 0;
 
     public Cuboid(Map<String, Object> map) {
         this.worldName = ((String) map.get("worldName"));

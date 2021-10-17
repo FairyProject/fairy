@@ -25,13 +25,12 @@
 package io.fairyproject.bukkit.chunk.block;
 
 import io.fairyproject.bean.Component;
-import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.bukkit.metadata.Metadata;
 import org.bukkit.Chunk;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.world.ChunkPopulateEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import io.fairyproject.bukkit.metadata.Metadata;
 
 @Component
 public class CacheBlockSetListener implements Listener {
@@ -40,10 +39,8 @@ public class CacheBlockSetListener implements Listener {
     public void onChunkLoad(ChunkPopulateEvent event) {
         Chunk chunk = event.getChunk();
 
-        CacheBlockSetHandler blockSetHandler = Imanity.getBlockSetHandler(event.getWorld());
-        if (blockSetHandler != null) {
-            blockSetHandler.placeIfExists(chunk);
-        }
+        CacheBlockSetHandler blockSetHandler = CacheBlockSetHandler.getBlockSetHandler(event.getWorld());
+        blockSetHandler.placeIfExists(chunk);
     }
 
     @EventHandler

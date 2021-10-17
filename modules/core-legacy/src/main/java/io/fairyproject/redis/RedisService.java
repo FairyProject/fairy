@@ -28,8 +28,6 @@ import io.fairyproject.Fairy;
 import io.fairyproject.bean.*;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.fairy.*;
-import org.fairy.bean.*;
 import org.redisson.Redisson;
 import org.redisson.api.RMap;
 import org.redisson.api.RReadWriteLock;

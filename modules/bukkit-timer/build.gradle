@@ -1,0 +1,7 @@
+dependencies {
+    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    compileOnly project(":modules:bukkit-items")
+
+    implementation project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotations")
+}

@@ -1,6 +1,6 @@
 package io.fairyproject.bootstrap;
 
-import org.fairy.FairyPlatform;
+import io.fairyproject.FairyPlatform;
 
 public abstract class BasePlatformBridge {
 

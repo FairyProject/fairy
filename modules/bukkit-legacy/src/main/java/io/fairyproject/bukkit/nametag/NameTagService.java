@@ -31,8 +31,6 @@ import io.fairyproject.bean.*;
 import io.fairyproject.bukkit.nametag.impl.DefaultNameTagAdapter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.fairy.*;
-import org.fairy.bean.*;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.metadata.MetadataKey;

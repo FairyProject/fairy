@@ -24,7 +24,6 @@
 
 package io.fairyproject.bukkit.command.util;
 
-import io.fairyproject.bukkit.util.items.ArmorPart;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.apache.commons.lang.WordUtils;
@@ -49,16 +48,6 @@ public class ItemUtil {
 
         return itemData;
 
-    }
-
-    public static ItemData[] armorOf(final ArmorPart part) {
-        final List<ItemData> data = new ArrayList<>();
-
-        for (final ArmorType at : ArmorType.values()) {
-            data.add(new ItemData(Material.valueOf(at.name() + "_" + part.name()), (short) 0));
-        }
-
-        return data.toArray(new ItemData[data.size()]);
     }
 
     public static ItemData[] swords() {

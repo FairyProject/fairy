@@ -27,9 +27,8 @@ dependencies {
     compileOnly MongoDB_driver_sync
     compileOnly Redisson
 
-    compileOnly project(":modules:core-storage")
+    compileOnly project(":modules:storage:core-storage")
 
-    implementation "dev.akkinoc.util:yaml-resource-bundle:2.1.0"
     implementation project(":modules:module-annotations")
     annotationProcessor project(":modules:module-annotations")
 }

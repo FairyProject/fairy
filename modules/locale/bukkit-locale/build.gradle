@@ -1,0 +1,10 @@
+dependencies {
+    compileOnly project(":modules:locale:mc-locale")
+    compileOnly project(":modules:storage:bukkit-storage")
+    compileOnly project(":modules:storage:core-storage")
+
+    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+
+    implementation project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotations")
+}

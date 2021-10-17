@@ -96,7 +96,7 @@ public final class WrappedPacketInBlockDig extends WrappedPacket {
             enumDirection = EnumDirection.valueOf(enumDirectionObj.name());
             enumDigType = PlayerDigType.valueOf(digTypeObj.name());
         }
-        this.blockPosition = new BlockPosition(x, y, z, this.player.getWorld().getName());
+        this.blockPosition = new BlockPosition(x, y, z);
         if (enumDirection == null) {
             this.direction = EnumDirection.NULL;
         } else {

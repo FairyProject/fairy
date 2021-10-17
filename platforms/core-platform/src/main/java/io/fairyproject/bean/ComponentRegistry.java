@@ -29,7 +29,6 @@ import io.fairyproject.util.entry.Entry;
 import io.fairyproject.util.entry.EntryArrayList;
 import io.fairyproject.Fairy;
 import io.fairyproject.reflect.ReflectLookup;
-import org.fairy.bean.details.*;
 
 import java.util.ArrayList;
 import java.util.List;

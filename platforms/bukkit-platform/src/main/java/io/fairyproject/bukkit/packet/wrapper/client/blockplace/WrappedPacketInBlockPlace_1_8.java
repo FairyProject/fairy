@@ -56,7 +56,7 @@ final class WrappedPacketInBlockPlace_1_8 extends WrappedPacket {
     protected void setup() {
         Object nmsBlockPos = packet.getPacketValueByIndex(BLOCK_POSITION, 0);
 
-        this.blockPosition = new BlockPosition(0, 0, 0, this.getWorld().getName());
+        this.blockPosition = new BlockPosition(0, 0, 0);
 
         ObjectWrapper objectWrapper = new ObjectWrapper(nmsBlockPos);
 

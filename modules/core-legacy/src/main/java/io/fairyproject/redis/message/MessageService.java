@@ -29,7 +29,6 @@ import io.fairyproject.redis.RedisService;
 import io.fairyproject.redis.message.annotation.HandleMessage;
 import io.fairyproject.redis.subscription.RedisPubSub;
 import io.fairyproject.util.AccessUtil;
-import org.fairy.bean.*;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;

@@ -34,7 +34,7 @@ public class VisualPosition extends BlockPosition {
     private VisualType type;
 
     public VisualPosition(int x, int y, int z, String world, VisualType type) {
-        super(x, y ,z, world);
+        super(x, y ,z);
         this.type = type;
     }
 }

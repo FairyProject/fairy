@@ -37,9 +37,17 @@ void initBootstrap() {
 
 void initModules() {
     include "modules:bukkit-legacy"
-    include "modules:bukkit-locale"
-    include "modules:mc-locale"
-    include "modules:core-storage"
+    include "modules:bukkit-timer"
+    include "modules:bukkit-items"
+    include "modules:bukkit-hologram"
+    include "modules:bukkit-menu"
+
+    include "modules:locale:bukkit-locale"
+    include "modules:locale:mc-locale"
+
+    include "modules:storage:bukkit-storage"
+    include "modules:storage:core-storage"
+
     include "modules:core-legacy"
     include "modules:module-annotations"
 }
@@ -54,4 +62,6 @@ initModules()
 initPlatforms()
 
 include "gradle-plugin"
+include 'modules:storage:bukkit-storage'
+findProject(':modules:storage:bukkit-storage')?.name = 'bukkit-storage'
 

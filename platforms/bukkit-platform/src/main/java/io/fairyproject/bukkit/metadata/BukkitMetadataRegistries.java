@@ -38,7 +38,6 @@ import org.bukkit.entity.Player;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
-import org.fairy.metadata.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
