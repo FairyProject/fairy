@@ -33,5 +33,5 @@ dependencies {
     testImplementation "com.h2database:h2:1.4.199"
 
     implementation project(":modules:module-annotations")
-    annotationProcessor project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotationProcessor")
 }

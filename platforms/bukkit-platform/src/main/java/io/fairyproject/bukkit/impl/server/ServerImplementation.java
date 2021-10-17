@@ -51,7 +51,7 @@ public interface ServerImplementation {
 
         ReflectLookup reflectLookup = new ReflectLookup(
                 Collections.singleton(ServerImplementation.class.getClassLoader()),
-                Collections.singleton("org/fairy")
+                Collections.singleton("io.fairyproject")
         );
 
         Class<?> lastSuccess = null;

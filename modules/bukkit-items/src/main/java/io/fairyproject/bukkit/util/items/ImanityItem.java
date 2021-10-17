@@ -272,29 +272,26 @@ public final class ImanityItem implements Terminable {
         return this.get(MCPlayer.from(player));
     }
 
-    public ItemStack get(MCPlayer receiver) {
+    public ItemStack get(MCPlayer player) {
         if (this.getItemBuilder() == null) {
             throw new IllegalArgumentException("No Item registered!");
         }
-        Locale LOCALE = Locale.ENGLISH;
-        if (MODULE_SERVICE.getByName("mc-locale") != null) {
-            LOCALE = io.fairyproject.locale.Locales.getLocale(receiver.getUUID());
-        }
+        Locale LOCALE = player.getLocale();
 
         ItemBuilder itemBuilder = this.itemBuilder.clone();
         if (displayNameLocale != null) {
-            String name = MCAdventure.asJsonString(displayNameLocale, LOCALE);
+            String name = MCAdventure.asItemString(displayNameLocale, LOCALE);
             for (PlaceholderEntry rv : this.displayNamePlaceholders) {
-                name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(receiver));
+                name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(player));
             }
 
             itemBuilder.name(name);
         }
 
         if (displayLoreLocale != null) {
-            String lore = MCAdventure.asJsonString(displayNameLocale, LOCALE);
+            String lore = MCAdventure.asItemString(displayNameLocale, LOCALE);
             for (PlaceholderEntry rv : this.displayLorePlaceholders) {
-                lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(receiver));
+                lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(player));
             }
 
             itemBuilder.lore(StringUtil.separateLines(lore, "\n"));

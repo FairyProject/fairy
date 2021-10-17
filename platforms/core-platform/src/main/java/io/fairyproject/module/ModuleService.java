@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -102,7 +103,7 @@ public class ModuleService {
 
     private final Map<String, Module> moduleByName = new ConcurrentHashMap<>();
 
-    @PreInitialize
+    @PostInitialize
     public void onPreInitialize() {
         for (Map.Entry<String, Integer> entry : PENDING_MODULES.entrySet()) {
             // Don't register if nothing referenced
@@ -122,13 +123,14 @@ public class ModuleService {
     @Nullable
     public Module registerByName(String name) {
         try {
+            LOGGER.info("Registering module " + name + "...");
             final Path path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + ".jar").toPath(), name);
 
             return this.registerByPath(path);
         } catch (IOException e) {
             LOGGER.error("Unexpected IO error", e);
         } catch (IllegalArgumentException e) {
-            LOGGER.error(e);
+            e.printStackTrace();
         }
 
         return null;
@@ -182,10 +184,10 @@ public class ModuleService {
             }
 
             this.moduleByName.put(name, module);
-            BEAN_CONTEXT.scanClasses("Module " + name, classLoader, Collections.singleton(classPath));
+            BEAN_CONTEXT.scanClasses("Module " + name, classLoader, Collections.singletonList(this.getClass().getClassLoader()), Collections.singleton(classPath));
             return module;
         } catch (Exception e) {
-            LOGGER.error(e);
+            e.printStackTrace();
 
             if (module != null) {
                 this.moduleByName.remove(module.getName());

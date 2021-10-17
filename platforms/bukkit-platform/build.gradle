@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+import org.apache.tools.ant.filters.ReplaceTokens
 
 dependencies {
     api "net.wesjd:anvilgui:1.4.0-SNAPSHOT"
@@ -38,4 +39,10 @@ dependencies {
     compileOnly name: "ProtocolSupport"
     compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
     compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
+}
+
+processResources {
+    filter ReplaceTokens, tokens: [
+            "version": project.property("version")
+    ]
 }

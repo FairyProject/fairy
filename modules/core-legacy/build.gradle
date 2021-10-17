@@ -30,5 +30,5 @@ dependencies {
     compileOnly project(":modules:storage:core-storage")
 
     implementation project(":modules:module-annotations")
-    annotationProcessor project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotationProcessor")
 }

@@ -1,5 +1,6 @@
 package io.fairyproject.mc.protocol;
 
+import io.fairyproject.mc.MCAdventure;
 import lombok.Getter;
 import io.fairyproject.mc.protocol.mapping.MCProtocolMapping;
 import io.fairyproject.mc.protocol.netty.NettyInjector;
@@ -10,6 +11,8 @@ public class MCProtocol {
     public static MCProtocol INSTANCE;
     public static void initialize(NettyInjector injector, MCProtocolMapping protocolMapping) {
         new MCProtocol(injector, protocolMapping);
+
+        MCAdventure.initialize();
     }
 
     private final NettyInjector injector;

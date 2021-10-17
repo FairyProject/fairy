@@ -61,10 +61,6 @@ public abstract class FairyPlatform {
     private LibraryHandler libraryHandler;
     private BeanContext beanContext;
 
-    protected FairyPlatform() {
-        INSTANCE = this;
-    }
-
     public void load() {
         this.taskScheduler = this.createTaskScheduler();
 
@@ -141,7 +137,7 @@ public abstract class FairyPlatform {
             this.libraryHandler.downloadLibraries(true, platformDependencies);
         }
 
-        Fairy.getLibraryHandler().downloadLibraries(true, Library.REDISSON);
+        this.libraryHandler.downloadLibraries(true, Library.REDISSON);
     }
 
     public <T extends AutoCloseable> T bind(T t) {

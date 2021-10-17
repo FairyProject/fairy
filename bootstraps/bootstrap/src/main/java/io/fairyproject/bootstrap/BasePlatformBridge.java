@@ -4,7 +4,7 @@ import io.fairyproject.FairyPlatform;
 
 public abstract class BasePlatformBridge {
 
-    private FairyPlatform platform;
+    protected FairyPlatform platform;
 
     public abstract FairyPlatform createPlatform();
 

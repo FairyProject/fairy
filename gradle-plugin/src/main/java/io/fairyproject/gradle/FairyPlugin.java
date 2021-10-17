@@ -29,8 +29,7 @@ import java.util.List;
 public class FairyPlugin implements Plugin<Project> {
 
     private static final String REPOSITORY = "https://maven.imanity.dev/repository/imanity-libraries/";
-    private static final String BOOTSTRAP_DEPENDENCY_FORMAT = "org.fairy:%s-bootstrap:%s";
-    private static final String MAIN_DEPENDENCY_FORMAT = "org.fairy:%s-main:%s";
+    private static final String DEPENDENCY_FORMAT = "io.fairyproject:framework:%s:%s";
 
     private FairyExtension extension;
     private Configuration aspectJConfiguration;
@@ -57,13 +56,20 @@ public class FairyPlugin implements Plugin<Project> {
             }
 
             for (PlatformType platformType : platformTypes) {
-                fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(BOOTSTRAP_DEPENDENCY_FORMAT,
-                        platformType.getDependencyName(),
-                        this.extension.getFairyVersion().get()
+                fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
+                        this.extension.getFairyVersion().get(),
+                        platformType.getDependencyName() + "-bootstrap"
                 )));
-                p.getDependencies().add("compileOnly", String.format(MAIN_DEPENDENCY_FORMAT,
-                        platformType.getDependencyName(),
-                        this.extension.getFairyVersion().get()
+                p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
+                        this.extension.getFairyVersion().get(),
+                        platformType.getDependencyName() + "-platform"
+                ));
+            }
+
+            for (String moduleName : this.extension.getFairyModules().get()) {
+                p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
+                        this.extension.getFairyVersion().get(),
+                        moduleName
                 ));
             }
 
@@ -78,7 +84,7 @@ public class FairyPlugin implements Plugin<Project> {
             jar.from(list);
 
             List<Relocation> relocations = new ArrayList<>();
-            relocations.add(new Relocation("org.fairy", extension.getShadedPackage().get() + ".fairy").setOnlyRelocateShaded(true));
+            relocations.add(new Relocation("io.fairyproject", extension.getShadedPackage().get() + ".fairy").setOnlyRelocateShaded(true));
 
             fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());
             fairyTask.setClassifier(extension.getClassifier().getOrNull());

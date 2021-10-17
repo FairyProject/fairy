@@ -22,4 +22,4 @@
 # SOFTWARE.
 #
 
-ModuleProcessor
+io.fairyproject.module.ModuleProcessor

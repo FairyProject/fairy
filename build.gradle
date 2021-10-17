@@ -32,7 +32,7 @@ plugins {
 
 allprojects {
     group = "io.fairyproject"
-    version = "0.5b1"
+    version = "0.5b32"
 
     repositories {
         mavenCentral()
@@ -74,17 +74,22 @@ static boolean isIndependentModule(String name) {
 }
 
 static boolean isExludedModule(String name) {
-    return name == "module-annotations" || name == "gradle-plugin"
+    return name == "module-annotations" || name == "module-annotationProcessor" || name == "gradle-plugin"
 }
 
 static boolean isNotJavaProject(String name) {
-    return name == "bootstraps" || name == "modules" || name == "platforms"
+    // TODO - better way
+    return name == "bootstraps" || name == "modules" || name == "platforms" || name == "locale" || name == "storage"
 }
 
 subprojects {
     // Exclude anything that wasn't suppose to load as java project
     if (isNotJavaProject(project.name)) {
         return
+    }
+
+    ext {
+        archieveName = project.name
     }
 
     apply plugin: "java-library"
@@ -100,10 +105,11 @@ subprojects {
         tasks.shadowJar.configure {
             classifier = null
         }
+
+        tasks.shadowJar.destinationDirectory.set(file("$rootDir/build/libs"))
+        tasks.shadowJar.archiveFileName.set(project.ext.archieveName + ".jar")
     }
-    ext {
-        archieveName = project.name
-    }
+
     configurations {
         compileOnly {
             canBeResolved = true
@@ -118,10 +124,6 @@ subprojects {
         shadowJar.dependsOn build
     }
     sourceCompatibility = targetCompatibility = "1.8"
-    tasks.withType(Jar) {
-        it.destinationDir(file("$rootDir/build/libs"))
-        it.archiveName(project.ext.archieveName + ".jar")
-    }
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
     }
@@ -136,9 +138,6 @@ subprojects {
         compileOnly JacksonDataBind
         compileOnly AspectJRuntime
         compileOnly "javax.persistence:javax.persistence-api:2.2"
-        if (!isIndependentModule(project.name) && project.name != "core-platform") {
-            aspect project(":platforms:core-platform")
-        }
 
         if (project.name.contains("-")) {
             def names = project.name.split("-")
@@ -182,6 +181,15 @@ subprojects {
         compileJava.ajc.options.compilerArgs += "-verbose"
 
         compileTestJava.ajc.options.aspectpath.from sourceSets.main.output
+
+        if (!project.name.contains("platform")) {
+            shadowJar {
+                dependencies {
+                    exclude(project(":platforms:core-platform"))
+                    exclude(dependency(AspectJRuntime))
+                }
+            }
+        }
     }
 }
 

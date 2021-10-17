@@ -27,11 +27,10 @@ package io.fairyproject.bukkit.hologram;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedDataWatcher;
-import io.fairyproject.bean.Autowired;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.hologram.api.ViewHandler;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
-import io.fairyproject.bukkit.reflection.ProtocolLibService;
+import io.fairyproject.bukkit.reflection.ProtocolLibHelper;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,9 +42,6 @@ import java.util.Collection;
 @Getter
 @Setter
 public class HologramSingle {
-
-    @Autowired
-    private static ProtocolLibService PROTOCOL_LIB_SERVICE;
 
     private Hologram hologram;
 
@@ -111,7 +107,7 @@ public class HologramSingle {
 
                 packetContainer.getDataWatcherModifier().write(0, this.buildDataWatcher(player));
 
-                PROTOCOL_LIB_SERVICE.send(player, packetContainer);
+                ProtocolLibHelper.send(player, packetContainer);
             }
         });
 
@@ -133,7 +129,7 @@ public class HologramSingle {
                         .write(0, (byte)((int)(this.getLocation().getYaw() * 256.0F / 360.0F)))
                         .write(1, (byte)((int)(this.getLocation().getPitch() * 256.0F / 360.0F)));
 
-                PROTOCOL_LIB_SERVICE.send(player, packetContainer);
+                ProtocolLibHelper.send(player, packetContainer);
             } else {
                 Imanity.IMPLEMENTATION.sendEntityTeleport(player, this.getLocation().add(0, 54.56D, 0), this.armorStandId);
                 Imanity.IMPLEMENTATION.sendEntityTeleport(player, this.getLocation().add(0, 54.56D, 0), this.horseId);
@@ -151,7 +147,7 @@ public class HologramSingle {
             packetContainer.getIntegers()
                     .write(0, this.armorStandId);
 
-            PROTOCOL_LIB_SERVICE.send(player, packetContainer);
+            ProtocolLibHelper.send(player, packetContainer);
         });
     }
 
@@ -178,7 +174,7 @@ public class HologramSingle {
                 packetContainer.getIntegerArrays()
                         .write(0, new int[] { this.armorStandId });
 
-                PROTOCOL_LIB_SERVICE.send(player, packetContainer);
+                ProtocolLibHelper.send(player, packetContainer);
             }
         });
     }

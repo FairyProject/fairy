@@ -45,7 +45,7 @@ import io.fairyproject.task.Task;
 public class PlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerLogin(PlayerLoginEvent event) {
+    public void onPlayerLogin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
 
         Metadata.provideForPlayer(player).put(MCPlayer.METADATA, new BukkitMCPlayer(player));

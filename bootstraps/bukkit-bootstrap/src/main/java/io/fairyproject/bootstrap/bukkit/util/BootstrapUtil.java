@@ -42,7 +42,7 @@ public class BootstrapUtil {
 
         Field optionSetField = null;
         Field serverField = null;
-        for (Field field : minecraftServer.getFields()) {
+        for (Field field : minecraftServer.getDeclaredFields()) {
             if (field.getType() == optionSet) {
                 optionSetField = field;
             } else if (field.getType() == minecraftServer && Modifier.isStatic(field.getModifiers())) {

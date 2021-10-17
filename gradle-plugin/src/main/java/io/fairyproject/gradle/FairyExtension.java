@@ -17,7 +17,7 @@ public class FairyExtension {
     // Fairy
     private final Property<String> fairyVersion;
     private final ListProperty<PlatformType> fairyPlatforms;
-    private final MapProperty<String, String> fairyModules;
+    private final ListProperty<String> fairyModules;
     private final ListProperty<String> fairyExtensions;
 
     // Libraries
@@ -38,7 +38,7 @@ public class FairyExtension {
         // Fairy
         this.fairyVersion = objectFactory.property(String.class).convention("0.5b1");
         this.fairyPlatforms = objectFactory.listProperty(PlatformType.class).convention(Collections.singleton(PlatformType.BUKKIT));
-        this.fairyModules = objectFactory.mapProperty(String.class, String.class).convention(Collections.emptyMap());
+        this.fairyModules = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.fairyExtensions = objectFactory.listProperty(String.class).convention(Collections.emptyList());
 
         // Libraries
@@ -65,6 +65,10 @@ public class FairyExtension {
 
     public void prefix(String prefix) {
         this.properties(PlatformType.BUKKIT).put("prefix", prefix);
+    }
+
+    public void module(String name) {
+        this.fairyModules.add(name);
     }
 
     public Map<String, String> properties(PlatformType type) {

@@ -14,4 +14,9 @@ public class ModuleClassloader extends URLClassLoader {
     public ModuleClassloader(Path path) throws MalformedURLException {
         super(new URL[] { path.toUri().toURL() });
     }
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        return super.findClass(name);
+    }
 }

@@ -30,11 +30,10 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.fairyproject.Fairy;
-import io.fairyproject.bean.Autowired;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.hologram.player.PlayerViewHolograms;
 import io.fairyproject.bukkit.packet.wrapper.other.Vector3D;
-import io.fairyproject.bukkit.reflection.ProtocolLibService;
+import io.fairyproject.bukkit.reflection.ProtocolLibHelper;
 import io.fairyproject.metadata.MetadataKey;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -48,9 +47,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HologramHandler {
-
-    @Autowired
-    private static ProtocolLibService PROTOCOL_LIB_SERVICE;
 
     public static HologramHandler getHologramHandler(World world) {
         return Metadata.provideForWorld(world).getOrPut(HologramHandler.WORLD_METADATA, () -> new HologramHandler(world));
@@ -66,9 +62,9 @@ public class HologramHandler {
 
     public HologramHandler(World world) {
         this.world = world;
-        PROTOCOL_LIB_SERVICE.validEnabled();
+        ProtocolLibHelper.validEnabled();
 
-        PROTOCOL_LIB_SERVICE.manager().addPacketListener(new PacketAdapter(FairyBukkitPlatform.PLUGIN, PacketType.Play.Client.USE_ENTITY) {
+        ProtocolLibHelper.manager().addPacketListener(new PacketAdapter(FairyBukkitPlatform.PLUGIN, PacketType.Play.Client.USE_ENTITY) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 final Player player = event.getPlayer();

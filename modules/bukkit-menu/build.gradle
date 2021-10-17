@@ -3,5 +3,5 @@ dependencies {
     compileOnly project(":modules:bukkit-items")
 
     implementation project(":modules:module-annotations")
-    annotationProcessor project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotationProcessor")
 }

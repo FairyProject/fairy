@@ -30,6 +30,7 @@ import org.reflections.scanners.FieldAnnotationsScanner;
 import org.reflections.scanners.MethodAnnotationsScanner;
 import org.reflections.scanners.SubTypesScanner;
 import org.reflections.scanners.TypeAnnotationsScanner;
+import org.reflections.util.ConfigurationBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -47,14 +48,16 @@ public class ReflectLookup {
     private final Reflections reflections;
 
     public ReflectLookup(Collection<ClassLoader> classLoaders, Collection<String> packages) {
-        this.reflections = new Reflections(
-                classLoaders,
-                packages,
-                new TypeAnnotationsScanner(),
+        this(ConfigurationBuilder.build(classLoaders, packages));
+    }
+
+    public ReflectLookup(ConfigurationBuilder configurationBuilder) {
+        configurationBuilder.addScanners(new TypeAnnotationsScanner(),
                 new FieldAnnotationsScanner(),
                 new MethodAnnotationsScanner(),
-                new SubTypesScanner(false)
-        );
+                new SubTypesScanner(false));
+
+        this.reflections = new Reflections(configurationBuilder);
 
         this.cacheAnnotatedClasses = new ConcurrentHashMap<>();
         this.cacheAnnotatedFields = new ConcurrentHashMap<>();

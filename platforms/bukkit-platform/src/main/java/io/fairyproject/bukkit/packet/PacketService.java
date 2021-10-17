@@ -115,7 +115,7 @@ public class PacketService {
 
         ReflectLookup reflectLookup = new ReflectLookup(
                 Collections.singleton(PacketService.class.getClassLoader()),
-                Collections.singleton("org/fairy")
+                Collections.singleton("io.fairyproject")
         );
 
         for (java.lang.Class<?> originalType : reflectLookup.findAnnotatedClasses(AutowiredWrappedPacket.class)) {

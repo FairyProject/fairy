@@ -49,6 +49,7 @@ void initModules() {
     include "modules:storage:core-storage"
 
     include "modules:core-legacy"
+    include "modules:module-annotationProcessor"
     include "modules:module-annotations"
 }
 

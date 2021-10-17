@@ -24,39 +24,29 @@
 
 package io.fairyproject.bukkit.reflection;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import com.google.common.base.Preconditions;
+import lombok.experimental.UtilityClass;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
 
-@Service(name = "protocollib")
-public class ProtocolLibService {
-
-    private boolean enabled;
-
-    @PreInitialize
-    public void onInitialize() {
-        this.enabled = true;
-    }
+@UtilityClass
+public class ProtocolLibHelper {
 
     public void validEnabled() {
-        Preconditions.checkArgument(this.enabled, "ProtocolLib isn't enabled! this feature couldn't work!");
+        Preconditions.checkArgument(Bukkit.getPluginManager().isPluginEnabled("ProtocolLib"), "ProtocolLib isn't enabled! this feature couldn't work!");
     }
 
     public void send(Player player, Object packetContainer) {
-        Preconditions.checkArgument(packetContainer instanceof PacketContainer, "ProtocolLibService.send(Player, Object) must be PacketContainer in second parameter!");
+        Preconditions.checkArgument(packetContainer instanceof com.comphenix.protocol.events.PacketContainer, "ProtocolLibService.send(Player, Object) must be PacketContainer in second parameter!");
         try {
-            this.manager().sendServerPacket(player, (PacketContainer) packetContainer);
+            ProtocolLibHelper.manager().sendServerPacket(player, (com.comphenix.protocol.events.PacketContainer) packetContainer);
         } catch (Throwable throwable) {
             throw new IllegalArgumentException("Error while sending packet", throwable);
         }
     }
 
-    public ProtocolManager manager() {
-        return ProtocolLibrary.getProtocolManager();
+    public com.comphenix.protocol.ProtocolManager manager() {
+        return com.comphenix.protocol.ProtocolLibrary.getProtocolManager();
     }
 
 }

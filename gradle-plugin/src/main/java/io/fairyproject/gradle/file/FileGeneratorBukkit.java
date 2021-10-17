@@ -10,7 +10,7 @@ import java.util.StringJoiner;
 
 public class FileGeneratorBukkit implements FileGenerator {
 
-    private static final String BOOTSTRAP_CLASS = ".bootstrap.bukkit.BukkitPlugin";
+    private static final String BOOTSTRAP_CLASS = ".fairy.bootstrap.bukkit.BukkitPlugin";
 
     @Override
     public Pair<String, byte[]> generate(FairyExtension extension, String mainClass) {
@@ -20,6 +20,7 @@ public class FileGeneratorBukkit implements FileGenerator {
         stringJoiner.add("name: " + extension.getName().get());
         stringJoiner.add("version: " + extension.getVersion().get());
         stringJoiner.add("main: " + extension.getShadedPackage().get() + BOOTSTRAP_CLASS);
+        stringJoiner.add("softdepend: [Fairy]");
         PropertyUtil.ifPresent(extension.getDescription(), description -> stringJoiner.add("description: " + description));
         extension.properties(PlatformType.BUKKIT).forEach((k, v) -> stringJoiner.add(k + ": " + v));
 

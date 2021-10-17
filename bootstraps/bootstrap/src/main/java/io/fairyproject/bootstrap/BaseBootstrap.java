@@ -28,9 +28,9 @@ public abstract class BaseBootstrap {
 
     private BasePlatformBridge platformBridge;
 
-    public final void load() {
-        if (!this.trySearchBootstraps()) {
-            return;
+    public final boolean load() {
+        if (this.trySearchBootstraps()) {
+            return true;
         }
 
         try {
@@ -40,7 +40,9 @@ public abstract class BaseBootstrap {
             }
 
             Path jarPath = this.getOrDownloadCore();
-            CLASS_LOADER = new FairyClassLoader(jarPath);
+            if (!this.loadJar(jarPath)) {
+                return false;
+            }
 
             BaseBootstrap.join(() -> {
                 this.platformBridge = this.createPlatformBridge();
@@ -48,7 +50,14 @@ public abstract class BaseBootstrap {
             });
         } catch (Throwable throwable) {
             this.onFailure(throwable);
+            return false;
         }
+        return true;
+    }
+
+    public boolean loadJar(Path jarPath) throws Exception {
+        CLASS_LOADER = new FairyClassLoader(jarPath);
+        return true;
     }
 
     public final void enable() {
@@ -86,7 +95,7 @@ public abstract class BaseBootstrap {
 
     protected boolean trySearchBootstraps() {
         try {
-            final Class<?> fairyClass = Class.forName("org.fairy.Fairy");
+            final Class<?> fairyClass = Class.forName("io.fairyproject.Fairy");
             BaseBootstrap.CLASS_LOADER = fairyClass.getClassLoader();
 
             return true;

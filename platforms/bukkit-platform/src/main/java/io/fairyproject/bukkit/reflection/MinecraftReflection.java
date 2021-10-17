@@ -56,6 +56,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.function.Function;
@@ -192,8 +193,7 @@ public class MinecraftReflection {
     }
 
     private static void initProtocolCheck() {
-
-        ReflectLookup reflectLookup = new ReflectLookup(Collections.singletonList(MinecraftReflection.class.getClassLoader()), Collections.singletonList("org.fairy"));
+        ReflectLookup reflectLookup = new ReflectLookup(Collections.singletonList(MinecraftReflection.class.getClassLoader()), Collections.singletonList("io.fairyproject"));
 
         Class<?> lastSuccess = null;
         lookup: for (Class<?> type : reflectLookup.findAnnotatedClasses(ProtocolImpl.class)) {
@@ -219,8 +219,8 @@ public class MinecraftReflection {
         }
 
         try {
-            PROTOCOL_CHECK = (ProtocolCheck) lastSuccess.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            PROTOCOL_CHECK = (ProtocolCheck) lastSuccess.getDeclaredConstructor().newInstance();
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
         Imanity.LOGGER.info("Initialized Protocol Check with " + lastSuccess.getSimpleName());

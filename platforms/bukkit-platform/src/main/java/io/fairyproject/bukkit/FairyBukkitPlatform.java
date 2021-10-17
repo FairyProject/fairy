@@ -31,6 +31,7 @@ import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.library.Library;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.mapping.MCProtocolMapping1_8;
+import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -64,8 +65,8 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static FairyBukkitPlatform INSTANCE;
-    public static FairyInternalPlugin PLUGIN = new FairyInternalPlugin();
-    public static BukkitAudiences AUDIENCES = BukkitAudiences.create(PLUGIN);
+    public static FairyInternalPlugin PLUGIN;
+    public static BukkitAudiences AUDIENCES;
 
     private final ExtendedClassLoader classLoader;
     private final File dataFolder;
@@ -78,6 +79,7 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
     }
 
     public FairyBukkitPlatform(File dataFolder) {
+        FairyPlatform.INSTANCE = this;
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
@@ -88,6 +90,8 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
         super.load();
 
         PluginManager.initialize(new BukkitPluginHandler());
+        ModuleService.init();
+
         MCProtocol.initialize(new BukkitNettyInjector(), new MCProtocolMapping1_8()); // TODO
         MCPlayer.Companion.BRIDGE = new MCPlayer.Bridge() {
             @Override
@@ -107,6 +111,8 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
 
     @Override
     public void enable() {
+        AUDIENCES = BukkitAudiences.create(PLUGIN);
+
         SpigotUtil.init();
         ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
 

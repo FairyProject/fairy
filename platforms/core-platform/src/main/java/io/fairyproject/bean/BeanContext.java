@@ -42,9 +42,13 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.NonNullArrayList;
 import io.fairyproject.util.SimpleTiming;
+import org.reflections.util.ClasspathHelper;
+import org.reflections.util.ConfigurationBuilder;
+import org.reflections.util.FilterBuilder;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -101,7 +105,7 @@ public class BeanContext {
 
         ComponentRegistry.registerComponentHolders();
         try {
-            this.scanClasses("framework", BeanContext.class.getClassLoader(), Collections.singletonList("org.fairy"));
+            this.scanClasses("framework", BeanContext.class.getClassLoader(), Collections.singletonList("io.fairyproject"));
         } catch (Throwable throwable) {
             LOGGER.error("Error while scanning classes for framework", throwable);
             Fairy.getPlatform().shutdown();
@@ -352,12 +356,32 @@ public class BeanContext {
     }
 
     public void scanClasses(String scanName, ClassLoader classLoader, Collection<String> classPaths, BeanDetails... included) throws Exception {
+        this.scanClasses(scanName, classLoader, Collections.emptyList(), classPaths, included);
+    }
+
+    public void scanClasses(String scanName, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
         log("Start scanning beans for %s with packages [%s]...", scanName, String.join(" ", classPaths));
 
         // Build the instance for Reflection Lookup
         ReflectLookup reflectLookup;
         try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
-            reflectLookup = new ReflectLookup(Collections.singleton(classLoader), classPaths);
+            final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+
+            FilterBuilder filterBuilder = new FilterBuilder();
+            List<URL> urls = new ArrayList<>();
+            for (String classPath : classPaths) {
+                // Only search package in the main class loader
+                urls.addAll(ClasspathHelper.forPackage(classPath, mainClassLoader));
+                filterBuilder.includePackage(classPath);
+            }
+            configurationBuilder.setUrls(urls);
+
+            final ArrayList<ClassLoader> classLoaders = new ArrayList<>(otherClassLoaders);
+            classLoaders.add(mainClassLoader);
+            configurationBuilder.addClassLoaders(classLoaders);
+
+            configurationBuilder.filterInputsBy(filterBuilder);
+            reflectLookup = new ReflectLookup(configurationBuilder);
         }
 
         // Scanning through the JAR to see every Service Bean can be registered
@@ -366,23 +390,26 @@ public class BeanContext {
             beanDetailsList = new NonNullArrayList<>(Arrays.asList(included));
 
             for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
+                try {
+                    Service service = type.getAnnotation(Service.class);
+                    Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation!");
 
-                Service service = type.getAnnotation(Service.class);
-                Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation!");
+                    String name = service.name();
 
-                String name = service.name();
+                    if (this.getBeanByName(name) == null) {
+                        ServiceBeanDetails beanDetails = new ServiceBeanDetails(type, name, service.dependencies());
 
-                if (this.getBeanByName(name) == null) {
-                    ServiceBeanDetails beanDetails = new ServiceBeanDetails(type, name, service.dependencies());
+                        log("Found " + name + " with type " + type.getSimpleName() + ", Registering it as bean...");
 
-                    log("Found " + name + " with type " + type.getSimpleName() + ", Registering it as bean...");
+                        this.attemptBindPlugin(beanDetails);
+                        this.registerBean(beanDetails, false);
 
-                    this.attemptBindPlugin(beanDetails);
-                    this.registerBean(beanDetails, false);
-
-                    beanDetailsList.add(beanDetails);
-                } else {
-                    new ServiceAlreadyExistsException(name).printStackTrace();
+                        beanDetailsList.add(beanDetails);
+                    } else {
+                        new ServiceAlreadyExistsException(name).printStackTrace();
+                    }
+                } catch (Throwable throwable) {
+                    throw new IllegalStateException("An exception has been thrown while scanning bean for " + type.getName(), throwable);
                 }
             }
         }

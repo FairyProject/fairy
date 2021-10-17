@@ -53,12 +53,14 @@ public class FairyTask extends DefaultTask {
         File outJar = new File(inJar.getParentFile(), name);
 
         File tempOutJar = File.createTempFile(name, ".jar");
-        Files.copy(inJar.toPath(), tempOutJar.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(tempOutJar))) {
+        JarRelocator jarRelocator = new JarRelocator(inJar, tempOutJar, this.relocations);
+        jarRelocator.run();
+
+        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(outJar))) {
             String mainClass = null;
 
-            try (JarFile jarFile = new JarFile(inJar)) {
+            try (JarFile jarFile = new JarFile(tempOutJar)) {
                 final Enumeration<JarEntry> entries = jarFile.entries();
                 while (entries.hasMoreElements()) {
                     final JarEntry jarEntry = entries.nextElement();
@@ -101,9 +103,6 @@ public class FairyTask extends DefaultTask {
             out.putNextEntry(new JarEntry(pair.getLeft()));
             out.write(pair.getRight());
         }
-
-        JarRelocator jarRelocator = new JarRelocator(tempOutJar, outJar, this.relocations);
-        jarRelocator.run();
     }
 
 }

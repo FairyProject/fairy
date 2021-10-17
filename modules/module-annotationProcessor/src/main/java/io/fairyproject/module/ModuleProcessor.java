@@ -21,7 +21,7 @@ import java.io.Writer;
 import java.util.*;
 
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
-@SupportedAnnotationTypes({"org.fairy.module.Modular"})
+@SupportedAnnotationTypes({"io.fairyproject.module.Modular"})
 public class ModuleProcessor extends AbstractProcessor {
 
     @Override
@@ -32,7 +32,6 @@ public class ModuleProcessor extends AbstractProcessor {
         }
 
         for (Element element : annotatedElements) {
-
             if (!(element instanceof TypeElement)) {
                 this.processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, "@Plugin element is not instance of TypeElement");
                 continue;

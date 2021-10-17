@@ -1,5 +1,7 @@
 package io.fairyproject.bootstrap.util;
 
+import io.fairyproject.bootstrap.BaseBootstrap;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -12,6 +14,6 @@ public class FairyClassLoader extends URLClassLoader {
     }
 
     public FairyClassLoader(Path path) throws MalformedURLException {
-        super(new URL[] {path.toUri().toURL()});
+        super(new URL[] {path.toUri().toURL()}, BaseBootstrap.class.getClassLoader());
     }
 }

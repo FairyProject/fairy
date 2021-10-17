@@ -3,6 +3,7 @@ package io.fairyproject.bootstrap.bukkit;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.bootstrap.BasePlatformBridge;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import org.bukkit.Bukkit;
 
 class BukkitPlatformBridge extends BasePlatformBridge {
 
@@ -14,6 +15,27 @@ class BukkitPlatformBridge extends BasePlatformBridge {
 
     @Override
     public FairyPlatform createPlatform() {
-        return new FairyBukkitPlatform(this.bootstrap.getBootstrapDirectory().toFile());
+        return null;
+    }
+
+    @Override
+    public void load() {
+        String message = String.format("Loading %s (Boot from plugin)", bootstrap.getPlugin().getDescription().getFullName());
+        System.out.println(message);
+
+        bootstrap.getPlugin().onLoad();
+    }
+
+    @Override
+    public void enable() {
+        if (Bukkit.getPluginManager().isPluginEnabled("Fairy")) {
+            return;
+        }
+        Bukkit.getPluginManager().enablePlugin(FairyBukkitPlatform.PLUGIN);
+    }
+
+    @Override
+    public void disable() {
+
     }
 }
