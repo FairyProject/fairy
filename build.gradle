@@ -32,7 +32,7 @@ plugins {
 
 allprojects {
     group = "io.fairyproject"
-    version = "0.5b32"
+    version = "0.5b37"
 
     repositories {
         mavenCentral()

@@ -117,7 +117,7 @@ public interface ServerImplementation {
 
     void sendEntityAttach(Player player, int type, int toAttach, int attachTo);
 
-    void setSkullGamwProfile(ItemMeta itemMeta, Player player);
+    void setSkullGameProfile(ItemMeta itemMeta, Player player);
 
     boolean isServerThread();
 

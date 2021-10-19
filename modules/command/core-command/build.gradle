@@ -1,0 +1,4 @@
+dependencies {
+    implementation project(":modules:module-annotations")
+    annotationProcessor project(":modules:module-annotationProcessor")
+}

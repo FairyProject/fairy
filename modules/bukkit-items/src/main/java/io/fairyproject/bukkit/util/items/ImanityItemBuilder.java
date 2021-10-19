@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.util.items;
 
+import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.bukkit.util.BukkitUtil;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
 import io.fairyproject.mc.PlaceholderEntry;
@@ -47,7 +48,7 @@ public class ImanityItemBuilder {
         // new item builder instance
         final ItemStack item = new ImanityItemBuilder("test:example-item-bed")
                 // the item reference, you can use .item(new ItemBuilder()) instead for more flexibility
-                .item(Material.WOOL)
+                .item(XMaterial.WHITE_WOOL)
                 // locale name (don't use it if you don't have locale)
                 .displayNameLocale("item.bed.name")
                 // locale lore (don't use it if you don't have locale)
@@ -110,7 +111,7 @@ public class ImanityItemBuilder {
         return this;
     }
 
-    public ImanityItemBuilder item(Material material) {
+    public ImanityItemBuilder item(XMaterial material) {
         this.itemBuilder = new ItemBuilder(material);
         return this;
     }

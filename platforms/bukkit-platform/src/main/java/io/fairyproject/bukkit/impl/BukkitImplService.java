@@ -29,11 +29,9 @@ import io.fairyproject.bean.BeanContext;
 import io.fairyproject.bean.PreInitialize;
 import io.fairyproject.bean.Service;
 import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.bukkit.command.presence.DefaultPresenceProvider;
 import io.fairyproject.bukkit.impl.server.ServerImplementation;
-import io.fairyproject.command.CommandService;
 
-@Service(name = "bukkit-impl", dependencies = "command")
+@Service(name = "bukkit-impl")
 public class BukkitImplService {
 
     private final BeanContext beanContext;
@@ -45,8 +43,6 @@ public class BukkitImplService {
 
     @PreInitialize
     public void preInit() {
-        CommandService commandService = (CommandService) this.beanContext.getBean(CommandService.class);
-        commandService.registerDefaultPresenceProvider(new DefaultPresenceProvider());
         Imanity.IMPLEMENTATION = ServerImplementation.load(this.beanContext);
     }
 

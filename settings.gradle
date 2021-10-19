@@ -41,6 +41,11 @@ void initModules() {
     include "modules:bukkit-items"
     include "modules:bukkit-hologram"
     include "modules:bukkit-menu"
+    include "modules:bukkit-nms"
+    include "modules:bukkit-xseries"
+
+    include "modules:command:core-command"
+    include "modules:command:bukkit-command"
 
     include "modules:locale:bukkit-locale"
     include "modules:locale:mc-locale"

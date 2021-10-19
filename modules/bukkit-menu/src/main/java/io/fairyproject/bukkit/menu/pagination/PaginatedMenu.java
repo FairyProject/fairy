@@ -24,15 +24,15 @@
 
 package io.fairyproject.bukkit.menu.pagination;
 
+import com.cryptomorin.xseries.XMaterial;
+import io.fairyproject.bukkit.menu.Button;
 import io.fairyproject.bukkit.menu.Menu;
 import io.fairyproject.bukkit.util.items.ItemBuilder;
+import io.fairyproject.util.CC;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import io.fairyproject.bukkit.menu.Button;
-import io.fairyproject.util.CC;
 
 @Getter
 public abstract class PaginatedMenu extends Menu {
@@ -141,7 +141,7 @@ public abstract class PaginatedMenu extends Menu {
      * @return The display ItemStack
      */
     public ItemStack getJumpToPageButtonItem(Player player, JumpToPageButton button) {
-        return new ItemBuilder(button.isCurrent() ? Material.ENCHANTED_BOOK : Material.BOOK)
+        return new ItemBuilder(button.isCurrent() ? XMaterial.ENCHANTED_BOOK : XMaterial.BOOK)
                 .name("&ePage " + button.getPage())
                 .lore(CC.SB_BAR, button.isCurrent() ? "&aThis is the current page" : "&fClick me jump to this page", CC.SB_BAR)
                 .build();
@@ -153,7 +153,7 @@ public abstract class PaginatedMenu extends Menu {
      * @return The display ItemStack
      */
     public ItemStack getPageButtonItem(Player player, PageButton button) {
-        ItemBuilder itemBuilder = new ItemBuilder(Material.CARPET).lore(CC.SB_BAR);
+        ItemBuilder itemBuilder = new ItemBuilder(XMaterial.WHITE_CARPET).lore(CC.SB_BAR);
         switch (button.getAction()) {
             case GO_BACKWARD:
                 if (button.hasNext()) {

@@ -17,7 +17,7 @@ public class FileGeneratorFairy implements FileGenerator {
 
         jsonObject.addProperty("name", extension.getName().get());
         jsonObject.addProperty("mainClass", mainClass);
-        jsonObject.addProperty("shadedPackage", extension.getShadedPackage().get());
+        jsonObject.addProperty("shadedPackage", extension.getMainPackage().get());
 
         final List<String> modules = extension.getFairyModules().getOrNull();
         if (modules != null) {

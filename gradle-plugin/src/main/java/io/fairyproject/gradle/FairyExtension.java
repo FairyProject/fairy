@@ -1,9 +1,9 @@
 package io.fairyproject.gradle;
 
+import io.fairyproject.gradle.util.VersionRetrieveUtil;
 import lombok.Getter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
@@ -13,6 +13,16 @@ import java.util.Map;
 
 @Getter
 public class FairyExtension {
+
+    private static String LATEST = "0.5b1";
+
+    static {
+        try {
+            LATEST = VersionRetrieveUtil.getLatest();
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
 
     // Fairy
     private final Property<String> fairyVersion;
@@ -25,7 +35,7 @@ public class FairyExtension {
 
     // Plugin
     private final Property<String> classifier;
-    private final Property<String> shadedPackage;
+    private final Property<String> mainPackage;
     private final Property<String> name;
     private final Property<String> description;
     private final Property<String> version;
@@ -36,7 +46,7 @@ public class FairyExtension {
     @Inject
     public FairyExtension(ObjectFactory objectFactory) {
         // Fairy
-        this.fairyVersion = objectFactory.property(String.class).convention("0.5b1");
+        this.fairyVersion = objectFactory.property(String.class).convention(LATEST);
         this.fairyPlatforms = objectFactory.listProperty(PlatformType.class).convention(Collections.singleton(PlatformType.BUKKIT));
         this.fairyModules = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.fairyExtensions = objectFactory.listProperty(String.class).convention(Collections.emptyList());
@@ -46,7 +56,7 @@ public class FairyExtension {
 
         // Plugin
         this.classifier = objectFactory.property(String.class).convention("all");
-        this.shadedPackage = objectFactory.property(String.class);
+        this.mainPackage = objectFactory.property(String.class);
         this.name = objectFactory.property(String.class);
         this.description = objectFactory.property(String.class);
         this.version = objectFactory.property(String.class);

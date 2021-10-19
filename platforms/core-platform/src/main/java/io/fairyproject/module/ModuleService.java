@@ -120,13 +120,17 @@ public class ModuleService {
         return moduleByName.get(name);
     }
 
-    @Nullable
     public Module registerByName(String name) {
+        return this.registerByName(name, false);
+    }
+
+    @Nullable
+    public Module registerByName(String name, boolean canAbstract) {
         try {
             LOGGER.info("Registering module " + name + "...");
             final Path path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + ".jar").toPath(), name);
 
-            return this.registerByPath(path);
+            return this.registerByPath(path, canAbstract);
         } catch (IOException e) {
             LOGGER.error("Unexpected IO error", e);
         } catch (IllegalArgumentException e) {
@@ -170,10 +174,11 @@ public class ModuleService {
 
             final JsonArray depends = jsonObject.getAsJsonArray("depends");
             for (JsonElement element : depends) {
-                String depend = element.getAsString();
+                JsonObject dependJson = element.getAsJsonObject();
+                final String depend = dependJson.get("module").getAsString();
                 Module dependModule = this.getByName(depend);
                 if (dependModule == null) {
-                    dependModule = this.registerByName(depend);
+                    dependModule = this.registerByName(depend, true);
                     if (dependModule == null) {
                         LOGGER.error("Unable to find dependency module " + depend + " for " + name);
                         return null;

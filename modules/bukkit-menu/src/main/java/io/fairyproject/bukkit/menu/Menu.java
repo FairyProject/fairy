@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.menu;
 
+import com.cryptomorin.xseries.XMaterial;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -113,7 +114,7 @@ public abstract class Menu implements TerminableConsumer {
     private boolean opening, rendering, reopening;
     private long openMillis, lastAccessMillis;
     private int updateCount;
-    private Button placeholderButton = Button.placeholder(Material.STAINED_GLASS_PANE, (byte) 15, " ");
+    private Button placeholderButton = Button.placeholder(XMaterial.GRAY_STAINED_GLASS_PANE, " ");
 
     @NotNull
     @Override

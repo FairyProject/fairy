@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.menu.buttons;
 
+import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.bukkit.menu.Menu;
 import lombok.AllArgsConstructor;
 import org.bukkit.ChatColor;
@@ -41,10 +42,10 @@ public class BackButton extends Button {
 
 	@Override
 	public ItemStack getButtonItem(final Player player) {
-		final ItemStack itemStack = new ItemStack(Material.BED);
+		final ItemStack itemStack = XMaterial.OAK_TRAPDOOR.parseItem();
 		final ItemMeta itemMeta = itemStack.getItemMeta();
 
-		itemMeta.setDisplayName(ChatColor.RED + "返回");
+		itemMeta.setDisplayName(ChatColor.RED + "Go Back");
 		itemStack.setItemMeta(itemMeta);
 
 		return itemStack;

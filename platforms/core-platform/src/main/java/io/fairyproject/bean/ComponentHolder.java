@@ -26,6 +26,11 @@ package io.fairyproject.bean;
 
 import io.fairyproject.bean.details.constructor.BeanParameterDetailsConstructor;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
+
 public abstract class ComponentHolder {
 
     public Object newInstance(Class<?> type) {
@@ -53,6 +58,56 @@ public abstract class ComponentHolder {
 
     public BeanParameterDetailsConstructor constructorDetails(Class<?> type) {
         return new BeanParameterDetailsConstructor(type, BeanContext.INSTANCE);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final List<Class<?>> types = new ArrayList<>();
+        private Consumer<Object> onEnable;
+        private Consumer<Object> onDisable;
+
+        public Builder onEnable(Consumer<Object> onEnable) {
+            this.onEnable = onEnable;
+            return this;
+        }
+
+        public Builder onDisable(Consumer<Object> onDisable) {
+            this.onDisable = onDisable;
+            return this;
+        }
+
+        public Builder type(Class<?>... types) {
+            this.types.addAll(Arrays.asList(types));
+            return this;
+        }
+
+        public ComponentHolder build() {
+            final Class<?>[] types = this.types.toArray(new Class<?>[0]);
+
+            return new ComponentHolder() {
+                @Override
+                public Class<?>[] type() {
+                    return types;
+                }
+
+                @Override
+                public void onEnable(Object instance) {
+                    if (onEnable != null)
+                        onEnable.accept(instance);
+                }
+
+                @Override
+                public void onDisable(Object instance) {
+                    if (onDisable != null)
+                        onDisable.accept(instance);
+                }
+            };
+        }
+
     }
 
 }

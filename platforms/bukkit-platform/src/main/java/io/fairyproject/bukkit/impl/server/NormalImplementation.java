@@ -407,7 +407,7 @@ public class NormalImplementation implements ServerImplementation {
     }
 
     @Override
-    public void setSkullGamwProfile(ItemMeta itemMeta, Player player) {
+    public void setSkullGameProfile(ItemMeta itemMeta, Player player) {
         if (!(itemMeta instanceof SkullMeta)) {
             throw new ClassCastException(itemMeta.getClass().getSimpleName() + " cannot be cast to " + SkullMeta.class.getSimpleName());
         }

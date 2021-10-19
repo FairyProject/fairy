@@ -24,6 +24,9 @@
 
 package io.fairyproject.bukkit.util.items;
 
+import com.cryptomorin.xseries.SkullUtils;
+import com.cryptomorin.xseries.XEnchantment;
+import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -39,14 +42,15 @@ import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.util.nms.NBTEditor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ItemBuilder implements Listener, Cloneable {
 
 	private ItemStack itemStack;
 
-	public ItemBuilder(final Material mat) {
-		itemStack = new ItemStack(mat);
+	public ItemBuilder(final XMaterial mat) {
+		itemStack = mat.parseItem();
 	}
 
 	public ItemBuilder(final ItemStack itemStack) {
@@ -109,24 +113,24 @@ public class ItemBuilder implements Listener, Cloneable {
 		return this;
 	}
 
-	public ItemBuilder enchantment(final Enchantment enchantment, final int level) {
-		itemStack.addUnsafeEnchantment(enchantment, level);
+	public ItemBuilder enchantment(final XEnchantment enchantment, final int level) {
+		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), level);
 		return this;
 	}
 
-	public ItemBuilder enchantment(final Enchantment enchantment) {
-		itemStack.addUnsafeEnchantment(enchantment, 1);
+	public ItemBuilder enchantment(final XEnchantment enchantment) {
+		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), 1);
 		return this;
 	}
 
-	public ItemBuilder type(final Material material) {
-		itemStack.setType(material);
+	public ItemBuilder type(final XMaterial material) {
+		itemStack.setType(material.parseMaterial());
 		return this;
 	}
 
 	public ItemBuilder clearLore() {
 		final ItemMeta meta = itemStack.getItemMeta();
-		meta.setLore(new ArrayList<String>());
+		meta.setLore(Collections.emptyList());
 		itemStack.setItemMeta(meta);
 		return this;
 	}
@@ -150,10 +154,10 @@ public class ItemBuilder implements Listener, Cloneable {
 	}
 
 	public ItemBuilder skull(String owner) {
-		if (itemStack.getType() == Material.SKULL_ITEM && itemStack.getDurability() == (byte) 3) {
-			SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
-			skullMeta.setOwner(owner);
-			itemStack.setItemMeta(skullMeta);
+		if (XMaterial.PLAYER_HEAD.isSimilar(itemStack)) {
+			final ItemMeta itemMeta = itemStack.getItemMeta();
+			SkullUtils.applySkin(itemMeta, owner);
+			itemStack.setItemMeta(itemMeta);
 			return this;
 		} else {
 			throw new IllegalArgumentException("skull() only applicable for human skull item!");
@@ -161,9 +165,9 @@ public class ItemBuilder implements Listener, Cloneable {
 	}
 
 	public ItemBuilder skull(Player owner) {
-		if (itemStack.getType() == Material.SKULL_ITEM && itemStack.getDurability() == (byte) 3) {
+		if (XMaterial.PLAYER_HEAD.isSimilar(itemStack)) {
 			SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
-			Imanity.IMPLEMENTATION.setSkullGamwProfile(skullMeta, owner);
+			Imanity.IMPLEMENTATION.setSkullGameProfile(skullMeta, owner);
 			itemStack.setItemMeta(skullMeta);
 			return this;
 		} else {
