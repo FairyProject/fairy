@@ -35,10 +35,6 @@ public @interface Arg {
 
     String value() default "";
 
-    boolean wildcard() default false;
-
     String defaultValue() default "";
-
-    String[] tabCompleteFlags() default "";
 
 }

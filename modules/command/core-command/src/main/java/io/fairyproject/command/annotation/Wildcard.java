@@ -6,9 +6,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.PARAMETER, ElementType.TYPE, ElementType.METHOD})
-public @interface ArgSyntax {
-
-    String value();
-
+@Target(ElementType.PARAMETER)
+public @interface Wildcard {
 }

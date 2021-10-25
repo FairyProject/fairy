@@ -26,14 +26,13 @@ package io.fairyproject.bukkit.command.parameters;
 
 import io.fairyproject.bukkit.command.event.BukkitCommandContext;
 import io.fairyproject.command.CommandContext;
+import io.fairyproject.command.parameter.ArgTransformer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import io.fairyproject.command.parameter.ParameterHolder;
 
 import java.util.List;
-import java.util.Set;
 
-public abstract class BukkitParameterHolder<T> implements ParameterHolder<T> {
+public abstract class BukkitArgTransformer<T> implements ArgTransformer<T> {
 
     @Override
     public final T transform(CommandContext commandEvent, String source) {
@@ -46,14 +45,14 @@ public abstract class BukkitParameterHolder<T> implements ParameterHolder<T> {
 
     public abstract T transform(CommandSender sender, String source);
 
-    public final List<String> tabComplete(CommandContext commandContext, Set<String> flags, String source) {
+    public final List<String> tabComplete(CommandContext commandContext, String source) {
         if (commandContext instanceof BukkitCommandContext && ((BukkitCommandContext) commandContext).getSender() instanceof Player) {
-            return this.tabComplete(((BukkitCommandContext) commandContext).getPlayer(), flags, source);
+            return this.tabComplete(((BukkitCommandContext) commandContext).getPlayer(), source);
         }
 
         throw new UnsupportedOperationException();
     }
 
-    public abstract List<String> tabComplete(Player player, Set<String> flags, String source);
+    public abstract List<String> tabComplete(Player player, String source);
 
 }

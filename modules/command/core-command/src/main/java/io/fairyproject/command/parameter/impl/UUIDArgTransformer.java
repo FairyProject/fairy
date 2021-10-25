@@ -22,52 +22,31 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.command.parameters;
+package io.fairyproject.command.parameter.impl;
 
 import io.fairyproject.bean.Component;
-import io.fairyproject.util.CC;
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
+import io.fairyproject.command.CommandContext;
+import io.fairyproject.command.parameter.ArgTransformer;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.UUID;
 
 @Component
-public class PlayerParameterType extends BukkitParameterHolder<Player> {
-
-	@Override
-	public Player transform(final CommandSender sender, final String source) {
-		if (sender instanceof Player && (source.equalsIgnoreCase("self") || source.equals("")))
-			return ((Player) sender);
-
-		final Player player = Bukkit.getServer().getPlayer(source);
-
-		if (player == null) {
-			sender.sendMessage(CC.RED + "No player with the name " + source + " found.");
-			return (null);
-		}
-
-		return (player);
-	}
-
-	@Override
-	public List<String> tabComplete(final Player sender, final Set<String> flags, final String source) {
-		final List<String> completions = new ArrayList<>();
-
-		for (final Player player : Bukkit.getOnlinePlayers()) {
-			if (StringUtils.startsWithIgnoreCase(player.getName(), source)) {
-				completions.add(player.getName());
-			}
-		}
-
-		return completions;
-	}
+public class UUIDArgTransformer implements ArgTransformer<UUID> {
 
 	@Override
 	public Class[] type() {
-		return new Class[] {Player.class};
+		return new Class[] {UUID.class};
 	}
+
+	@Override
+	public UUID transform(CommandContext event, String source) {
+
+		try {
+			return UUID.fromString(source);
+		} catch (final Exception ignored) {
+		}
+
+		return this.fail(source + " That UUID could not be parsed.");
+	}
+
 }

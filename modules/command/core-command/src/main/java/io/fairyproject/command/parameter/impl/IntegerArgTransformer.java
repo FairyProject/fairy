@@ -26,35 +26,21 @@ package io.fairyproject.command.parameter.impl;
 
 import io.fairyproject.bean.Component;
 import io.fairyproject.command.CommandContext;
-import io.fairyproject.command.MessageType;
-import io.fairyproject.command.parameter.ParameterHolder;
+import io.fairyproject.command.parameter.ArgTransformer;
 
 @Component
-public class LongParameterType implements ParameterHolder<Long> {
+public class IntegerArgTransformer implements ArgTransformer<Integer> {
 
 	@Override
 	public Class[] type() {
-		return new Class[] {Long.class, long.class};
+		return new Class[] {Integer.class, int.class};
 	}
 
-	public Long transform(CommandContext event, String source) {
-		if (source.toLowerCase().contains("e")) {
-			event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-			return (null);
-		}
-
+	public Integer transform(CommandContext commandContext, String source) {
 		try {
-			long parsed = Long.parseLong(source);
-
-			if (Double.isNaN(parsed) || !Double.isFinite(parsed)) {
-				event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-				return (null);
-			}
-
-			return (parsed);
+			return Integer.parseInt(source);
 		} catch (NumberFormatException exception) {
-			event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-			return (null);
+			return this.fail(source + " is not a valid number.");
 		}
 	}
 

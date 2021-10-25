@@ -24,38 +24,40 @@
 
 package io.fairyproject.command.parameter.impl;
 
+import com.google.common.collect.ImmutableMap;
 import io.fairyproject.bean.Component;
 import io.fairyproject.command.CommandContext;
-import io.fairyproject.command.MessageType;
-import io.fairyproject.command.parameter.ParameterHolder;
+import io.fairyproject.command.parameter.ArgTransformer;
+
+import java.util.Map;
 
 @Component
-public class FloatParameterType implements ParameterHolder<Float> {
+public class BooleanArgTransformer implements ArgTransformer<Boolean> {
 
-	@Override
-	public Class[] type() {
-		return new Class[] {Float.class, float.class};
-	}
+    private static final Map<String, Boolean> MAP;
 
-	public Float transform(CommandContext event, String source) {
-		if (source.toLowerCase().contains("e")) {
-			event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-			return null;
-		}
+    static {
+        MAP = ImmutableMap.<String, Boolean>builder()
+                .put("true", true)
+                .put("on", true)
+                .put("yes", true)
+                .put("false", false)
+                .put("off", false)
+                .put("no", false)
+        .build();
+    }
 
-		try {
-			float parsed = Float.parseFloat(source);
+    @Override
+    public Class[] type() {
+        return new Class[] {Boolean.class, boolean.class};
+    }
 
-			if (Float.isNaN(parsed) || !Float.isFinite(parsed)) {
-				event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-				return null;
-			}
+    public Boolean transform(CommandContext event, String source) {
+        if (!MAP.containsKey(source.toLowerCase())) {
+            return this.fail(source + " is not a valid boolean.");
+        }
 
-			return (parsed);
-		} catch (NumberFormatException exception) {
-			event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-			return null;
-		}
-	}
+        return MAP.get(source.toLowerCase());
+    }
 
 }

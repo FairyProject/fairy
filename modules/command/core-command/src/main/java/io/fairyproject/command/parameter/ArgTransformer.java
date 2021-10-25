@@ -22,44 +22,26 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.command.parameter.impl;
+package io.fairyproject.command.parameter;
 
-import com.google.common.collect.ImmutableMap;
-import io.fairyproject.bean.Component;
 import io.fairyproject.command.CommandContext;
-import io.fairyproject.command.MessageType;
-import io.fairyproject.command.parameter.ParameterHolder;
+import io.fairyproject.command.exception.ArgTransformException;
 
-import java.util.Map;
+import java.util.Collections;
+import java.util.List;
 
-@Component
-public class BooleanParameterType implements ParameterHolder<Boolean> {
+public interface ArgTransformer<T> {
 
-    private static final Map<String, Boolean> MAP;
+    Class[] type();
 
-    static {
-        MAP = ImmutableMap.<String, Boolean>builder()
-                .put("true", true)
-                .put("on", true)
-                .put("yes", true)
-                .put("false", false)
-                .put("off", false)
-                .put("no", false)
-        .build();
+    T transform(CommandContext commandContext, String source) throws ArgTransformException;
+
+    default T fail(String reason) {
+        throw new ArgTransformException(reason);
     }
 
-    @Override
-    public Class[] type() {
-        return new Class[] {Boolean.class, boolean.class};
-    }
-
-    public Boolean transform(CommandContext event, String source) {
-        if (!MAP.containsKey(source.toLowerCase())) {
-            event.sendMessage(MessageType.WARN, source + " is not a valid boolean.");
-            return (null);
-        }
-
-        return MAP.get(source.toLowerCase());
+    default List<String> tabComplete(CommandContext commandContext, String source) throws ArgTransformException {
+        return Collections.emptyList();
     }
 
 }

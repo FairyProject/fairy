@@ -1,10 +1,15 @@
 package io.fairyproject.command.argument;
 
+import io.fairyproject.command.CommandContext;
+import io.fairyproject.command.parameter.ArgTransformer;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.TriConsumer;
 
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
@@ -16,6 +21,28 @@ public class ArgProperty<T> {
 
     private final String key;
     private final Class<T> type;
+    private Consumer<CommandContext> missingArgument;
+    private UnknownArgumentHandler unknownArgument;
+    private ArgTransformer<T> parameterHolder;
+
+    public ArgProperty<T> onMissingArgument(Consumer<CommandContext> missingArgument) {
+        this.missingArgument = missingArgument;
+        return this;
+    }
+
+    public ArgProperty<T> onUnknownArgument(UnknownArgumentHandler unknownArgument) {
+        this.unknownArgument = unknownArgument;
+        return this;
+    }
+
+    public ArgProperty<T> parameterHolder(ArgTransformer<T> parameterHolder) {
+        this.parameterHolder = parameterHolder;
+        return this;
+    }
+
+    public T cast(Object object) {
+        return this.type.cast(object);
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -28,5 +55,11 @@ public class ArgProperty<T> {
     @Override
     public int hashCode() {
         return Objects.hash(key);
+    }
+
+    public interface UnknownArgumentHandler {
+
+        void accept(CommandContext commandContext, String source, String reason);
+
     }
 }

@@ -22,40 +22,49 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.command.parameter.impl;
+package io.fairyproject.bukkit.command.parameters;
 
 import io.fairyproject.bean.Component;
-import io.fairyproject.command.CommandContext;
-import io.fairyproject.command.MessageType;
-import io.fairyproject.command.parameter.ParameterHolder;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
-public class DoubleParameterType implements ParameterHolder<Double> {
+public class PlayerParameterTransformer extends BukkitArgTransformer<Player> {
+
+	@Override
+	public Player transform(final CommandSender sender, final String source) {
+		if (sender instanceof Player && (source.equalsIgnoreCase("self") || source.isEmpty()))
+			return ((Player) sender);
+
+		final Player player = Bukkit.getServer().getPlayer(source);
+
+		if (player == null) {
+			return this.fail("No player with the name " + source + " found.");
+		}
+
+		return (player);
+	}
+
+	@Override
+	public List<String> tabComplete(final Player sender, final String source) {
+		final List<String> completions = new ArrayList<>();
+
+		for (final Player player : Bukkit.getOnlinePlayers()) {
+			if (StringUtils.startsWithIgnoreCase(player.getName(), source)) {
+				completions.add(player.getName());
+			}
+		}
+
+		return completions;
+	}
 
 	@Override
 	public Class[] type() {
-		return new Class[] {Double.class, double.class};
+		return new Class[] {Player.class};
 	}
-
-	public Double transform(CommandContext event, String source) {
-		if (source.toLowerCase().contains("e")) {
-			event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-			return null;
-		}
-
-		try {
-			double parsed = Double.parseDouble(source);
-
-			if (Double.isNaN(parsed) || !Double.isFinite(parsed)) {
-				event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-				return null;
-			}
-
-			return (parsed);
-		} catch (NumberFormatException exception) {
-			event.sendMessage(MessageType.WARN, source + " is not a valid number.");
-			return null;
-		}
-	}
-
 }

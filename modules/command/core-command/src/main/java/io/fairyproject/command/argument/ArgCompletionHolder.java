@@ -4,8 +4,10 @@ import io.fairyproject.command.CommandContext;
 
 import java.util.Collection;
 
-public interface ArgTabCompletionHolder {
+public interface ArgCompletionHolder {
 
     Collection<String> apply(CommandContext commandContext);
+
+    String name();
 
 }

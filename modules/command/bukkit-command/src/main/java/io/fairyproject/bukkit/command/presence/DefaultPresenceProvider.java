@@ -24,11 +24,10 @@
 
 package io.fairyproject.bukkit.command.presence;
 
-import io.fairyproject.command.CommandContext;
-import io.fairyproject.command.MessageType;
-import org.bukkit.ChatColor;
 import io.fairyproject.bukkit.command.event.BukkitCommandContext;
+import io.fairyproject.command.MessageType;
 import io.fairyproject.command.PresenceProvider;
+import org.bukkit.ChatColor;
 
 public class DefaultPresenceProvider implements PresenceProvider<BukkitCommandContext> {
 
@@ -38,16 +37,22 @@ public class DefaultPresenceProvider implements PresenceProvider<BukkitCommandCo
     }
 
     @Override
-    public void sendMessage(BukkitCommandContext commandContext, MessageType messageType, String message) {
+    public void sendMessage(BukkitCommandContext commandContext, MessageType messageType, String... messages) {
         switch (messageType) {
             case INFO:
-                commandContext.getSender().sendMessage(ChatColor.AQUA + message);
+                for (String message : messages) {
+                    commandContext.getSender().sendMessage(ChatColor.AQUA + message);
+                }
                 break;
             case WARN:
-                commandContext.getSender().sendMessage(ChatColor.GOLD + message);
+                for (String message : messages) {
+                    commandContext.getSender().sendMessage(ChatColor.GOLD + message);
+                }
                 break;
             case ERROR:
-                commandContext.getSender().sendMessage(ChatColor.RED + message);
+                for (String message : messages) {
+                    commandContext.getSender().sendMessage(ChatColor.RED + message);
+                }
                 break;
         }
     }

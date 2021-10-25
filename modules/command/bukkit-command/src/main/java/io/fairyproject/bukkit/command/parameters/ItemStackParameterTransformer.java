@@ -24,48 +24,45 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
+import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.bean.Component;
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.World;
+import io.fairyproject.bukkit.command.util.CommandUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Component
-public class WorldParameterType extends BukkitParameterHolder<World> {
+public class ItemStackParameterTransformer extends BukkitArgTransformer<ItemStack> {
 
 	@Override
-	public World transform(final CommandSender sender, final String source) {
-		final World world = Bukkit.getServer().getWorld(source);
+	public ItemStack transform(final CommandSender sender, final String source) {
+		final ItemStack item = CommandUtil.get(source);
 
-		if (world == null) {
-			sender.sendMessage(ChatColor.RED + "No world with the name " + source + " found.");
-			return (null);
+		if (item == null) {
+			return this.fail("No item with the name " + source + " found.");
 		}
 
-		return (world);
+		return item;
 	}
 
 	@Override
-	public List<String> tabComplete(final Player sender, final Set<String> flags, final String source) {
-		final List<String> completions = new ArrayList<>();
-
-		for (final World world : Bukkit.getServer().getWorlds()) {
-			if (StringUtils.startsWithIgnoreCase(world.getName(), source)) {
-				completions.add(world.getName());
-			}
+	public List<String> tabComplete(final Player sender, final String source) {
+		if (!source.isEmpty()) {
+			return Stream.of(XMaterial.values())
+					.filter(XMaterial::isSupported)
+					.map(XMaterial::name)
+					.collect(Collectors.toList());
 		}
-
-		return (completions);
+		return Collections.emptyList();
 	}
 
 	@Override
 	public Class[] type() {
-		return new Class[] {World.class};
+		return new Class[] {ItemStack.class};
 	}
 }

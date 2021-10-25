@@ -22,22 +22,48 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.command.parameter;
+package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.command.CommandContext;
+import io.fairyproject.bean.Component;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.World;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public interface ParameterHolder<T> {
+@Component
+public class WorldParameterTransformer extends BukkitArgTransformer<World> {
 
-    Class[] type();
+	@Override
+	public World transform(final CommandSender sender, final String source) {
+		final World world = Bukkit.getServer().getWorld(source);
 
-    T transform(CommandContext commandContext, String source);
+		if (world == null) {
+			return this.fail("No world with the name " + source + " found.");
+		}
 
-    default List<String> tabComplete(CommandContext commandContext, Set<String> flags, String source) {
-        return Collections.emptyList();
-    }
+		return world;
+	}
 
+	@Override
+	public List<String> tabComplete(final Player sender, final String source) {
+		final List<String> completions = new ArrayList<>();
+
+		for (final World world : Bukkit.getServer().getWorlds()) {
+			if (StringUtils.startsWithIgnoreCase(world.getName(), source)) {
+				completions.add(world.getName());
+			}
+		}
+
+		return completions;
+	}
+
+	@Override
+	public Class[] type() {
+		return new Class[] {World.class};
+	}
 }

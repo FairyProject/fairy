@@ -26,10 +26,15 @@ package io.fairyproject.command;
 
 import com.google.common.collect.HashMultimap;
 import io.fairyproject.bean.Autowired;
+import io.fairyproject.command.annotation.Arg;
 import io.fairyproject.command.annotation.Command;
 import io.fairyproject.command.annotation.CommandPresence;
-import io.fairyproject.command.annotation.TabCompletion;
-import io.fairyproject.command.argument.ArgTabCompletionHolder;
+import io.fairyproject.command.annotation.CompletionHolder;
+import io.fairyproject.command.argument.ArgCompletionHolder;
+import io.fairyproject.command.argument.ArgProperty;
+import io.fairyproject.command.exception.ArgTransformException;
+import io.fairyproject.command.util.CoreCommandUtil;
+import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.reflect.Reflect;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -37,34 +42,92 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public abstract class BaseCommand {
+public abstract class BaseCommand implements ICommand {
 
     @Autowired
     private static CommandService COMMAND_SERVICE;
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final HashMultimap<String, CommandMeta> subCommands = HashMultimap.create();
-    private Map<String, ArgTabCompletionHolder> tabCompletion;
+    private final HashMultimap<String, ICommand> subCommands = HashMultimap.create();
+    private Map<String, ArgCompletionHolder> tabCompletion;
+
+    @Getter
+    private MetadataMap metadata;
     private PresenceProvider<?> presenceProvider;
+
+    @Nullable
+    private BaseCommand parentCommand;
+    private ArgProperty<?>[] baseArgs;
+    private String[] names;
+    private String permission;
+
+    @Getter
+    private int maxParameterCount;
+    @Getter
+    private int requireInputParameterCount;
 
     public String getDescription() {
         return "";
     }
 
     public String[] getCommandNames() {
-        Command command = this.getClass().getAnnotation(Command.class);
-        if (command != null) {
-            return command.value();
+        return this.names;
+    }
+
+    public void onArgumentFailed(CommandContext commandContext, String source, String reason) {
+        commandContext.sendMessage(MessageType.ERROR, reason);
+    }
+
+    public void onArgumentMissing(CommandContext commandContext, String usage) {
+        commandContext.sendMessage(MessageType.WARN, "Usage: " + usage);
+    }
+
+    public void onHelp(CommandContext commandContext) {
+        List<String> messages = new ArrayList<>();
+        for (ICommand command : this.subCommands.values()) {
+            switch (command.getSubCommandType()) {
+                case CLASS_LEVEL:
+                    messages.add(command.getUsage() + " ...");
+                    break;
+                case METHOD_LEVEL:
+                    messages.add(command.getUsage());
+                    break;
+            }
         }
-        throw new UnsupportedOperationException();
+        commandContext.sendMessage(MessageType.INFO, messages);
+    }
+
+    public void onError(CommandContext commandContext, Throwable throwable) {
+        commandContext.sendMessage(MessageType.ERROR, "Internal Exception: " + throwable.getClass().getName() + " - " + throwable.getMessage());
+    }
+
+    @Override
+    public boolean canAccess(CommandContext commandContext) {
+        if (this.permission == null || this.permission.length() == 0) {
+            return true;
+        }
+
+        return commandContext.hasPermission(this.permission);
     }
 
     public void init() {
+        Command command = this.getClass().getAnnotation(Command.class);
+        if (command != null) {
+            this.names = command.value();
+            this.permission = command.permissionNode();
+        } else {
+            throw new IllegalArgumentException("Command annotation wasn't found in class " + this.getClass());
+        }
+
+        this.metadata = MetadataMap.create();
         this.tabCompletion = new HashMap<>();
 
         PresenceProvider<?> presenceProvider = null;
@@ -79,7 +142,7 @@ public abstract class BaseCommand {
         methods.addAll(Arrays.asList(this.getClass().getDeclaredMethods()));
 
         for (Method method : methods) {
-            Command command = method.getAnnotation(Command.class);
+            command = method.getAnnotation(Command.class);
 
             if (command != null) {
                 try {
@@ -87,65 +150,153 @@ public abstract class BaseCommand {
                     for (String name : command.value()) {
                         this.subCommands.put(name.toLowerCase(), commandMeta);
                     }
+
+                    this.maxParameterCount = Math.max(commandMeta.getMaxParameterCount(), maxParameterCount);
+                    this.requireInputParameterCount = Math.max(commandMeta.getRequireInputParameterCount(), requireInputParameterCount);
                 } catch (IllegalAccessException e) {
                     LOGGER.error("an error got thrown while registering @Command method", e);
                 }
             }
 
-            TabCompletion tabCompletion = method.getAnnotation(TabCompletion.class);
-            if (tabCompletion != null) {
-                if (method.getParameterCount() != 1 || CommandContext.class.isAssignableFrom(method.getParameterTypes()[0])) {
-                    LOGGER.error("The parameter of @TabCompletion method should be CommandContext.", new UnsupportedOperationException());
-                    continue;
+            CompletionHolder completion = method.getAnnotation(CompletionHolder.class);
+            if (completion != null) {
+                boolean hasParameter = false;
+                if (method.getParameterCount() > 0) {
+                    hasParameter = true;
+                    if (method.getParameterCount() != 1 || !CommandContext.class.isAssignableFrom(method.getParameterTypes()[0])) {
+                        LOGGER.error("The parameter of @TabCompletion method should be CommandContext.", new UnsupportedOperationException());
+                        continue;
+                    }
                 }
 
                 try {
                     final MethodHandle methodHandle = Reflect.lookup().unreflect(method);
-                    ArgTabCompletionHolder completionHolder;
+                    ArgCompletionHolder completionHolder;
                     if (String[].class.isAssignableFrom(method.getReturnType())) {
-                        completionHolder = commandContext -> {
-                            try {
-                                return Arrays.asList((String[]) methodHandle.invoke(this, commandContext));
-                            } catch (Throwable e) {
-                                throw new IllegalArgumentException(e);
+                        boolean finalHasParameter = hasParameter;
+                        completionHolder = new ArgCompletionHolder() {
+                            @Override
+                            public Collection<String> apply(CommandContext commandContext) {
+                                try {
+                                    if (finalHasParameter) {
+                                        return Arrays.asList((String[]) methodHandle.invoke(BaseCommand.this, commandContext));
+                                    } else {
+                                        return Arrays.asList((String[]) methodHandle.invoke(BaseCommand.this));
+                                    }
+                                } catch (Throwable e) {
+                                    throw new IllegalArgumentException(e);
+                                }
+                            }
+
+                            @Override
+                            public String name() {
+                                return completion.value();
                             }
                         };
                     } else if (List.class.isAssignableFrom(method.getReturnType())) {
-                        completionHolder = commandContext -> {
-                            try {
-                                return (List<String>) methodHandle.invoke(this, commandContext);
-                            } catch (Throwable e) {
-                                throw new IllegalArgumentException(e);
+                        boolean finalHasParameter = hasParameter;
+                        completionHolder = new ArgCompletionHolder() {
+                            @Override
+                            public Collection<String> apply(CommandContext commandContext) {
+                                try {
+                                    if (finalHasParameter) {
+                                        return (List<String>) methodHandle.invoke(BaseCommand.this, commandContext);
+                                    } else {
+                                        return (List<String>) methodHandle.invoke(BaseCommand.this);
+                                    }
+                                } catch (Throwable e) {
+                                    throw new IllegalArgumentException(e);
+                                }
+                            }
+
+                            @Override
+                            public String name() {
+                                return completion.value();
                             }
                         };
                     } else {
                         LOGGER.error("The return type of @TabCompletion method should be String[] or List<String>", new UnsupportedOperationException());
                         continue;
                     }
-                    for (String name : tabCompletion.value()) {
-                        this.tabCompletion.put(name.toLowerCase(), completionHolder);
-                    }
+                    this.tabCompletion.put(completion.value(), completionHolder);
                 } catch (IllegalAccessException e) {
                     LOGGER.error("an error got thrown while registering @TabCompletion method", e);
                 }
             }
         }
+
+        for (Class<?> innerClasses : this.getClass().getDeclaredClasses()) {
+            if (innerClasses.isAnnotationPresent(Command.class)) {
+                if (!BaseCommand.class.isAssignableFrom(innerClasses)) {
+                    throw new IllegalArgumentException("The class " + this.getClass() + " was annotated as @Command but wasn't extending BaseCommand.");
+                }
+
+                BaseCommand subCommand;
+                try {
+                    subCommand = (BaseCommand) innerClasses.getDeclaredConstructor().newInstance();
+                } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+                    throw new IllegalArgumentException("An exception got thrown while creating instance for " + innerClasses + " (Does it has no arg constructor?");
+                }
+
+                subCommand.parentCommand = this;
+                subCommand.init();
+
+                for (String commandName : subCommand.getCommandNames()) {
+                    this.subCommands.put(commandName.toLowerCase(), subCommand);
+                }
+                this.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), maxParameterCount);
+                this.requireInputParameterCount = Math.max(subCommand.getRequireInputParameterCount(), requireInputParameterCount);
+            }
+        }
+
+        Set<Field> fields = new HashSet<>();
+        fields.addAll(Arrays.asList(this.getClass().getFields()));
+        fields.addAll(Arrays.asList(this.getClass().getDeclaredFields()));
+
+        List<ArgProperty<?>> argProperties = new ArrayList<>();
+        for (Field field : fields) {
+            field.setAccessible(true);
+            Arg arg = field.getAnnotation(Arg.class);
+            if (arg != null) {
+                if (!ArgProperty.class.isAssignableFrom(field.getType())) {
+                    throw new IllegalArgumentException("Field " + field + " marked @Arg but not using type " + ArgProperty.class);
+                }
+
+                try {
+                    ArgProperty<?> property = (ArgProperty<?>) field.get(this);
+
+                    argProperties.add(property);
+                    if (property.getMissingArgument() == null) {
+                        property.onMissingArgument(commandContext -> this.onArgumentMissing(commandContext, this.getUsage()));
+                    }
+
+                    if (property.getUnknownArgument() == null) {
+                        property.onUnknownArgument(this::onArgumentFailed);
+                    }
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException("An exception got thrown while registering field arg " + field, e);
+                }
+            }
+        }
+
+        this.baseArgs = argProperties.toArray(new ArgProperty[0]);
     }
 
-    public void help(CommandContext commandContext) {
-        commandContext.sendMessage(MessageType.INFO, "halo!");
-    }
-
-    public void evalCommand(CommandContext commandContext) {
-        final Pair<CommandMeta, String[]> pair = this.findSubCommand(commandContext, false);
+    @Override
+    public void execute(CommandContext commandContext) {
         if (this.presenceProvider != null) {
             commandContext.setPresenceProvider(this.presenceProvider);
         } else {
             commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
         }
 
+        if (!this.resolveBaseArguments(commandContext)) {
+            return;
+        }
+
+        final Pair<ICommand, String[]> pair = this.findSubCommand(commandContext, false);
         if (pair == null) {
-            this.help(commandContext);
+            this.onHelp(commandContext);
             return;
         }
 
@@ -153,12 +304,124 @@ public abstract class BaseCommand {
         pair.getLeft().execute(commandContext);
     }
 
-    public List<String> completeCommand(CommandContext commandContext) {
-        final Pair<CommandMeta, String[]> subCommand = this.findSubCommand(commandContext, true);
-        if (subCommand != null) {
-            return subCommand.getLeft().completeCommand(commandContext);
+    public boolean resolveBaseArguments(CommandContext commandContext) {
+        if (this.baseArgs.length == 0) {
+            return true;
         }
-        return Collections.emptyList();
+
+        final String[] args = commandContext.getArgs();
+        if (args.length < this.baseArgs.length) {
+            final ArgProperty<?> baseArg = this.baseArgs[args.length];
+
+            baseArg.getMissingArgument().accept(commandContext);
+            return false;
+        }
+
+        for (int i = 0; i < this.baseArgs.length; i++) {
+            Object obj;
+            final ArgProperty<?> baseArg = baseArgs[i];
+            try {
+                if (this.baseArgs[i].getParameterHolder() != null) {
+                    obj = this.baseArgs[i].getParameterHolder().transform(commandContext, args[i]);
+                } else {
+                    obj = CommandService.INSTANCE.transformParameter(commandContext, args[i], this.baseArgs[i].getType());
+                }
+            } catch (ArgTransformException ex) {
+                baseArg.getUnknownArgument().accept(commandContext, args[i], ex.getMessage());
+                return false;
+            }
+
+            if (obj == null) {
+                baseArg.getUnknownArgument().accept(commandContext, args[i], "ArgTransformer doesn't return result.");
+                return false;
+            }
+            try {
+                commandContext.addProperty(baseArg, baseArg.cast(obj));
+            } catch (Throwable throwable) {
+                baseArg.getUnknownArgument().accept(commandContext, args[i], "ArgTransformer returned a type unmatched result.");
+                return false;
+            }
+        }
+
+        commandContext.setArgs(CoreCommandUtil.arrayFromRange(args, this.baseArgs.length, args.length - 1));
+        return true;
+    }
+
+    public String getCommandPrefix() {
+        if (this.parentCommand != null) {
+            return this.parentCommand.getCommandPrefix() + this.getCommandNames()[0] + " ";
+        }
+        return "/" + this.getCommandNames()[0] + " ";
+    }
+
+    @Override
+    public List<String> completeCommand(CommandContext commandContext) {
+        if (this.presenceProvider != null) {
+            commandContext.setPresenceProvider(this.presenceProvider);
+        } else {
+            commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
+        }
+
+        final Pair<List<String>, Boolean> pair = this.completeArguments(commandContext);
+
+        List<String> result = pair.getLeft();
+        if (pair.getRight()) {
+            result = new ArrayList<>(result);
+            result.addAll(this.getCommandsForCompletion(commandContext));
+        }
+
+        return result;
+    }
+
+    private Pair<List<String>, Boolean> completeArguments(CommandContext commandContext) {
+        if (commandContext.getArgs().length == 0) {
+            return Pair.of(Collections.emptyList(), true);
+        }
+
+        final List<String> base = this.completeBaseArguments(commandContext);
+        if (base != null) {
+            commandContext.setArgs(CoreCommandUtil.arrayFromRange(commandContext.getArgs(), this.baseArgs.length, commandContext.getArgs().length - 1));
+            return Pair.of(base, false);
+        }
+
+        final Pair<ICommand, String[]> subCommand = this.findSubCommand(commandContext, true);
+        if (subCommand != null) {
+            commandContext.setArgs(subCommand.getRight());
+            return Pair.of(subCommand.getLeft().completeCommand(commandContext), false);
+        }
+        return Pair.of(Collections.emptyList(), true);
+    }
+
+    public List<String> completeBaseArguments(CommandContext commandContext) {
+        if (this.baseArgs.length == 0) {
+            return null;
+        }
+
+        final String[] args = commandContext.getArgs();
+        if (args.length <= this.baseArgs.length) {
+            final ArgProperty<?> baseArg = this.baseArgs[args.length - 1];
+
+            final String source = args[args.length - 1];
+            if (baseArg.getParameterHolder() != null) {
+                return baseArg.getParameterHolder().tabComplete(commandContext, source);
+            } else {
+                return COMMAND_SERVICE.tabCompleteParameters(commandContext, source, baseArg.getType());
+            }
+        }
+
+        commandContext.setArgs(CoreCommandUtil.arrayFromRange(args, this.baseArgs.length, args.length - 1));
+        return null;
+    }
+
+    public ArgCompletionHolder getTabCompletionHolder(String name) {
+        if (this.tabCompletion.containsKey(name.toLowerCase())) {
+            return this.tabCompletion.get(name.toLowerCase());
+        }
+
+        if (this.parentCommand != null) {
+            return this.parentCommand.getTabCompletionHolder(name.toLowerCase());
+        }
+        return COMMAND_SERVICE.getTabCompletionHolder(name);
     }
 
     public List<String> getCommandsForCompletion(CommandContext commandContext) {
@@ -166,10 +429,10 @@ public abstract class BaseCommand {
         final Set<String> commands = new HashSet<>();
         final int cmdIndex = Math.max(0, args.length - 1);
         String argString = StringUtils.join(args, " ").toLowerCase();
-        for (Map.Entry<String, CommandMeta> entry : subCommands.entries()) {
+        for (Map.Entry<String, ICommand> entry : subCommands.entries()) {
             final String key = entry.getKey();
             if (key.startsWith(argString)) {
-                final CommandMeta value = entry.getValue();
+                final ICommand value = entry.getValue();
                 if (!value.canAccess(commandContext)) {
                     continue;
                 }
@@ -181,7 +444,7 @@ public abstract class BaseCommand {
         return new ArrayList<>(commands);
     }
 
-    private Pair<CommandMeta, String[]> findSubCommand(CommandContext commandContext, boolean completion) {
+    private Pair<ICommand, String[]> findSubCommand(CommandContext commandContext, boolean completion) {
         final String[] args = commandContext.getArgs();
         final PossibleSearches possibleSubCommands = this.findPossibleSubCommands(commandContext, args);
 
@@ -190,11 +453,11 @@ public abstract class BaseCommand {
         } else if (possibleSubCommands.getPossibleCommands().size() == 1) {
             return Pair.of(getFirstElement(possibleSubCommands.getPossibleCommands()), possibleSubCommands.getArgs());
         } else {
-            Optional<CommandMeta> optional = possibleSubCommands.getPossibleCommands().stream()
+            Optional<ICommand> optional = possibleSubCommands.getPossibleCommands().stream()
                     .filter(c -> isProbableMatch(c, args, completion))
                     .min((c1, c2) -> {
-                        int a = c1.getParameterCount();
-                        int b = c2.getParameterCount();
+                        int a = c1.getMaxParameterCount();
+                        int b = c2.getMaxParameterCount();
 
                         if (a == b) {
                             return 0;
@@ -209,19 +472,18 @@ public abstract class BaseCommand {
         return null;
     }
 
-    private boolean isProbableMatch(CommandMeta c, String[] args, boolean completion) {
+    private boolean isProbableMatch(ICommand c, String[] args, boolean completion) {
         int required = c.getRequireInputParameterCount();
-        int optional = c.getOptionalInputParameterCount();
-        return args.length <= required + optional && (completion || args.length >= required);
+        return args.length <= c.getMaxParameterCount() && (completion || args.length >= required);
     }
 
     private PossibleSearches findPossibleSubCommands(CommandContext commandContext, String[] args) {
         for (int i = args.length; i >= 0; i--) {
             String subcommand = StringUtils.join(args, " ", 0, i).toLowerCase();
-            Set<CommandMeta> commands = subCommands.get(subcommand);
+            Set<ICommand> commands = subCommands.get(subcommand);
 
             if (!commands.isEmpty()) {
-                return new PossibleSearches(commands, Arrays.copyOfRange(args, i, args.length), subcommand);
+                return new PossibleSearches(commands, CoreCommandUtil.arrayFromRange(args, i, args.length - 1), subcommand);
             }
         }
 
@@ -240,11 +502,24 @@ public abstract class BaseCommand {
         return null;
     }
 
+    public String getUsage() {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+        for (ArgProperty<?> arg : this.baseArgs) {
+            stringJoiner.add("<" + arg.getKey() + ">");
+        }
+        return (this.parentCommand != null ? this.parentCommand.getUsage() + " " : "/") + this.getCommandNames()[0] + " " + stringJoiner;
+    }
+
+    @Override
+    public SubCommandType getSubCommandType() {
+        return SubCommandType.CLASS_LEVEL;
+    }
+
     @RequiredArgsConstructor
     @Getter
     private static class PossibleSearches {
 
-        private final Set<CommandMeta> possibleCommands;
+        private final Set<ICommand> possibleCommands;
         private final String[] args;
         private final String subCommand;
 

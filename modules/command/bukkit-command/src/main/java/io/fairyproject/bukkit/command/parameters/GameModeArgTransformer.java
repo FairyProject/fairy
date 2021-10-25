@@ -25,6 +25,8 @@
 package io.fairyproject.bukkit.command.parameters;
 
 import io.fairyproject.bean.Component;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.MCVersion;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -34,34 +36,38 @@ import org.bukkit.entity.Player;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
-public class GameModeParameterType extends BukkitParameterHolder<GameMode> {
+public class GameModeArgTransformer extends BukkitArgTransformer<GameMode> {
 
 	private static final Map<String, GameMode> MAP = new HashMap<>();
 
 	static {
-		MAP.put("c", GameMode.CREATIVE);
 		MAP.put("creative", GameMode.CREATIVE);
 		MAP.put("1", GameMode.CREATIVE);
 
-		MAP.put("s", GameMode.SURVIVAL);
 		MAP.put("survival", GameMode.SURVIVAL);
 		MAP.put("0", GameMode.SURVIVAL);
+
+		MAP.put("adventure", GameMode.ADVENTURE);
+		MAP.put("2", GameMode.ADVENTURE);
+
+		if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().isOrAbove(MCVersion.V1_8)) {
+			MAP.put("spectator", GameMode.SPECTATOR);
+			MAP.put("3", GameMode.SPECTATOR);
+		}
 	}
 
 	public GameMode transform(CommandSender sender, String source) {
 		if (!MAP.containsKey(source.toLowerCase())) {
-			sender.sendMessage(ChatColor.RED + source + " is not a valid game mode.");
-			return (null);
+			return this.fail(source + " is not a valid game mode.");
 		}
 
 		return MAP.get(source.toLowerCase());
 	}
 
-	public List<String> tabComplete(Player sender, Set<String> flags, String source) {
+	public List<String> tabComplete(Player sender, String source) {
 		return (MAP.keySet().stream().filter(string -> StringUtils.startsWithIgnoreCase(string, source))
 		           .collect(Collectors.toList()));
 	}

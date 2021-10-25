@@ -28,6 +28,6 @@ public interface PresenceProvider<T extends CommandContext> {
 
     Class<T> type();
 
-    void sendMessage(T commandContext, MessageType messageType, String message);
+    void sendMessage(T commandContext, MessageType messageType, String... messages);
 
 }

@@ -28,6 +28,7 @@ import io.fairyproject.command.argument.ArgProperty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,11 +37,13 @@ import java.util.Map;
 public class CommandContext {
 
     private final Map<ArgProperty<?>, Object> properties;
+    private final String[] originalArgs;
     private String[] args;
     private PresenceProvider presenceProvider;
 
     public CommandContext(String[] args) {
         this.args = args;
+        this.originalArgs = args;
         this.properties = new HashMap<>();
     }
 
@@ -48,7 +51,7 @@ public class CommandContext {
         return "default-executor";
     }
 
-    public <T> void addProperty(ArgProperty<T> key, T value) {
+    public <T> void addProperty(ArgProperty<T> key, Object value) {
         this.properties.put(key, value);
     }
 
@@ -60,15 +63,19 @@ public class CommandContext {
         return property.getType().cast(this.properties.getOrDefault(property, null));
     }
 
-    public <T extends CommandContext> T cast(Class<T> type) {
+    public <T extends CommandContext> T as(Class<T> type) {
         if (!type.isInstance(this)) {
             throw new UnsupportedOperationException();
         }
         return type.cast(this);
     }
 
-    public final void sendMessage(MessageType messageType, String message) {
-        this.presenceProvider.sendMessage(this, messageType, message);
+    public final void sendMessage(MessageType messageType, Collection<String> messages) {
+        this.presenceProvider.sendMessage(this, messageType, messages.toArray(new String[0]));
+    }
+
+    public final void sendMessage(MessageType messageType, String... messages) {
+        this.presenceProvider.sendMessage(this, messageType, messages);
     }
 
     public boolean shouldExecute(CommandMeta meta, String[] arguments) {

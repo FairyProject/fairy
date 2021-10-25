@@ -3,16 +3,20 @@ package io.fairyproject.bukkit.command;
 import io.fairyproject.bukkit.command.event.BukkitCommandContext;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandContext;
+import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
+@Getter
 public class BukkitCommandExecutor extends Command {
 
     private final BaseCommand command;
+    private final String fallbackPrefix;
 
     protected BukkitCommandExecutor(BaseCommand command, String[] name) {
         super(name[0]);
@@ -20,6 +24,13 @@ public class BukkitCommandExecutor extends Command {
 
         if (name.length > 1) {
             this.setAliases(Arrays.asList(Arrays.copyOfRange(name, 1, name.length - 1)));
+        }
+
+        final JavaPlugin javaPlugin = JavaPlugin.getProvidingPlugin(command.getClass());
+        if (javaPlugin != null) {
+            this.fallbackPrefix = javaPlugin.getName();
+        } else {
+            this.fallbackPrefix = "Fairy";
         }
     }
 
@@ -31,15 +42,22 @@ public class BukkitCommandExecutor extends Command {
     @Override
     public boolean execute(CommandSender commandSender, String mainCommand, String[] args) {
         CommandContext commandContext = new BukkitCommandContext(commandSender, args);
-        this.command.evalCommand(commandContext);
+        try {
+            this.command.execute(commandContext);
+        } catch (Throwable throwable) {
+            this.command.onError(commandContext, throwable);
+        }
         return true;
     }
 
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
         CommandContext commandContext = new BukkitCommandContext(sender, args);
-        final List<String> list = new ArrayList<>(this.command.completeCommand(commandContext));
-        list.addAll(this.command.getCommandsForCompletion(commandContext));
-        return list;
+        try {
+            return this.command.completeCommand(commandContext);
+        } catch (Throwable throwable) {
+            this.command.onError(commandContext, throwable);
+            return Collections.emptyList();
+        }
     }
 }

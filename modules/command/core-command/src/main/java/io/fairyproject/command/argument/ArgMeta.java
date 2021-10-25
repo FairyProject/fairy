@@ -22,33 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.command.parameter.impl;
+package io.fairyproject.command.argument;
 
-import io.fairyproject.bean.Component;
-import io.fairyproject.command.CommandContext;
-import io.fairyproject.command.MessageType;
-import io.fairyproject.command.parameter.ParameterHolder;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.UUID;
+@AllArgsConstructor
+@Getter
+public class ArgMeta {
 
-@Component
-public class UUIDParameterType implements ParameterHolder<UUID> {
-
-	@Override
-	public Class[] type() {
-		return new Class[] {UUID.class};
-	}
-
-	@Override
-	public UUID transform(CommandContext event, String source) {
-
-		try {
-			return UUID.fromString(source);
-		} catch (final Exception e) {
-			event.sendMessage(MessageType.WARN, "That UUID could not be parsed.");
-		}
-
-		return null;
-	}
+    private final String name;
+    private final boolean wildcard;
+    private final String defaultValue;
+    private final String usage;
+    private final String[] tabCompletion;
+    private final Class<?> parameterClass;
 
 }

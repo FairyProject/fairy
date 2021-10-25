@@ -22,20 +22,36 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.command.parameter;
+package io.fairyproject.command.parameter.impl;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import io.fairyproject.bean.Component;
+import io.fairyproject.command.CommandContext;
+import io.fairyproject.command.parameter.ArgTransformer;
 
-@AllArgsConstructor
-@Getter
-public class ParameterMeta {
+@Component
+public class DoubleArgTransformer implements ArgTransformer<Double> {
 
-    private final String name;
-    private final boolean wildcard;
-    private final String defaultValue;
-    private final String[] tabCompleteFlags;
-    private final String[] tabCompletion;
-    private final Class<?> parameterClass;
+	@Override
+	public Class[] type() {
+		return new Class[] {Double.class, double.class};
+	}
+
+	public Double transform(CommandContext event, String source) {
+		if (source.toLowerCase().contains("e")) {
+			return this.fail(source + " is not a valid number.");
+		}
+
+		try {
+			double parsed = Double.parseDouble(source);
+
+			if (Double.isNaN(parsed) || !Double.isFinite(parsed)) {
+				return this.fail(source + " is not a valid number.");
+			}
+
+			return (parsed);
+		} catch (NumberFormatException exception) {
+			return this.fail(source + " is not a valid number.");
+		}
+	}
 
 }

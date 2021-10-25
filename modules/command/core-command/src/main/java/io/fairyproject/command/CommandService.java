@@ -24,10 +24,11 @@
 
 package io.fairyproject.command;
 
-import com.google.common.collect.ImmutableSet;
 import io.fairyproject.bean.*;
 import io.fairyproject.command.annotation.CommandPresence;
-import io.fairyproject.command.parameter.ParameterHolder;
+import io.fairyproject.command.argument.ArgCompletionHolder;
+import io.fairyproject.command.exception.ArgTransformException;
+import io.fairyproject.command.parameter.ArgTransformer;
 import io.fairyproject.module.Modular;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
@@ -48,12 +49,12 @@ public class CommandService {
 
     public static CommandService INSTANCE;
 
-    private Map<Class<?>, ParameterHolder<?>> parameters;
+    private Map<Class<?>, ArgTransformer<?>> parameters;
     private Map<Class<?>, PresenceProvider<?>> presenceProvidersByHolder;
+    private Map<Class<?>, PresenceProvider<?>> defaultPresenceProviders;
+    private Map<String, ArgCompletionHolder> tabCompletionHolders;
     private List<CommandListener> listeners;
     private Map<String, BaseCommand> commands;
-
-    private Map<Class<?>, PresenceProvider<?>> defaultPresenceProviders;
 
     private PreProcessBatch batch;
 
@@ -63,6 +64,7 @@ public class CommandService {
         this.parameters = new HashMap<>();
         this.presenceProvidersByHolder = new ConcurrentHashMap<>();
         this.defaultPresenceProviders = new ConcurrentHashMap<>();
+        this.tabCompletionHolders = new ConcurrentHashMap<>();
 
         this.listeners = new ArrayList<>();
         this.commands = new ConcurrentHashMap<>();
@@ -73,16 +75,30 @@ public class CommandService {
                 .onDisable(instance -> this.listeners.remove((CommandListener) instance))
                 .build());
         ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(BaseCommand.class)
+                .type(ArgCompletionHolder.class)
                 .onEnable(instance -> {
-                    this.batch.runOrQueue(() -> this.registerCommand(instance));
+                    ArgCompletionHolder tabCompletionHolder = (ArgCompletionHolder) instance;
+                    this.tabCompletionHolders.put(tabCompletionHolder.name(), tabCompletionHolder);
+                })
+                .onDisable(instance -> {
+                    ArgCompletionHolder tabCompletionHolder = (ArgCompletionHolder) instance;
+                    this.tabCompletionHolders.remove(tabCompletionHolder.name());
+                })
+                .build());
+        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
+                .type(BaseCommand.class)
+                .onEnable(instance -> this.batch.runOrQueue(instance.getClass().getName(), () -> this.registerCommand(instance)))
+                .onDisable(instance -> {
+                    if (!this.batch.remove(instance.getClass().getName())) {
+                        this.unregisterCommand(instance);
+                    }
                 })
                 .build()
         );
         ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(ParameterHolder.class)
-                .onEnable(instance -> this.registerParameterHolder((ParameterHolder<?>) instance))
-                .onDisable(instance -> this.unregisterParameterHolder((ParameterHolder<?>) instance))
+                .type(ArgTransformer.class)
+                .onEnable(instance -> this.registerParameterHolder((ArgTransformer<?>) instance))
+                .onDisable(instance -> this.unregisterParameterHolder((ArgTransformer<?>) instance))
                 .build());
     }
 
@@ -96,13 +112,13 @@ public class CommandService {
         this.defaultPresenceProviders.put(presenceProvider.type(), presenceProvider);
     }
 
-    public void registerParameterHolder(ParameterHolder<?> parameterHolder) {
+    public void registerParameterHolder(ArgTransformer<?> parameterHolder) {
         for (Class<?> type : parameterHolder.type()) {
             this.parameters.put(type, parameterHolder);
         }
     }
 
-    public void unregisterParameterHolder(ParameterHolder<?> parameterHolder) {
+    public void unregisterParameterHolder(ArgTransformer<?> parameterHolder) {
         for (Class<?> type : parameterHolder.type()) {
             this.parameters.remove(type, parameterHolder);
         }
@@ -139,32 +155,46 @@ public class CommandService {
         }
     }
 
-    public Object transformParameter(CommandContext event, String parameter, Class type) {
+    public void unregisterCommand(Object object) {
+        BaseCommand command = (BaseCommand) object;
+
+        final String[] commandNames = command.getCommandNames();
+        for (String name : commandNames) {
+            this.commands.put(name, command);
+        }
+    }
+
+    public Object transformParameter(CommandContext event, String source, Class type) {
         if (type == String.class) {
-            return parameter;
+            return source;
         }
 
-        ParameterHolder<?> holder = this.parameters.getOrDefault(type, null);
+        ArgTransformer<?> holder = this.parameters.getOrDefault(type, null);
         if (holder == null) {
             return null;
         }
 
         if (type.isEnum()) {
             try {
-                return Enum.valueOf(type, parameter);
+                return Enum.valueOf(type, source);
             } catch (IllegalArgumentException ignored) {
+                throw new ArgTransformException("Unmatched enum");
             }
         }
 
-        return holder.transform(event, parameter);
+        return holder.transform(event, source);
     }
 
-    public List<String> tabCompleteParameters(CommandContext commandContext, String parameter, Class<?> transformTo, String[] tabCompleteFlags) {
+    public ArgCompletionHolder getTabCompletionHolder(String name) {
+        return this.tabCompletionHolders.get(name);
+    }
+
+    public List<String> tabCompleteParameters(CommandContext commandContext, String parameter, Class<?> transformTo) {
         if (!this.parameters.containsKey(transformTo)) {
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
 
-        return this.parameters.get(transformTo).tabComplete(commandContext, ImmutableSet.copyOf(tabCompleteFlags), parameter);
+        return this.parameters.get(transformTo).tabComplete(commandContext, parameter);
     }
 
     // Should without the prefix like / or !

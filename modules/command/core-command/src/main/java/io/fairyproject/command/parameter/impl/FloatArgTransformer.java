@@ -22,41 +22,36 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.command.parameters;
+package io.fairyproject.command.parameter.impl;
 
-import com.google.common.collect.ImmutableList;
 import io.fairyproject.bean.Component;
-import io.fairyproject.bukkit.command.util.CommandUtil;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
-import java.util.List;
-import java.util.Set;
+import io.fairyproject.command.CommandContext;
+import io.fairyproject.command.parameter.ArgTransformer;
 
 @Component
-public class ItemStackParameterType extends BukkitParameterHolder<ItemStack> {
-
-	@Override
-	public ItemStack transform(final CommandSender sender, final String source) {
-		final ItemStack item = CommandUtil.get(source);
-
-		if (item == null) {
-			sender.sendMessage(ChatColor.RED + "No item with the name " + source + " found.");
-			return null;
-		}
-
-		return item;
-	}
-
-	@Override
-	public List<String> tabComplete(final Player sender, final Set<String> flags, final String source) {
-		return ImmutableList.of(); // it would probably be too intensive to go through all the aliases
-	}
+public class FloatArgTransformer implements ArgTransformer<Float> {
 
 	@Override
 	public Class[] type() {
-		return new Class[] {ItemStack.class};
+		return new Class[] {Float.class, float.class};
 	}
+
+	public Float transform(CommandContext event, String source) {
+		if (source.toLowerCase().contains("e")) {
+			return this.fail(source + " is not a valid number.");
+		}
+
+		try {
+			float parsed = Float.parseFloat(source);
+
+			if (Float.isNaN(parsed) || !Float.isFinite(parsed)) {
+				return this.fail(source + " is not a valid number.");
+			}
+
+			return (parsed);
+		} catch (NumberFormatException exception) {
+			return this.fail(source + " is not a valid number.");
+		}
+	}
+
 }
