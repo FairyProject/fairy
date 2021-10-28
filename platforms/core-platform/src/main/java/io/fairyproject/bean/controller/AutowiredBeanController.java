@@ -82,7 +82,7 @@ public class AutowiredBeanController implements BeanController {
             AccessUtil.setAccessible(field);
             Reflect.setField(instance, field, objectToInject);
         } else {
-            LogManager.getLogger().error("The Autowired field " + field + " trying to wired with type " + type.getSimpleName() + " but couldn't find any matching Service! (or not being registered)");
+            LogManager.getLogger(AutowiredBeanController.class).error("The Autowired field " + field + " trying to wired with type " + type.getSimpleName() + " but couldn't find any matching Service! (or not being registered)");
         }
     }
 }

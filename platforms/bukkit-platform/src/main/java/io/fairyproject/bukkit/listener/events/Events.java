@@ -90,7 +90,7 @@ public class Events {
             plugin = FairyBukkitPlatform.PLUGIN;
         }
         if (!plugin.isEnabled()) {
-            LogManager.getLogger().error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
+            LogManager.getLogger(Events.class).error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
         }
 
         TerminableConsumer terminable = FairyBukkitPlatform.INSTANCE;

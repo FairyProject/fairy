@@ -40,6 +40,7 @@ public abstract class Plugin implements TerminableConsumer, Terminable {
 
     private PluginDescription description;
     private PluginAction action;
+    private boolean forceDisabling; // ignore every error caused by force disabling
 
     public void onInitial() {
 

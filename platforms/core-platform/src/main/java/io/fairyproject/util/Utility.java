@@ -71,7 +71,7 @@ public class Utility {
         try {
             return supplier.get();
         } catch (Throwable throwable) {
-            LogManager.getLogger().error(throwable);
+            LogManager.getLogger(Utility.class).error(throwable);
         }
 
         return null;
@@ -81,7 +81,7 @@ public class Utility {
         try {
             runnable.run();
         } catch (Throwable throwable) {
-            LogManager.getLogger().error(throwable);
+            LogManager.getLogger(Utility.class).error(throwable);
         }
     }
 

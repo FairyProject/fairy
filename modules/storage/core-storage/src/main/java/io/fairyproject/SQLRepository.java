@@ -69,7 +69,7 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
             if (transaction != null) {
                 transaction.rollback();
             }
-            LogManager.getLogger().error(throwable);
+            LogManager.getLogger(SQLRepository.class).error(throwable);
         } finally {
             this.repositoryProvider.getIOLock().unlock();
         }
@@ -92,7 +92,7 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
             if (transaction != null) {
                 transaction.rollback();
             }
-            LogManager.getLogger().error(throwable);
+            LogManager.getLogger(SQLRepository.class).error(throwable);
         } finally {
             this.repositoryProvider.getIOLock().unlock();
         }

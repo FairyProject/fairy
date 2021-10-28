@@ -69,7 +69,7 @@ public final class ImanityItem implements Terminable {
     private static final Map<String, ImanityItem> NAME_TO_ITEMS = new ConcurrentHashMap<>();
     private static final Map<Plugin, List<ImanityItem>> PLUGIN_TO_ITEMS = new ConcurrentHashMap<>();
     private static final AtomicInteger UNNAMED_ITEM_COUNTER = new AtomicInteger(0);
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(ImanityItem.class);
 
     public static ImanityItemBuilder builder(String id) {
         final Plugin plugin = ImanityItemBuilder.findPlugin(4);

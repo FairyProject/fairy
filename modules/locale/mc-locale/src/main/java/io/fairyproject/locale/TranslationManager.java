@@ -29,7 +29,7 @@ public abstract class TranslationManager {
 
     @Autowired
     protected static LocaleService LOCALE_SERVICE;
-    protected static final Logger LOGGER = LogManager.getLogger();
+    protected static final Logger LOGGER = LogManager.getLogger(TranslationManager.class);
 
     protected final Set<Locale> installed = Sets.newConcurrentHashSet();
     protected TranslationRegistry translationRegistry;

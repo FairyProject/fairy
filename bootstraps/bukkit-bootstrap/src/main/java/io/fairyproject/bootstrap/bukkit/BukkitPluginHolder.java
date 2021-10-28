@@ -49,22 +49,29 @@ final class BukkitPluginHolder {
 
     public void onEnable() {
         plugin.onPreEnable();
+        if (plugin.isClosed()) {
+            return;
+        }
         PluginManager.INSTANCE.onPluginEnable(plugin);
-        plugin.onPluginEnable();
+        try {
+            plugin.onPluginEnable();
+        } catch (Throwable throwable) {
+            if (!plugin.isClosed() && !plugin.isForceDisabling()) {
+                LogManager.getLogger(plugin.getClass()).error(throwable);
+            }
+        }
     }
 
     public void onDisable() {
         try {
             plugin.onPluginDisable();
         } catch (Throwable throwable) {
-            LogManager.getLogger().error(throwable);
-        }
-        try {
-            plugin.getCompositeTerminable().close();
-        } catch (Throwable throwable) {
-            LogManager.getLogger().error(throwable);
+            if (!plugin.isForceDisabling()) {
+                LogManager.getLogger(plugin.getClass()).error(throwable);
+            }
         }
 
+        plugin.getCompositeTerminable().closeAndReportException();
         PluginManager.INSTANCE.onPluginDisable(plugin);
     }
 

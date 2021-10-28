@@ -65,7 +65,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @ServiceDependency(dependencies = {"storage"})
 public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(ThreadedPlayerStorage.class);
     private final Object lock = new Object();
 
     private ThreadedPlayerStorageConfiguration<T> storageConfiguration;

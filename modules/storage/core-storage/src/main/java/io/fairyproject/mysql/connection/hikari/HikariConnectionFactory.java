@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 
 public abstract class HikariConnectionFactory extends AbstractConnectionFactory {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(HikariConnectionFactory.class);
 
     @Getter
     protected HikariConfig config;

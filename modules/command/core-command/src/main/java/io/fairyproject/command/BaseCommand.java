@@ -54,7 +54,7 @@ public abstract class BaseCommand implements ICommand {
 
     @Autowired
     private static CommandService COMMAND_SERVICE;
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(BaseCommand.class);
 
     private final HashMultimap<String, ICommand> subCommands = HashMultimap.create();
     private Map<String, ArgCompletionHolder> tabCompletion;

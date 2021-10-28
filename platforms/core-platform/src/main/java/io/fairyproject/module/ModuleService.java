@@ -35,7 +35,7 @@ public class ModuleService {
 
     public static final int PLUGIN_LISTENER_PRIORITY = BeanContext.PLUGIN_LISTENER_PRIORITY - 1;
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(ModuleService.class);
     private static Map<String, Integer> PENDING_MODULES = new HashMap<>();
     public static void init() {
         PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {

@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock;
 @Getter
 public abstract class StateBase implements State {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(StateBase.class);
 
     private boolean started = false;
     private boolean ended = false;

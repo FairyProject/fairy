@@ -62,7 +62,7 @@ import java.util.UUID;
 
 public final class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger(FairyBukkitPlatform.class);
 
     public static FairyBukkitPlatform INSTANCE;
     public static FairyInternalPlugin PLUGIN;
