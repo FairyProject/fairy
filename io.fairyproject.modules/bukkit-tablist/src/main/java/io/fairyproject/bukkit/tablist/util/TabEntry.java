@@ -24,46 +24,24 @@
 
 package io.fairyproject.bukkit.tablist.util;
 
-import io.fairyproject.bukkit.util.Skin;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
+import io.fairyproject.bukkit.tablist.ImanityTablist;
 
-@Getter
-public class BufferedTabObject {
-    private TabColumn column;
-    private Integer ping;
-    private int slot;
+import java.util.UUID;
+
+@Getter @Setter @AllArgsConstructor
+public class TabEntry {
+
+    private String id;
+    private UUID uuid;
     private String text;
-    private Skin skin;
+    private ImanityTablist tab;
+    private Skin texture;
+    private TabColumn column;
+    private int slot;
+    private int rawSlot;
+    private int latency;
 
-    public BufferedTabObject() {
-        this.column = TabColumn.LEFT;
-        this.slot = 1;
-        this.text = "";
-        this.skin = Skin.GRAY;
-    }
-
-    public BufferedTabObject text(String text) {
-        this.text = text;
-        return this;
-    }
-
-    public BufferedTabObject skin(Skin skin) {
-        this.skin = skin;
-        return this;
-    }
-
-    public BufferedTabObject slot(Integer slot) {
-        this.slot = slot;
-        return this;
-    }
-
-    public BufferedTabObject ping(Integer ping) {
-        this.ping = ping;
-        return this;
-    }
-
-    public BufferedTabObject column(TabColumn tabColumn) {
-        this.column = tabColumn;
-        return this;
-    }
 }

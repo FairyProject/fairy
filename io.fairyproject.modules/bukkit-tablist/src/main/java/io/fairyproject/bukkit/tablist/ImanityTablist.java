@@ -25,11 +25,8 @@
 package io.fairyproject.bukkit.tablist;
 
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
-import io.fairyproject.bukkit.tablist.util.BufferedTabObject;
-import io.fairyproject.bukkit.tablist.util.LegacyClientUtil;
-import io.fairyproject.bukkit.tablist.util.TabColumn;
-import io.fairyproject.bukkit.tablist.util.TabEntry;
-import io.fairyproject.bukkit.util.Skin;
+import io.fairyproject.bukkit.tablist.util.*;
+import io.fairyproject.module.Modular;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -39,6 +36,9 @@ import io.fairyproject.util.CC;
 
 import java.util.*;
 
+@Modular(
+        value = "bukkit-tablist"
+)
 @Getter
 public class ImanityTablist {
 
