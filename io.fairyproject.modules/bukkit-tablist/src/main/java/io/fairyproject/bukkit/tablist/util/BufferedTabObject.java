@@ -24,33 +24,45 @@
 
 package io.fairyproject.bukkit.tablist.util;
 
-import io.fairyproject.bukkit.util.Skin;
-import org.bukkit.entity.Player;
-import io.fairyproject.bukkit.tablist.ImanityTablist;
+import lombok.Getter;
 
-public interface IImanityTabImpl {
+@Getter
+public class BufferedTabObject {
+    private TabColumn column;
+    private Integer ping;
+    private int slot;
+    private String text;
+    private Skin skin;
 
-    default void removeSelf(Player player) {}
+    public BufferedTabObject() {
+        this.column = TabColumn.LEFT;
+        this.slot = 1;
+        this.text = "";
+        this.skin = Skin.GRAY;
+    }
 
-    void registerLoginListener();
+    public BufferedTabObject text(String text) {
+        this.text = text;
+        return this;
+    }
 
-    TabEntry createFakePlayer(
-            ImanityTablist imanityTablist, String string, TabColumn column, Integer slot, Integer rawSlot
-    );
+    public BufferedTabObject skin(Skin skin) {
+        this.skin = skin;
+        return this;
+    }
 
-    void updateFakeName(
-            ImanityTablist imanityTablist, TabEntry tabEntry, String text
-    );
+    public BufferedTabObject slot(Integer slot) {
+        this.slot = slot;
+        return this;
+    }
 
-    void updateFakeLatency(
-            ImanityTablist imanityTablist, TabEntry tabEntry, Integer latency
-    );
+    public BufferedTabObject ping(Integer ping) {
+        this.ping = ping;
+        return this;
+    }
 
-    void updateFakeSkin(
-            ImanityTablist imanityTablist, TabEntry tabEntry, Skin skin
-    );
-
-    void updateHeaderAndFooter(
-            ImanityTablist imanityTablist, String header, String footer
-    );
+    public BufferedTabObject column(TabColumn tabColumn) {
+        this.column = tabColumn;
+        return this;
+    }
 }

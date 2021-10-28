@@ -43,7 +43,8 @@ void initModules() {
     include "io.fairyproject.modules:bukkit-menu"
     include "io.fairyproject.modules:bukkit-nms"
     include "io.fairyproject.modules:bukkit-xseries"
-    include "io.fairyproject.modules:bukkit-sidebar" //<--
+    include "io.fairyproject.modules:bukkit-sidebar"
+    include "io.fairyproject.modules:bukkit-tablist"
 
     include "io.fairyproject.modules:command:core-command"
     include "io.fairyproject.modules:command:bukkit-command"
@@ -73,4 +74,3 @@ initPlatforms()
 
 include "io.fairyproject.gradle-plugin"
 findProject(':io.fairyproject.modules:storage:bukkit-storage')?.name = 'bukkit-storage'
-

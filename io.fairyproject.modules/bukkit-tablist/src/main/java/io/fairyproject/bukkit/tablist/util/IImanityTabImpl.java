@@ -24,25 +24,32 @@
 
 package io.fairyproject.bukkit.tablist.util;
 
-import io.fairyproject.bukkit.util.Skin;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import org.bukkit.entity.Player;
 import io.fairyproject.bukkit.tablist.ImanityTablist;
 
-import java.util.UUID;
+public interface IImanityTabImpl {
 
-@Getter @Setter @AllArgsConstructor
-public class TabEntry {
+    default void removeSelf(Player player) {}
 
-    private String id;
-    private UUID uuid;
-    private String text;
-    private ImanityTablist tab;
-    private Skin texture;
-    private TabColumn column;
-    private int slot;
-    private int rawSlot;
-    private int latency;
+    void registerLoginListener();
 
+    TabEntry createFakePlayer(
+            ImanityTablist imanityTablist, String string, TabColumn column, Integer slot, Integer rawSlot
+    );
+
+    void updateFakeName(
+            ImanityTablist imanityTablist, TabEntry tabEntry, String text
+    );
+
+    void updateFakeLatency(
+            ImanityTablist imanityTablist, TabEntry tabEntry, Integer latency
+    );
+
+    void updateFakeSkin(
+            ImanityTablist imanityTablist, TabEntry tabEntry, Skin skin
+    );
+
+    void updateHeaderAndFooter(
+            ImanityTablist imanityTablist, String header, String footer
+    );
 }

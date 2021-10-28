@@ -31,16 +31,12 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.*;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
-import io.fairyproject.bukkit.util.Skin;
+import io.fairyproject.bukkit.tablist.util.*;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.bukkit.tablist.ImanityTablist;
-import io.fairyproject.bukkit.tablist.util.IImanityTabImpl;
-import io.fairyproject.bukkit.tablist.util.LegacyClientUtil;
-import io.fairyproject.bukkit.tablist.util.TabColumn;
-import io.fairyproject.bukkit.tablist.util.TabEntry;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.util.CC;
 
