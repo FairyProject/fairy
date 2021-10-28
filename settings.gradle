@@ -46,6 +46,7 @@ void initModules() {
     include "io.fairyproject.modules:bukkit-sidebar"
     include "io.fairyproject.modules:bukkit-tablist"
     include "io.fairyproject.modules:bukkit-nametag"
+    include "io.fairyproject.modules:bukkit-visibility"
 
     include "io.fairyproject.modules:command:core-command"
     include "io.fairyproject.modules:command:bukkit-command"
