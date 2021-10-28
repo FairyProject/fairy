@@ -25,37 +25,41 @@
 rootProject.name = "fairy-parent"
 
 void initPlatforms() {
-    include "platforms:bukkit-platform"
-    include "platforms:mc-platform"
-    include "platforms:core-platform"
+    include "io.fairyproject.platforms:bukkit-platform"
+    include "io.fairyproject.platforms:mc-platform"
+    include "io.fairyproject.platforms:core-platform"
 }
 
 void initBootstrap() {
-    include "bootstraps:bukkit-bootstrap"
-    include "bootstraps:bootstrap"
+    include "io.fairyproject.bootstraps:bukkit-bootstrap"
+    include "io.fairyproject.bootstraps:bootstrap"
 }
 
 void initModules() {
-    include "modules:bukkit-legacy"
-    include "modules:bukkit-timer"
-    include "modules:bukkit-items"
-    include "modules:bukkit-hologram"
-    include "modules:bukkit-menu"
-    include "modules:bukkit-nms"
-    include "modules:bukkit-xseries"
+    include "io.fairyproject.modules:bukkit-legacy"
+    include "io.fairyproject.modules:bukkit-timer"
+    include "io.fairyproject.modules:bukkit-items"
+    include "io.fairyproject.modules:bukkit-hologram"
+    include "io.fairyproject.modules:bukkit-menu"
+    include "io.fairyproject.modules:bukkit-nms"
+    include "io.fairyproject.modules:bukkit-xseries"
+    include "io.fairyproject.modules:bukkit-sidebar" //<--
 
-    include "modules:command:core-command"
-    include "modules:command:bukkit-command"
+    include "io.fairyproject.modules:command:core-command"
+    include "io.fairyproject.modules:command:bukkit-command"
 
-    include "modules:locale:bukkit-locale"
-    include "modules:locale:mc-locale"
+    include "io.fairyproject.modules:locale:bukkit-locale"
+    include "io.fairyproject.modules:locale:mc-locale"
 
-    include "modules:storage:bukkit-storage"
-    include "modules:storage:core-storage"
+    include "io.fairyproject.modules:storage:bukkit-storage"
+    include "io.fairyproject.modules:storage:core-storage"
 
-    include "modules:core-legacy"
-    include "modules:module-annotationProcessor"
-    include "modules:module-annotations"
+    include "io.fairyproject.modules:core-legacy"
+    include "io.fairyproject.modules:core-jackson"
+    include "io.fairyproject.modules:core-config"
+
+    include "io.fairyproject.modules:module-annotationProcessor"
+    include "io.fairyproject.modules:module-annotations"
 }
 
 void initBukkit() {
@@ -67,7 +71,6 @@ initBootstrap()
 initModules()
 initPlatforms()
 
-include "gradle-plugin"
-include 'modules:storage:bukkit-storage'
-findProject(':modules:storage:bukkit-storage')?.name = 'bukkit-storage'
+include "io.fairyproject.gradle-plugin"
+findProject(':io.fairyproject.modules:storage:bukkit-storage')?.name = 'bukkit-storage'
 

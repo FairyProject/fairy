@@ -1,0 +1,7 @@
+dependencies {
+    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
+
+    implementation project(":io.fairyproject.modules:module-annotations")
+    annotationProcessor project(":io.fairyproject.modules:module-annotationProcessor")
+}

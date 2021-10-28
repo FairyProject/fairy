@@ -22,8 +22,36 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":io.fairyproject.platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package io.fairyproject.locale;
+
+import io.fairyproject.bean.Autowired;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.util.Locale;
+import java.util.UUID;
+
+@Getter
+@Setter
+@Entity
+@NoArgsConstructor
+@Table(name = "locale")
+public class LocaleData {
+
+    @Autowired
+    private static LocaleService LOCALE_SERVICE;
+
+    @Id
+    private UUID uuid;
+    private Locale locale;
+
+    public LocaleData(UUID uuid) {
+        this.uuid = uuid;
+        this.locale = LOCALE_SERVICE.getLocalizationConfiguration().getDefaultLocale();
+    }
+
 }

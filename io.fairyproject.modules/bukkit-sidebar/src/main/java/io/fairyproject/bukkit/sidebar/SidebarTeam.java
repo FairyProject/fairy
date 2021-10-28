@@ -22,8 +22,32 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":io.fairyproject.platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package io.fairyproject.bukkit.sidebar;
+
+import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+@Builder
+public class SidebarTeam {
+
+    private final String name;
+    private final String prefix;
+    private final boolean friendlyInvisibles;
+    private final boolean friendlyFire;
+
+    private final List<String> nameSet = new ArrayList<>();
+
+    public void addName(String name) {
+        if (!this.nameSet.contains(name)) {
+            this.nameSet.add(name);
+        }
+    }
+
+    public void removeName(String name) {
+        this.nameSet.remove(name);
+    }
+
 }

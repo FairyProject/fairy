@@ -22,8 +22,33 @@
  * SOFTWARE.
  */
 
-dependencies {
-    compileOnly project(":io.fairyproject.platforms:bukkit-platform")
-    compileOnly name: "ImanitySpigotAPI"
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+package io.fairyproject.bukkit.sidebar;
+
+import org.bukkit.entity.Player;
+
+import java.util.List;
+
+public interface SidebarAdapter {
+
+    default void onBoardCreate(Player player, Sidebar board) {
+
+    }
+
+
+    String getTitle(Player player);
+
+    List<String> getLines(Player player);
+
+    /**
+     *
+     * This will only work when this adapter is highest priority
+     *
+     * @return the update tick, -1 if you want lower priority to decide it or use default one
+     */
+    default int tick() {
+        return -1;
+    }
+
+    default int priority() { return 0; }
+
 }

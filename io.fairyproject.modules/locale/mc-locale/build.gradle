@@ -1,0 +1,7 @@
+dependencies {
+    compileOnly project(":io.fairyproject.modules:storage:core-storage")
+    compileOnly project(":io.fairyproject.platforms:mc-platform")
+
+    implementation project(":io.fairyproject.modules:module-annotations")
+    annotationProcessor project(":io.fairyproject.modules:module-annotationProcessor")
+}

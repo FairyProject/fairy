@@ -1,0 +1,4 @@
+dependencies {
+    implementation "com.google.code.gson:gson:" + findProperty("gson.version")
+    implementation project(":io.fairyproject.modules:module-annotations")
+}

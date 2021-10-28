@@ -1,0 +1,3 @@
+dependencies {
+    compileOnly project(":io.fairyproject.platforms:core-platform")
+}

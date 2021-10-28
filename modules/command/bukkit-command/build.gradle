@@ -1,8 +1,0 @@
-dependencies {
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
-    compileOnly project(":modules:command:core-command")
-    compileOnly project(":modules:bukkit-xseries")
-
-    implementation project(":modules:module-annotations")
-    annotationProcessor project(":modules:module-annotationProcessor")
-}

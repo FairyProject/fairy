@@ -70,21 +70,21 @@ allprojects {
 }
 
 static boolean isIndependentModule(String name) {
-    return name.contains("bootstrap") || name == "gradle-plugin"
+    return name.contains("bootstrap") || name == "io.fairyproject.gradle-plugin"
 }
 
 static boolean isExludedModule(String name) {
-    return name == "module-annotations" || name == "module-annotationProcessor" || name == "gradle-plugin"
+    return name == "module-annotations" || name == "module-annotationProcessor" || name == "io.fairyproject.gradle-plugin"
 }
 
-static boolean isNotJavaProject(String name) {
+static boolean isNotJavaProject(Project project) {
     // TODO - better way
-    return name == "bootstraps" || name == "modules" || name == "platforms" || name == "locale" || name == "storage"
+    return project.file("build.gradle") == null || project.name == "locale" || project.name == "storage"
 }
 
 subprojects {
     // Exclude anything that wasn't suppose to load as java project
-    if (isNotJavaProject(project.name)) {
+    if (isNotJavaProject(project)) {
         return
     }
 
@@ -144,12 +144,12 @@ subprojects {
 
             if (names[1] == "platform") {
                 if (names[0] != "core") {
-                    api project(":platforms:core-platform")
+                    api project(":io.fairyproject.platforms:core-platform")
                 }
             } else if (!isExludedModule(project.name)) {
                 def platformName = names[0]
 
-                compileOnly project(":platforms:$platformName-platform")
+                compileOnly project(":io.fairyproject.platforms:$platformName-platform")
             }
         }
 
@@ -185,7 +185,7 @@ subprojects {
         if (!project.name.contains("platform")) {
             shadowJar {
                 dependencies {
-                    exclude(project(":platforms:core-platform"))
+                    exclude(project(":io.fairyproject.platforms:core-platform"))
                     exclude(dependency(AspectJRuntime))
                 }
             }

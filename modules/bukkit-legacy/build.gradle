@@ -1,9 +1,0 @@
-dependencies {
-    compileOnly project(":platforms:bukkit-platform")
-    compileOnly project(":modules:core-legacy")
-
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
-    compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
-    implementation project(":modules:module-annotations")
-    annotationProcessor project(":modules:module-annotationProcessor")
-}
