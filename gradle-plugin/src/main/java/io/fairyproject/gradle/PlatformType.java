@@ -14,7 +14,12 @@ public enum PlatformType {
     BUNGEE,
     VELOCITY,
     NUKKIT,
-    INDEPENDENT;
+    APP {
+        @Override
+        public FileGenerator createFileGenerator() {
+            return null;
+        }
+    };
 
     public String getDependencyName() {
         return this.name().toLowerCase();

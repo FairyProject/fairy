@@ -6,6 +6,6 @@ public enum PlatformType {
     BUNGEE,
     VELOCITY,
     NUKKIT,
-    INDEPENDENT
+    APP
 
 }

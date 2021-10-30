@@ -32,6 +32,7 @@ import java.util.jar.JarOutputStream;
 public class FairyTask extends DefaultTask {
 
     private static final String PLUGIN_CLASS_PATH = "io/fairyproject/plugin/Plugin";
+    private static final String APPLICATION_CLASS_PATH = "io/fairyproject/app/Application";
 
     @InputFile
     private File inJar;
@@ -77,7 +78,7 @@ public class FairyTask extends DefaultTask {
                         classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
                         // is Main Plugin class
-                        if (classNode.superName != null && classNode.superName.equals(PLUGIN_CLASS_PATH)) {
+                        if (classNode.superName != null && (classNode.superName.equals(PLUGIN_CLASS_PATH) || classNode.superName.equals(APPLICATION_CLASS_PATH))) {
                             if (mainClass != null) {
                                 throw new IllegalStateException("Multiple main class found! (Current: " + mainClass + ", Another: " + classNode.name + ")");
                             }
@@ -93,6 +94,8 @@ public class FairyTask extends DefaultTask {
 
             for (PlatformType platformType : this.extension.getFairyPlatforms().get()) {
                 final FileGenerator fileGenerator = platformType.createFileGenerator();
+                if (fileGenerator == null)
+                    continue;
 
                 final Pair<String, byte[]> pair = fileGenerator.generate(this.extension, mainClass);
                 out.putNextEntry(new JarEntry(pair.getLeft()));

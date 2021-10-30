@@ -94,6 +94,10 @@ public class FairyPlugin implements Plugin<Project> {
             Jar jar = (Jar) p.getTasks().getByName("jar");
             jar.finalizedBy(fairyTask);
 
+            if (platformTypes.contains(PlatformType.APP)) {
+                jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.Main");
+            }
+
             List<Object> list = new ArrayList<>();
             for (File file : fairyConfiguration) {
                 list.add(file.isDirectory() ? file : project.zipTree(file));

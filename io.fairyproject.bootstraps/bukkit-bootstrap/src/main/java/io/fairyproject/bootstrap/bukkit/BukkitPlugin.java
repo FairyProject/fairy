@@ -36,7 +36,7 @@ public final class BukkitPlugin extends JavaPlugin {
             throw new IllegalArgumentException("Unable to load " + FAIRY_JSON_PATH, throwable);
         }
 
-        this.pluginHolder = new BukkitPluginHolder(jsonObject, this);
+        this.pluginHolder = new BukkitPluginHolder(jsonObject);
         this.pluginHolder.onLoad();
     }
 

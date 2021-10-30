@@ -32,7 +32,7 @@ plugins {
 
 allprojects {
     group = "io.fairyproject"
-    version = "0.5b58"
+    version = "0.5b59"
 
     repositories {
         mavenCentral()
@@ -70,11 +70,11 @@ allprojects {
 }
 
 static boolean isIndependentModule(String name) {
-    return name.contains("bootstrap") || name == "io.fairyproject.gradle-plugin"
+    return name.contains("bootstrap") || name == "gradle-plugin"
 }
 
 static boolean isExludedModule(String name) {
-    return name == "module-annotations" || name == "module-annotationProcessor" || name == "io.fairyproject.gradle-plugin"
+    return name == "module-annotations" || name == "module-annotationProcessor" || name == "gradle-plugin"
 }
 
 static boolean isNotJavaProject(Project project) {

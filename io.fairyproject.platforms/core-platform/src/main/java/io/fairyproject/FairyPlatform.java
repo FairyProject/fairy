@@ -49,7 +49,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @Getter
 public abstract class FairyPlatform {
 
-    private static final Logger LOGGER = LogManager.getLogger(FairyPlatform.class);
+    public static final Logger LOGGER = LogManager.getLogger(FairyPlatform.class);
 
     public static FairyPlatform INSTANCE;
 

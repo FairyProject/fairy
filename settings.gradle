@@ -25,6 +25,7 @@
 rootProject.name = "fairy-parent"
 
 void initPlatforms() {
+    include "io.fairyproject.platforms:app-platform"
     include "io.fairyproject.platforms:bukkit-platform"
     include "io.fairyproject.platforms:mc-platform"
     include "io.fairyproject.platforms:core-platform"
@@ -32,6 +33,7 @@ void initPlatforms() {
 
 void initBootstrap() {
     include "io.fairyproject.bootstraps:bukkit-bootstrap"
+    include "io.fairyproject.bootstraps:app-bootstrap"
     include "io.fairyproject.bootstraps:bootstrap"
 }
 
@@ -72,5 +74,5 @@ initBootstrap()
 initModules()
 initPlatforms()
 
-include "io.fairyproject.gradle-plugin"
+include "gradle-plugin"
 findProject(':io.fairyproject.modules:storage:bukkit-storage')?.name = 'bukkit-storage'
