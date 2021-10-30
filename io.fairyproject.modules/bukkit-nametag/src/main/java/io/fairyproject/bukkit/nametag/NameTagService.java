@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.Fairy;
 import io.fairyproject.bean.*;
 import io.fairyproject.bukkit.nametag.impl.DefaultNameTagAdapter;
+import io.fairyproject.module.Modular;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import io.fairyproject.bukkit.Imanity;
@@ -43,6 +44,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Modular(
+        value = "bukkit-nametag"
+)
 @Service(name = "nametag")
 public class NameTagService {
 

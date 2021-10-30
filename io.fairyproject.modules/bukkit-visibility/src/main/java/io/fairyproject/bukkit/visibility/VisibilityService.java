@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.visibility;
 
+import io.fairyproject.module.Modular;
 import org.bukkit.entity.Player;
 import io.fairyproject.bean.PreInitialize;
 import io.fairyproject.bukkit.Imanity;
@@ -34,6 +35,9 @@ import io.fairyproject.bean.Service;
 import java.util.LinkedList;
 import java.util.List;
 
+@Modular(
+        value = "bukkit-visibility"
+)
 @Service(name = "visibility")
 public class VisibilityService {
 

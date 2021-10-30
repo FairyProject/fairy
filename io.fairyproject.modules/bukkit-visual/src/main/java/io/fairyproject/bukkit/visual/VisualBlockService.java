@@ -34,6 +34,7 @@ import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
 import io.fairyproject.bukkit.visual.type.VisualType;
+import io.fairyproject.module.Modular;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -60,6 +61,9 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+@Modular(
+        value = "bukkit-visual"
+)
 @Service(name = "visualBlockService")
 public class VisualBlockService implements TaskRunnable {
 
