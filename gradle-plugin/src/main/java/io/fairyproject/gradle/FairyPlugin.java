@@ -95,7 +95,7 @@ public class FairyPlugin implements Plugin<Project> {
             jar.finalizedBy(fairyTask);
 
             if (platformTypes.contains(PlatformType.APP)) {
-                jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.Main");
+                jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
             }
 
             List<Object> list = new ArrayList<>();

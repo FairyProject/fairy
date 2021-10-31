@@ -31,8 +31,12 @@ plugins {
 }
 
 allprojects {
+    if (isNotJavaProject(project)) {
+        project.tasks.all { task -> task.enabled = false }
+        return
+    }
     group = "io.fairyproject"
-    version = "0.5b59"
+    version = "0.5b66"
 
     repositories {
         mavenCentral()
@@ -79,12 +83,13 @@ static boolean isExludedModule(String name) {
 
 static boolean isNotJavaProject(Project project) {
     // TODO - better way
-    return project.file("build.gradle") == null || project.name == "locale" || project.name == "storage"
+    return project.file("build.gradle") == null
 }
 
 subprojects {
     // Exclude anything that wasn't suppose to load as java project
     if (isNotJavaProject(project)) {
+        project.tasks.all { task -> task.enabled = false }
         return
     }
 

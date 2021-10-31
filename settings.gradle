@@ -51,6 +51,8 @@ void initModules() {
     include "io.fairyproject.modules:bukkit-visibility"
     include "io.fairyproject.modules:bukkit-visual"
 
+    include "io.fairyproject.modules:discord:core-discord"
+
     include "io.fairyproject.modules:command:core-command"
     include "io.fairyproject.modules:command:bukkit-command"
 

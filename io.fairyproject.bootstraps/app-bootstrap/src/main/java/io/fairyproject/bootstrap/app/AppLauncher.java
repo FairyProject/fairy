@@ -15,7 +15,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Objects;
 
-public class Main {
+public class AppLauncher {
 
     private static final String FAIRY_JSON_PATH = "fairy.json";
 
@@ -48,7 +48,7 @@ public class Main {
             throw new IllegalArgumentException("Filename cannot be null");
         } else {
             try {
-                URL url = Main.class.getClassLoader().getResource(filename);
+                URL url = AppLauncher.class.getClassLoader().getResource(filename);
                 if (url == null) {
                     return null;
                 } else {
@@ -85,7 +85,7 @@ public class Main {
         thread.setDaemon(true);
         thread.start();
 
-        LogManager.getLogger(Main.class).info("Console initialized.");
+        LogManager.getLogger(AppLauncher.class).info("Console initialized.");
     }
 
 }

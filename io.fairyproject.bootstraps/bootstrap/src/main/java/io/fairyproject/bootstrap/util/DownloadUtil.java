@@ -1,6 +1,5 @@
 package io.fairyproject.bootstrap.util;
 
-import com.google.common.io.ByteStreams;
 import lombok.experimental.UtilityClass;
 
 import java.io.IOException;
@@ -27,7 +26,9 @@ public class DownloadUtil {
         if (responseCode >= 200 && responseCode < 300) {
             byte[] bytes;
             try (InputStream in = connection.getInputStream()) {
-                bytes = ByteStreams.toByteArray(in);
+                bytes = new byte[in.available()];
+
+                in.read(bytes);
                 if (bytes.length == 0) {
                     throw new IllegalStateException("Empty stream");
                 }

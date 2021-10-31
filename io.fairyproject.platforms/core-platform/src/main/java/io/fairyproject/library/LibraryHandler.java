@@ -166,9 +166,9 @@ public class LibraryHandler {
 
     }
 
-    private void loadLibrary(Library library, boolean addToUCP) throws Exception {
+    private Path loadLibrary(Library library, boolean addToUCP) throws Exception {
         if (loaded.containsKey(library)) {
-            return;
+            return loaded.get(library);
         }
 
         Path file = this.remapLibrary(library, this.downloadLibrary(library));
@@ -180,6 +180,7 @@ public class LibraryHandler {
                 classLoader.addJarToClasspath(file);
             }
         }
+        return file;
     }
 
     private Path remapLibrary(Library library, Path normalFile) {

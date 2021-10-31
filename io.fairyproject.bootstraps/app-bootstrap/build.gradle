@@ -18,7 +18,7 @@ dependencies {
 tasks.jar {
     manifest {
         attributes(
-                "MainClass": "io.fairyproject.bootstrap.app.Main",
+                "MainClass": "io.fairyproject.bootstrap.app.AppLauncher",
                 "Multi-Release": "true"
         )
     }

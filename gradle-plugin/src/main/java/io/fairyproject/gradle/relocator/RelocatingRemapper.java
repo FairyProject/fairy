@@ -53,6 +53,9 @@ final class RelocatingRemapper extends Remapper {
     public Object mapValue(Object object) {
         if (object instanceof String) {
             String relocatedName = relocate((String) object, true);
+            if (object.equals("io.fairyproject.bootstrap.app.AppLauncher")) {
+                System.out.println(">> " + relocatedName);
+            }
             if (relocatedName != null) {
                 return relocatedName;
             }
@@ -80,7 +83,7 @@ final class RelocatingRemapper extends Remapper {
         }
 
         for (Relocation r : this.rules) {
-            if (r.isOnlyRelocateShaded() && !task.isExistingEntry(name)) {
+            if (r.isOnlyRelocateShaded() && !task.isExistingEntry(isStringValue && name.indexOf('/') == -1 ? name.replace('.', '/') : name)) {
                 continue;
             }
             if (isStringValue && r.canRelocateClass(name)) {

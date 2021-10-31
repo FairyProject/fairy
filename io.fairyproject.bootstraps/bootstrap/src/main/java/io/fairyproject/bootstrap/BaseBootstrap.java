@@ -1,9 +1,8 @@
 package io.fairyproject.bootstrap;
 
-import com.google.common.base.Preconditions;
 import io.fairyproject.bootstrap.type.PlatformType;
+import io.fairyproject.bootstrap.util.ClassLoaderUtil;
 import io.fairyproject.bootstrap.util.DownloadUtil;
-import io.fairyproject.bootstrap.util.FairyClassLoader;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +14,7 @@ public abstract class BaseBootstrap {
 
     public static ClassLoader CLASS_LOADER;
     public static void join(@NotNull Runnable runnable) {
-        Preconditions.checkNotNull(CLASS_LOADER);
+        assert CLASS_LOADER != null;
 
         final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(CLASS_LOADER);
@@ -56,7 +55,7 @@ public abstract class BaseBootstrap {
     }
 
     public boolean loadJar(Path jarPath) throws Exception {
-        CLASS_LOADER = new FairyClassLoader(jarPath);
+        CLASS_LOADER = ClassLoaderUtil.addURLToClassLoader(jarPath);
         return true;
     }
 

@@ -40,7 +40,7 @@ public class LibraryRepository {
 
     private final String url;
 
-    LibraryRepository(String url) {
+    public LibraryRepository(String url) {
         this.url = url;
     }
 

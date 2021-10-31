@@ -9,6 +9,7 @@ import org.gradle.api.provider.Property;
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 @Getter
@@ -79,6 +80,10 @@ public class FairyExtension {
 
     public void module(String name) {
         this.fairyModules.add(name);
+    }
+
+    public void platform(String platformName) {
+        this.fairyPlatforms.add(PlatformType.valueOf(platformName.toUpperCase()));
     }
 
     public Map<String, String> properties(PlatformType type) {

@@ -26,7 +26,9 @@ package io.fairyproject.library;
 
 import com.google.gson.JsonObject;
 import io.fairyproject.library.relocate.Relocate;
+import lombok.Builder;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -190,6 +192,10 @@ public class Library {
         this(groupId, artifactId, version, version, checksum, relocations);
     }
 
+    public Library(String groupId, String artifactId, String version, String checksum, LibraryRepository repository, Relocate... relocations) {
+        this(groupId, artifactId, version, version, checksum, repository, relocations);
+    }
+
     public Library(String groupId, String artifactId, String versionPackage, String version, String checksum, Relocate... relocations) {
         this(groupId, artifactId, version, versionPackage, checksum, null, relocations);
     }
@@ -279,6 +285,85 @@ public class Library {
         }
 
         return new Library(groupId, artifactId, null, version, checksum, libraryRepository, relocates);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private String groupId;
+        private String artifactId;
+        private String version;
+        private String versionPackaging;
+        private String checksum;
+        private LibraryRepository repository = LibraryRepository.MAVEN_CENTRAL;
+        private final List<Relocate> relocates = new ArrayList<>();
+
+        public Builder gradle(@NotNull String dependency) {
+            final String[] split = dependency.split(":");
+            if (split.length != 3) {
+                throw new IllegalArgumentException("Cannot parse gradle dependency tag.");
+            }
+
+            this.groupId(split[0]);
+            this.artifactId(split[1]);
+            this.version(split[2]);
+            return this;
+        }
+
+        public Builder groupId(@NotNull String groupId) {
+            this.groupId = groupId;
+            return this;
+        }
+
+        public Builder artifactId(@NotNull String artifactId) {
+            this.artifactId = artifactId;
+            return this;
+        }
+
+        public Builder version(@NotNull String version) {
+            this.version = version;
+            this.versionPackaging = version;
+            return this;
+        }
+
+        public Builder version(@NotNull String version, @NotNull String versionPackaging) {
+            this.version = version;
+            this.versionPackaging = versionPackaging;
+            return this;
+        }
+
+        public Builder repository(@NotNull LibraryRepository repository) {
+            this.repository = repository;
+            return this;
+        }
+
+        public Builder repository(@NotNull String repository) {
+            this.repository = new LibraryRepository(repository);
+            return this;
+        }
+
+        public Builder checksum(@NotNull String checksum) {
+            this.checksum = checksum;
+            return this;
+        }
+
+        public Builder relocate(@NotNull Relocate relocate) {
+            this.relocates.add(relocate);
+            return this;
+        }
+
+        public Library build() {
+            assert this.groupId != null;
+            assert this.artifactId != null;
+            assert this.version != null;
+            assert this.versionPackaging != null;
+
+            return new Library(this.groupId, this.artifactId, this.versionPackaging, this.version, checksum, this.repository, relocates.toArray(new Relocate[0]));
+        }
+
     }
 
 }

@@ -24,14 +24,19 @@
 
 package io.fairyproject.reflect;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.gson.annotations.SerializedName;
+import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import io.fairyproject.reflect.asm.AsmAnalyser;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.units.qual.A;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import sun.misc.Unsafe;
 
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
@@ -69,6 +74,32 @@ public class Reflect {
 
     public static MethodHandles.Lookup lookup() {
         return LOOKUP;
+    }
+
+    public static <T, A extends Annotation> T getAnnotationValue(Class<?> annotatedClass, Class<A> annotation, AnnotationValueFunction<A, T> function) {
+        final A a = annotatedClass.getAnnotation(annotation);
+        return function.apply(a);
+    }
+
+    public static <T, A extends Annotation> T getAnnotationValueOrNull(Class<?> annotatedClass, Class<A> annotation, Function<A, T> function) {
+        final A a = annotatedClass.getAnnotation(annotation);
+        if (a == null)
+            return null;
+        return function.apply(a);
+    }
+
+    public static <T, A extends Annotation> T getAnnotationValueOrThrow(Class<?> annotatedClass, Class<A> annotation, Function<A, T> function) {
+        final A a = annotatedClass.getAnnotation(annotation);
+        if (a == null) {
+            throw new IllegalArgumentException("Couldn't find annotation " + annotation + " on " + annotatedClass + ".");
+        }
+        return function.apply(a);
+    }
+
+    public interface AnnotationValueFunction<A extends Annotation, T> extends Function<A, T> {
+
+        @Override
+        @NonNull T apply(@Nullable A input);
     }
 
     public static <T> Class<T> getParameter(Field field, int index) {
