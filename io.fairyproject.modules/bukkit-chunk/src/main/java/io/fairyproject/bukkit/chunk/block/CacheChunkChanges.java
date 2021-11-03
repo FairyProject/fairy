@@ -40,16 +40,15 @@ public class CacheChunkChanges {
     }
 
     public void place(Chunk chunk) {
-
         BlockPosition.MutableBlockPosition blockPosition = new BlockPosition.MutableBlockPosition();
-        for (CacheBlockChange blockChange : this.blockChanges) {
 
+        for (CacheBlockChange blockChange : this.blockChanges) {
             final int combined = blockChange.getMaterial().getId() + (blockChange.getData() << 12);
             final IBlockData ibd = net.minecraft.server.v1_8_R3.Block.getByCombinedId(combined);
 
             int y = blockChange.getY().get(blockChange.getX(), blockChange.getZ(), chunk);
-            chunk.a(blockPosition.c(blockChange.getX(), y, blockChange.getZ()), ibd);
 
+            chunk.a(blockPosition.c(blockChange.getX(), y, blockChange.getZ()), ibd);
             chunk.world.notify(blockPosition);
         }
 

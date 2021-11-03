@@ -36,4 +36,5 @@ public class YLocationFixed implements YLocation {
     public int get(int x, int z, Chunk chunk) {
         return y;
     }
+
 }

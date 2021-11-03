@@ -52,7 +52,7 @@ public class CacheBlockSetHandler {
     }
 
     private final World world;
-    private Map<Long, CacheChunkChanges> cachedChanges = new HashMap<>();
+    private final Map<Long, CacheChunkChanges> cachedChanges = new HashMap<>();
 
     public void setTypeAtHighest(Location location, Material material) {
         this.setTypeAtHighest(location.getBlockX(), location.getBlockZ(), material);
@@ -88,7 +88,6 @@ public class CacheBlockSetHandler {
 
     public void setType(CacheBlockChange blockChange) {
         if (world.isChunkLoaded(blockChange.getX() >> 4, blockChange.getZ() >> 4)) {
-
             Chunk chunk = ((CraftChunk) world.getChunkAt(blockChange.getX() >> 4, blockChange.getZ() >> 4)).getHandle();
 
             final int combined = blockChange.getMaterial().getId() + (blockChange.getData() << 12);
@@ -100,30 +99,27 @@ public class CacheBlockSetHandler {
 
             chunk.world.notify(blockPosition);
             return;
-
         }
-
         long key = LongHash.toLong(blockChange.getX() >> 4, blockChange.getZ() >> 4);
+
         if (cachedChanges.containsKey(key)) {
             cachedChanges.get(key).add(blockChange);
             return;
         }
-
         CacheChunkChanges chunkChanges = new CacheChunkChanges();
         cachedChanges.put(key, chunkChanges);
         chunkChanges.add(blockChange);
     }
 
     protected void placeIfExists(org.bukkit.Chunk chunk) {
-
         long key = LongHash.toLong(chunk.getX(), chunk.getZ());
         CacheChunkChanges chunkChanges = this.cachedChanges.get(key);
+
         if (chunkChanges != null) {
             chunkChanges.place(((CraftChunk) chunk).getHandle());
             chunkChanges.free();
             this.cachedChanges.remove(key);
         }
-
     }
 
 }

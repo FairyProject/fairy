@@ -31,6 +31,7 @@ import io.fairyproject.bean.Service;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.EventSubscription;
 import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.module.Modular;
 import org.bukkit.Chunk;
 import org.bukkit.craftbukkit.v1_8_R3.util.LongHash;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -38,6 +39,9 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import java.util.HashSet;
 import java.util.Set;
 
+@Modular(
+        value = "bukkit-chunk"
+)
 @Service(name = "keepChunk")
 public class KeepChunkService {
 
@@ -47,7 +51,6 @@ public class KeepChunkService {
     @PostInitialize
     public void init() {
         this.chunksToKeep = new HashSet<>();
-
         this.eventSubscription = Events.subscribe(ChunkUnloadEvent.class)
                 .listen((sub, event) -> {
                     Chunk chunk = event.getChunk();
