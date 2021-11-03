@@ -50,10 +50,9 @@ public class BossBarHandler implements Runnable {
     private static final long v1_7_tick = 3L;
     private static final long v1_8_tick = 60L;
 
-    private BossBarAdapter adapter;
+    private final BossBarAdapter adapter;
 
     public BossBarHandler(BossBarAdapter adapter) {
-
         this.adapter = adapter;
 
         Imanity.registerMovementListener(new MovementListener() {
@@ -91,7 +90,6 @@ public class BossBarHandler implements Runnable {
                 bossBar.destroy(player);
             }
         });
-
         Thread thread = new Thread(this);
         thread.setName("Imanity Boss Bar Thread");
         thread.setDaemon(true);
@@ -102,13 +100,11 @@ public class BossBarHandler implements Runnable {
     @Override
     public void run() {
         while (Fairy.isRunning()) {
-
             try {
                 this.tick();
             } catch (Throwable throwable) {
                 throw new RuntimeException("Something wrong while ticking boss bar", throwable);
             }
-
             try {
                 Thread.sleep(50L);
             } catch (InterruptedException e) {
@@ -116,7 +112,6 @@ public class BossBarHandler implements Runnable {
             }
 
         }
-
         Thread.interrupted();
     }
 
@@ -130,34 +125,28 @@ public class BossBarHandler implements Runnable {
     }
 
     private void tick() {
-
         long now = System.currentTimeMillis();
 
         for (Player player : Imanity.getPlayers()) {
-
             BossBar bossBar = this.getOrCreate(player);
 
             if (now - bossBar.getLastUpdate() < this.getUpdateTick(bossBar)) {
                 continue;
             }
-
             bossBar.setLastUpdate(now);
+
             BossBarData bossBarData = this.adapter.tick(bossBar);
 
             if (bossBarData == null || bossBarData.getHealth() <= 0.0F) {
                 bossBar.destroy(player);
                 continue;
             }
-
             if (bossBarData.getText() == null) {
                 bossBarData.setText("");
             }
-
             bossBarData.setText(CC.translate(bossBarData.getText()));
             bossBar.send(bossBarData);
-
         }
-
     }
 
     public BossBar getOrCreate(Player player) {
@@ -165,5 +154,4 @@ public class BossBarHandler implements Runnable {
                 .provideForPlayer(player)
                 .getOrPut(METADATA, () -> new BossBar(player));
     }
-
 }

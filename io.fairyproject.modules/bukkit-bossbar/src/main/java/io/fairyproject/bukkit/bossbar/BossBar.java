@@ -78,7 +78,6 @@ public class BossBar {
     }
 
     public Location makeLocation(Location base) {
-
         switch (this.version) {
             case V1_7:
                 Location location = base.clone();
