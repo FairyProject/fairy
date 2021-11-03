@@ -38,7 +38,6 @@ void initBootstrap() {
 }
 
 void initModules() {
-    include "io.fairyproject.modules:bukkit-legacy"
     include "io.fairyproject.modules:bukkit-timer"
     include "io.fairyproject.modules:bukkit-items"
     include "io.fairyproject.modules:bukkit-hologram"
