@@ -50,7 +50,14 @@ public class FairyTask extends DefaultTask {
     @TaskAction
     public void run() throws IOException {
         int index = inJar.getName().lastIndexOf('.');
-        String name = inJar.getName().substring(0, index) + (classifier == null ? "" : "-" + classifier) + inJar.getName().substring(index);
+        String fileName = inJar.getName().substring(0, index);
+        if (fileName.endsWith("-" + classifier)) {
+            fileName = fileName.substring(0, fileName.length() - ("-" + classifier).length());
+            final File dest = new File(fileName + "-shadow" + inJar.getName().substring(index));
+            inJar.renameTo(dest);
+            inJar = dest;
+        }
+        String name = fileName + (classifier == null ? "" : "-" + classifier) + inJar.getName().substring(index);
         File outJar = new File(inJar.getParentFile(), name);
 
         File tempOutJar = File.createTempFile(name, ".jar");
@@ -89,7 +96,7 @@ public class FairyTask extends DefaultTask {
             }
 
             if (mainClass == null) {
-                throw new IllegalStateException("No main class found!");
+                System.out.println("No main class found, this project will be considered as a dependency project.");
             }
 
             for (PlatformType platformType : this.extension.getFairyPlatforms().get()) {

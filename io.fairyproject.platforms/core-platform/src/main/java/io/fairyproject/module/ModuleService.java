@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.bean.*;
+import io.fairyproject.util.Stacktrace;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,10 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -37,6 +35,7 @@ public class ModuleService {
 
     private static final Logger LOGGER = LogManager.getLogger(ModuleService.class);
     private static Map<String, Integer> PENDING_MODULES = new HashMap<>();
+
     public static void init() {
         PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
             @Override
@@ -52,7 +51,7 @@ public class ModuleService {
                     }
                 } else {
                     final ModuleService moduleService = Beans.get(ModuleService.class);
-                    for (String name : plugin.getDescription().getModules()) {
+                    plugin.getDescription().getModules().forEach((name, version) -> {
                         final Module module = moduleService.registerByName(name);
 
                         if (module == null) {
@@ -61,7 +60,7 @@ public class ModuleService {
                         }
 
                         module.addRef(); // add reference
-                    }
+                    });
                 }
             }
 
@@ -102,6 +101,7 @@ public class ModuleService {
     }
 
     private final Map<String, Module> moduleByName = new ConcurrentHashMap<>();
+    private final List<ModuleController> controllers = new ArrayList<>();
 
     @PostInitialize
     public void onPreInitialize() {
@@ -112,6 +112,16 @@ public class ModuleService {
             }
             this.registerByName(entry.getKey());
         }
+        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
+                .type(ModuleController.class)
+                .onEnable(obj -> {
+                    ModuleController controller = (ModuleController) obj;
+                    this.controllers.add(controller);
+
+                    this.moduleByName.forEach((k, v) -> controller.onModuleLoad(v));
+                })
+                .onDisable(this.controllers::remove)
+                .build());
         PENDING_MODULES = null;
     }
 
@@ -120,12 +130,12 @@ public class ModuleService {
         return moduleByName.get(name);
     }
 
-    public Module registerByName(String name) {
-        return this.registerByName(name, false);
+    public Module registerByName(String name, String version) {
+        return this.registerByName(name, version, false);
     }
 
     @Nullable
-    public Module registerByName(String name, boolean canAbstract) {
+    public Module registerByName(String name, String version, boolean canAbstract) {
         try {
             LOGGER.info("Registering module " + name + "...");
             final Path path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + ".jar").toPath(), name);
@@ -189,17 +199,14 @@ public class ModuleService {
             }
 
             this.moduleByName.put(name, module);
+            this.onModuleLoad(module);
             BEAN_CONTEXT.scanClasses("Module " + name, classLoader, Collections.singletonList(this.getClass().getClassLoader()), Collections.singleton(classPath));
             return module;
         } catch (Exception e) {
             e.printStackTrace();
 
             if (module != null) {
-                this.moduleByName.remove(module.getName());
-
-                for (Module dependModule : module.getDependModules()) {
-                    dependModule.removeRef();
-                }
+                this.unregister(module);
             }
         }
 
@@ -208,11 +215,32 @@ public class ModuleService {
 
     public void unregister(@NonNull Module module) {
         this.moduleByName.remove(module.getName());
+        this.onModuleUnload(module);
         module.closeAndReportException();
 
         for (Module dependModule : module.getDependModules()) {
             if (dependModule.removeRef() <= 0) {
                 this.unregister(dependModule);
+            }
+        }
+    }
+
+    private void onModuleLoad(Module module) {
+        for (ModuleController controller : this.controllers) {
+            try {
+                controller.onModuleLoad(module);
+            } catch (Throwable throwable) {
+                Stacktrace.print(throwable);
+            }
+        }
+    }
+
+    private void onModuleUnload(Module module) {
+        for (ModuleController controller : this.controllers) {
+            try {
+                controller.onModuleUnload(module);
+            } catch (Throwable throwable) {
+                Stacktrace.print(throwable);
             }
         }
     }

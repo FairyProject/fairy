@@ -9,6 +9,7 @@ import io.fairyproject.gradle.FairyExtension;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 public class FileGeneratorFairy implements FileGenerator {
     @Override
@@ -19,11 +20,11 @@ public class FileGeneratorFairy implements FileGenerator {
         jsonObject.addProperty("mainClass", mainClass);
         jsonObject.addProperty("shadedPackage", extension.getMainPackage().get());
 
-        final List<String> modules = extension.getFairyModules().getOrNull();
+        final Map<String, String> modules = extension.getFairyModules();
         if (modules != null) {
             JsonArray jsonArray = new JsonArray();
-            for (String module : modules) {
-                jsonArray.add(module);
+            for (Map.Entry<String, String> module : modules.entrySet()) {
+                jsonArray.add(module.getKey() + ":" + module.getValue());
             }
             jsonObject.add("modules", jsonArray);
         }

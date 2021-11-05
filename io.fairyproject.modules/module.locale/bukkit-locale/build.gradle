@@ -1,0 +1,10 @@
+dependencies {
+    compileOnly project(":io.fairyproject.modules:module.locale:mc-locale")
+    compileOnly project(":io.fairyproject.modules:module.storage:bukkit-storage")
+    compileOnly project(":io.fairyproject.modules:module.storage:core-storage")
+
+    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+
+    implementation project(":io.fairyproject.modules:annotations")
+    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+}

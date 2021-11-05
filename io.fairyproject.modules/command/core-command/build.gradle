@@ -1,4 +1,0 @@
-dependencies {
-    implementation project(":io.fairyproject.modules:module-annotations")
-    annotationProcessor project(":io.fairyproject.modules:module-annotationProcessor")
-}

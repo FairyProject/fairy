@@ -8,10 +8,12 @@ import io.fairyproject.gradle.aspectj.AspectjCompile;
 import io.fairyproject.gradle.aspectj.DefaultWeavingSourceSet;
 import io.fairyproject.gradle.aspectj.WeavingSourceSet;
 import io.fairyproject.gradle.relocator.Relocation;
+import io.fairyproject.gradle.util.VersionRetrieveUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
@@ -78,20 +80,25 @@ public class FairyPlugin implements Plugin<Project> {
             }
 
             final Configuration copy = fairyModuleConfiguration.copy();
-            for (String moduleName : this.extension.getFairyModules().get()) {
+            for (Map.Entry<String, String> moduleEntry : this.extension.getFairyModules().entrySet()) {
                 final Dependency dependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                        this.extension.getFairyVersion().get(),
-                        moduleName
+                        moduleEntry.getValue(),
+                        moduleEntry.getKey()
                 ));
 
                 try {
-                    new ModuleReader(project, fairyModuleConfiguration, copy, new HashSet<>()).load(moduleName, dependency, new ArrayList<>());
+                    new ModuleReader(project, extension, fairyModuleConfiguration, copy, new HashSet<>()).load(moduleEntry.getKey(), dependency, new ArrayList<>());
                 } catch (IOException e) {
                     throw new IllegalArgumentException("An error occurs while reading dependency");
                 }
             }
 
-            Jar jar = (Jar) p.getTasks().getByName("jar");
+            Jar jar;
+            try {
+                jar = (Jar) p.getTasks().getByName("shadowJar");
+            } catch (UnknownTaskException ex) {
+                jar = (Jar) p.getTasks().getByName("jar");
+            }
             jar.finalizedBy(fairyTask);
 
             if (platformTypes.contains(PlatformType.APP)) {
@@ -196,6 +203,7 @@ public class FairyPlugin implements Plugin<Project> {
 
         private final Gson gson = new Gson();
         private final Project project;
+        private final FairyExtension extension;
         private final Configuration fairyModuleConfiguration;
         private final Configuration copiedConfiguration;
         private final Set<String> allLoadedModules;
@@ -246,14 +254,18 @@ public class FairyPlugin implements Plugin<Project> {
             }
         }
 
-        private List<Pair<String, Dependency>> readDependencies(JsonObject jsonObject) {
+        private List<Pair<String, Dependency>> readDependencies(JsonObject jsonObject) throws IOException {
             List<Pair<String, Dependency>> list = new ArrayList<>();
             if (jsonObject.has("depends")) {
                 for (JsonElement element : jsonObject.getAsJsonArray("depends")) {
                     JsonObject dependJson = element.getAsJsonObject();
                     final String name = dependJson.get("module").getAsString();
+                    String version = extension.getFairyModules().getOrDefault(name, null);
+                    if (version == null) {
+                        version = VersionRetrieveUtil.getLatest(name);
+                    }
                     list.add(Pair.of(name, this.project.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                            extension.getFairyVersion().get(),
+                            version,
                             name
                     ))));
                 }

@@ -124,7 +124,8 @@ public class BeanContext {
 
                 @Override
                 public void onPluginEnable(Plugin plugin) {
-                    BeanDetails beanDetails = new SimpleBeanDetails(plugin, plugin.getName(), plugin.getClass());
+                    final Class<? extends Plugin> aClass = plugin.getClass();
+                    BeanDetails beanDetails = new SimpleBeanDetails(plugin, plugin.getName(), aClass);
 
                     try {
                         beanDetails.bindWith(plugin);
@@ -141,7 +142,9 @@ public class BeanContext {
                     }
 
                     try {
-                        scanClasses(plugin.getName(), plugin.getPluginClassLoader(), findClassPaths(plugin.getClass()), beanDetails);
+                        final List<String> classPaths = findClassPaths(aClass);
+                        classPaths.add(plugin.getDescription().getShadedPackage());
+                        scanClasses(plugin.getName(), plugin.getPluginClassLoader(), classPaths, beanDetails);
                     } catch (Throwable throwable) {
                         LOGGER.error("An error occurs while handling scanClasses()", throwable);
                         try {
@@ -650,7 +653,7 @@ public class BeanContext {
             return Lists.newArrayList(annotation.value());
         }
 
-        return Collections.emptyList();
+        return Lists.newArrayList();
     }
 
 }

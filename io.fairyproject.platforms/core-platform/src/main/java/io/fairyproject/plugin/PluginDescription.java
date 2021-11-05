@@ -3,6 +3,7 @@ package io.fairyproject.plugin;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.fairyproject.util.entry.EntryArrayList;
 import lombok.Data;
 import io.fairyproject.library.Library;
 
@@ -15,7 +16,7 @@ public class PluginDescription {
     private final String name;
     private final String mainClass;
     private final String shadedPackage;
-    private final List<String> modules;
+    private final EntryArrayList<String, String> modules;
     private final List<String> extensions;
     private final List<Library> libraries;
 
@@ -28,10 +29,11 @@ public class PluginDescription {
         this.mainClass = jsonObject.get("mainClass").getAsString();
         this.shadedPackage = jsonObject.get("shadedPackage").getAsString();
 
-        this.modules = new ArrayList<>();
+        this.modules = new EntryArrayList<>();
         if (jsonObject.has("modules")) {
             for (JsonElement jsonElement : jsonObject.getAsJsonArray("modules")) {
-                this.modules.add(jsonElement.getAsString());
+                final String[] entry = jsonElement.getAsString().split(":");
+                this.modules.add(entry[0], entry[1]);
             }
         }
 

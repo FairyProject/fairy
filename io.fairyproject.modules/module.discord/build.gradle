@@ -1,0 +1,15 @@
+dependencies {
+    compileOnly("net.dv8tion:JDA:4.3.0_339")
+    compileOnly project(":io.fairyproject.modules:module.command:core-command")
+
+    implementation project(":io.fairyproject.modules:annotations")
+    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+}
+
+repositories {
+    mavenCentral() // for transitive dependencies
+    maven {
+        name "m2-dv8tion"
+        url "https://m2.dv8tion.net/releases"
+    }
+}

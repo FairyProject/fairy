@@ -2,6 +2,7 @@ package io.fairyproject.bootstrap.util;
 
 import lombok.experimental.UtilityClass;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -26,9 +27,16 @@ public class DownloadUtil {
         if (responseCode >= 200 && responseCode < 300) {
             byte[] bytes;
             try (InputStream in = connection.getInputStream()) {
-                bytes = new byte[in.available()];
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
-                in.read(bytes);
+                int nRead;
+                byte[] data = new byte[16384];
+
+                while ((nRead = in.read(data, 0, data.length)) != -1) {
+                    buffer.write(data, 0, nRead);
+                }
+
+                bytes = buffer.toByteArray();
                 if (bytes.length == 0) {
                     throw new IllegalStateException("Empty stream");
                 }

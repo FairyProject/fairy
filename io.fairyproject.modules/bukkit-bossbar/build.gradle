@@ -1,6 +1,0 @@
-dependencies {
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
-
-    implementation project(":io.fairyproject.modules:module-annotations")
-    annotationProcessor project(":io.fairyproject.modules:module-annotationProcessor")
-}

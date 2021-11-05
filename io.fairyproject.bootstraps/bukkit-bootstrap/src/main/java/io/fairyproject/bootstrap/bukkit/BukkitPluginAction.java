@@ -18,6 +18,6 @@ public class BukkitPluginAction implements PluginAction {
 
     @Override
     public boolean isClosed() {
-        return this.bukkitPlugin.isEnabled();
+        return !this.bukkitPlugin.isEnabled();
     }
 }

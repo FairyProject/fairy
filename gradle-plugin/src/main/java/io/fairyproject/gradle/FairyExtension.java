@@ -1,9 +1,11 @@
 package io.fairyproject.gradle;
 
+import io.fairyproject.gradle.util.SneakyThrow;
 import io.fairyproject.gradle.util.VersionRetrieveUtil;
 import lombok.Getter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
@@ -19,7 +21,7 @@ public class FairyExtension {
 
     static {
         try {
-            LATEST = VersionRetrieveUtil.getLatest();
+            LATEST = VersionRetrieveUtil.getLatest("core-platform");
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -28,8 +30,6 @@ public class FairyExtension {
     // Fairy
     private final Property<String> fairyVersion;
     private final ListProperty<PlatformType> fairyPlatforms;
-    private final ListProperty<String> fairyModules;
-    private final ListProperty<String> fairyExtensions;
 
     // Libraries
     private final Property<String> aspectJVersion;
@@ -43,14 +43,13 @@ public class FairyExtension {
     private final ListProperty<String> authors;
 
     private final Map<PlatformType, Map<String, String>> nodes;
+    private final Map<String, String> fairyModules;
 
     @Inject
     public FairyExtension(ObjectFactory objectFactory) {
         // Fairy
         this.fairyVersion = objectFactory.property(String.class).convention(LATEST);
         this.fairyPlatforms = objectFactory.listProperty(PlatformType.class).convention(Collections.singleton(PlatformType.BUKKIT));
-        this.fairyModules = objectFactory.listProperty(String.class).convention(Collections.emptyList());
-        this.fairyExtensions = objectFactory.listProperty(String.class).convention(Collections.emptyList());
 
         // Libraries
         this.aspectJVersion = objectFactory.property(String.class).convention("1.9.7");
@@ -64,6 +63,7 @@ public class FairyExtension {
         this.authors = objectFactory.listProperty(String.class).convention(Collections.emptyList());
 
         this.nodes = new HashMap<>();
+        this.fairyModules = new HashMap<>();
     }
 
     public void bukkitApi(String api) {
@@ -79,7 +79,19 @@ public class FairyExtension {
     }
 
     public void module(String name) {
-        this.fairyModules.add(name);
+        try {
+            VersionRetrieveUtil.addExistingModule(this, name, null);
+        } catch (Exception ex) {
+            SneakyThrow.sneaky(ex);
+        }
+    }
+
+    public void module(String name, String version) {
+        try {
+            VersionRetrieveUtil.addExistingModule(this, name, version);
+        } catch (Exception ex) {
+            SneakyThrow.sneaky(ex);
+        }
     }
 
     public void platform(String platformName) {
