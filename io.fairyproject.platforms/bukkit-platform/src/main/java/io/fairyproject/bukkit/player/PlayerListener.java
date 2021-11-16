@@ -24,6 +24,8 @@
 
 package io.fairyproject.bukkit.player;
 
+import io.fairyproject.bukkit.extension.PlayerExtensions;
+import lombok.experimental.ExtensionMethod;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -42,12 +44,14 @@ import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.task.Task;
 
 @Component
+@ExtensionMethod(PlayerExtensions.class)
 public class PlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerLogin(PlayerJoinEvent event) {
         final Player player = event.getPlayer();
 
+        System.out.println(player.goodMorningAntoine());
         Metadata.provideForPlayer(player).put(MCPlayer.METADATA, new BukkitMCPlayer(player));
     }
 

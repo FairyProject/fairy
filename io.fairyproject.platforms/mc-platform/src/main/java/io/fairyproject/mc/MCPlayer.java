@@ -5,12 +5,16 @@ import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.netty.FriendlyByteBuf;
 import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.metadata.MetadataMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.translation.Translator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.function.Function;
@@ -22,10 +26,20 @@ public interface MCPlayer extends Audience {
 
     MetadataKey<MCPlayer> METADATA = MetadataKey.create("proxy:player", MCPlayer.class);
 
+    static Collection<MCPlayer> all() {
+        return Companion.BRIDGE.all();
+    }
+
+    @NotNull
     static <T> MCPlayer from(T originalPlayer) {
         return CommonMetadataRegistries
                 .provide(Companion.BRIDGE.from(originalPlayer))
                 .getOrPut(METADATA, () -> Companion.BRIDGE.create(originalPlayer));
+    }
+
+    @Nullable
+    static MCPlayer find(UUID uuid) {
+        return Companion.BRIDGE.find(uuid);
     }
 
     /**
@@ -41,6 +55,22 @@ public interface MCPlayer extends Audience {
      * @return name
      */
     String getName();
+
+    /**
+     * is player online
+     *
+     * @return is online
+     */
+    boolean isOnline();
+
+    /**
+     * get metadata map for the player
+     *
+     * @return metadata map
+     */
+    default MetadataMap metadata() {
+        return CommonMetadataRegistries.provide(this.getUUID());
+    }
 
     /**
      * get player's in-game locale
@@ -207,7 +237,11 @@ public interface MCPlayer extends Audience {
 
         UUID from(Object obj);
 
+        MCPlayer find(UUID uuid);
+
         MCPlayer create(Object obj);
+
+        Collection<MCPlayer> all();
 
     }
 

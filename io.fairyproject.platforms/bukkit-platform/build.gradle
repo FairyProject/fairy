@@ -24,7 +24,6 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 dependencies {
-    api "net.wesjd:anvilgui:1.4.0-SNAPSHOT"
     api project(":io.fairyproject.platforms:mc-platform")
 
     implementation "net.kyori:adventure-platform-bukkit:4.0.0"

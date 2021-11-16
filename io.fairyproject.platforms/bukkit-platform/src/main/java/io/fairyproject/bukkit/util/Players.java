@@ -42,11 +42,15 @@ import java.util.stream.Stream;
 public class Players {
 
     public UUID tryGetUniqueId(Object player) {
-        if (!(player instanceof Player)) {
-            throw new ClassCastException(player.getClass().getName() + " is not a Player");
+        if (player instanceof UUID) {
+            return (UUID) player;
         }
 
-        return ((Player) player).getUniqueId();
+        if (player instanceof Player) {
+            return ((Player) player).getUniqueId();
+        }
+
+        throw new ClassCastException(player.getClass().getName() + " is not a Player");
     }
 
     public List<Player> transformUuids(Collection<UUID> uuids) {

@@ -3,21 +3,135 @@ package io.fairyproject.mc.protocol.packet;
 import io.fairyproject.mc.protocol.MCPacket;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.protocol.item.ChatFormatting;
+import io.fairyproject.mc.protocol.item.CollisionRule;
+import io.fairyproject.mc.protocol.item.NameTagVisibility;
+import io.fairyproject.mc.protocol.item.TeamAction;
 import io.fairyproject.mc.protocol.netty.FriendlyByteBuf;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 
-@UtilityClass
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
 public class PacketPlay {
 
-    @UtilityClass
-    public class Out {
+    public static class Out {
 
-        @Getter
-        @Setter
-        public class Title implements MCPacket {
+        @Getter @Setter @Builder
+        public static class ScoreboardTeam implements MCPacket {
+            private String name;
+            private TeamAction teamAction;
+            private NameTagVisibility nameTagVisibility;
+            @Singular
+            private List<String> players;
+            private Optional<Parameters> parameters;
+
+            @Override
+            public void read(FriendlyByteBuf byteBuf) {
+                this.name = byteBuf.readUtf();
+                this.teamAction = TeamAction.getById(byteBuf.readByte());
+                if (this.teamAction.isHasParameters()) {
+                    this.parameters = Optional.of(new Parameters(byteBuf));
+                } else {
+                    this.parameters = Optional.empty();
+                }
+
+                if (this.teamAction.isHasPlayers()) {
+                    this.players = byteBuf.readList(FriendlyByteBuf::readUtf);
+                } else {
+                    this.players = Collections.emptyList();
+                }
+            }
+            @Override
+            public void write(FriendlyByteBuf byteBuf) {
+                byteBuf.writeUtf(this.name);
+                byteBuf.writeByte(this.teamAction.getId());
+                if (this.teamAction.isHasParameters()) {
+                    this.parameters.orElseThrow(() -> new IllegalStateException("Parameters not present, but method is " + this.teamAction.name())).write(byteBuf);
+                }
+
+                if (this.teamAction.isHasPlayers()) {
+                    byteBuf.writeCollection(this.players, FriendlyByteBuf::writeUtf);
+                }
+            }
+            @NoArgsConstructor @AllArgsConstructor @Getter @Setter @Builder
+            public static class Parameters {
+                private Component displayName;
+                private Component playerPrefix;
+                private Component playerSuffix;
+                private NameTagVisibility nametagVisibility;
+                private CollisionRule collisionRule;
+                private ChatFormatting color;
+                private int options;
+
+                public Parameters(FriendlyByteBuf buf) {
+                    switch (MCProtocol.INSTANCE.getProtocolMapping().getVersion()) {
+                        case V1_7:
+                            this.displayName = buf.readComponent();
+                            this.playerPrefix = buf.readComponent();
+                            this.playerSuffix = buf.readComponent();
+                            this.options = buf.readByte();
+                            this.color = buf.readEnum(ChatFormatting.class);
+                            this.nametagVisibility = NameTagVisibility.ALWAYS;
+                            this.collisionRule = CollisionRule.ALWAYS;
+                            break;
+                        case V1_8:
+                            this.displayName = buf.readComponent();
+                            this.playerPrefix = buf.readComponent();
+                            this.playerSuffix = buf.readComponent();
+                            this.options = buf.readByte();
+                            this.nametagVisibility = NameTagVisibility.getByName(buf.readUtf(40));
+                            this.collisionRule = CollisionRule.ALWAYS;
+                            this.color = buf.readEnum(ChatFormatting.class);
+                            break;
+                        case V1_9:
+                        default:
+                            this.displayName = buf.readComponent();
+                            this.options = buf.readByte();
+                            this.nametagVisibility = NameTagVisibility.getByName(buf.readUtf(40));
+                            this.collisionRule = CollisionRule.getByName(buf.readUtf(40));
+                            this.color = buf.readEnum(ChatFormatting.class);
+                            this.playerPrefix = buf.readComponent();
+                            this.playerSuffix = buf.readComponent();
+                            break;
+                    }
+                }
+
+                public void write(FriendlyByteBuf buf) {
+                    buf.writeComponent(this.displayName);
+                    switch (MCProtocol.INSTANCE.getProtocolMapping().getVersion()) {
+                        case V1_7:
+                            buf.writeComponent(this.playerPrefix);
+                            buf.writeComponent(this.playerSuffix);
+                            buf.writeByte(this.options);
+                            buf.writeEnum(this.color);
+                            break;
+                        case V1_8:
+                            buf.writeComponent(this.playerPrefix);
+                            buf.writeComponent(this.playerSuffix);
+                            buf.writeByte(this.options);
+                            buf.writeUtf(this.nametagVisibility.name);
+                            buf.writeEnum(this.color);
+                            break;
+                        case V1_9:
+                        default:
+                            buf.writeByte(this.options);
+                            buf.writeUtf(this.nametagVisibility.name);
+                            buf.writeUtf(this.collisionRule.name);
+                            buf.writeEnum(this.color);
+                            buf.writeComponent(this.playerPrefix);
+                            buf.writeComponent(this.playerSuffix);
+                            break;
+                    }
+                }
+            }
+        }
+
+        @Getter @Setter @Builder
+        public static class Title implements MCPacket {
             private Component component;
             @Override
             public void read(FriendlyByteBuf byteBuf) {
@@ -32,9 +146,8 @@ public class PacketPlay {
             }
         }
 
-        @Getter
-        @Setter
-        public class SubTitle implements MCPacket {
+        @Getter @Setter @Builder
+        public static class SubTitle implements MCPacket {
             private Component component;
             @Override
             public void read(FriendlyByteBuf byteBuf) {
@@ -49,9 +162,8 @@ public class PacketPlay {
             }
         }
 
-        @Getter
-        @Setter
-        public class TitleTimes implements MCPacket {
+        @Getter @Setter @Builder
+        public static class TitleTimes implements MCPacket {
             private int fadeIn;
             private int stay;
             private int fadeOut;
@@ -72,9 +184,8 @@ public class PacketPlay {
             }
         }
 
-        @Getter
-        @Setter
-        public class TitleClear implements MCPacket {
+        @Getter @Setter @Builder
+        public static class TitleClear implements MCPacket {
             private boolean resetTimes;
             @Override
             public void read(FriendlyByteBuf byteBuf) {

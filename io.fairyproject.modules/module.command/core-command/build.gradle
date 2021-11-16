@@ -1,4 +1,5 @@
-dependencies {
-    implementation project(":io.fairyproject.modules:annotations")
-    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+version = "1.0.0b1"
+
+module {
+    abstraction = true
 }

@@ -22,13 +22,14 @@
  * SOFTWARE.
  */
 
+version = "1.0.0b1"
+
 dependencies {
     compileOnly HikariCP
     compileOnly MongoDB_driver_sync
     compileOnly Redisson
+}
 
-    compileOnly project(":io.fairyproject.modules:module.storage:core-storage")
-
-    implementation project(":io.fairyproject.modules:annotations")
-    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+module {
+    depend("module.storage:core-storage")
 }

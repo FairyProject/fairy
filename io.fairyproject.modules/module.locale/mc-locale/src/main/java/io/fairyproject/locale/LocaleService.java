@@ -28,8 +28,6 @@ import com.google.common.base.Preconditions;
 import io.fairyproject.bean.*;
 import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.module.Depend;
-import io.fairyproject.module.Modular;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
 import lombok.Getter;
@@ -50,11 +48,6 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
-@Modular(
-        value = "mc-locale",
-        abstraction = true,
-        depends = @Depend("core-storage")
-)
 @Service(name = "locale")
 public class LocaleService {
 

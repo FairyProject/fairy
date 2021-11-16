@@ -25,7 +25,6 @@
 package io.fairyproject.bukkit.sidebar;
 
 import io.fairyproject.bean.*;
-import io.fairyproject.module.Modular;
 import io.fairyproject.util.terminable.Terminable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -45,9 +44,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Modular(
-        value = "bukkit-sidebar"
-)
 @Service(name = "sidebar")
 public class SidebarService implements TaskRunnable {
 

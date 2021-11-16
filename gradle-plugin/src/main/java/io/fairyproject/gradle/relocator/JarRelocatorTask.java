@@ -21,9 +21,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
@@ -56,14 +54,16 @@ final class JarRelocatorTask {
     private final RelocatingRemapper remapper;
     private final JarOutputStream jarOut;
     private final JarFile jarIn;
+    private final Set<File> relocateEntries;
 
     private final Set<String> classes = new HashSet<>();
     private final Set<String> resources = new HashSet<>();
 
-    JarRelocatorTask(RelocatingRemapper remapper, JarOutputStream jarOut, JarFile jarIn) {
+    JarRelocatorTask(RelocatingRemapper remapper, JarOutputStream jarOut, JarFile jarIn, Set<File> relocateEntries) {
         this.remapper = remapper;
         this.jarOut = jarOut;
         this.jarIn = jarIn;
+        this.relocateEntries = relocateEntries;
     }
 
     public boolean isExistingEntry(String className) {
@@ -88,6 +88,23 @@ final class JarRelocatorTask {
 
             classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
             classes.add(classNode.name);
+        }
+
+        // Cache targeted entries classes
+        for (File file : this.relocateEntries) {
+            try (JarFile in = new JarFile(file)) {
+                for (Enumeration<JarEntry> entries = in.entries(); entries.hasMoreElements(); ) {
+                    JarEntry entry = entries.nextElement();
+                    if (!entry.getName().endsWith(".class")) {
+                        continue;
+                    }
+                    ClassReader classReader = new ClassReader(ByteStreams.toByteArray(in.getInputStream(entry)));
+                    ClassNode classNode = new ClassNode();
+
+                    classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                    classes.add(classNode.name);
+                }
+            }
         }
 
         for (Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {

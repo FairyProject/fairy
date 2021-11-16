@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -301,6 +302,14 @@ public class Utility {
             result[i] = transfer.apply(originalArray[i]);
         }
         return result;
+    }
+
+    public static <T> void twice(Collection<T> collection, BiConsumer<T, T> consumer) {
+        for (T t1 : collection) {
+            for (T t2 : collection) {
+                consumer.accept(t1, t2);
+            }
+        }
     }
 
 }

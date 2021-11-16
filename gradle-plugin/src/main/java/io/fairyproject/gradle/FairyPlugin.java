@@ -40,7 +40,7 @@ import java.util.zip.ZipEntry;
 public class FairyPlugin implements Plugin<Project> {
 
     private static final String REPOSITORY = "https://maven.imanity.dev/repository/imanity-libraries/";
-    private static final String DEPENDENCY_FORMAT = "io.fairyproject:framework:%s:%s";
+    private static final String DEPENDENCY_FORMAT = "io.fairyproject:%s:%s";
 
     private FairyExtension extension;
     private Configuration aspectJConfiguration;
@@ -70,20 +70,20 @@ public class FairyPlugin implements Plugin<Project> {
 
             for (PlatformType platformType : platformTypes) {
                 fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                        this.extension.getFairyVersion().get(),
-                        platformType.getDependencyName() + "-bootstrap"
+                        platformType.getDependencyName() + "-bootstrap",
+                        this.extension.getFairyVersion().get()
                 )));
                 p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
-                        this.extension.getFairyVersion().get(),
-                        platformType.getDependencyName() + "-platform"
+                        platformType.getDependencyName() + "-platform",
+                        this.extension.getFairyVersion().get()
                 ));
             }
 
             final Configuration copy = fairyModuleConfiguration.copy();
             for (Map.Entry<String, String> moduleEntry : this.extension.getFairyModules().entrySet()) {
                 final Dependency dependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                        moduleEntry.getValue(),
-                        moduleEntry.getKey()
+                        moduleEntry.getKey(),
+                        moduleEntry.getValue()
                 ));
 
                 try {
@@ -116,6 +116,7 @@ public class FairyPlugin implements Plugin<Project> {
             relocations.add(new Relocation("io.fairyproject", extension.getMainPackage().get() + ".fairy").setOnlyRelocateShaded(true));
 
             fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());
+            fairyTask.setRelocateEntries(fairyModuleConfiguration.getFiles());
             fairyTask.setClassifier(extension.getClassifier().getOrNull());
             fairyTask.setRelocations(relocations);
             fairyTask.setExtension(extension);

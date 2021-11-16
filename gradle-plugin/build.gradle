@@ -2,6 +2,8 @@ repositories {
     gradlePluginPortal()
 }
 
+version = "1.0.0b3"
+
 apply plugin: "java-gradle-plugin"
 apply plugin: "maven-publish"
 apply plugin: "com.gradle.plugin-publish"
@@ -40,6 +42,11 @@ pluginBundle {
 dependencies {
     compileOnly gradleApi()
     compileOnly 'org.codehaus.groovy:groovy-all:3.0.9'
+
+    compileOnly "org.projectlombok:lombok:1.18.22"
+    annotationProcessor "org.projectlombok:lombok:1.18.22"
+    compileOnly "org.jetbrains:annotations:19.0.0"
+    annotationProcessor "org.jetbrains:annotations:19.0.0"
 
     implementation "com.google.code.gson:gson:" + findProperty("gson.version")
     implementation 'com.google.guava:guava:31.0.1-jre'

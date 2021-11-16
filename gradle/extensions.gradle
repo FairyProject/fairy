@@ -1,0 +1,1 @@
+Project.metaClass.spigot = {-> "org.imanity.spigot:TacoSpigot:1.8.8"}

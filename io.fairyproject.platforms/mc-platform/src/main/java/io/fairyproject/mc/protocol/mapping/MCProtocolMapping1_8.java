@@ -21,6 +21,7 @@ public class MCProtocolMapping1_8 extends MCProtocolMapping {
             @Override
             public void init() {
                 // Titles
+                this.registerOut(62, PacketPlay.Out.ScoreboardTeam.class);
                 this.registerOut(69, PacketPlay.Out.Title.class);
                 this.registerOutDeserializer(69, (protocol, byteBuf, packetId, defaultType) -> {
                     final int titleAction = byteBuf.readVarInt();

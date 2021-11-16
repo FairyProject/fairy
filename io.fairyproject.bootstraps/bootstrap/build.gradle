@@ -1,3 +1,5 @@
+version = "1.0.0b1"
+
 dependencies {
     compileOnly project(":io.fairyproject.platforms:core-platform")
 }

@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -42,6 +43,9 @@ public final class JarRelocator {
     /** If the {@link #run()} method has been called yet */
     private final AtomicBoolean used = new AtomicBoolean(false);
 
+    /** The entries to let relocator know this can be relocated */
+    private Set<File> relocateEntries;
+
     /**
      * Creates a new instance with the given settings.
      *
@@ -49,10 +53,11 @@ public final class JarRelocator {
      * @param output the output jar file
      * @param relocations the relocations
      */
-    public JarRelocator(File input, File output, Collection<Relocation> relocations) {
+    public JarRelocator(File input, File output, Collection<Relocation> relocations, Set<File> relocateEntries) {
         this.input = input;
         this.output = output;
         this.remapper = new RelocatingRemapper(relocations);
+        this.relocateEntries = relocateEntries;
     }
 
     /**
@@ -85,7 +90,7 @@ public final class JarRelocator {
 
         try (JarOutputStream out = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(this.output)))) {
             try (JarFile in = new JarFile(this.input)) {
-                JarRelocatorTask task = new JarRelocatorTask(this.remapper, out, in);
+                JarRelocatorTask task = new JarRelocatorTask(this.remapper, out, in, this.relocateEntries);
                 task.processEntries();
             }
         }

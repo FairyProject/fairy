@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+version = "1.0.0b1"
+
 dependencies {
     compileOnly Mongojack
     compileOnly MongoDB_driver_sync
@@ -31,7 +33,8 @@ dependencies {
     testImplementation "mysql:mysql-connector-java:8.0.17"
     testImplementation "org.postgresql:postgresql:42.2.8"
     testImplementation "com.h2database:h2:1.4.199"
+}
 
-    implementation project(":io.fairyproject.modules:annotations")
-    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+module {
+
 }

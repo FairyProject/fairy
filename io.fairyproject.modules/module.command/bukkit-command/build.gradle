@@ -1,8 +1,10 @@
+version = "1.0.0b1"
+
 dependencies {
     compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
-    compileOnly project(":io.fairyproject.modules:module.command:core-command")
-    compileOnly project(":io.fairyproject.modules:platform.bukkit:bukkit-xseries")
+}
 
-    implementation project(":io.fairyproject.modules:annotations")
-    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+module {
+    depend("module.command:core-command")
+    depend("platform.bukkit:bukkit-xseries")
 }

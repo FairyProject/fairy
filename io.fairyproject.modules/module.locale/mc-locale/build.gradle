@@ -1,7 +1,8 @@
-dependencies {
-    compileOnly project(":io.fairyproject.modules:module.storage:core-storage")
-    compileOnly project(":io.fairyproject.platforms:mc-platform")
+version = "1.0.0b1"
 
-    implementation project(":io.fairyproject.modules:annotations")
-    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+module {
+    abstraction = true
+
+    platform("mc")
+    depend("module.storage:core-storage")
 }

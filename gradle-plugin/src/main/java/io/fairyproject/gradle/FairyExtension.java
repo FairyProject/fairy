@@ -5,13 +5,11 @@ import io.fairyproject.gradle.util.VersionRetrieveUtil;
 import lombok.Getter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 @Getter

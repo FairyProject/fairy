@@ -1,47 +1,55 @@
-boolean isIndependentModule() {
-    return project.name.contains("bootstrap") || project.name == "gradle-plugin"
-}
+//file:noinspection GroovyAssignabilityCheck
+import io.fairyproject.gradle.ModulePlugin
 
-boolean isExludedModule() {
-    return project.name == "annotations" || project.name == "annotationProcessor" || project.name == "gradle-plugin"
-}
-
-ext {
-    archieveName = project.name
-}
-
+// Main script
 apply plugin: "java-library"
-if (project.name != "gradle-plugin") {
-    if (!isIndependentModule()) {
-        apply plugin: "io.freefair.aspectj.post-compile-weaving"
-    }
-    apply plugin: "com.github.johnrengelman.shadow"
-
-    tasks.jar.configure {
-        classifier = "sources"
-    }
-    tasks.shadowJar.configure {
-        classifier = null
-    }
-
-    tasks.shadowJar.destinationDirectory.set(file("$rootDir/build/libs"))
-    tasks.shadowJar.archiveFileName.set(project.ext.archieveName + ".jar")
-}
+apply plugin: "io.freefair.aspectj.post-compile-weaving"
+apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: "maven-publish"
+apply plugin: ModulePlugin
 
 configurations {
     compileOnly {
         canBeResolved = true
     }
 }
+
 processResources {
     expand projectVersion: project.version
 }
 
-if (project.name != "gradle-plugin") {
-    shadowJar.dependsOn build
+if (findProperty("deploy.imanityLibraries") == "true") {
+    tasks.jar.archiveClassifier.set("sources")
+    tasks.shadowJar.archiveClassifier.set(null)
+
+    publishing {
+        publications {
+            shadow(MavenPublication) { publication ->
+                from project.shadow.component(publication)
+                pom {
+                    name = "Fairy " + project.name
+                    description = "Fairy is a compat & open-sourced Java Framework with useful features"
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                credentials {
+                    username findProperty("imanityLibrariesUsername")
+                    password findProperty("imanityLibrariesPassword")
+                }
+                url "https://maven.imanity.dev/repository/imanity-libraries/"
+            }
+        }
+    }
 }
-sourceCompatibility = targetCompatibility = "1.8"
+
+publish.dependsOn build
+shadowJar.dependsOn build
+
 tasks.withType(JavaCompile) {
+    sourceCompatibility = targetCompatibility = "1.8"
     options.encoding = "UTF-8"
 }
 
@@ -63,12 +71,12 @@ dependencies {
             if (names[0] != "core") {
                 api project(":io.fairyproject.platforms:core-platform")
             }
-        } else if (!isExludedModule()) {
+        } else {
             def platformName = names[0]
 
             compileOnly project(":io.fairyproject.platforms:$platformName-platform")
         }
-    } else if (!isExludedModule()) {
+    } else {
         compileOnly project(":io.fairyproject.platforms:core-platform")
     }
 
@@ -95,18 +103,18 @@ sourceSets {
     test.compileClasspath += configurations.compileOnly
     test.runtimeClasspath += configurations.compileOnly
 }
-if (!isIndependentModule()) {
-    compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
-    compileJava.ajc.options.compilerArgs += "-verbose"
+compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
+compileJava.ajc.options.compilerArgs += "-verbose"
 
-    compileTestJava.ajc.options.aspectpath.from sourceSets.main.output
+compileTestJava.ajc.options.aspectpath.from sourceSets.main.output
 
-    if (!project.name.contains("platform")) {
-        shadowJar {
-            dependencies {
-                exclude(project(":io.fairyproject.platforms:core-platform"))
-                exclude(dependency(AspectJRuntime))
-            }
-        }
+if (project.name.contains("platform")) {
+    return
+}
+
+shadowJar {
+    dependencies {
+        exclude project(":io.fairyproject.platforms:core-platform")
+        exclude dependency(AspectJRuntime)
     }
 }

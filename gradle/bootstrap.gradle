@@ -1,0 +1,83 @@
+//file:noinspection GroovyAssignabilityCheck
+apply plugin: "java-library"
+apply plugin: "maven-publish"
+apply plugin: "com.github.johnrengelman.shadow"
+
+configurations {
+    compileOnly {
+        canBeResolved = true
+    }
+}
+
+processResources {
+    expand projectVersion: project.version
+}
+
+if (findProperty("deploy.imanityLibraries") == "true") {
+    tasks.jar.archiveClassifier.set("sources")
+    tasks.shadowJar.archiveClassifier.set(null)
+
+    publishing {
+        publications {
+            shadow(MavenPublication) { publication ->
+                from project.shadow.component(publication)
+                pom {
+                    name = "Fairy " + project.name
+                    description = "Fairy is a compat & open-sourced Java Framework with useful features"
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                credentials {
+                    username findProperty("imanityLibrariesUsername")
+                    password findProperty("imanityLibrariesPassword")
+                }
+                url "https://maven.imanity.dev/repository/imanity-libraries/"
+            }
+        }
+    }
+}
+
+publish.dependsOn build
+shadowJar.dependsOn build
+
+if (project.name != "gradle-plugin") {
+    shadowJar.dependsOn build
+}
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = targetCompatibility = "1.8"
+    options.encoding = "UTF-8"
+}
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:1.18.22"
+    annotationProcessor "org.projectlombok:lombok:1.18.22"
+    compileOnly "org.jetbrains:annotations:19.0.0"
+    annotationProcessor "org.jetbrains:annotations:19.0.0"
+    compileOnly "javax.persistence:javax.persistence-api:2.2"
+
+    if (project.name.contains("-")) {
+        def names = project.name.split("-")
+
+        def platformName = names[0]
+
+        compileOnly project(":io.fairyproject.platforms:$platformName-platform")
+    } else {
+        compileOnly project(":io.fairyproject.platforms:core-platform")
+    }
+
+    compileOnly "com.google.guava:guava:" + findProperty("guava.version")
+    compileOnly "com.google.code.gson:gson:" + findProperty("gson.version")
+    compileOnly "org.yaml:snakeyaml:" + findProperty("yaml.version")
+    compileOnly "org.apache.logging.log4j:log4j-core:" + findProperty("log4j.version")
+    compileOnly "org.apache.commons:commons-lang3:3.11"
+    compileOnly "commons-io:commons-io:2.7"
+
+}
+sourceSets {
+    test.compileClasspath += configurations.compileOnly
+    test.runtimeClasspath += configurations.compileOnly
+}

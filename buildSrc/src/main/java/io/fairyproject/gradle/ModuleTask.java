@@ -6,7 +6,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Getter;
+import lombok.Setter;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Project;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -17,10 +19,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Enumeration;
+import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 
+@Setter
 @Getter
 public class ModuleTask extends DefaultTask {
 
@@ -29,6 +33,10 @@ public class ModuleTask extends DefaultTask {
 
     @Input
     private ModuleExtension extension;
+
+    @Setter
+    @Input
+    private Set<String> modules;
 
     @TaskAction
     public void run() throws IOException {
@@ -52,8 +60,9 @@ public class ModuleTask extends DefaultTask {
             jsonObject.addProperty("abstraction", extension.getAbstraction().get());
 
             JsonArray array = new JsonArray();
-            for (String depend : extension.getDepends().get()) {
-                array.add(depend);
+            for (String depend : modules) {
+                Project dependProject = getProject().project(ModulePlugin.MODULE_PREFIX + depend);
+                array.add(dependProject.getExtensions().getByType(ModuleExtension.class).getName().get());
             }
 
             jsonObject.add("depends", array);

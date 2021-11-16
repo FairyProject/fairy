@@ -1,13 +1,9 @@
 package io.fairyproject.bukkit.hologram;
 
 import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.module.Modular;
 import lombok.experimental.UtilityClass;
 import org.bukkit.World;
 
-@Modular(
-        value = "bukkit-hologram"
-)
 @UtilityClass
 public class Holograms {
 

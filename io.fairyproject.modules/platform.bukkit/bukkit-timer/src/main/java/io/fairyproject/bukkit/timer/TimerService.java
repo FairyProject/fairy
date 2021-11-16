@@ -27,7 +27,6 @@ package io.fairyproject.bukkit.timer;
 import com.google.common.collect.Sets;
 import io.fairyproject.bukkit.timer.event.TimerClearEvent;
 import io.fairyproject.bukkit.timer.impl.PlayerTimer;
-import io.fairyproject.module.Modular;
 import org.bukkit.event.player.PlayerQuitEvent;
 import io.fairyproject.ScheduledAtFixedRate;
 import io.fairyproject.bean.PostInitialize;
@@ -40,9 +39,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Modular(
-        value = "bukkit-timer"
-)
 @Service(name = "timer")
 public class TimerService {
 

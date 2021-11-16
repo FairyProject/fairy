@@ -24,11 +24,12 @@
 //file:noinspection GroovyAssignabilityCheck
 
 plugins {
-    id "maven-publish"
     id "io.freefair.aspectj.post-compile-weaving" version "6.1.0" apply false
     id "com.github.johnrengelman.shadow" version "7.0.0" apply false
     id "com.gradle.plugin-publish" version "0.14.0" apply false
 }
+
+version = "0.5.1b1"
 
 allprojects {
     if (isNotJavaProject(project)) {
@@ -36,7 +37,6 @@ allprojects {
         return
     }
     group = "io.fairyproject"
-    version = "0.5b68"
 
     repositories {
         mavenCentral()
@@ -73,56 +73,22 @@ allprojects {
 }
 
 subprojects {
+    version = "1.0.0b1";
+
     if (isNotJavaProject(project)) {
         project.tasks.all { task -> task.enabled = false }
         return
     }
 
-    apply from: "${rootDir}/gradle/module.gradle"
-}
+    if (project.name == "gradle-plugin") {
+        return
+    }
 
-if (findProperty("deploy.imanityLibraries") == "true") {
-    publishing {
-        publications {
-            shadow(MavenPublication) { publication ->
-                artifactId = "framework"
-                groupId = "io.fairyproject"
-                version = project.version
-
-                System.out.println("| version = ${version}")
-
-                def files = file("$buildDir/libs").listFiles()
-                if (files != null) {
-                    for (file in files) {
-                        if (file.name.endsWith(".jar")) {
-                            artifact(file) {
-                                String fileName = file.getName()
-                                int pos = fileName.lastIndexOf(".")
-                                if (pos > 0 && pos < (fileName.length() - 1)) {
-                                    fileName = fileName.substring(0, pos)
-                                }
-                                classifier = fileName
-
-                                System.out.println("| module = $classifier ($file.name)")
-                            }
-                        }
-                    }
-                }
-                pom {
-                    name = "Fairy " + project.name
-                    description = "Fairy is a compat & open-sourced Java Framework with useful features"
-                }
-            }
-        }
-        repositories {
-            maven {
-                credentials {
-                    username = findProperty("imanityLibrariesUsername")
-                    password = findProperty("imanityLibrariesPassword")
-                }
-                url "https://maven.imanity.dev/repository/imanity-libraries/"
-            }
-        }
+    apply from: "${rootDir}/gradle/extensions.gradle"
+    if (project.name.contains("bootstrap")) {
+        apply from: "${rootDir}/gradle/bootstrap.gradle"
+    } else {
+        apply from: "${rootDir}/gradle/module.gradle"
     }
 }
 

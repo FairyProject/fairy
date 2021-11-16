@@ -29,7 +29,6 @@ import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.parameter.ArgTransformer;
-import io.fairyproject.module.Modular;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -42,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * TODO:
  * Better command
  */
-@Modular(value = "core-command", abstraction = true)
 @Service(name = "command")
 @Getter
 public class CommandService {

@@ -1,9 +1,11 @@
-dependencies {
-    compileOnly("net.dv8tion:JDA:4.3.0_339")
-    compileOnly project(":io.fairyproject.modules:module.command:core-command")
+version = "1.0.0b1"
 
-    implementation project(":io.fairyproject.modules:annotations")
-    annotationProcessor project(":io.fairyproject.modules:annotationProcessor")
+dependencies {
+    compileOnly "net.dv8tion:JDA:4.3.0_339"
+}
+
+module {
+    subDepend("module.command:core-command")
 }
 
 repositories {

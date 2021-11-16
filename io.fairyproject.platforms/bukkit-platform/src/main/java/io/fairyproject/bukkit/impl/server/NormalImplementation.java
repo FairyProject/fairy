@@ -116,8 +116,8 @@ public class NormalImplementation implements ServerImplementation {
 
                 ConstructorResolver constructorResolver = new ConstructorResolver(BLOCK_INFO_TYPE);
                 BLOCK_INFO_CONSTRUCTOR = new ConstructorWrapper<>(constructorResolver.resolve(
-                        new Class[] {short.class, blockData},
-                        new Class[] {BLOCK_INFO_PACKET_TYPE, short.class, blockData}
+                        new Class[]{short.class, blockData},
+                        new Class[]{BLOCK_INFO_PACKET_TYPE, short.class, blockData}
                 ));
             } catch (Exception ex) {
 
@@ -208,7 +208,7 @@ public class NormalImplementation implements ServerImplementation {
         PacketWrapper statusPacket = PacketWrapper.createByPacketName("PacketPlayOutEntityStatus");
         statusPacket.setPacketValue("a", i);
         statusPacket.setPacketValue("b", (byte) 3);
-        PacketWrapper destroyPacket = new PacketWrapper(DESTROY_ENTITY_CONSTRUCTOR.newInstance(new int[] {i}));
+        PacketWrapper destroyPacket = new PacketWrapper(DESTROY_ENTITY_CONSTRUCTOR.newInstance(new int[]{i}));
 
         for (Player other : players) {
 //            ((CraftPlayer) other).getHandle().playerConnection.fakeEntities.add(i); // TODO
@@ -290,8 +290,8 @@ public class NormalImplementation implements ServerImplementation {
                     Object blockNMS = this.toBlockNMS(materialData);
 
                     Array.set(info, i, BLOCK_INFO_CONSTRUCTOR.resolve(
-                            new Object[] {s, blockNMS},
-                            new Object[] {packet.getPacket(), s, blockNMS}
+                            new Object[]{s, blockNMS},
+                            new Object[]{packet.getPacket(), s, blockNMS}
                     ));
                     i++;
                 }

@@ -5,8 +5,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.bean.*;
+import io.fairyproject.util.FairyVersion;
 import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.entry.Entry;
 import lombok.NonNull;
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.fairyproject.Fairy;
@@ -31,28 +34,29 @@ public class ModuleService {
     @Autowired
     private static BeanContext BEAN_CONTEXT;
 
-    public static final int PLUGIN_LISTENER_PRIORITY = BeanContext.PLUGIN_LISTENER_PRIORITY - 1;
+    public static final int PLUGIN_LISTENER_PRIORITY = BeanContext.PLUGIN_LISTENER_PRIORITY + 100;
 
     private static final Logger LOGGER = LogManager.getLogger(ModuleService.class);
-    private static Map<String, Integer> PENDING_MODULES = new HashMap<>();
+    private static Map<String, Entry<Integer, FairyVersion>> PENDING_MODULES = new HashMap<>();
 
     public static void init() {
         PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
             @Override
             public void onPluginInitial(Plugin plugin) {
                 if (PENDING_MODULES != null) {
-                    for (String module : plugin.getDescription().getModules()) {
-                        PENDING_MODULES.compute(module, (m, v) -> {
-                            if (v == null) {
-                                return 1;
+                    plugin.getDescription().getModules().forEach((name, versionString) -> {
+                        final FairyVersion version = FairyVersion.parse(versionString);
+                        PENDING_MODULES.compute(name, (m, entry) -> {
+                            if (entry == null) {
+                                return new Entry<>(1, version);
                             }
-                            return v + 1;
+                            return new Entry<>(entry.getKey() + 1, version.isAbove(entry.getValue()) ? version : entry.getValue());
                         });
-                    }
+                    });
                 } else {
                     final ModuleService moduleService = Beans.get(ModuleService.class);
                     plugin.getDescription().getModules().forEach((name, version) -> {
-                        final Module module = moduleService.registerByName(name);
+                        final Module module = moduleService.registerByName(name, FairyVersion.parse(version));
 
                         if (module == null) {
                             plugin.closeAndReportException();
@@ -66,14 +70,14 @@ public class ModuleService {
 
             @Override
             public void onPluginDisable(Plugin plugin) {
-                for (String name : plugin.getDescription().getModules()) {
+                plugin.getDescription().getModules().forEach((name, versionString) -> {
                     if (PENDING_MODULES != null) {
-                        final int refCount = PENDING_MODULES.compute(name, (m, v) -> {
-                            if (v == null) {
-                                return 0;
+                        final int refCount = PENDING_MODULES.compute(name, (m, entry) -> {
+                            if (entry == null) {
+                                return new Entry<>(0, FairyVersion.parse(versionString));
                             }
-                            return v - 1;
-                        });
+                            return new Entry<>(entry.getKey() - 1, entry.getValue());
+                        }).getKey();
 
                         if (refCount <= 0) {
                             PENDING_MODULES.remove(name);
@@ -83,14 +87,14 @@ public class ModuleService {
                         final Module module = moduleService.getByName(name);
 
                         if (module == null) {
-                            continue;
+                            return;
                         }
 
                         if (module.removeRef() <= 0) {
                             moduleService.unregister(module);
                         }
                     }
-                }
+                });
             }
 
             @Override
@@ -105,12 +109,12 @@ public class ModuleService {
 
     @PostInitialize
     public void onPreInitialize() {
-        for (Map.Entry<String, Integer> entry : PENDING_MODULES.entrySet()) {
+        for (Map.Entry<String, Entry<Integer, FairyVersion>> entry : PENDING_MODULES.entrySet()) {
             // Don't register if nothing referenced
-            if (entry.getValue() <= 0) {
+            if (entry.getValue().getKey() <= 0) {
                 continue;
             }
-            this.registerByName(entry.getKey());
+            this.registerByName(entry.getKey(), entry.getValue().getValue());
         }
         ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
                 .type(ModuleController.class)
@@ -130,12 +134,12 @@ public class ModuleService {
         return moduleByName.get(name);
     }
 
-    public Module registerByName(String name, String version) {
+    public Module registerByName(String name, FairyVersion version) {
         return this.registerByName(name, version, false);
     }
 
     @Nullable
-    public Module registerByName(String name, String version, boolean canAbstract) {
+    public Module registerByName(String name, FairyVersion version, boolean canAbstract) {
         try {
             LOGGER.info("Registering module " + name + "...");
             final Path path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + ".jar").toPath(), name);
@@ -186,16 +190,19 @@ public class ModuleService {
             for (JsonElement element : depends) {
                 JsonObject dependJson = element.getAsJsonObject();
                 final String depend = dependJson.get("module").getAsString();
-                Module dependModule = this.getByName(depend);
+                final String[] split = depend.split(":");
+                String moduleName = split[0];
+                FairyVersion moduleVersion = FairyVersion.parse(split[1]);
+                Module dependModule = this.getByName(moduleName);
                 if (dependModule == null) {
-                    dependModule = this.registerByName(depend, true);
+                    dependModule = this.registerByName(moduleName, moduleVersion, true);
                     if (dependModule == null) {
-                        LOGGER.error("Unable to find dependency module " + depend + " for " + name);
+                        LOGGER.error("Unable to find dependency module " + moduleName + " for " + name);
                         return null;
                     }
                     module.getDependModules().add(dependModule);
-                    dependModule.addRef(); // add reference
                 }
+                dependModule.addRef(); // add reference
             }
 
             this.moduleByName.put(name, module);

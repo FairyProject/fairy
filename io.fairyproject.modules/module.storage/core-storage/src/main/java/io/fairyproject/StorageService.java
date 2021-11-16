@@ -28,7 +28,6 @@ import io.fairyproject.bean.*;
 import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
 import io.fairyproject.library.Library;
-import io.fairyproject.module.Modular;
 import io.fairyproject.util.Utility;
 
 import javax.annotation.Nullable;
@@ -37,10 +36,6 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Modular(
-        value = "core-storage",
-        abstraction = false
-)
 @Service(name = "storage")
 @ServiceDependency(dependencies = {"storageConfiguration", "serializer", "jackson"})
 public class StorageService {

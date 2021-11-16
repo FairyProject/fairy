@@ -56,9 +56,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public final class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
@@ -100,11 +102,27 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
             }
 
             @Override
+            public MCPlayer find(UUID uuid) {
+                final Player player = Bukkit.getPlayer(uuid);
+                if (player != null) {
+                    return MCPlayer.from(player);
+                }
+                return null;
+            }
+
+            @Override
             public MCPlayer create(Object obj) {
                 if (!(obj instanceof Player)) {
                     throw new IllegalArgumentException();
                 }
                 return new BukkitMCPlayer((Player) obj);
+            }
+
+            @Override
+            public Collection<MCPlayer> all() {
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(MCPlayer::from)
+                        .collect(Collectors.toList());
             }
         };
     }

@@ -4,15 +4,11 @@ import io.fairyproject.Fairy;
 import io.fairyproject.bean.*;
 import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryRepository;
-import io.fairyproject.module.Modular;
 import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Modular(
-        value = "core-discord"
-)
 @Service(name = "discord-initializer")
 public class DCInitializer {
 

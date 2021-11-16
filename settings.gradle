@@ -55,6 +55,8 @@ void initModules() {
 
     include "io.fairyproject.modules:module.discord"
 
+    include "io.fairyproject.modules:platform.mc:module.nametag"
+
     include "io.fairyproject.modules:module.command:core-command"
     include "io.fairyproject.modules:module.command:bukkit-command"
 
@@ -68,9 +70,6 @@ void initModules() {
     include "io.fairyproject.modules:platform.core:core-jackson"
     include "io.fairyproject.modules:platform.core:core-config"
 
-    include "io.fairyproject.modules:annotationProcessor"
-    include "io.fairyproject.modules:annotations"
-    include "io.fairyproject.modules:processor.module"
 }
 
 void initBukkit() {

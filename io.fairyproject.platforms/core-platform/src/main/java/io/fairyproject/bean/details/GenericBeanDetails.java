@@ -25,6 +25,7 @@
 package io.fairyproject.bean.details;
 
 import io.fairyproject.bean.*;
+import io.fairyproject.event.Subscribe;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;

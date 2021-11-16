@@ -65,6 +65,11 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
     }
 
     @Override
+    public boolean isOnline() {
+        return this.player.isOnline();
+    }
+
+    @Override
     public String getGameLocale() {
         return PlayerLocaleUtil.getLocale(this.player);
     }
