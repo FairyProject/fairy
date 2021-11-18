@@ -24,9 +24,10 @@
 
 package io.fairyproject.bukkit.reflection.resolver;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import io.fairyproject.bukkit.reflection.wrapper.ClassWrapper;
 
@@ -38,7 +39,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ClassResolver extends ResolverAbstract<Class> {
 
-	private static final LoadingCache<String, Class<?>> CLASS_CACHE = Caffeine
+	private static final LoadingCache<String, Class<?>> CLASS_CACHE = CacheBuilder
 			.newBuilder()
 			.expireAfterAccess(1L, TimeUnit.MINUTES)
 			.build(new CacheLoader<String, Class<?>>() {
@@ -93,7 +94,7 @@ public class ClassResolver extends ResolverAbstract<Class> {
 
 	@Override
 	protected Class resolveObject(ResolverQuery query) throws ReflectiveOperationException {
-		Class<?> result = CLASS_CACHE.get(query.getName());
+		Class<?> result = ThrowingSupplier.unchecked(() -> CLASS_CACHE.get(query.getName())).get();
 
 		if (result == null) {
 			throw new ClassNotFoundException();

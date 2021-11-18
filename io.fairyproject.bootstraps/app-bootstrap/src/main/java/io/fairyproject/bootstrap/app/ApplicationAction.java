@@ -3,6 +3,9 @@ package io.fairyproject.bootstrap.app;
 import io.fairyproject.plugin.PluginAction;
 import lombok.RequiredArgsConstructor;
 
+import java.io.File;
+import java.nio.file.Path;
+
 @RequiredArgsConstructor
 public class ApplicationAction implements PluginAction {
 
@@ -20,5 +23,10 @@ public class ApplicationAction implements PluginAction {
     @Override
     public boolean isClosed() {
         return this.closed;
+    }
+
+    @Override
+    public Path getDataFolder() {
+        return new File(".").toPath();
     }
 }

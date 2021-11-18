@@ -29,6 +29,7 @@ dependencies {
         exclude group: 'com.google.code.findbugs', module: 'annotations'
     }
     compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
+    compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
 
     api "javax.persistence:javax.persistence-api:2.2"
     compileOnly "org.mongodb:mongo-java-driver:3.12.7"

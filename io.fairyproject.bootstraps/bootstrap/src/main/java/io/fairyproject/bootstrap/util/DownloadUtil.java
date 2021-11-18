@@ -13,11 +13,11 @@ import java.nio.file.Path;
 @UtilityClass
 public class DownloadUtil {
 
-    private final String URL = "https://maven.imanity.dev/service/rest/v1/search/assets/download?sort=version&repository=imanity-libraries&maven.groupId=io.fairyproject&maven.artifactId=framework&maven.classifier=";
+    private final String URL = "https://maven.imanity.dev/service/rest/v1/search/assets/download?sort=version&repository=imanity-libraries&maven.groupId=io.fairyproject&maven.artifactId=<module>";
 
     @SuppressWarnings("Duplicates")
     public Path download(Path path, String core) throws IOException {
-        final URL url = new URL(URL + core + "-platform");
+        final URL url = new URL(URL.replaceAll("<module>", core + "-platform"));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
         connection.setRequestMethod("GET");

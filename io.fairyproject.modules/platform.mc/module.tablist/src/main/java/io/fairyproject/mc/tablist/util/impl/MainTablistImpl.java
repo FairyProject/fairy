@@ -169,7 +169,7 @@ public class MainTablistImpl implements TablistImpl {
 
         final PacketPlay.Out.Tablist packet = PacketPlay.Out.Tablist.builder()
                 .header(header)
-                .header(footer)
+                .footer(footer)
                 .build();
         player.sendPacket(packet);
     }

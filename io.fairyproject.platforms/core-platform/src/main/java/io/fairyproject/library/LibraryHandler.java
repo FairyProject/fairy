@@ -28,6 +28,8 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.library.classloader.IsolatedClassLoader;
 import io.fairyproject.library.relocate.RelocateHandler;
+import io.fairyproject.util.URLClassLoaderAccess;
+import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.fairyproject.Fairy;
@@ -40,6 +42,7 @@ import io.fairyproject.util.Stacktrace;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -53,10 +56,11 @@ import java.util.concurrent.Executors;
 public class LibraryHandler {
 
     private final Path libFolder;
+    @Getter
     private final RelocateHandler relocateHandler;
 
     private final Map<Library, Path> loaded = new ConcurrentHashMap<>();
-    private final Map<Plugin, ExtendedClassLoader> pluginClassLoaders = new ConcurrentHashMap<>();
+    private final Map<Plugin, URLClassLoaderAccess> pluginClassLoaders = new ConcurrentHashMap<>();
     private final Map<ImmutableSet<Library>, IsolatedClassLoader> loaders = new HashMap<>();
 
     private final Logger LOGGER = LogManager.getLogger(LibraryHandler.class);
@@ -76,6 +80,7 @@ public class LibraryHandler {
         // ASM
         this.downloadLibraries(true,
                 Library.ASM,
+                Library.ASM_TREE,
                 Library.ASM_COMMONS
         );
 
@@ -84,11 +89,10 @@ public class LibraryHandler {
             PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
                 @Override
                 public void onPluginInitial(Plugin plugin) {
-                    ExtendedClassLoader classLoader = new ExtendedClassLoader(plugin.getPluginClassLoader());
-
+                    final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) plugin.getPluginClassLoader());
                     pluginClassLoaders.put(plugin, classLoader);
                     for (Path path : loaded.values()) {
-                        classLoader.addJarToClasspath(path);
+                        classLoader.addPath(path);
                     }
                 }
 
@@ -141,7 +145,6 @@ public class LibraryHandler {
     }
 
     public void downloadLibraries(boolean autoLoad, Library... libraries) {
-
         CountDownLatch latch = new CountDownLatch(libraries.length);
 
         for (Library library : libraries) {
@@ -163,7 +166,6 @@ public class LibraryHandler {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-
     }
 
     private Path loadLibrary(Library library, boolean addToUCP) throws Exception {
@@ -176,8 +178,8 @@ public class LibraryHandler {
         if (addToUCP) {
 //            this.classLoader.addJarToClasspath(file);
             Fairy.getPlatform().getClassloader().addJarToClasspath(file);
-            for (ExtendedClassLoader classLoader : this.pluginClassLoaders.values()) {
-                classLoader.addJarToClasspath(file);
+            for (URLClassLoaderAccess classLoader : this.pluginClassLoaders.values()) {
+                classLoader.addPath(file);
             }
         }
         return file;

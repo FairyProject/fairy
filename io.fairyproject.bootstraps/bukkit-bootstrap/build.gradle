@@ -1,3 +1,5 @@
+version = project(":").version
+
 dependencies {
     implementation project(":io.fairyproject.bootstraps:bootstrap")
     compileOnly project(":io.fairyproject.platforms:bukkit-platform")

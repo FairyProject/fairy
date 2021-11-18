@@ -3,6 +3,7 @@ package io.fairyproject.bukkit.mc;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
 import io.fairyproject.bukkit.util.PlayerLocaleUtil;
 import io.fairyproject.mc.GameMode;
@@ -35,7 +36,7 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
     static {
         try {
             PING = TrialFunctions.<Player, Integer>create()
-                    .trial(() -> Player.class.getMethod("getPing"), NoSuchMethodException.class, Player::getPing)
+                    .trial(() -> Player.class.getMethod("getPing"), NoSuchMethodException.class, player -> player.getPing())
                     .find(MinecraftReflection::getPing)
                     .unchecked();
 
@@ -45,7 +46,7 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
                     .unchecked();
 
             GET_DISPLAY_NAME = TrialFunctions.<Player, Component>create()
-                    .trial(() -> Player.class.getMethod("displayName"), NoSuchMethodException.class, Player::displayName)
+                    .trial(() -> Player.class.getMethod("displayName"), NoSuchMethodException.class, player -> player.displayName())
                     .find(player -> MCAdventure.LEGACY.deserialize(player.getDisplayName()))
                     .unchecked();
 
@@ -79,7 +80,8 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
 
             if (PROTOCOL_ID_FIELD == null) {
                 try {
-                    PROTOCOL_ID_FIELD = new FieldResolver(nmsProtocol.getClass()).resolveByFirstTypeDynamic(int.class);
+                    final NMSClassResolver classResolver = new NMSClassResolver();
+                    PROTOCOL_ID_FIELD = new FieldResolver(classResolver.resolve("EnumProtocol")).resolveByFirstTypeDynamic(int.class);
                     if (!PROTOCOL_ID_FIELD.exists()) {
                         throw new IllegalStateException("Field does not exists!");
                     }

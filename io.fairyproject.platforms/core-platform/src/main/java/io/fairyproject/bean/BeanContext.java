@@ -27,11 +27,13 @@ package io.fairyproject.bean;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import io.fairyproject.bean.controller.SubscribeEventBeanController;
 import io.fairyproject.bean.details.*;
 import io.fairyproject.bean.details.constructor.BeanParameterDetailsMethod;
 import io.fairyproject.bean.exception.ServiceAlreadyExistsException;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
+import io.fairyproject.module.Module;
 import io.fairyproject.plugin.Plugin;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
@@ -98,7 +100,8 @@ public class BeanContext {
         // TODO: annotated registration?
         this.controllers = Arrays.asList(
 
-                new AutowiredBeanController()
+                new AutowiredBeanController(),
+                new SubscribeEventBeanController()
 
         ).toArray(new BeanController[0]);
 
@@ -306,7 +309,7 @@ public class BeanContext {
      * Registration
      */
 
-    public ComponentBeanDetails registerComponent(Object instance, Class<?> type, ComponentHolder componentHolder) throws InvocationTargetException, IllegalAccessException {
+    public ComponentBeanDetails registerComponent(Object instance, String prefix, Class<?> type, ComponentHolder componentHolder) throws InvocationTargetException, IllegalAccessException {
         Component component = type.getAnnotation(Component.class);
         if (component == null) {
             throw new IllegalArgumentException("The type " + type.getName() + " doesn't have Component annotation!");
@@ -332,6 +335,7 @@ public class BeanContext {
         if (name.length() == 0) {
             name = instance.getClass().getName();
         }
+        name = prefix + name;
 
         ComponentBeanDetails details = new ComponentBeanDetails(type, instance, name, componentHolder);
         if (!details.shouldInitialize()) {
@@ -366,6 +370,10 @@ public class BeanContext {
     }
 
     public void scanClasses(String scanName, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
+        this.scanClasses(scanName, "", mainClassLoader, otherClassLoaders, classPaths, included);
+    }
+
+    public List<BeanDetails> scanClasses(String scanName, String prefix, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
         log("Start scanning beans for %s with packages [%s]...", scanName, String.join(" ", classPaths));
 
         // Build the instance for Reflection Lookup
@@ -398,9 +406,9 @@ public class BeanContext {
             for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
                 try {
                     Service service = type.getAnnotation(Service.class);
-                    Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation!");
+                    Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
 
-                    String name = service.name();
+                    String name = prefix + service.name();
 
                     if (this.getBeanByName(name) == null) {
                         ServiceBeanDetails beanDetails = new ServiceBeanDetails(type, name, service.dependencies());
@@ -438,6 +446,7 @@ public class BeanContext {
                 if (name.isEmpty()) {
                     name = instance.getClass().toString();
                 }
+                name = prefix + name;
 
                 if (this.getBeanByName(name) == null) {
                     List<String> dependencies = new ArrayList<>();
@@ -502,7 +511,7 @@ public class BeanContext {
 
         // Scan Components
         try (SimpleTiming ignored = logTiming("Scanning Components")) {
-            beanDetailsList.addAll(ComponentRegistry.scanComponents(this, reflectLookup));
+            beanDetailsList.addAll(ComponentRegistry.scanComponents(this, reflectLookup, prefix));
         }
 
         // Inject @Autowired fields for beans
@@ -535,9 +544,8 @@ public class BeanContext {
             this.call(PostInitialize.class, beanDetailsList);
         }
 
+        return beanDetailsList;
     }
-
-
 
     public void call(Class<? extends Annotation> annotation, Collection<BeanDetails> beanDetailsList) {
         for (BeanDetails beanDetails : beanDetailsList) {

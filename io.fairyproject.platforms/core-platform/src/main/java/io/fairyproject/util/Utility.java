@@ -68,17 +68,6 @@ public class Utility {
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
-    @Nullable
-    public static <T> T sneaky(SupplierExceptionally<T> supplier) {
-        try {
-            return supplier.get();
-        } catch (Throwable throwable) {
-            LogManager.getLogger(Utility.class).error(throwable);
-        }
-
-        return null;
-    }
-
     public static <T> Constructor<T> getConstructor(Class<T> parentClass, Class<?>... parameterTypes) {
         try {
             return parentClass.getConstructor(parameterTypes);

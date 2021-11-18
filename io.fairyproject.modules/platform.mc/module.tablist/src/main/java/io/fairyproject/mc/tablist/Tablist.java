@@ -25,6 +25,7 @@
 package io.fairyproject.mc.tablist;
 
 import io.fairyproject.bean.Autowired;
+import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.mc.tablist.util.*;
@@ -89,7 +90,7 @@ public class Tablist {
 
         Set<TabSlot> processedObjects = SERVICE.getSlots(player);
         if (processedObjects == null) {
-            processedObjects = new HashSet<>();
+            processedObjects = Collections.emptySet();
         }
 
         for (TabSlot scoreObject : processedObjects) {
@@ -97,7 +98,6 @@ public class Tablist {
             if (tabEntry != null) {
                 previous.remove(tabEntry);
                 SERVICE.getImplementation().updateFakeLatency(this, tabEntry, scoreObject.getPing());
-
                 SERVICE.getImplementation().updateFakeName(this, tabEntry, scoreObject.getText());
                 if (player.getVersion() != MCVersion.V1_7) {
                     if (!tabEntry.getTexture().toString().equals(scoreObject.getSkin().toString())) {
@@ -120,16 +120,16 @@ public class Tablist {
         Component headerNow = SERVICE.getHeader(player);
         Component footerNow = SERVICE.getFooter(player);
 
-        if (!this.header.equals(headerNow) || !this.footer.equals(footerNow)) {
+        if (!Objects.equals(this.header, headerNow) || !Objects.equals(this.footer, footerNow)) {
             SERVICE.getImplementation().updateHeaderAndFooter(this, headerNow, footerNow);
             this.header = headerNow;
             this.footer = footerNow;
         }
     }
 
-    public TabEntry getEntry(TabColumn column, Integer slot){
-        for (TabEntry entry : currentEntries){
-            if (entry.getColumn().name().equalsIgnoreCase(column.name()) && entry.getSlot() == slot){
+    public TabEntry getEntry(TabColumn column, Integer slot) {
+        for (TabEntry entry : currentEntries) {
+            if (entry.getColumn().name().equalsIgnoreCase(column.name()) && entry.getSlot() == slot) {
                 return entry;
             }
         }
@@ -156,12 +156,12 @@ public class Tablist {
             }
 
             //Bukkit.broadcastMessage(prefix + " |||| " + suffix);
-            return new String[] {
+            return new String[]{
                     prefix,
                     suffix
             };
         } else {
-            return new String[] {
+            return new String[]{
                     text
             };
         }

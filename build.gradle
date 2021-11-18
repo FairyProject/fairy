@@ -29,7 +29,7 @@ plugins {
     id "com.gradle.plugin-publish" version "0.14.0" apply false
 }
 
-version = "0.5.1b1"
+version = "0.5.1b5"
 
 allprojects {
     if (isNotJavaProject(project)) {
@@ -87,6 +87,10 @@ subprojects {
         apply from: "${rootDir}/gradle/bootstrap.gradle"
     } else {
         apply from: "${rootDir}/gradle/module.gradle"
+    }
+
+    if (project.name.endsWith("-platform")) {
+        apply from: "${rootDir}/gradle/platform.gradle"
     }
 }
 

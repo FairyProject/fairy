@@ -24,11 +24,13 @@
 
 package io.fairyproject.bukkit.reflection.accessor;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.Utility;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -39,12 +41,17 @@ import java.util.concurrent.TimeUnit;
 
 public class ClassAccessorCache {
 
-    private static final LoadingCache<Class<?>, ClassAccessorCache> CLASS_ACCESSORS = Caffeine.newBuilder()
+    private static final LoadingCache<Class<?>, ClassAccessorCache> CLASS_ACCESSORS = CacheBuilder.newBuilder()
             .expireAfterAccess(5, TimeUnit.MINUTES)
-            .build(ClassAccessorCache::new);
+            .build(new CacheLoader<Class<?>, ClassAccessorCache>() {
+                @Override
+                public ClassAccessorCache load(Class<?> key) throws Exception {
+                    return new ClassAccessorCache(key);
+                }
+            });
 
     public static ClassAccessorCache get(Class<?> parentClass) {
-        return CLASS_ACCESSORS.get(parentClass);
+        return ThrowingSupplier.unchecked(() -> CLASS_ACCESSORS.get(parentClass)).get();
     }
 
     private final Class<?> parentClass;

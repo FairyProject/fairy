@@ -13,16 +13,17 @@ import java.nio.file.Path;
 @UtilityClass
 public class ModuleDownloader {
 
-    private final String URL = "https://maven.imanity.dev/service/rest/v1/search/assets/download?sort=version&repository=imanity-libraries&maven.groupId=io.fairyproject&maven.artifactId=framework&maven.classifier=";
+    private final String URL = "https://maven.imanity.dev/service/rest/v1/search/assets/download?repository=imanity-libraries&maven.groupId=io.fairyproject&maven.artifactId=<module>&version=<version>&maven.extension=jar";
+
 
     @SuppressWarnings("Duplicates")
-    public Path download(Path path, String module) throws IOException {
+    public Path download(Path path, String module, String version) throws IOException {
         if (Files.exists(path)) {
             return path;
         }
         path.toFile().getParentFile().mkdirs();
 
-        final java.net.URL url = new URL(URL + module); // TODO - ensure url correctly
+        final java.net.URL url = new URL(URL.replaceAll("<module>", module).replaceAll("<version>", version)); // TODO - ensure url correctly
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
         connection.setRequestMethod("GET");

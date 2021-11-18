@@ -38,37 +38,41 @@ import io.fairyproject.metadata.MetadataKey;
 import lombok.Getter;
 import lombok.Setter;
 import io.fairyproject.util.Stacktrace;
+import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.*;
 
 @Getter
 @Service(name = "tablist")
+@Log4j2
 public class TablistService {
 
     public static TablistService INSTANCE;
 
     private static final MetadataKey<Tablist> TABLIST_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "TabList", Tablist.class);
 
-    private TreeSet<TablistAdapter> adapters;
+    private List<TablistAdapter> adapters;
     private ScheduledExecutorService thread;
     private TablistImpl implementation;
 
     //Tablist Ticks
-    @Setter private long ticks = 20;
+    @Setter
+    private long ticks = 20;
 
     @PreInitialize
     public void onPreInitialize() {
         INSTANCE = this;
 
-        this.adapters = new TreeSet<>((a, b) -> b.priority() - a.priority());
+        this.adapters = new ArrayList<>();
         ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                        .type(TablistAdapter.class)
-                        .onEnable(obj -> this.adapters.add((TablistAdapter) obj))
-                        .onEnable(obj -> this.adapters.remove((TablistAdapter) obj))
+                .type(TablistAdapter.class)
+                .onEnable(obj -> this.registerAdapter((TablistAdapter) obj))
+                .onDisable(obj -> this.unregisterAdapter((TablistAdapter) obj))
                 .build());
     }
 
@@ -76,6 +80,15 @@ public class TablistService {
     public void onPostInitialize() {
         this.registerImplementation();
         this.setup();
+    }
+
+    public void registerAdapter(TablistAdapter adapter) {
+        this.adapters.add(adapter);
+        this.adapters.sort((a, b) -> b.priority() - a.priority());
+    }
+
+    public void unregisterAdapter(TablistAdapter adapter) {
+        this.adapters.remove(adapter);
     }
 
     @Nullable

@@ -1,3 +1,5 @@
+version = project(":").version
+
 dependencies {
     compileOnly project(":io.fairyproject.platforms:core-platform")
 }

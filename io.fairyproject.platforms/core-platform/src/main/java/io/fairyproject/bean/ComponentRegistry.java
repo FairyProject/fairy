@@ -71,7 +71,7 @@ public class ComponentRegistry {
         });
     }
 
-    public static List<ComponentBeanDetails> scanComponents(BeanContext beanContext, ReflectLookup reflectLookup) {
+    public static List<ComponentBeanDetails> scanComponents(BeanContext beanContext, ReflectLookup reflectLookup, String prefix) {
         List<ComponentBeanDetails> components = new ArrayList<>();
 
         for (Class<?> type : reflectLookup.findAnnotatedClasses(Component.class)) {
@@ -89,7 +89,7 @@ public class ComponentRegistry {
                 Object instance = componentHolder.newInstance(type);
 
                 if (instance != null) {
-                    final ComponentBeanDetails beanDetails = beanContext.registerComponent(instance, type, componentHolder);
+                    final ComponentBeanDetails beanDetails = beanContext.registerComponent(instance, prefix, type, componentHolder);
                     if (beanDetails != null) {
                         components.add(beanDetails);
                     }

@@ -80,7 +80,7 @@ public class FairyTask extends DefaultTask {
                     final JarEntry jarEntry = entries.nextElement();
 
                     // Write file no matter what
-                    out.putNextEntry(jarEntry);
+                    out.putNextEntry(new JarEntry(jarEntry.getName()));
                     byte[] bytes = null;
 
                     if (jarEntry.getName().endsWith(".class")) {

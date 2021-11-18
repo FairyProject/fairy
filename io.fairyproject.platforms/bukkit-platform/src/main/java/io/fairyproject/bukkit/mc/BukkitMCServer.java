@@ -4,11 +4,11 @@ import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.reflect.Reflect;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 
 import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.util.UUID;
 import java.util.function.Function;
@@ -26,7 +26,7 @@ public class BukkitMCServer implements MCServer {
                 final Class<?> minecraftServer = classResolver.resolve("MinecraftServer");
                 final Object server = minecraftServer.getMethod("getServer").invoke(null);
                 Method method = minecraftServer.getDeclaredMethod("a", UUID.class);
-                MethodHandle methodHandle = Reflect.lookup().unreflect(method);
+                MethodHandle methodHandle = MethodHandles.lookup().unreflect(method);
 
                 uuidToEntity = uuid -> {
                     try {

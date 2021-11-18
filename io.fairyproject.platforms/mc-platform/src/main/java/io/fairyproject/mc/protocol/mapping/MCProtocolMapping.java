@@ -82,12 +82,24 @@ public abstract class MCProtocolMapping {
 
         @Override
         public Class<? extends MCPacket> fromId(int id, PacketDirection direction) {
-            return this.getPackets(PacketDirection.IN).inverse().get(id);
+            final Class<? extends MCPacket> in = this.getPackets(PacketDirection.IN).inverse().getOrDefault(id, null);
+            if (in != null)
+                return in;
+            final Class<? extends MCPacket> out = this.getPackets(PacketDirection.OUT).inverse().getOrDefault(id, null);
+            if (out != null)
+                return out;
+            throw new IllegalArgumentException(id + " " + direction.name());
         }
 
         @Override
         public int fromPacketClass(Class<? extends MCPacket> packetClass) {
-            return this.getPackets(PacketDirection.IN).get(packetClass);
+            final Integer in = this.getPackets(PacketDirection.IN).getOrDefault(packetClass, null);
+            if (in != null)
+                return in;
+            final Integer out = this.getPackets(PacketDirection.OUT).getOrDefault(packetClass, null);
+            if (out != null)
+                return out;
+            throw new IllegalArgumentException(packetClass.getName());
         }
 
     }

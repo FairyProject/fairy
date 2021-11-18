@@ -3,6 +3,7 @@ package io.fairyproject.bean.controller;
 import io.fairyproject.bean.BeanContext;
 import io.fairyproject.bean.BeanHolder;
 import io.fairyproject.reflect.Reflect;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import org.apache.logging.log4j.LogManager;
 import io.fairyproject.bean.Autowired;
 import io.fairyproject.bean.details.BeanDetails;
@@ -59,14 +60,14 @@ public class AutowiredBeanController implements BeanController {
         boolean optional = false, beanHolder = false;
         if (type == Optional.class) {
             optional = true;
-            type = Utility.sneaky(() -> Reflect.getParameter(field, 0));
+            type = ThrowingSupplier.sneaky(() -> Reflect.getParameter(field, 0)).get();
             if (type == null) {
                 return;
             }
         } else if (type == BeanHolder.class) {
             beanHolder = true;
 
-            type = Utility.sneaky(() -> Reflect.getParameter(field, 0));
+            type = ThrowingSupplier.sneaky(() -> Reflect.getParameter(field, 0)).get();
             if (type == null) {
                 return;
             }

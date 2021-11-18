@@ -18,8 +18,7 @@ import java.net.URL;
 @UtilityClass
 public class VersionRetrieveUtil {
 
-    private final String VERSION_URL = "https://maven.imanity.dev/service/rest/v1/search/assets?repository=imanity-libraries&group=io.fairyproject&name=framework&sort=version&maven.classifier=<module>&sort=version&maven.extension=jar";
-    private final String SEARCH_URL = "https://maven.imanity.dev/service/rest/v1/search/repository=imanity-libraries&group=io.fairyproject&name=framework&sort=version&maven.classifier=<module>";
+    private final String VERSION_URL = "https://maven.imanity.dev/service/rest/v1/search/assets?repository=imanity-libraries&group=io.fairyproject&name=<module>&sort=version&maven.extension=jar";
 
     public String getLatest(String module) throws IOException {
         final java.net.URL url = new URL(VERSION_URL.replace("<module>", module));
@@ -44,7 +43,7 @@ public class VersionRetrieveUtil {
     }
 
     public void addExistingModule(FairyExtension extension, String from, @Nullable String version) throws IOException {
-        if (from.contains("-")) {
+        if (from.contains("-") || from.startsWith("module.")) {
             // user specified platform
             if (isExistingModule(from)) {
                 if (version == null) {
@@ -75,7 +74,7 @@ public class VersionRetrieveUtil {
     }
 
     private boolean isExistingModule(String from) throws IOException {
-        final java.net.URL url = new URL(SEARCH_URL.replace("<module>", from));
+        final java.net.URL url = new URL(VERSION_URL.replace("<module>", from));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
         connection.setRequestMethod("GET");

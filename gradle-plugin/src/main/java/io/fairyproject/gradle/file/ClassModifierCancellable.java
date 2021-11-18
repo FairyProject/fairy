@@ -3,6 +3,7 @@ package io.fairyproject.gradle.file;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.*;
 import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.FieldNode;
 import org.objectweb.asm.tree.MethodNode;
 import static org.objectweb.asm.Opcodes.*;
 
@@ -12,6 +13,7 @@ public class ClassModifierCancellable implements ClassModifier {
         if (classNode.interfaces.contains("io/fairyproject/event/Cancellable")) {
             boolean generateIsCancelled = true;
             boolean generateSetCancelled = true;
+            boolean generateField = true;
             for (MethodNode method : classNode.methods) {
                 switch (method.name) {
                     case "isCancelled":
@@ -25,6 +27,11 @@ public class ClassModifierCancellable implements ClassModifier {
                         break;
                 }
             }
+            for (FieldNode field : classNode.fields) {
+                if (field.name.equals("cancelled") && Type.getType(field.desc) == Type.BOOLEAN_TYPE) {
+                    generateField = false;
+                }
+            }
 
             if (!generateIsCancelled && !generateSetCancelled) {
                 return null;
@@ -34,6 +41,7 @@ public class ClassModifierCancellable implements ClassModifier {
 
             boolean finalGenerateIsCancelled = generateIsCancelled;
             boolean finalGenerateSetCancelled = generateSetCancelled;
+            boolean finalGenerateField = generateField;
             class CancellableVisitor extends ClassVisitor {
                 public CancellableVisitor(ClassVisitor classVisitor) {
                     super(Opcodes.ASM5, classVisitor);
@@ -41,6 +49,10 @@ public class ClassModifierCancellable implements ClassModifier {
 
                 @Override
                 public void visitEnd() {
+                    if (finalGenerateField) {
+                        FieldVisitor fieldVisitor = classWriter.visitField(ACC_PRIVATE, "cancelled", "Z", null, null);
+                        fieldVisitor.visitEnd();
+                    }
                     if (finalGenerateIsCancelled) {
                         {
                             MethodVisitor methodVisitor = classWriter.visitMethod(ACC_PUBLIC, "isCancelled", "()Z", null, null);
@@ -49,11 +61,11 @@ public class ClassModifierCancellable implements ClassModifier {
                             methodVisitor.visitLabel(label0);
                             methodVisitor.visitLineNumber(11, label0);
                             methodVisitor.visitVarInsn(ALOAD, 0);
-                            methodVisitor.visitFieldInsn(GETFIELD, "io/fairyproject/event/impl/TestEvent", "cancelled", "Z");
+                            methodVisitor.visitFieldInsn(GETFIELD, classNode.name, "cancelled", "Z");
                             methodVisitor.visitInsn(IRETURN);
                             Label label1 = new Label();
                             methodVisitor.visitLabel(label1);
-                            methodVisitor.visitLocalVariable("this", "Lio/fairyproject/event/impl/TestEvent;", null, label0, label1, 0);
+                            methodVisitor.visitLocalVariable("this", "L" + classNode.name + ";", null, label0, label1, 0);
                             methodVisitor.visitMaxs(1, 1);
                             methodVisitor.visitEnd();
                         }
@@ -68,14 +80,14 @@ public class ClassModifierCancellable implements ClassModifier {
                             methodVisitor.visitLineNumber(16, label0);
                             methodVisitor.visitVarInsn(ALOAD, 0);
                             methodVisitor.visitVarInsn(ILOAD, 1);
-                            methodVisitor.visitFieldInsn(PUTFIELD, "io/fairyproject/event/impl/TestEvent", "cancelled", "Z");
+                            methodVisitor.visitFieldInsn(PUTFIELD, classNode.name, "cancelled", "Z");
                             Label label1 = new Label();
                             methodVisitor.visitLabel(label1);
                             methodVisitor.visitLineNumber(17, label1);
                             methodVisitor.visitInsn(RETURN);
                             Label label2 = new Label();
                             methodVisitor.visitLabel(label2);
-                            methodVisitor.visitLocalVariable("this", "Lio/fairyproject/event/impl/TestEvent;", null, label0, label2, 0);
+                            methodVisitor.visitLocalVariable("this", "L" + classNode.name + ";", null, label0, label2, 0);
                             methodVisitor.visitLocalVariable("cancelled", "Z", null, label0, label2, 1);
                             methodVisitor.visitMaxs(2, 2);
                             methodVisitor.visitEnd();

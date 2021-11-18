@@ -53,6 +53,7 @@ public class MCProtocolMapping1_8 extends MCProtocolMapping {
 
                     return packet;
                 });
+                this.registerOut(71, PacketPlay.Out.Tablist.class);
             }
         });
 

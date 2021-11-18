@@ -166,6 +166,12 @@ public class Library {
                     "9.1",
                     "zaTeRV+rSP8Ly3xItGOUR9TehZp6/DCglKmG8JNr66I="
     ),
+    ASM_TREE = new Library(
+                    "org.ow2.asm",
+                    "asm-tree",
+                    "9.1",
+                    "/QCvpJ6VlddkYgWwnOy0p3ao/wugby1ZuPe/nHBLSnM="
+            ),
     ASM_COMMONS = new Library(
             "org.ow2.asm",
                     "asm-commons",

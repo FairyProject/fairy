@@ -168,13 +168,14 @@ public class MinecraftReflection {
         }
 
         try {
+            Class<?> entityHumanType = NMS_CLASS_RESOLVER.resolve("EntityHuman");
             Class<?> entityPlayerType = NMS_CLASS_RESOLVER.resolve("EntityPlayer");
             Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("PlayerConnection");
             Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("NetworkManager");
 
             MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper(OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer")
                     .getDeclaredMethod("getHandle"));
-            MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper(entityPlayerType.getDeclaredMethod("getGameProfile"));
+            MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper(entityHumanType.getMethod("getProfile"));
             MinecraftReflection.FIELD_PLAYER_CONNECTION = new FieldResolver(entityPlayerType)
                 .resolveByFirstTypeDynamic(playerConnectionType);
 
