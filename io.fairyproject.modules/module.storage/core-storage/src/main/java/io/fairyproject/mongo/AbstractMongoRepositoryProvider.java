@@ -29,6 +29,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import org.bson.UuidRepresentation;
 import io.fairyproject.AbstractRepositoryProvider;
 import io.fairyproject.MongoRepository;
@@ -51,7 +52,7 @@ public abstract class AbstractMongoRepositoryProvider extends AbstractRepository
     public void build0() {
         this.getIOLock().lock();
         if (this.client != null) {
-            Utility.sneaky(this::close);
+            ThrowingRunnable.sneaky(this::close).run();
         }
         MongoClientSettings clientSettings = this.mongoClientSettings();
         this.client = MongoClients.create(clientSettings);

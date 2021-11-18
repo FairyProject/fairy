@@ -29,6 +29,7 @@ import com.google.common.collect.ImmutableMap;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.metadata.type.PlayerMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.WorldMetadataRegistry;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.metadata.*;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -150,8 +151,7 @@ final class BukkitMetadataRegistries {
             Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<Entity, K> ret = ImmutableMap.builder();
             this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
-
-                Entity entity = Imanity.IMPLEMENTATION.getEntity(uuid);
+                Entity entity = MCServer.current().getEntity(uuid).as(Entity.class);
                 if (entity != null) {
                     ret.put(entity, t);
                 }

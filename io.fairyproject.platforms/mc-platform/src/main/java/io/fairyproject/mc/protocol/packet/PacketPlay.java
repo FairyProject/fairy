@@ -3,10 +3,7 @@ package io.fairyproject.mc.protocol.packet;
 import io.fairyproject.mc.protocol.MCPacket;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
-import io.fairyproject.mc.protocol.item.ChatFormatting;
-import io.fairyproject.mc.protocol.item.CollisionRule;
-import io.fairyproject.mc.protocol.item.NameTagVisibility;
-import io.fairyproject.mc.protocol.item.TeamAction;
+import io.fairyproject.mc.protocol.item.*;
 import io.fairyproject.mc.protocol.netty.FriendlyByteBuf;
 import lombok.*;
 import lombok.experimental.UtilityClass;
@@ -19,6 +16,39 @@ import java.util.Optional;
 public class PacketPlay {
 
     public static class Out {
+
+        @Getter @Setter @Builder
+        public static class Tablist implements MCPacket {
+            private Component header, footer;
+            @Override
+            public void read(FriendlyByteBuf byteBuf) {
+                this.header = byteBuf.readComponent();
+                this.footer = byteBuf.readComponent();
+            }
+
+            @Override
+            public void write(FriendlyByteBuf byteBuf) {
+                byteBuf.writeComponent(this.header);
+                byteBuf.writeComponent(this.footer);
+            }
+        }
+
+        @Getter @Setter @Builder
+        public static class PlayerInfo implements MCPacket {
+            private PlayerInfoAction action;
+            @Singular
+            private List<PlayerInfoData> entries;
+            @Override
+            public void read(FriendlyByteBuf byteBuf) {
+                this.action = byteBuf.readEnum(PlayerInfoAction.class);
+                this.entries = byteBuf.readList(this.action::read);
+            }
+            @Override
+            public void write(FriendlyByteBuf byteBuf) {
+                byteBuf.writeEnum(this.action);
+                byteBuf.writeCollection(this.entries, this.action::write);
+            }
+        }
 
         @Getter @Setter @Builder
         public static class ScoreboardTeam implements MCPacket {

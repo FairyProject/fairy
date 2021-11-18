@@ -36,6 +36,17 @@ public abstract class Either<L, R> {
         }
 
         @Override
+        public Either<L, R> ifLeft(Runnable runnable) {
+            runnable.run();
+            return this;
+        }
+
+        @Override
+        public Either<L, R> ifRight(Runnable runnable) {
+            return this;
+        }
+
+        @Override
         public Optional<L> left() {
             return this.valueOptional == null ? this.valueOptional = Optional.of(this.value) : this.valueOptional; // Paper - reduce the optional allocation...
         }
@@ -97,6 +108,17 @@ public abstract class Either<L, R> {
         }
 
         @Override
+        public Either<L, R> ifLeft(Runnable runnable) {
+            return this;
+        }
+
+        @Override
+        public Either<L, R> ifRight(Runnable runnable) {
+            runnable.run();
+            return this;
+        }
+
+        @Override
         public Optional<L> left() {
             return Optional.empty();
         }
@@ -135,6 +157,10 @@ public abstract class Either<L, R> {
     public abstract <C, D> Either<C, D> mapBoth(final Function<? super L, ? extends C> f1, final Function<? super R, ? extends D> f2);
 
     public abstract <T> T map(final Function<? super L, ? extends T> l, Function<? super R, ? extends T> r);
+
+    public abstract Either<L, R> ifLeft(final Runnable runnable);
+
+    public abstract Either<L, R> ifRight(final Runnable runnable);
 
     public abstract Either<L, R> ifLeft(final Consumer<? super L> consumer);
 

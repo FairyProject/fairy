@@ -28,6 +28,7 @@ import io.fairyproject.AbstractRepositoryProvider;
 import io.fairyproject.Repository;
 import io.fairyproject.RepositoryType;
 import io.fairyproject.SQLRepository;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
 import io.fairyproject.mysql.connection.AbstractConnectionFactory;
 import io.fairyproject.util.Utility;
@@ -47,7 +48,7 @@ public abstract class AbstractSqlRepositoryProvider extends AbstractRepositoryPr
     @Override
     public void build0() {
         if (this.factory != null) {
-            Utility.sneaky(this.factory::shutdown);
+            ThrowingRunnable.sneaky(this.factory::shutdown).run();
         }
         this.factory = this.createFactory();
         this.factory.init();

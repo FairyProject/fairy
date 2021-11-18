@@ -32,7 +32,6 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.hologram.player.PlayerViewHolograms;
-import io.fairyproject.bukkit.packet.wrapper.other.Vector3D;
 import io.fairyproject.bukkit.reflection.ProtocolLibHelper;
 import io.fairyproject.metadata.MetadataKey;
 import org.bukkit.Location;
@@ -90,7 +89,7 @@ public class HologramHandler {
                         break;
                     case INTERACT_AT:
                         final Vector vector = packet.getVectors().read(0);
-                        hologram.getInteractListener().interactAt(player, new Vector3D(vector.getX(), vector.getY(), vector.getZ()));
+                        hologram.getInteractListener().interactAt(player, new Vector(vector.getX(), vector.getY(), vector.getZ()));
                         break;
                 }
             }

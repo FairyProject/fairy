@@ -1,1 +1,1 @@
-Project.metaClass.spigot = {-> "org.imanity.spigot:TacoSpigot:1.8.8"}
+Project.metaClass.spigot = {-> "org.spigotmc:spigot-api:" + findProperty("bukkit.version") }

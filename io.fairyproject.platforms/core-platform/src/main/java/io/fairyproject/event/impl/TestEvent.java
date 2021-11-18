@@ -1,15 +1,18 @@
 package io.fairyproject.event.impl;
 
-import io.fairyproject.event.EventBus;
-import io.fairyproject.event.IEvent;
-import io.fairyproject.event.Subscribers;
+import io.fairyproject.event.Cancellable;
 
-public class TestEvent implements IEvent {
+public class TestEvent implements Cancellable {
 
-    public static final Subscribers SUBSCRIBERS = new Subscribers(TestEvent.class, EventBus.getGlobalSubscribers());
+    private boolean cancelled;
 
     @Override
-    public Subscribers getSubscribers() {
-        return SUBSCRIBERS;
+    public boolean isCancelled() {
+        return cancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancelled) {
+        this.cancelled = cancelled;
     }
 }

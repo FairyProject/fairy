@@ -1,4 +1,4 @@
-version = "1.0.0b1"
+version = "0.0.1b1"
 
 dependencies {
     compileOnly "net.dv8tion:JDA:4.3.0_339"

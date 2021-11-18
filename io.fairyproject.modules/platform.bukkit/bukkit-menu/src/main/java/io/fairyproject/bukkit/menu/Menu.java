@@ -40,6 +40,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryView;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
@@ -419,11 +420,10 @@ public abstract class Menu implements TerminableConsumer {
             title = title.substring(0, 32);
         }
 
-        if (player.getOpenInventory() != null) {
-            Inventory topInventory = player.getOpenInventory().getTopInventory();
-            if (this.inventory != null && title.equals(topInventory.getTitle()) && size == topInventory.getSize()) {
-                inventory = this.inventory;
-            }
+        final InventoryView openInventory = player.getOpenInventory();
+        String topInventory = openInventory.getTitle();
+        if (this.inventory != null && title.equals(topInventory) && size == openInventory.getTopInventory().getSize()) {
+            inventory = this.inventory;
         }
 
         boolean recreate = false;

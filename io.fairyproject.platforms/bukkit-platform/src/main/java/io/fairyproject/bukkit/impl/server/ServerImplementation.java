@@ -109,10 +109,6 @@ public interface ServerImplementation {
 
     float getBlockSlipperiness(Material material);
 
-    void sendTeam(Player player, String name, String prefix, String suffix, Collection<String> nameSet, int type);
-
-    void sendMember(Player player, String name, Collection<String> players, int type);
-
     void sendEntityTeleport(Player player, Location location, int id);
 
     void sendEntityAttach(Player player, int type, int toAttach, int attachTo);

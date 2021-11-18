@@ -24,12 +24,12 @@
 
 package io.fairyproject.bukkit.menu.buttons;
 
-import lombok.AllArgsConstructor;
+import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XSound;
 import io.fairyproject.bukkit.menu.Button;
 import io.fairyproject.bukkit.util.TypeCallback;
+import lombok.AllArgsConstructor;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
@@ -44,7 +44,7 @@ public class ConfirmationButton extends Button {
 
 	@Override
 	public ItemStack getButtonItem(final Player player) {
-		final ItemStack itemStack = new ItemStack(Material.WOOD, 1, this.confirm ? ((byte) 5) : ((byte) 14));
+		final ItemStack itemStack = new ItemStack(XMaterial.OAK_PLANKS.parseMaterial(), 1, this.confirm ? ((byte) 5) : ((byte) 14));
 		final ItemMeta itemMeta = itemStack.getItemMeta();
 
 		itemMeta.setDisplayName(this.confirm ? ChatColor.GREEN + "Confirm" : ChatColor.RED + "Cancel");
@@ -56,9 +56,9 @@ public class ConfirmationButton extends Button {
 	@Override
 	public void clicked(final Player player, final int i, final ClickType clickType, final int hb) {
 		if (this.confirm) {
-			player.playSound(player.getLocation(), Sound.NOTE_PIANO, 20f, 0.1f);
+			player.playSound(player.getLocation(), XSound.BLOCK_NOTE_BLOCK_HARP.parseSound(), 20f, 0.1f);
 		} else {
-			player.playSound(player.getLocation(), Sound.DIG_GRAVEL, 20f, 0.1F);
+			player.playSound(player.getLocation(), XSound.BLOCK_GRAVEL_BREAK.parseSound(), 20f, 0.1F);
 		}
 
 		if (this.closeAfterResponse) {

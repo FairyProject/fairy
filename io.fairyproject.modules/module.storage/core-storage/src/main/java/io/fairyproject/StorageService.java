@@ -29,6 +29,7 @@ import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
 import io.fairyproject.library.Library;
 import io.fairyproject.util.Utility;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
@@ -83,8 +84,7 @@ public class StorageService {
     }
 
     public void unregisterRepositoryProvider(RepositoryProvider repositoryProvider) {
-        Utility.sneaky(repositoryProvider::close);
-
+        ThrowingRunnable.sneaky(repositoryProvider::close).run();
         this.repositoryProviders.remove(repositoryProvider.id());
     }
 

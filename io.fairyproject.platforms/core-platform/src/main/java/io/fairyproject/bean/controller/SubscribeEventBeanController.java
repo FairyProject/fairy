@@ -12,7 +12,9 @@ public class SubscribeEventBeanController implements BeanController {
     }
 
     @Override
-    public void removeBean(BeanDetails beanDetails) throws Exception {
-
+    public void removeBean(BeanDetails beanDetails) {
+        final Object instance = beanDetails.getInstance();
+        if (instance != null)
+            EventBus.unsubscribeAll(instance);
     }
 }

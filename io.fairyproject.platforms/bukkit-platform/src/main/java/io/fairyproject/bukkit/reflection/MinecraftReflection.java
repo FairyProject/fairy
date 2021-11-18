@@ -35,10 +35,6 @@ import org.bukkit.entity.Player;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.annotation.ProviderTestImpl;
 import io.fairyproject.bukkit.impl.test.ImplementationFactory;
-import io.fairyproject.bukkit.packet.type.PacketTypeClasses;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardObjective;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardScore;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutTitle;
 import io.fairyproject.bukkit.reflection.version.protocol.ProtocolCheck;
 import io.fairyproject.bukkit.reflection.wrapper.ChatComponentWrapper;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
@@ -83,6 +79,11 @@ public class MinecraftReflection {
      * The CraftPlayer.getHandle method
      */
     private static MethodWrapper PLAYER_GET_HANDLE;
+
+    /**
+     * Get game profile
+     */
+    private static MethodWrapper PLAYER_GET_GAME_PROFILE;
 
     /**
      * The EntityPlayer.playerConnection field
@@ -173,6 +174,7 @@ public class MinecraftReflection {
 
             MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper(OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer")
                     .getDeclaredMethod("getHandle"));
+            MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper(entityPlayerType.getDeclaredMethod("getGameProfile"));
             MinecraftReflection.FIELD_PLAYER_CONNECTION = new FieldResolver(entityPlayerType)
                 .resolveByFirstTypeDynamic(playerConnectionType);
 
@@ -238,6 +240,11 @@ public class MinecraftReflection {
         Object playerConnection = MinecraftReflection.FIELD_PLAYER_CONNECTION.get(entityPlayer);
         Object networkManager = MinecraftReflection.FIELD_NETWORK_MANAGER.get(playerConnection);
         return (T) MinecraftReflection.FIELD_CHANNEL.get(networkManager);
+    }
+
+    public static Object getGameProfile(Player player) {
+        Object entityPlayer = MinecraftReflection.PLAYER_GET_HANDLE.invoke(player);
+        return PLAYER_GET_GAME_PROFILE.invoke(entityPlayer);
     }
 
     public static void sendPacket(Player player, Object packet) {
@@ -543,49 +550,10 @@ public class MinecraftReflection {
         }
     }
 
-    public static Class<? extends Enum> getEnumScoreboardActionClass() {
-        try {
-            return NMS_CLASS_RESOLVER.resolve("EnumScoreboardAction");
-        } catch (Throwable throwable) {
-            try {
-                Class<? extends Enum> type = NMS_CLASS_RESOLVER.resolveSubClass(PacketTypeClasses.Server.SCOREBOARD_SCORE, "EnumScoreboardAction");
-                NMS_CLASS_RESOLVER.cache("EnumScoreboardAction", type);
-                return type;
-            } catch (Throwable throwable1) {
-                throw new RuntimeException(throwable1);
-            }
-        }
-    }
-
-    public static Class<? extends Enum> getEnumTitleActionClass() {
-        try {
-            return NMS_CLASS_RESOLVER.resolve("EnumTitleAction");
-        } catch (Throwable throwable) {
-            try {
-                Class<? extends Enum> type = NMS_CLASS_RESOLVER.resolveSubClass(PacketTypeClasses.Server.TITLE, "EnumTitleAction");
-                NMS_CLASS_RESOLVER.cache("EnumTitleAction", type);
-                return type;
-            } catch (Throwable throwable1) {
-                throw new RuntimeException(throwable1);
-            }
-        }
-    }
-
     private static EquivalentConverter.EnumConverter<GameMode> GAME_MODE_CONVERTER;
     private static EquivalentConverter.EnumConverter<ChatColor> CHAT_COLOR_CONVERTER;
-    private static EquivalentConverter.EnumConverter<WrappedPacketOutScoreboardObjective.HealthDisplayType> HEALTH_DISPLAY_TYPE_CONVERTER;
-    private static EquivalentConverter.EnumConverter<WrappedPacketOutScoreboardScore.ScoreboardAction> SCOREBOARD_ACTION_CONVERTER;
-    private static EquivalentConverter.EnumConverter<WrappedPacketOutTitle.Action> TITLE_ACTION_CONVERTER;
 
     private static EquivalentConverter<ChatComponentWrapper> CHAT_COMPONENT_CONVERTER;
-
-    public static EquivalentConverter.EnumConverter<WrappedPacketOutScoreboardObjective.HealthDisplayType> getHealthDisplayTypeConverter() {
-        if (HEALTH_DISPLAY_TYPE_CONVERTER == null) {
-            HEALTH_DISPLAY_TYPE_CONVERTER = new EquivalentConverter.EnumConverter<>(getHealthDisplayTypeClass(), WrappedPacketOutScoreboardObjective.HealthDisplayType.class);
-        }
-        return HEALTH_DISPLAY_TYPE_CONVERTER;
-    }
-
     public static Class<? extends Enum> getHealthDisplayTypeClass() {
         try {
             return NMS_CLASS_RESOLVER.resolve("EnumScoreboardHealthDisplay");
@@ -598,14 +566,6 @@ public class MinecraftReflection {
                 throw new RuntimeException(throwable1);
             }
         }
-    }
-
-    public static EquivalentConverter.EnumConverter<WrappedPacketOutTitle.Action> getTitleActionConverter() {
-        if (TITLE_ACTION_CONVERTER == null) {
-            TITLE_ACTION_CONVERTER = new EquivalentConverter.EnumConverter<>(getEnumTitleActionClass(), WrappedPacketOutTitle.Action.class);
-        }
-
-        return TITLE_ACTION_CONVERTER;
     }
 
     public static EquivalentConverter.EnumConverter<GameMode> getGameModeConverter() {
@@ -624,13 +584,6 @@ public class MinecraftReflection {
         }
 
         return GAME_MODE_CONVERTER;
-    }
-
-    public static EquivalentConverter.EnumConverter<WrappedPacketOutScoreboardScore.ScoreboardAction> getScoreboardActionConverter() {
-        if (SCOREBOARD_ACTION_CONVERTER == null) {
-            SCOREBOARD_ACTION_CONVERTER = new EquivalentConverter.EnumConverter<>(getEnumScoreboardActionClass(), WrappedPacketOutScoreboardScore.ScoreboardAction.class);
-        }
-        return SCOREBOARD_ACTION_CONVERTER;
     }
 
     public static EquivalentConverter.EnumConverter<ChatColor> getChatColorConverter() {

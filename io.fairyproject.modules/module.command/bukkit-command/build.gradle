@@ -1,7 +1,7 @@
-version = "1.0.0b1"
+version = "0.0.1b1"
 
 dependencies {
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    compileOnly project.spigot()
 }
 
 module {

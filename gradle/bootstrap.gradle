@@ -13,7 +13,7 @@ processResources {
     expand projectVersion: project.version
 }
 
-if (findProperty("deploy.imanityLibraries") == "true") {
+if (project.file("build.gradle") != null && findProperty("deploy.imanityLibraries") == "true") {
     tasks.jar.archiveClassifier.set("sources")
     tasks.shadowJar.archiveClassifier.set(null)
 

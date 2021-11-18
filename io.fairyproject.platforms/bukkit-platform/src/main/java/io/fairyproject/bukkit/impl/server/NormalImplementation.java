@@ -27,8 +27,6 @@ package io.fairyproject.bukkit.impl.server;
 import com.google.common.collect.HashMultimap;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.bukkit.packet.PacketService;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardTeam;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementation;
 import io.fairyproject.bukkit.player.movement.impl.BukkitMovementImplementation;
@@ -190,8 +188,9 @@ public class NormalImplementation implements ServerImplementation {
 
     @Override
     public Object toBlockNMS(MaterialData materialData) {
-        Object block = BLOCK_GET_BY_ID_METHOD.invoke(null, materialData.getItemTypeId());
-        return FROM_LEGACY_DATA_METHOD.invoke(block, materialData.getData());
+//        Object block = BLOCK_GET_BY_ID_METHOD.invoke(null, materialData.getItemTypeId());
+//        return FROM_LEGACY_DATA_METHOD.invoke(block, materialData.getData());
+        throw new UnsupportedOperationException(); // TODO - fix
     }
 
     @Override
@@ -244,7 +243,7 @@ public class NormalImplementation implements ServerImplementation {
             final BlockPosition blockPosition = entry.getKey();
             MaterialData materialData = entry.getValue();
             if (materialData == null) {
-                materialData = new MaterialData(0);
+                materialData = new MaterialData(Material.AIR); // TODO fix
             }
             final MaterialData previous = fakeBlockMap.put(blockPosition, materialData);
             if (send && previous != materialData) {
@@ -264,13 +263,13 @@ public class NormalImplementation implements ServerImplementation {
                 final int y2 = blockPosition.getY();
                 final int z2 = blockPosition.getZ();
                 final org.bukkit.block.Block blockData = player.getWorld().getBlockAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
-                final int type = blockData.getType().getId();
+                final Material type = blockData.getType();
                 final int data = blockData.getData();
                 final int chunkX2 = x2 >> 4;
                 final int chunkZ2 = z2 >> 4;
                 final int posX2 = x2 - (chunkX2 << 4);
                 final int posZ2 = z2 - (chunkZ2 << 4);
-                map.put(new CoordXZ(chunkX2, chunkZ2), new BlockPositionData(new BlockPosition(posX2, y2, posZ2), new MaterialData(type, (byte) data)));
+                map.put(new CoordXZ(chunkX2, chunkZ2), new BlockPositionData(new BlockPosition(posX2, y2, posZ2), new MaterialData(type, (byte) data))); // TODO - fix
             }
         }
         if (send) {
@@ -355,26 +354,6 @@ public class NormalImplementation implements ServerImplementation {
     public float getBlockSlipperiness(Material material) {
         Object block = BLOCK_GET_BY_ID_METHOD.invoke(null);
         return BLOCK_SLIPPERINESS_FIELD.get(block);
-    }
-
-    @Override
-    public void sendTeam(Player player, String name, String prefix, String suffix, Collection<String> nameSet, int type) {
-        PacketService.send(player, WrappedPacketOutScoreboardTeam.builder()
-                .name(name)
-                .prefix(prefix)
-                .suffix(suffix)
-                .nameSets(nameSet)
-                .action(type)
-                .build());
-    }
-
-    @Override
-    public void sendMember(Player player, String name, Collection<String> players, int type) {
-        PacketService.send(player, WrappedPacketOutScoreboardTeam.builder()
-                .name(name)
-                .nameSets(players)
-                .action(type)
-                .build());
     }
 
     @Override

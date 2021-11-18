@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.menu;
 
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XSound;
 import io.fairyproject.bukkit.util.items.ItemBuilder;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -41,15 +42,15 @@ public abstract class Button {
 	}
 
 	public static void playFail(Player player) {
-		player.playSound(player.getLocation(), Sound.DIG_GRASS, 20F, 0.1F);
+		player.playSound(player.getLocation(), XSound.ENTITY_ENDERMAN_TELEPORT.parseSound(), 20F, 0.1F);
 	}
 
 	public static void playSuccess(Player player) {
-		player.playSound(player.getLocation(), Sound.NOTE_PIANO, 20F, 15F);
+		player.playSound(player.getLocation(), XSound.BLOCK_NOTE_BLOCK_HARP.parseSound(), 20F, 15F);
 	}
 
 	public static void playNeutral(Player player) {
-		player.playSound(player.getLocation(), Sound.CLICK, 20F, 1F);
+		player.playSound(player.getLocation(), XSound.UI_BUTTON_CLICK.parseSound(), 20F, 1F);
 	}
 
 	/**

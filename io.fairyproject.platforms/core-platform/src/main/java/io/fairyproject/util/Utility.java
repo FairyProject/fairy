@@ -26,6 +26,7 @@ package io.fairyproject.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import org.apache.logging.log4j.LogManager;
 import io.fairyproject.task.Task;
 
@@ -76,14 +77,6 @@ public class Utility {
         }
 
         return null;
-    }
-
-    public static void sneaky(ExceptionRunnable runnable) {
-        try {
-            runnable.run();
-        } catch (Throwable throwable) {
-            LogManager.getLogger(Utility.class).error(throwable);
-        }
     }
 
     public static <T> Constructor<T> getConstructor(Class<T> parentClass, Class<?>... parameterTypes) {
@@ -178,20 +171,6 @@ public class Utility {
          * @return
          */
         String toString(T object);
-    }
-
-    public static void tryCatch(ExceptionRunnable runnable) {
-        Utility.tryCatch(runnable, throwable -> {
-            throw new RuntimeException(throwable);
-        });
-    }
-
-    public static void tryCatch(ExceptionRunnable runnable, Consumer<Throwable> handleThrow) {
-        try {
-            runnable.run();
-        } catch (Throwable throwable) {
-            handleThrow.accept(throwable);
-        }
     }
 
     public static <T> Class<T> wrapPrimitive(Class<T> c) {

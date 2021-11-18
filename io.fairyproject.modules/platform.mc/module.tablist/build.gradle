@@ -1,0 +1,9 @@
+version = "0.0.2b1"
+
+dependencies {
+    compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
+}
+
+module {
+    platform("mc")
+}

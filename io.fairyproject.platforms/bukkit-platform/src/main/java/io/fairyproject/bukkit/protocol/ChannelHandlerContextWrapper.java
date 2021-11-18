@@ -252,4 +252,8 @@ public class ChannelHandlerContextWrapper implements ChannelHandlerContext {
     public <T> Attribute<T> attr(AttributeKey<T> attributeKey) {
         return base.attr(attributeKey);
     }
+
+    public <T> boolean hasAttr(AttributeKey<T> key) {
+        return base.hasAttr(key);
+    }
 }

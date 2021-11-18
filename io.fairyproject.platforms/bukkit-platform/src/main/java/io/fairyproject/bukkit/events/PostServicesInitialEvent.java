@@ -27,6 +27,7 @@ package io.fairyproject.bukkit.events;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
+@Deprecated
 public class PostServicesInitialEvent extends Event {
 
     private static final HandlerList HANDLER_LIST = new HandlerList();

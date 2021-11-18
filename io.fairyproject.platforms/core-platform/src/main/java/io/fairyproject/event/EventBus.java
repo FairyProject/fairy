@@ -8,29 +8,32 @@ import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @UtilityClass
 public class EventBus {
 
     private final Logger LOGGER = LogManager.getLogger(EventBus.class);
-    private final Map<Class<?>, Subscribers> GLOBAL_SUBSCRIBERS = new HashMap<>();
+    private final Map<Class<?>, Subscribers> SUBSCRIBERS = new ConcurrentHashMap<>();
 
     static {
-        GLOBAL_SUBSCRIBERS.put(Object.class, new Subscribers(Object.class));
+        SUBSCRIBERS.put(Object.class, new Subscribers(Object.class));
     }
 
     public Subscribers getGlobalSubscribers() {
-        return GLOBAL_SUBSCRIBERS.get(Object.class);
+        return SUBSCRIBERS.get(Object.class);
     }
 
     public void call(Object event) {
         Subscribers subscribers;
         if (!(event instanceof IEvent)) {
-            subscribers = GLOBAL_SUBSCRIBERS.computeIfAbsent(event.getClass(), Subscribers::new);
+            subscribers = SUBSCRIBERS.get(event.getClass());
         } else {
             subscribers = ((IEvent) event).getSubscribers();
+        }
+        if (subscribers == null) {
+            return;
         }
         for (Subscriber<?> subscriber : subscribers.all()) {
             try {
@@ -61,6 +64,10 @@ public class EventBus {
         }
     }
 
+    public void unsubscribeAll(Object listener) {
+        SUBSCRIBERS.values().forEach(subscribers -> subscribers.unregisterObject(listener));
+    }
+
     public void subscribe(Subscriber<?> subscriber) {
         try {
             final Subscribers subscribers = getSubscribers(subscriber.getType());
@@ -76,24 +83,28 @@ public class EventBus {
             Subscribers subscribers = getSubscribers(type);
             subscribers.unregister(subscriber);
 
-            subscribers = GLOBAL_SUBSCRIBERS.getOrDefault(type, null);
+            subscribers = SUBSCRIBERS.getOrDefault(type, null);
             if (subscribers != null && subscribers.isEmpty()) {
-                GLOBAL_SUBSCRIBERS.remove(type);
+                SUBSCRIBERS.remove(type);
             }
         } catch (Throwable e) {
             LOGGER.error("An error occurs while subscribing event", e);
         }
     }
 
-    private Subscribers getSubscribers(Class<?> eventClass) throws IllegalAccessException {
-        try {
-            final Field field = eventClass.getDeclaredField("SUBSCRIBERS");
-            field.setAccessible(true);
+    private Subscribers getSubscribers(Class<?> eventClass) {
+        return SUBSCRIBERS.computeIfAbsent(eventClass, c -> {
+            try {
+                final Field field = eventClass.getDeclaredField("SUBSCRIBERS");
+                field.setAccessible(true);
 
-            return (Subscribers) field.get(null);
-        } catch (NoSuchFieldException ex) {
-            return GLOBAL_SUBSCRIBERS.computeIfAbsent(eventClass, c -> new Subscribers(eventClass));
-        }
+                return (Subscribers) field.get(null);
+            } catch (NoSuchFieldException ex) {
+                return new Subscribers(eventClass);
+            } catch (IllegalAccessException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
     }
 
 }

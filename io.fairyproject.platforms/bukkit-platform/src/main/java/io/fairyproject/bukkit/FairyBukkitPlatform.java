@@ -25,10 +25,14 @@
 package io.fairyproject.bukkit;
 
 import io.fairyproject.bean.ComponentRegistry;
+import io.fairyproject.bukkit.mc.*;
 import io.fairyproject.bukkit.plugin.FairyInternalPlugin;
 import io.fairyproject.bukkit.protocol.BukkitNettyInjector;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.library.Library;
+import io.fairyproject.mc.MCEntity;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.mapping.MCProtocolMapping1_8;
 import io.fairyproject.module.ModuleService;
@@ -39,11 +43,11 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
 import io.fairyproject.bukkit.impl.ComponentHolderBukkitListener;
 import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.player.BukkitMCPlayer;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.impl.BukkitPluginHandler;
@@ -54,8 +58,6 @@ import io.fairyproject.task.ITaskScheduler;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -93,38 +95,7 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
 
         PluginManager.initialize(new BukkitPluginHandler());
         ModuleService.init();
-
-        MCProtocol.initialize(new BukkitNettyInjector(), new MCProtocolMapping1_8()); // TODO
-        MCPlayer.Companion.BRIDGE = new MCPlayer.Bridge() {
-            @Override
-            public UUID from(Object obj) {
-                return Players.tryGetUniqueId(obj);
-            }
-
-            @Override
-            public MCPlayer find(UUID uuid) {
-                final Player player = Bukkit.getPlayer(uuid);
-                if (player != null) {
-                    return MCPlayer.from(player);
-                }
-                return null;
-            }
-
-            @Override
-            public MCPlayer create(Object obj) {
-                if (!(obj instanceof Player)) {
-                    throw new IllegalArgumentException();
-                }
-                return new BukkitMCPlayer((Player) obj);
-            }
-
-            @Override
-            public Collection<MCPlayer> all() {
-                return Bukkit.getOnlinePlayers().stream()
-                        .map(MCPlayer::from)
-                        .collect(Collectors.toList());
-            }
-        };
+        new BukkitMCInitializer().run();
     }
 
     @Override

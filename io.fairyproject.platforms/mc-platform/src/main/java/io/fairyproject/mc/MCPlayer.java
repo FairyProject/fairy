@@ -2,6 +2,8 @@ package io.fairyproject.mc;
 
 import io.fairyproject.mc.protocol.MCPacket;
 import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.protocol.item.PlayerInfoData;
 import io.fairyproject.mc.protocol.netty.FriendlyByteBuf;
 import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.metadata.MetadataKey;
@@ -9,6 +11,7 @@ import io.fairyproject.metadata.MetadataMap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.translation.Translator;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +65,52 @@ public interface MCPlayer extends Audience {
      * @return is online
      */
     boolean isOnline();
+
+    /**
+     * get player's display name
+     *
+     * @return display name
+     */
+    Component getDisplayName();
+
+    /**
+     * set player's display name
+     *
+     * @param component display name
+     */
+    void setDisplayName(Component component);
+
+    /**
+     * get client's protocol version
+     *
+     * @return protocol version
+     */
+    MCVersion getVersion();
+
+    /**
+     * get player's ping
+     *
+     * @return ping
+     */
+    int ping();
+
+    /**
+     * get player's game mode
+     *
+     * @return game mode
+     */
+    GameMode gameMode();
+
+    /**
+     * get player's game profile
+     *
+     * @return game profile;
+     */
+    MCGameProfile gameProfile();
+
+    default PlayerInfoData asInfoData() {
+        return new PlayerInfoData(this.ping(), this.gameProfile(), this.gameMode(), this.getDisplayName());
+    }
 
     /**
      * get metadata map for the player

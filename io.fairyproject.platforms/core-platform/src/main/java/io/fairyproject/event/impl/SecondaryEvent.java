@@ -1,11 +1,12 @@
 package io.fairyproject.event.impl;
 
+import io.fairyproject.event.Cancellable;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.Subscribers;
 
 import java.lang.reflect.Field;
 
-public class SecondaryEvent extends TestEvent {
+public class SecondaryEvent extends TestEvent implements Cancellable {
 
     public static final Subscribers SUBSCRIBERS;
 
@@ -28,11 +29,6 @@ public class SecondaryEvent extends TestEvent {
         }
 
         SUBSCRIBERS = new Subscribers(SecondaryEvent.class, child);
-    }
-
-    @Override
-    public Subscribers getSubscribers() {
-        return SUBSCRIBERS;
     }
 
 }

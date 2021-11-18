@@ -55,7 +55,7 @@ allprojects {
     }
 
     ext {
-        relocate = "org.imanity.framework.libs."
+        relocate = "io.fairyproject.libs."
 
         // Dependencies
         AspectJRuntime = "org.aspectj:aspectjrt:" + findProperty("aspectj.version")
@@ -73,8 +73,6 @@ allprojects {
 }
 
 subprojects {
-    version = "1.0.0b1";
-
     if (isNotJavaProject(project)) {
         project.tasks.all { task -> task.enabled = false }
         return

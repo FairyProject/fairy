@@ -11,7 +11,6 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.java.PluginClassLoader;
 
 import java.lang.reflect.Method;
 import java.util.List;
@@ -68,8 +67,9 @@ public class BukkitNettyInjector implements NettyInjector {
         } catch (Exception e) {
             // let's find who to blame!
             ClassLoader cl = channelHandler.getClass().getClassLoader();
-            if (cl.getClass() == PluginClassLoader.class) {
-                PluginDescriptionFile yaml = new ObjectWrapper(PluginClassLoader.class).getFieldByFirstType(PluginDescriptionFile.class);
+            Class<?> pluginClassLoader = Class.forName("org.bukkit.plugin.java.PluginClassLoader");
+            if (cl.getClass() == pluginClassLoader) {
+                PluginDescriptionFile yaml = new ObjectWrapper(pluginClassLoader).getFieldByFirstType(PluginDescriptionFile.class);
                 throw new Exception("Unable to inject, due to " + channelHandler.getClass().getName() + ", try without the plugin " + yaml.getName() + "?");
             } else {
                 throw new Exception("Unable to find core component 'childHandler', please check your plugins. issue: " + channelHandler.getClass().getName());

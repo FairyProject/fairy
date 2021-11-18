@@ -24,15 +24,10 @@
 
 package io.fairyproject.bukkit.sidebar;
 
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardDisplayObjective;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardObjective;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardScore;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutScoreboardTeam;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.DisplaySlot;
 import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.packet.PacketService;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
 
@@ -52,20 +47,20 @@ public class Sidebar {
         this.player = player;
         this.teams = new String[16];
 
-        WrappedPacketOutScoreboardObjective packetA = new WrappedPacketOutScoreboardObjective(
-                player.getName(),
-                "Objective",
-                WrappedPacketOutScoreboardObjective.HealthDisplayType.INTEGER,
-                WrappedPacketOutScoreboardObjective.Action.ADD
-        );
-
-        WrappedPacketOutScoreboardDisplayObjective packetB = new WrappedPacketOutScoreboardDisplayObjective(
-                DisplaySlot.SIDEBAR,
-                player.getName()
-        );
-
-        PacketService.send(player, packetA);
-        PacketService.send(player, packetB);
+//        WrappedPacketOutScoreboardObjective packetA = new WrappedPacketOutScoreboardObjective(
+//                player.getName(),
+//                "Objective",
+//                WrappedPacketOutScoreboardObjective.HealthDisplayType.INTEGER,
+//                WrappedPacketOutScoreboardObjective.Action.ADD
+//        );
+//
+//        WrappedPacketOutScoreboardDisplayObjective packetB = new WrappedPacketOutScoreboardDisplayObjective(
+//                DisplaySlot.SIDEBAR,
+//                player.getName()
+//        );
+//
+//        PacketService.send(player, packetA);
+//        PacketService.send(player, packetB);
 
     }
 
@@ -77,12 +72,12 @@ public class Sidebar {
 
         this.title = title;
 
-        PacketService.send(player, new WrappedPacketOutScoreboardObjective(
-                player.getName(),
-                title,
-                WrappedPacketOutScoreboardObjective.HealthDisplayType.INTEGER,
-                WrappedPacketOutScoreboardObjective.Action.CHANGED
-        ));
+//        PacketService.send(player, new WrappedPacketOutScoreboardObjective(
+//                player.getName(),
+//                title,
+//                WrappedPacketOutScoreboardObjective.HealthDisplayType.INTEGER,
+//                WrappedPacketOutScoreboardObjective.Action.CHANGED
+//        ));
 
     }
 
@@ -115,7 +110,7 @@ public class Sidebar {
             return;
         }
 
-        WrappedPacketOutScoreboardTeam packet = getOrRegisterTeam(line);
+//        WrappedPacketOutScoreboardTeam packet = getOrRegisterTeam(line);
         String prefix;
         String suffix;
 
@@ -141,31 +136,31 @@ public class Sidebar {
             }
         }
 
-        packet.setPrefix(prefix);
-        packet.setSuffix(suffix);
+//        packet.setPrefix(prefix);
+//        packet.setSuffix(suffix);
 
         teams[line] = value;
 
-        PacketService.send(player, packet);
+//        PacketService.send(player, packet);
     }
 
     public void clear(int line) {
         if (line > 0 && line < 16) {
             if (teams[line] != null) {
 
-                WrappedPacketOutScoreboardScore packetA = new WrappedPacketOutScoreboardScore(
-                        this.getEntry(line),
-                        player.getName(),
-                        line,
-                        WrappedPacketOutScoreboardScore.ScoreboardAction.REMOVE
-                );
-                WrappedPacketOutScoreboardTeam packetB = getOrRegisterTeam(line);
-                packetB.setAction(1);
+//                WrappedPacketOutScoreboardScore packetA = new WrappedPacketOutScoreboardScore(
+//                        this.getEntry(line),
+//                        player.getName(),
+//                        line,
+//                        WrappedPacketOutScoreboardScore.ScoreboardAction.REMOVE
+//                );
+//                WrappedPacketOutScoreboardTeam packetB = getOrRegisterTeam(line);
+//                packetB.setAction(1);
 
                 teams[line] = null;
 
-                PacketService.send(player, packetA);
-                PacketService.send(player, packetB);
+//                PacketService.send(player, packetA);
+//                PacketService.send(player, packetB);
             }
         }
     }
@@ -176,36 +171,36 @@ public class Sidebar {
         }
     }
 
-    private WrappedPacketOutScoreboardTeam getOrRegisterTeam(int line) {
-
-        WrappedPacketOutScoreboardTeam packetB = WrappedPacketOutScoreboardTeam.builder()
-                .name("-sb" + line)
-                .action(0)
-                .chatFormat(0)
-                .build();
-
-        if (teams[line] != null) {
-            packetB.setAction(2);
-
-            return packetB;
-        } else {
-            teams[line] = "";
-
-            WrappedPacketOutScoreboardScore packetA = new WrappedPacketOutScoreboardScore(
-                    this.getEntry(line),
-                    player.getName(),
-                    line,
-                    WrappedPacketOutScoreboardScore.ScoreboardAction.CHANGE
-            );
-
-            packetB.setAction(0);
-            packetB.getNameSet().add(getEntry(line));
-
-            PacketService.send(player, packetA);
-
-            return packetB;
-        }
-    }
+//    private WrappedPacketOutScoreboardTeam getOrRegisterTeam(int line) {
+//
+//        WrappedPacketOutScoreboardTeam packetB = WrappedPacketOutScoreboardTeam.builder()
+//                .name("-sb" + line)
+//                .action(0)
+//                .chatFormat(0)
+//                .build();
+//
+//        if (teams[line] != null) {
+//            packetB.setAction(2);
+//
+//            return packetB;
+//        } else {
+//            teams[line] = "";
+//
+//            WrappedPacketOutScoreboardScore packetA = new WrappedPacketOutScoreboardScore(
+//                    this.getEntry(line),
+//                    player.getName(),
+//                    line,
+//                    WrappedPacketOutScoreboardScore.ScoreboardAction.CHANGE
+//            );
+//
+//            packetB.setAction(0);
+//            packetB.getNameSet().add(getEntry(line));
+//
+//            PacketService.send(player, packetA);
+//
+//            return packetB;
+//        }
+//    }
 
     private String getEntry(Integer line) {
         if (line > 0 && line < 16)

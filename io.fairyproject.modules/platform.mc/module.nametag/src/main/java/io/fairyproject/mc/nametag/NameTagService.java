@@ -30,7 +30,10 @@ import io.fairyproject.bean.ComponentHolder;
 import io.fairyproject.bean.ComponentRegistry;
 import io.fairyproject.bean.PreInitialize;
 import io.fairyproject.bean.Service;
+import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.event.MCPlayerJoinEvent;
+import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.protocol.item.TeamAction;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.metadata.MetadataKey;
@@ -41,7 +44,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service(name = "nametag")
 public class NameTagService {
@@ -50,7 +53,6 @@ public class NameTagService {
 
     private Map<String, NameTag> nametags;
     private List<NameTagAdapter> adapters;
-    private Queue<NameTagUpdate> pendingUpdates;
 
     @PreInitialize
     public void onPreInitialize() {
@@ -61,25 +63,19 @@ public class NameTagService {
                 .build());
 
         this.adapters = new LinkedList<>();
-        this.nametags = new HashMap<>();
-        this.pendingUpdates = new ConcurrentLinkedQueue<>();
+        this.nametags = new ConcurrentHashMap<>();
     }
 
-    private void update() {
-        NameTagUpdate update;
-        while ((update = this.pendingUpdates.poll()) != null) {
-            this.applyUpdate(update);
-        }
-    }
-
-    protected void onJoin(MCPlayer player) {
+    @Subscribe
+    public void onPlayerJoin(MCPlayerJoinEvent event) {
         for (NameTag tagInfo : this.nametags.values()) {
-            this.sendPacket(player, tagInfo);
+            this.sendPacket(event.getPlayer(), tagInfo);
         }
     }
 
-    public void onDisconnect(MCPlayer player) {
-        final String name = player.getName();
+    @Subscribe
+    public void onPlayerQuit(MCPlayerQuitEvent event) {
+        final String name = event.getPlayer().getName();
         Task.runAsync(() -> MCPlayer.all().forEach(other -> {
             if (other.getName().equals(name) || !other.isOnline()) {
                 return;

@@ -8,6 +8,8 @@ import java.lang.reflect.Method;
 
 public class AnnotatedSubscriber<E> extends Subscriber<E> {
 
+    // TODO: made asm generated method instead of reflection or method handles
+
     private final Object listener;
     private final MethodHandle method;
 

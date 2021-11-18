@@ -24,13 +24,12 @@
 
 package io.fairyproject.bukkit.bossbar;
 
-import io.fairyproject.bukkit.packet.PacketService;
-import io.fairyproject.bukkit.packet.wrapper.server.WrappedPacketOutSpawnEntityLiving;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.minecraft.DataWatcher;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.wrapper.PacketWrapper;
 import io.fairyproject.util.Utility;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -88,24 +87,24 @@ public class BossBar {
         }
     }
 
-    private WrappedPacketOutSpawnEntityLiving packetWither;
+//    private WrappedPacketOutSpawnEntityLiving packetWither;
 
     private void buildPackets() {
-        this.packetWither = new WrappedPacketOutSpawnEntityLiving(
-                this.entityId,
-                64,
-                0,
-                0,
-                0,
-                0.0F,
-                0.0F,
-                0.0F,
-                0.0D,
-                0.0D,
-                0.0D,
-                dataWatcher,
-                null
-        );
+//        this.packetWither = new WrappedPacketOutSpawnEntityLiving(
+//                this.entityId,
+//                64,
+//                0,
+//                0,
+//                0,
+//                0.0F,
+//                0.0F,
+//                0.0F,
+//                0.0D,
+//                0.0D,
+//                0.0D,
+//                dataWatcher,
+//                null
+//        );
     }
 
     private void buildDataWatcher() {
@@ -142,14 +141,14 @@ public class BossBar {
         this.previousText = bossBarData.getText();
         this.previousHealth = bossBarData.getHealth();
 
-        Utility.tryCatch(() -> {
+        ThrowingRunnable.unchecked(() -> {
             NMSClassResolver classResolver = new NMSClassResolver();
             ConstructorResolver constructorResolver = new ConstructorResolver(classResolver.resolve("PacketPlayOutEntityMetadata"));
             Object packetMetadata = constructorResolver
                     .resolveWrapper(new Class[] {int.class, DataWatcher.TYPE, boolean.class})
-                    .newInstanceSilent(this.entityId, dataWatcher, true);
+                    .newInstanceSilent(entityId, dataWatcher, true);
             MinecraftReflection.sendPacket(player, packetMetadata);
-        });
+        }).run();
     }
 
     private void sendMovement() {
@@ -177,7 +176,7 @@ public class BossBar {
             this.updateDataWatcher(bossBarData);
             this.buildPackets();
 
-            PacketService.send(player, this.packetWither);
+//            PacketService.send(player, this.packetWither);
             movement = true;
         } else {
             this.updateDataWatcher(bossBarData);

@@ -1,8 +1,0 @@
-version = "1.0.0b1"
-
-dependencies {
-    compileOnly project.spigot()
-    compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
-}
-
-module {}

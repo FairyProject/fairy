@@ -59,10 +59,10 @@ public class CommandUtil {
 
     public CommandMap getCommandMap() {
         if (COMMAND_MAP_SUPPLIER == null) {
-            try {
-                Bukkit.getCommandMap();
-                COMMAND_MAP_SUPPLIER = Bukkit::getCommandMap;
-            } catch (NoSuchMethodError ex) {
+//            try {
+//                Bukkit.comm();
+//                COMMAND_MAP_SUPPLIER = Bukkit::getCommandMap;
+//            } catch (NoSuchMethodError ex) {
                 try {
                     Method method = Bukkit.getServer().getClass().getDeclaredMethod("getCommandMap");
                     method.setAccessible(true);
@@ -77,7 +77,7 @@ public class CommandUtil {
                 } catch (NoSuchMethodException e) {
                     throw new IllegalStateException(e);
                 }
-            }
+//            }
         }
 
         return COMMAND_MAP_SUPPLIER.get();

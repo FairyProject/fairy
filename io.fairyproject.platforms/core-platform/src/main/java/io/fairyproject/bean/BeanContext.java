@@ -30,6 +30,8 @@ import com.google.common.collect.Lists;
 import io.fairyproject.bean.details.*;
 import io.fairyproject.bean.details.constructor.BeanParameterDetailsMethod;
 import io.fairyproject.bean.exception.ServiceAlreadyExistsException;
+import io.fairyproject.event.EventBus;
+import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.plugin.Plugin;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
@@ -184,6 +186,7 @@ public class BeanContext {
         }
 
         Fairy.getPlatform().onPostServicesInitial();
+        EventBus.call(new PostServiceInitialEvent());
     }
 
     /**

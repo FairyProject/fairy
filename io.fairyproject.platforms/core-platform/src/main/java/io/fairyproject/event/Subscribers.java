@@ -3,10 +3,8 @@ package io.fairyproject.event;
 import com.google.common.base.Preconditions;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -15,6 +13,7 @@ public class Subscribers {
     private final TreeSet<Subscriber<?>> subscribers;
     private final Class<?> type;
     private final List<Subscribers> parents;
+    private final ReentrantReadWriteLock lock;
     @Nullable private Subscriber<?>[] bakedSubscribers;
     @Nullable private Subscribers child;
 
@@ -22,6 +21,7 @@ public class Subscribers {
         this.type = type;
         this.subscribers = new TreeSet<>(); // higher to lower
         this.parents = new ArrayList<>();
+        this.lock = new ReentrantReadWriteLock();
     }
 
     public Subscribers(Class<?> type, @Nullable Subscribers child) {
@@ -33,7 +33,14 @@ public class Subscribers {
     }
 
     public boolean isEmpty() {
-        return this.subscribers.isEmpty();
+        this.lock.readLock().lock();
+        boolean retVal;
+        try {
+            retVal = this.subscribers.isEmpty();
+        } finally {
+            this.lock.readLock().unlock();
+        }
+        return retVal;
     }
 
     public Subscriber<?>[] all() {
@@ -43,17 +50,45 @@ public class Subscribers {
     }
 
     public void register(Subscriber<?> subscriber) {
-        synchronized (this) {
+        this.lock.writeLock().lock();
+        try {
             Preconditions.checkArgument(!this.subscribers.contains(subscriber), "The subscriber has already been registered.");
             Preconditions.checkArgument(this.type.isAssignableFrom(subscriber.getType()), "The subscriber doesn't match the required event type.");
             this.subscribers.add(subscriber);
             this.removeBake();
+        } finally {
+            this.lock.writeLock().unlock();
         }
     }
 
     public void unregister(Subscriber<?> subscriber) {
-        if (this.subscribers.remove(subscriber)) {
-            this.removeBake();
+        this.lock.writeLock().lock();
+        try {
+            if (this.subscribers.remove(subscriber)) {
+                this.removeBake();
+            }
+        } finally {
+            this.lock.writeLock().unlock();
+        }
+    }
+
+    public void unregisterObject(Object obj) {
+        this.lock.writeLock().lock();
+        try {
+            final Iterator<Subscriber<?>> iterator = this.subscribers.iterator();
+            boolean changed = false;
+            while (iterator.hasNext()) {
+                final Subscriber<?> subscriber = iterator.next();
+                if (subscriber.isInstance(obj)) {
+                    iterator.remove();
+                    changed = true;
+                }
+            }
+            if (changed) {
+                this.removeBake();
+            }
+        } finally {
+            this.lock.writeLock().unlock();
         }
     }
 
@@ -69,28 +104,32 @@ public class Subscribers {
     }
 
     private Collection<Subscriber<?>> allInternal() {
-        if (this.child != null) {
-            return Stream.of(this.subscribers, this.child.subscribers)
-                    .flatMap(TreeSet::stream)
-                    .sorted()
-                    .collect(Collectors.toList());
+        Collection<Subscriber<?>> subscribers;
+        this.lock.readLock().lock();
+        try {
+            if (this.child != null) {
+                subscribers = Stream.of(this.subscribers, this.child.subscribers)
+                        .flatMap(TreeSet::stream)
+                        .sorted()
+                        .collect(Collectors.toList());
+            } else {
+                subscribers = this.subscribers;
+            }
+        } finally {
+            this.lock.readLock().unlock();
         }
-        return this.subscribers;
+        return subscribers;
     }
 
     public void bake() {
         if (bakedSubscribers != null) {
             return;
         }
-        synchronized (this) {
-            bakedSubscribers = this.allInternal().toArray(new Subscriber[0]);
-        }
+        bakedSubscribers = this.allInternal().toArray(new Subscriber[0]);
     }
 
     public void removeBake() {
-        synchronized (this) {
-            this.bakedSubscribers = null;
-        }
+        this.bakedSubscribers = null;
         for (Subscribers parent : this.parents) {
             parent.removeBake();
         }

@@ -28,7 +28,6 @@ import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.hologram.api.TextViewHandler;
 import io.fairyproject.bukkit.hologram.api.ViewHandler;
 import io.fairyproject.bukkit.hologram.player.PlayerViewHolograms;
-import io.fairyproject.bukkit.packet.wrapper.other.Vector3D;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -37,6 +36,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -241,7 +241,7 @@ public class Hologram {
 
         }
 
-        default void interactAt(Player player, Vector3D vector3D) {
+        default void interactAt(Player player, Vector vector) {
 
         }
 

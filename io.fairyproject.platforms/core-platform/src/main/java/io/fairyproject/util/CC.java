@@ -24,6 +24,8 @@
 
 package io.fairyproject.util;
 
+import net.md_5.bungee.api.ChatColor;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,6 +124,34 @@ public class CC {
         }
 
         return new String(b);
+    }
+
+    public static String getLastColors(String input) {
+        StringBuilder result = new StringBuilder();
+        int length = input.length();
+
+        // Search backwards from the end as it is faster
+        for (int index = length - 1; index > -1; index--) {
+            char section = input.charAt(index);
+            if (section == CODE && index < length - 1) {
+                char c = input.charAt(index + 1);
+
+                if ("0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(c) > -1) {
+                    result.insert(0, CODE + c);
+
+                    // Once we find a color or reset we can stop searching
+                    if ("klmno".indexOf(c) == -1 || c == 'r') {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return result.toString();
+    }
+
+    public static char getColorCharByIndex(int index) {
+        return "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".charAt(index);
     }
 
 }
