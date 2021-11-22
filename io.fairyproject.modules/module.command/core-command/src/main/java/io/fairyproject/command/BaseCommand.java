@@ -65,6 +65,7 @@ public abstract class BaseCommand implements ICommand {
 
     @Nullable
     private BaseCommand parentCommand;
+    @Getter
     private ArgProperty<?>[] baseArgs;
     private String[] names;
     private String permission;

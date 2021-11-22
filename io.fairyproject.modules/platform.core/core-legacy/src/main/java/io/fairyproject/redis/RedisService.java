@@ -26,6 +26,7 @@ package io.fairyproject.redis;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.bean.*;
+import io.fairyproject.jackson.JacksonService;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.redisson.Redisson;
@@ -55,7 +56,8 @@ public class RedisService {
 
     @ShouldInitialize
     public boolean shouldInitialize() {
-        return Fairy.getBaseConfiguration().isUseRedis();
+        return true;
+//        return Fairy.getBaseConfiguration().isUseRedis();
     }
 
     @SneakyThrows

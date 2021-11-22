@@ -35,6 +35,7 @@ import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.module.Module;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -211,6 +212,25 @@ public class BeanContext {
         this.call(PostDestroy.class, detailsList);
     }
 
+    public void disableBeanUnchecked(String name) {
+        this.disableBeanUnchecked(this.getBeanByName(name));
+    }
+
+    public void disableBeanUnchecked(BeanDetails beanDetails) {
+        ThrowingRunnable.unchecked(() -> this.disableBean(beanDetails)).run();
+    }
+
+    public void disableBean(String name) throws InvocationTargetException, IllegalAccessException {
+        this.disableBean(this.getBeanByName(name));
+    }
+
+    public void disableBean(BeanDetails beanDetails) throws InvocationTargetException, IllegalAccessException {
+        beanDetails.call(PreDestroy.class);
+        beanDetails.onDisable();
+        this.unregisterBean(beanDetails);
+        beanDetails.call(PostDestroy.class);
+    }
+
     public BeanDetails registerBean(BeanDetails beanDetails) {
         return this.registerBean(beanDetails, true);
     }
@@ -365,12 +385,12 @@ public class BeanContext {
         }
     }
 
-    public void scanClasses(String scanName, ClassLoader classLoader, Collection<String> classPaths, BeanDetails... included) throws Exception {
-        this.scanClasses(scanName, classLoader, Collections.emptyList(), classPaths, included);
+    public List<BeanDetails> scanClasses(String scanName, ClassLoader classLoader, Collection<String> classPaths, BeanDetails... included) throws Exception {
+        return this.scanClasses(scanName, classLoader, Collections.emptyList(), classPaths, included);
     }
 
-    public void scanClasses(String scanName, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
-        this.scanClasses(scanName, "", mainClassLoader, otherClassLoaders, classPaths, included);
+    public List<BeanDetails> scanClasses(String scanName, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
+        return this.scanClasses(scanName, "", mainClassLoader, otherClassLoaders, classPaths, included);
     }
 
     public List<BeanDetails> scanClasses(String scanName, String prefix, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
@@ -435,6 +455,13 @@ public class BeanContext {
                     new IllegalArgumentException("The Method " + method.toString() + " has annotated @Bean but no return type!").printStackTrace();
                 }
                 BeanParameterDetailsMethod detailsMethod = new BeanParameterDetailsMethod(method, this);
+                List<String> dependencies = new ArrayList<>();
+                for (Parameter type : detailsMethod.getParameters()) {
+                    BeanDetails details = this.getBeanDetails(type.getType());
+                    if (details != null) {
+                        dependencies.add(details.getName());
+                    }
+                }
                 final Object instance = detailsMethod.invoke(null, this);
 
                 Bean bean = method.getAnnotation(Bean.class);
@@ -442,22 +469,18 @@ public class BeanContext {
                     continue;
                 }
 
+                Class<?> beanType = detailsMethod.returnType();
+                if (bean.as() != Void.class) {
+                    beanType = bean.as();
+                }
                 String name = bean.name();
                 if (name.isEmpty()) {
-                    name = instance.getClass().toString();
+                    name = detailsMethod.name();
                 }
                 name = prefix + name;
 
                 if (this.getBeanByName(name) == null) {
-                    List<String> dependencies = new ArrayList<>();
-                    for (Parameter type : detailsMethod.getParameters()) {
-                        BeanDetails details = this.getBeanDetails(type.getType());
-                        if (details != null) {
-                            dependencies.add(details.getName());
-                        }
-                    }
-
-                    BeanDetails beanDetails = new DependenciesBeanDetails(instance.getClass(), instance, name, dependencies.toArray(new String[0]));
+                    BeanDetails beanDetails = new DependenciesBeanDetails(beanType, instance, name, dependencies.toArray(new String[0]));
 
                     log("Found " + name + " with type " + instance.getClass().getSimpleName() + ", Registering it as bean...");
 

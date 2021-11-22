@@ -1,6 +1,7 @@
 package io.fairyproject.discord;
 
 import io.fairyproject.bean.*;
+import io.fairyproject.discord.button.ButtonReader;
 import io.fairyproject.discord.message.NextMessageReader;
 import io.fairyproject.discord.proxies.ProxyJDA;
 import io.fairyproject.reflect.Reflect;
@@ -47,6 +48,7 @@ public abstract class DCBot implements ProxyJDA {
     protected String index;
     protected Mode mode;
     protected NextMessageReader nextMessageReader;
+    protected ButtonReader buttonReader;
 
     private PreProcessBatch listenerBatch;
 
@@ -81,10 +83,9 @@ public abstract class DCBot implements ProxyJDA {
         this.jda = jdaBuilder.build();
         this.listenerBatch.flushQueue();
         this.nextMessageReader = new NextMessageReader(this);
+        this.buttonReader = new ButtonReader();
 
         BOT_BY_ID.put(this.jda.getSelfUser().getIdLong(), this);
-
-
     }
 
     @PreDestroy

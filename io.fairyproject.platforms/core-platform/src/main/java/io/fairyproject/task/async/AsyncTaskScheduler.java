@@ -1,4 +1,4 @@
-package io.fairyproject.app.task;
+package io.fairyproject.task.async;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.task.ITaskScheduler;

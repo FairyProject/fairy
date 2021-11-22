@@ -59,6 +59,7 @@ tasks.withType(JavaCompile) {
 dependencies {
     compileOnly "org.projectlombok:lombok:1.18.22"
     annotationProcessor "org.projectlombok:lombok:1.18.22"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.22"
     compileOnly "org.jetbrains:annotations:19.0.0"
     annotationProcessor "org.jetbrains:annotations:19.0.0"
 

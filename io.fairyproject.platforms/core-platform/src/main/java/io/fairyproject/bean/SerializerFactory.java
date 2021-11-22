@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import io.fairyproject.jackson.JacksonService;
 import lombok.Getter;
 import io.fairyproject.ObjectSerializer;
 

@@ -35,4 +35,6 @@ public @interface Bean {
 
     String name() default "";
 
+    Class<?> as() default Void.class;
+
 }

@@ -30,7 +30,7 @@ import io.fairyproject.mongo.AbstractMongoRepositoryProvider;
 import lombok.Getter;
 import org.bson.BsonDocument;
 import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.JacksonService;
+import io.fairyproject.jackson.JacksonService;
 import org.mongojack.JacksonMongoCollection;
 import org.mongojack.internal.MongoJackModule;
 

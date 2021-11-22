@@ -1,4 +1,4 @@
-package org.imanity.frameworktest;
+package io.fairytest.aspect;
 
 import io.fairyproject.util.FairyVersion;
 import org.junit.Assert;

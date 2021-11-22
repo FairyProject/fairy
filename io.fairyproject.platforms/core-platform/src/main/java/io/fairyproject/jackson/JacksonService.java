@@ -22,13 +22,14 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bean;
+package io.fairyproject.jackson;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fairyproject.jackson.JacksonConfigure;
+import io.fairyproject.bean.PreInitialize;
+import io.fairyproject.bean.Service;
 import lombok.Getter;
 
 import java.util.ArrayList;

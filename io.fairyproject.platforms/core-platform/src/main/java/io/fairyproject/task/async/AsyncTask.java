@@ -1,4 +1,4 @@
-package io.fairyproject.app.task;
+package io.fairyproject.task.async;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -49,6 +49,14 @@ public class BeanParameterDetailsMethod extends BeanParameterDetailsAbstract {
         }
     }
 
+    public String name() {
+        return this.method.getName();
+    }
+
+    public Class<?> returnType() {
+        return this.method.getReturnType();
+    }
+
     public Object invoke(Object instance, BeanContext beanContext) throws InvocationTargetException, IllegalAccessException {
         Object[] parameters = this.getParameters(beanContext);
 

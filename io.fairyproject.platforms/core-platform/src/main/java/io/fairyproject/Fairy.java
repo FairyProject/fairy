@@ -24,7 +24,6 @@
 
 package io.fairyproject;
 
-import io.fairyproject.config.BaseConfiguration;
 import io.fairyproject.library.LibraryHandler;
 import lombok.experimental.UtilityClass;
 import io.fairyproject.task.ITaskScheduler;
@@ -57,10 +56,6 @@ public class Fairy {
 
     public FairyPlatform getPlatform() {
         return FairyPlatform.INSTANCE;
-    }
-
-    public BaseConfiguration getBaseConfiguration() {
-        return FairyPlatform.INSTANCE.getBaseConfiguration();
     }
 
 }

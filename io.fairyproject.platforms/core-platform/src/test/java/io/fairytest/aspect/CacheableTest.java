@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package org.imanity.frameworktest;
+package io.fairytest.aspect;
 
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
