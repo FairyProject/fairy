@@ -3,8 +3,11 @@ package io.fairytest.entity;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.library.Library;
+import io.fairyproject.plugin.PluginHandler;
+import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
@@ -15,6 +18,14 @@ public class FairyTestingPlatform extends FairyPlatform {
     private final Thread thread;
     public FairyTestingPlatform() {
         this.thread = Thread.currentThread();
+        if (!PluginManager.isInitialized()) {
+            PluginManager.initialize(type -> {
+                if (type.getName().startsWith("io.fairytest")) {
+                    return "test";
+                }
+                return null;
+            });
+        }
     }
 
     @Override

@@ -25,7 +25,6 @@
 package io.fairyproject.bukkit.util.cuboid;
 
 import com.google.common.base.Preconditions;
-import io.fairyproject.config.annotation.ConfigurationElement;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -38,7 +37,6 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-@ConfigurationElement
 @NoArgsConstructor
 @Getter
 @Setter

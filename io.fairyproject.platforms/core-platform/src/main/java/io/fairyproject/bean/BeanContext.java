@@ -33,7 +33,6 @@ import io.fairyproject.bean.details.constructor.BeanParameterDetailsMethod;
 import io.fairyproject.bean.exception.ServiceAlreadyExistsException;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
-import io.fairyproject.module.Module;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.NonNull;
@@ -111,7 +110,11 @@ public class BeanContext {
 
         ComponentRegistry.registerComponentHolders();
         try {
-            this.scanClasses("framework", BeanContext.class.getClassLoader(), Collections.singletonList("io.fairyproject"));
+            this.scanClasses()
+                    .name("framework")
+                    .mainClassloader(BeanContext.class.getClassLoader())
+                    .classPath("io.fairyproject")
+                    .scan();
         } catch (Throwable throwable) {
             LOGGER.error("Error while scanning classes for framework", throwable);
             Fairy.getPlatform().shutdown();
@@ -150,7 +153,12 @@ public class BeanContext {
                     try {
                         final List<String> classPaths = findClassPaths(aClass);
                         classPaths.add(plugin.getDescription().getShadedPackage());
-                        scanClasses(plugin.getName(), plugin.getPluginClassLoader(), classPaths, beanDetails);
+                        scanClasses()
+                                .name(plugin.getName())
+                                .mainClassloader(plugin.getPluginClassLoader())
+                                .classPath(classPaths)
+                                .included(beanDetails)
+                                .scan();
                     } catch (Throwable throwable) {
                         LOGGER.error("An error occurs while handling scanClasses()", throwable);
                         try {
@@ -385,191 +393,6 @@ public class BeanContext {
         }
     }
 
-    public List<BeanDetails> scanClasses(String scanName, ClassLoader classLoader, Collection<String> classPaths, BeanDetails... included) throws Exception {
-        return this.scanClasses(scanName, classLoader, Collections.emptyList(), classPaths, included);
-    }
-
-    public List<BeanDetails> scanClasses(String scanName, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
-        return this.scanClasses(scanName, "", mainClassLoader, otherClassLoaders, classPaths, included);
-    }
-
-    public List<BeanDetails> scanClasses(String scanName, String prefix, ClassLoader mainClassLoader, Collection<ClassLoader> otherClassLoaders, Collection<String> classPaths, BeanDetails... included) throws Exception {
-        log("Start scanning beans for %s with packages [%s]...", scanName, String.join(" ", classPaths));
-
-        // Build the instance for Reflection Lookup
-        ReflectLookup reflectLookup;
-        try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
-            final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-
-            FilterBuilder filterBuilder = new FilterBuilder();
-            List<URL> urls = new ArrayList<>();
-            for (String classPath : classPaths) {
-                // Only search package in the main class loader
-                urls.addAll(ClasspathHelper.forPackage(classPath, mainClassLoader));
-                filterBuilder.includePackage(classPath);
-            }
-            configurationBuilder.setUrls(urls);
-
-            final ArrayList<ClassLoader> classLoaders = new ArrayList<>(otherClassLoaders);
-            classLoaders.add(mainClassLoader);
-            configurationBuilder.addClassLoaders(classLoaders);
-
-            configurationBuilder.filterInputsBy(filterBuilder);
-            reflectLookup = new ReflectLookup(configurationBuilder);
-        }
-
-        // Scanning through the JAR to see every Service Bean can be registered
-        List<BeanDetails> beanDetailsList;
-        try (SimpleTiming ignored = logTiming("Scanning Beans")) {
-            beanDetailsList = new NonNullArrayList<>(Arrays.asList(included));
-
-            for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
-                try {
-                    Service service = type.getAnnotation(Service.class);
-                    Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
-
-                    String name = prefix + service.name();
-
-                    if (this.getBeanByName(name) == null) {
-                        ServiceBeanDetails beanDetails = new ServiceBeanDetails(type, name, service.dependencies());
-
-                        log("Found " + name + " with type " + type.getSimpleName() + ", Registering it as bean...");
-
-                        this.attemptBindPlugin(beanDetails);
-                        this.registerBean(beanDetails, false);
-
-                        beanDetailsList.add(beanDetails);
-                    } else {
-                        new ServiceAlreadyExistsException(name).printStackTrace();
-                    }
-                } catch (Throwable throwable) {
-                    throw new IllegalStateException("An exception has been thrown while scanning bean for " + type.getName(), throwable);
-                }
-            }
-        }
-
-        // Scanning methods that registers bean
-        try (SimpleTiming ignored = logTiming("Scanning Bean Method")) {
-            for (Method method : reflectLookup.findAnnotatedStaticMethods(Bean.class)) {
-                if (method.getReturnType() == void.class) {
-                    new IllegalArgumentException("The Method " + method.toString() + " has annotated @Bean but no return type!").printStackTrace();
-                }
-                BeanParameterDetailsMethod detailsMethod = new BeanParameterDetailsMethod(method, this);
-                List<String> dependencies = new ArrayList<>();
-                for (Parameter type : detailsMethod.getParameters()) {
-                    BeanDetails details = this.getBeanDetails(type.getType());
-                    if (details != null) {
-                        dependencies.add(details.getName());
-                    }
-                }
-                final Object instance = detailsMethod.invoke(null, this);
-
-                Bean bean = method.getAnnotation(Bean.class);
-                if (bean == null) {
-                    continue;
-                }
-
-                Class<?> beanType = detailsMethod.returnType();
-                if (bean.as() != Void.class) {
-                    beanType = bean.as();
-                }
-                String name = bean.name();
-                if (name.isEmpty()) {
-                    name = detailsMethod.name();
-                }
-                name = prefix + name;
-
-                if (this.getBeanByName(name) == null) {
-                    BeanDetails beanDetails = new DependenciesBeanDetails(beanType, instance, name, dependencies.toArray(new String[0]));
-
-                    log("Found " + name + " with type " + instance.getClass().getSimpleName() + ", Registering it as bean...");
-
-                    this.attemptBindPlugin(beanDetails);
-                    this.registerBean(beanDetails, false);
-
-                    beanDetailsList.add(beanDetails);
-                } else {
-                    new ServiceAlreadyExistsException(name).printStackTrace();
-                }
-            }
-        }
-
-        // Load Beans in Dependency Tree Order
-        try (SimpleTiming ignored = logTiming("Initializing Beans")) {
-            beanDetailsList = this.loadInOrder(beanDetailsList);
-        } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while handling loadInOrder()", throwable);
-        }
-
-        // Unregistering Beans that returns false in shouldInitialize
-        try (SimpleTiming ignored = logTiming("Unregistering Disabled Beans")) {
-            this.sortedBeans.addAll(beanDetailsList);
-
-            for (BeanDetails beanDetails : ImmutableList.copyOf(beanDetailsList)) {
-                if (!beanDetailsList.contains(beanDetails)) {
-                    continue;
-                }
-                try {
-                    if (!beanDetails.shouldInitialize()) {
-                        log("Unregistering " + beanDetails.getName() + " due to it cancelled to register");
-
-                        beanDetailsList.remove(beanDetails);
-                        for (BeanDetails details : this.unregisterBean(beanDetails)) {
-                            log("Unregistering " + details.getName() + " due to it dependency unregistered");
-
-                            beanDetailsList.remove(details);
-                        }
-                    }
-                } catch (InvocationTargetException | IllegalAccessException e) {
-                    LOGGER.error(e);
-                    this.unregisterBean(beanDetails);
-                }
-            }
-        }
-
-        // Call @PreInitialize methods for bean
-        try (SimpleTiming ignored = logTiming("Call @PreInitialize")) {
-            this.call(PreInitialize.class, beanDetailsList);
-        }
-
-        // Scan Components
-        try (SimpleTiming ignored = logTiming("Scanning Components")) {
-            beanDetailsList.addAll(ComponentRegistry.scanComponents(this, reflectLookup, prefix));
-        }
-
-        // Inject @Autowired fields for beans
-        try (SimpleTiming ignored = logTiming("Injecting Beans")) {
-            for (BeanDetails beanDetails : beanDetailsList) {
-                for (BeanController controller : this.controllers) {
-                    controller.applyBean(beanDetails);
-                }
-            }
-        }
-
-        // Inject @Autowired static fields
-        try (SimpleTiming ignored = logTiming("Injecting Static Autowired Fields")) {
-            for (Field field : reflectLookup.findAnnotatedStaticFields(Autowired.class)) {
-                if (!Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
-
-                AutowiredBeanController.INSTANCE.applyField(field, null);
-            }
-        }
-
-        // Call onEnable() for Components
-        try (SimpleTiming ignored = logTiming("Call onEnable() for Components")) {
-            beanDetailsList.forEach(BeanDetails::onEnable);
-        }
-
-        // Call @PostInitialize
-        try (SimpleTiming ignored = logTiming("Call @PostInitialize")) {
-            this.call(PostInitialize.class, beanDetailsList);
-        }
-
-        return beanDetailsList;
-    }
-
     public void call(Class<? extends Annotation> annotation, Collection<BeanDetails> beanDetailsList) {
         for (BeanDetails beanDetails : beanDetailsList) {
             try {
@@ -688,6 +511,260 @@ public class BeanContext {
         }
 
         return Lists.newArrayList();
+    }
+
+    public ClassPathScanner scanClasses() {
+        return new ClassPathScanner();
+    }
+
+    public class ClassPathScanner {
+
+        private String prefix = "";
+        private String scanName;
+        private final List<String> classPaths = new ArrayList<>();
+        private final List<String> excludedPackages = new ArrayList<>();
+
+        private ClassLoader mainClassLoader;
+        private final List<ClassLoader> otherClassLoaders = new ArrayList<>();
+
+        private final List<BeanDetails> included = new ArrayList<>();
+
+        public ClassPathScanner prefix(String prefix) {
+            this.prefix = prefix;
+            return this;
+        }
+
+        public ClassPathScanner name(String name) {
+            this.scanName = name;
+            return this;
+        }
+
+        public ClassPathScanner classPath(String... classPath) {
+            this.classPaths.addAll(Arrays.asList(classPath));
+            return this;
+        }
+
+        public ClassPathScanner classPath(Collection<String> classPath) {
+            this.classPaths.addAll(classPath);
+            return this;
+        }
+
+        public ClassPathScanner excludePackage(String... classPath) {
+            this.excludedPackages.addAll(Arrays.asList(classPath));
+            return this;
+        }
+
+        public ClassPathScanner excludePackage(Collection<String> classPath) {
+            this.excludedPackages.addAll(classPath);
+            return this;
+        }
+
+        public ClassPathScanner mainClassloader(ClassLoader classLoader) {
+            this.mainClassLoader = classLoader;
+            return this;
+        }
+
+        public ClassPathScanner classLoader(ClassLoader... classLoaders) {
+            this.otherClassLoaders.addAll(Arrays.asList(classLoaders));
+            return this;
+        }
+
+        public ClassPathScanner classLoader(Collection<ClassLoader> classLoaders) {
+            this.otherClassLoaders.addAll(classLoaders);
+            return this;
+        }
+
+        public ClassPathScanner included(BeanDetails... beanDetails) {
+            this.included.addAll(Arrays.asList(beanDetails));
+            return this;
+        }
+
+        public ClassPathScanner included(Collection<BeanDetails> beanDetails) {
+            this.included.addAll(beanDetails);
+            return this;
+        }
+
+        public List<BeanDetails> scan() throws Exception {
+            log("Start scanning beans for %s with packages [%s]...", scanName, String.join(" ", classPaths));
+
+            // Build the instance for Reflection Lookup
+            ReflectLookup reflectLookup;
+            try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
+                final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+
+                FilterBuilder filterBuilder = new FilterBuilder();
+                List<URL> urls = new ArrayList<>();
+                for (String classPath : classPaths) {
+                    // Only search package in the main class loader
+                    urls.addAll(ClasspathHelper.forPackage(classPath, mainClassLoader));
+                    filterBuilder.includePackage(classPath);
+                }
+
+                for (String classPath : this.excludedPackages) {
+                    filterBuilder.excludePackage(classPath);
+                }
+                configurationBuilder.setUrls(urls);
+
+                final ArrayList<ClassLoader> classLoaders = new ArrayList<>(otherClassLoaders);
+                classLoaders.add(mainClassLoader);
+                configurationBuilder.addClassLoaders(classLoaders);
+
+                configurationBuilder.filterInputsBy(filterBuilder);
+                reflectLookup = new ReflectLookup(configurationBuilder);
+            }
+
+            // Scanning through the JAR to see every Service Bean can be registered
+            List<BeanDetails> beanDetailsList;
+            try (SimpleTiming ignored = logTiming("Scanning Beans")) {
+                beanDetailsList = new NonNullArrayList<>(included);
+
+                for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
+                    try {
+                        Service service = type.getAnnotation(Service.class);
+                        Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
+
+                        String name = prefix + service.name();
+
+                        if (getBeanByName(name) == null) {
+                            ServiceBeanDetails beanDetails = new ServiceBeanDetails(type, name, service.dependencies());
+
+                            log("Found " + name + " with type " + type.getSimpleName() + ", Registering it as bean...");
+
+                            attemptBindPlugin(beanDetails);
+                            registerBean(beanDetails, false);
+
+                            beanDetailsList.add(beanDetails);
+                        } else {
+                            new ServiceAlreadyExistsException(name).printStackTrace();
+                        }
+                    } catch (Throwable throwable) {
+                        throw new IllegalStateException("An exception has been thrown while scanning bean for " + type.getName(), throwable);
+                    }
+                }
+            }
+
+            // Scanning methods that registers bean
+            try (SimpleTiming ignored = logTiming("Scanning Bean Method")) {
+                for (Method method : reflectLookup.findAnnotatedStaticMethods(Bean.class)) {
+                    if (method.getReturnType() == void.class) {
+                        new IllegalArgumentException("The Method " + method.toString() + " has annotated @Bean but no return type!").printStackTrace();
+                    }
+                    BeanParameterDetailsMethod detailsMethod = new BeanParameterDetailsMethod(method, BeanContext.this);
+                    List<String> dependencies = new ArrayList<>();
+                    for (Parameter type : detailsMethod.getParameters()) {
+                        BeanDetails details = getBeanDetails(type.getType());
+                        if (details != null) {
+                            dependencies.add(details.getName());
+                        }
+                    }
+                    final Object instance = detailsMethod.invoke(null, BeanContext.this);
+
+                    Bean bean = method.getAnnotation(Bean.class);
+                    if (bean == null) {
+                        continue;
+                    }
+
+                    Class<?> beanType = detailsMethod.returnType();
+                    if (bean.as() != Void.class) {
+                        beanType = bean.as();
+                    }
+                    String name = bean.name();
+                    if (name.isEmpty()) {
+                        name = detailsMethod.name();
+                    }
+                    name = prefix + name;
+
+                    if (getBeanByName(name) == null) {
+                        BeanDetails beanDetails = new DependenciesBeanDetails(beanType, instance, name, dependencies.toArray(new String[0]));
+
+                        log("Found " + name + " with type " + instance.getClass().getSimpleName() + ", Registering it as bean...");
+
+                        attemptBindPlugin(beanDetails);
+                        registerBean(beanDetails, false);
+
+                        beanDetailsList.add(beanDetails);
+                    } else {
+                        new ServiceAlreadyExistsException(name).printStackTrace();
+                    }
+                }
+            }
+
+            // Load Beans in Dependency Tree Order
+            try (SimpleTiming ignored = logTiming("Initializing Beans")) {
+                beanDetailsList = loadInOrder(beanDetailsList);
+            } catch (Throwable throwable) {
+                LOGGER.error("An error occurs while handling loadInOrder()", throwable);
+            }
+
+            // Unregistering Beans that returns false in shouldInitialize
+            try (SimpleTiming ignored = logTiming("Unregistering Disabled Beans")) {
+                sortedBeans.addAll(beanDetailsList);
+
+                for (BeanDetails beanDetails : ImmutableList.copyOf(beanDetailsList)) {
+                    if (!beanDetailsList.contains(beanDetails)) {
+                        continue;
+                    }
+                    try {
+                        if (!beanDetails.shouldInitialize()) {
+                            log("Unregistering " + beanDetails.getName() + " due to it cancelled to register");
+
+                            beanDetailsList.remove(beanDetails);
+                            for (BeanDetails details : unregisterBean(beanDetails)) {
+                                log("Unregistering " + details.getName() + " due to it dependency unregistered");
+
+                                beanDetailsList.remove(details);
+                            }
+                        }
+                    } catch (InvocationTargetException | IllegalAccessException e) {
+                        LOGGER.error(e);
+                        unregisterBean(beanDetails);
+                    }
+                }
+            }
+
+            // Call @PreInitialize methods for bean
+            try (SimpleTiming ignored = logTiming("Call @PreInitialize")) {
+                call(PreInitialize.class, beanDetailsList);
+            }
+
+            // Scan Components
+            try (SimpleTiming ignored = logTiming("Scanning Components")) {
+                beanDetailsList.addAll(ComponentRegistry.scanComponents(BeanContext.this, reflectLookup, prefix));
+            }
+
+            // Inject @Autowired fields for beans
+            try (SimpleTiming ignored = logTiming("Injecting Beans")) {
+                for (BeanDetails beanDetails : beanDetailsList) {
+                    for (BeanController controller : controllers) {
+                        controller.applyBean(beanDetails);
+                    }
+                }
+            }
+
+            // Inject @Autowired static fields
+            try (SimpleTiming ignored = logTiming("Injecting Static Autowired Fields")) {
+                for (Field field : reflectLookup.findAnnotatedStaticFields(Autowired.class)) {
+                    if (!Modifier.isStatic(field.getModifiers())) {
+                        continue;
+                    }
+
+                    AutowiredBeanController.INSTANCE.applyField(field, null);
+                }
+            }
+
+            // Call onEnable() for Components
+            try (SimpleTiming ignored = logTiming("Call onEnable() for Components")) {
+                beanDetailsList.forEach(BeanDetails::onEnable);
+            }
+
+            // Call @PostInitialize
+            try (SimpleTiming ignored = logTiming("Call @PostInitialize")) {
+                call(PostInitialize.class, beanDetailsList);
+            }
+
+            return beanDetailsList;
+        }
+
     }
 
 }

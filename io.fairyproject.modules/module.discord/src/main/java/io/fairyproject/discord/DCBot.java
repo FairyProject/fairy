@@ -4,6 +4,7 @@ import io.fairyproject.bean.*;
 import io.fairyproject.discord.button.ButtonReader;
 import io.fairyproject.discord.message.NextMessageReader;
 import io.fairyproject.discord.proxies.ProxyJDA;
+import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
@@ -51,6 +52,7 @@ public abstract class DCBot implements ProxyJDA {
     protected ButtonReader buttonReader;
 
     private PreProcessBatch listenerBatch;
+    private MetadataMap metadata;
 
     @Override
     public final JDA getJDA() {
@@ -58,9 +60,14 @@ public abstract class DCBot implements ProxyJDA {
         return this.jda;
     }
 
+    public final MetadataMap metadata() {
+        return this.metadata;
+    }
+
     @PreInitialize
     public void onPreInitialize() {
         this.listenerBatch = PreProcessBatch.create();
+        this.metadata = MetadataMap.create();
     }
 
     @PostInitialize

@@ -36,5 +36,5 @@ dependencies {
 }
 
 module {
-
+    depend("module.config")
 }

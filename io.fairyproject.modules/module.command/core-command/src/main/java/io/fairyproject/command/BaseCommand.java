@@ -44,6 +44,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -81,6 +82,10 @@ public abstract class BaseCommand implements ICommand {
 
     public String[] getCommandNames() {
         return this.names;
+    }
+
+    public <T extends Annotation> T getAnnotation(Class<T> type) {
+        return this.getClass().getAnnotation(type);
     }
 
     public void onArgumentFailed(CommandContext commandContext, String source, String reason) {

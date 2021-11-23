@@ -1,0 +1,8 @@
+{
+  "name": "test",
+  "mainClass": "io.fairytest.plugin.PluginMock",
+  "shadedPackage": "io.fairytest.plugin",
+  "modules": [
+    "module.command:0.0.1b1"
+  ]
+}

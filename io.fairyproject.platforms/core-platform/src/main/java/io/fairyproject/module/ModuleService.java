@@ -55,7 +55,9 @@ public class ModuleService {
             public void onPluginInitial(Plugin plugin) {
                 PENDING.runOrQueue(plugin.getName(), () -> {
                     final ModuleService moduleService = Beans.get(ModuleService.class);
-                    plugin.getDescription().getModules().forEach((name, version) -> {
+                    plugin.getDescription().getModules().forEach(pair -> {
+                        final String name = pair.getKey();
+                        final String version = pair.getValue();
                         final Module module = moduleService.registerByName(name, FairyVersion.parse(version), plugin);
 
                         if (module == null) {
@@ -92,6 +94,10 @@ public class ModuleService {
 
     private final Map<String, Module> moduleByName = new ConcurrentHashMap<>();
     private final List<ModuleController> controllers = new ArrayList<>();
+
+    public Collection<Module> all() {
+        return this.moduleByName.values();
+    }
 
     @PreInitialize
     public void onPreInitialize() {
@@ -173,7 +179,7 @@ public class ModuleService {
             final String classPath = plugin.getDescription().getShadedPackage() + ".fairy";
 
             final ModuleClassloader classLoader = new ModuleClassloader(path);
-            module = new Module(name, classPath, classLoader);
+            module = new Module(name, classPath, classLoader, plugin);
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             if (!canAbstract && module.isAbstraction()) {
@@ -200,10 +206,20 @@ public class ModuleService {
                 dependModule.addRef(); // add reference
             }
 
+            for (Map.Entry<String, JsonElement> entry : jsonObject.getAsJsonObject("exclusive").entrySet()) {
+                module.getExclusives().put(entry.getValue().getAsString(), entry.getKey());
+            }
+
             this.moduleByName.put(name, module);
             this.onModuleLoad(module);
 
-            final List<BeanDetails> details = BEAN_CONTEXT.scanClasses(plugin.getName() + "-" + module.getName(), module.getName(), classLoader, Collections.singletonList(this.getClass().getClassLoader()), Collections.singletonList(module.getClassPath()));
+            final List<BeanDetails> details = BEAN_CONTEXT.scanClasses()
+                    .name(plugin.getName() + "-" + module.getName())
+                    .prefix(module.getName())
+                    .mainClassloader(classLoader)
+                    .classLoader(this.getClass().getClassLoader())
+                    .classPath(module.getClassPath())
+                    .scan();
             details.forEach(bean -> bean.bindWith(plugin));
             return module;
         } catch (Exception e) {

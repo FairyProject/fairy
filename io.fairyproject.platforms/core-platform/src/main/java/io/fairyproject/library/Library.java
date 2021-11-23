@@ -32,10 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
+import java.util.*;
 
 @Getter
 public class Library {
@@ -291,6 +288,21 @@ public class Library {
         }
 
         return new Library(groupId, artifactId, null, version, checksum, libraryRepository, relocates);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Library library = (Library) o;
+        return Objects.equals(mavenRepoPath, library.mavenRepoPath) && Objects.equals(version, library.version) && Objects.equals(name, library.name) && Arrays.equals(checksum, library.checksum) && Objects.equals(repository, library.repository) && Objects.equals(relocations, library.relocations);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(mavenRepoPath, version, name, repository, relocations);
+        result = 31 * result + Arrays.hashCode(checksum);
+        return result;
     }
 
     public static Builder builder() {

@@ -1,4 +1,4 @@
-version = "0.0.1b1"
+version = "0.0.1b2"
 
 dependencies {
     compileOnly "net.dv8tion:JDA:4.3.0_339"
@@ -6,6 +6,7 @@ dependencies {
 
 module {
     subDepend("module.command:core-command")
+    exclude("module.command:core-command", "io.fairyproject.discord.command")
 }
 
 repositories {

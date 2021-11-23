@@ -26,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -102,6 +103,12 @@ public class ModuleTask extends DefaultTask {
             }
 
             jsonObject.add("depends", array);
+
+            JsonObject exclusive = new JsonObject();
+            final Map<String, String> map = extension.getExclusives().get();
+            map.forEach(exclusive::addProperty);
+
+            jsonObject.add("exclusive", exclusive);
 
             out.putNextEntry(new JarEntry("module.json"));
             final Gson gson = new GsonBuilder().setPrettyPrinting().create();

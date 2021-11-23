@@ -1,9 +1,11 @@
 package io.fairyproject.gradle;
 
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
@@ -18,6 +20,8 @@ public class ModuleExtension {
     private final ListProperty<String> depends;
     private final ListProperty<String> subDepends;
     private final ListProperty<String> platforms;
+    // <module, package>
+    private final MapProperty<String, String> exclusives;
 
     @Inject
     public ModuleExtension(ObjectFactory objectFactory, Project project) {
@@ -27,6 +31,7 @@ public class ModuleExtension {
         this.depends = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.subDepends = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.platforms = objectFactory.listProperty(String.class).convention(Collections.emptyList());
+        this.exclusives = objectFactory.mapProperty(String.class, String.class).convention(Collections.emptyMap());
     }
 
     public void depend(String name) {
@@ -39,6 +44,10 @@ public class ModuleExtension {
 
     public void platform(String name) {
         this.platforms.add(name);
+    }
+
+    public void exclude(String module, String curPackage) {
+        this.exclusives.put(curPackage, module);
     }
 
 }

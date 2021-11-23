@@ -59,7 +59,7 @@ public class ServerHandler {
 
     @PostInitialize
     public void init() {
-        this.currentServer = new ImanityServer(Fairy.getBaseConfiguration().getCrossServer().getServerName());
+        this.currentServer = new ImanityServer("TODO"); // TODO
         this.currentServer.setServerState(ServerState.BOOTING);
 
         this.fetchThread = new FetchThread(this);

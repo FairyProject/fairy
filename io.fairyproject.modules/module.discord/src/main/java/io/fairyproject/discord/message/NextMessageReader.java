@@ -80,29 +80,38 @@ public class NextMessageReader {
         return completableFuture;
     }
 
-    public void handleMessage(MessageReceivedEvent event) {
+    public boolean handleMessage(MessageReceivedEvent event) {
         User user = event.getAuthor();
 
         if (user.isBot()) {
-            return;
+            return false;
         }
 
         long guildId = -1;
         if (event.getChannelType() == ChannelType.TEXT) {
             guildId = event.getGuild().getIdLong();
         }
-        this.completeKey(new KeyPair(guildId, event.getChannel().getIdLong(), user.getIdLong()), event.getMessage());
-        this.completeKey(new KeyPair(guildId, event.getChannel().getIdLong(), -1), event.getMessage());
+        boolean processed = false;
+        if (this.completeKey(new KeyPair(guildId, event.getChannel().getIdLong(), user.getIdLong()), event.getMessage())) {
+            processed = true;
+        }
+        if (this.completeKey(new KeyPair(guildId, event.getChannel().getIdLong(), -1), event.getMessage())) {
+            processed = true;
+        }
+        return processed;
     }
 
-    private void completeKey(KeyPair keyPair, Message message) {
+    private boolean completeKey(KeyPair keyPair, Message message) {
         Set<FuturePair> futures;
         synchronized (this.pending) {
             futures = this.pending.removeAll(keyPair);
         }
+        boolean processed = false;
         for (FuturePair futurePair : futures) {
             futurePair.getFuture().complete(message);
+            processed = true;
         }
+        return processed;
     }
 
     @Data

@@ -78,10 +78,6 @@ public class CommandContext {
         this.presenceProvider.sendMessage(this, messageType, messages);
     }
 
-    public boolean shouldExecute(CommandMeta meta, String[] arguments) {
-        return true;
-    }
-
     public boolean hasPermission(String permission) {
         return true;
     }
