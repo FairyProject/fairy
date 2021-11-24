@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.command.parameters;
 
 import com.cryptomorin.xseries.XMaterial;
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.bukkit.command.util.CommandUtil;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

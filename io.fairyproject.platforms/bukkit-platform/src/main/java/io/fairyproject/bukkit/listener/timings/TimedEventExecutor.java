@@ -26,7 +26,7 @@ package io.fairyproject.bukkit.listener.timings;
 
 import java.lang.reflect.Method;
 
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.timings.TimingService;
 import org.bukkit.event.Event;

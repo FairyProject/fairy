@@ -1,6 +1,6 @@
 package io.fairyproject.discord.listener;
 
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.discord.DCBot;
 import io.fairyproject.discord.event.DCMessageReceivedEvent;
 import io.fairyproject.event.EventBus;

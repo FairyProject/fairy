@@ -32,8 +32,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChatTabCompleteEvent;
 import io.fairyproject.bukkit.events.player.PlayerPostJoinEvent;
-import io.fairyproject.bean.Component;
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Component;
+import io.fairyproject.container.Autowired;
 
 import java.util.Collection;
 

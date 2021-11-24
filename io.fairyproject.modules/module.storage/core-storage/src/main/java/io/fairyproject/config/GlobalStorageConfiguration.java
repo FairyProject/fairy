@@ -31,9 +31,9 @@ import io.fairyproject.config.annotation.ElementType;
 import lombok.Getter;
 import io.fairyproject.Fairy;
 import io.fairyproject.StorageService;
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.PostInitialize;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.Service;
 import io.fairyproject.config.yaml.YamlConfiguration;
 
 import java.io.File;

@@ -24,10 +24,9 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

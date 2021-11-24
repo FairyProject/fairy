@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;

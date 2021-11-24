@@ -24,7 +24,7 @@
 
 package io.fairyproject;
 
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import lombok.experimental.UtilityClass;
 
 import java.io.Serializable;

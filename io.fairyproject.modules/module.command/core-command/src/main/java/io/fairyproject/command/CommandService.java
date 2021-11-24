@@ -24,7 +24,7 @@
 
 package io.fairyproject.command;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;

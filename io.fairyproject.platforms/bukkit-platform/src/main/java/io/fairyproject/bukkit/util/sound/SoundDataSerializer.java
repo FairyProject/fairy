@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.util.sound;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import org.bukkit.Sound;
 
 @Component

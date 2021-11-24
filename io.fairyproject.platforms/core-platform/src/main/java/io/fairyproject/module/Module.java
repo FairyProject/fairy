@@ -2,7 +2,7 @@ package io.fairyproject.module;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -15,7 +15,6 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter

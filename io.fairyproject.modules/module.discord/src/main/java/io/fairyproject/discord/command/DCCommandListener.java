@@ -1,9 +1,9 @@
 package io.fairyproject.discord.command;
 
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.Component;
-import io.fairyproject.bean.PreInitialize;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.Component;
+import io.fairyproject.container.PreInitialize;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandListener;
 import io.fairyproject.command.CommandService;
@@ -24,7 +24,7 @@ public class DCCommandListener implements CommandListener {
     private final MetadataKey<DCCommandMap> METADATA = MetadataKey.create("discord:command-map", DCCommandMap.class);
 
     @Autowired
-    private BeanContext beanContext;
+    private ContainerContext containerContext;
 
     @Autowired
     private CommandService commandService;
@@ -73,7 +73,7 @@ public class DCCommandListener implements CommandListener {
         if (annotation != null) {
             bots = new ArrayList<>();
             for (Class<? extends DCBot> botClass : annotation.value()) {
-                final Object bot = this.beanContext.getBean(botClass);
+                final Object bot = this.containerContext.getBean(botClass);
                 if (bot != null) {
                     bots.add((DCBot) bot);
                 } else {

@@ -24,8 +24,8 @@
 
 package io.fairyproject.bukkit.hologram;
 
-import io.fairyproject.bean.BeanConstructor;
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.ContainerConstruct;
+import io.fairyproject.container.Component;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.player.movement.MovementListener;
@@ -52,7 +52,7 @@ public class HologramListener implements Listener {
     private final Set<Player> toUpdate = new HashSet<>();
     private final MCTiming timing;
 
-    @BeanConstructor
+    @ContainerConstruct
     public HologramListener(TimingService timingService) {
         Imanity.registerMovementListener(new MovementListener() {
             @Override

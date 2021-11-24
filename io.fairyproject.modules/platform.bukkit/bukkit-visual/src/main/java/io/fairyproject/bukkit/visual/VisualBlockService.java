@@ -44,7 +44,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.bukkit.util.CoordXZ;

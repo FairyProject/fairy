@@ -24,8 +24,8 @@
 
 package io.fairyproject.locale;
 
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.BeanHolder;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.ContainerHolder;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.Template;
@@ -40,7 +40,7 @@ import java.util.UUID;
 public class Locales {
 
     @Autowired
-    private BeanHolder<LocaleService> LOCALE_SERVICE;
+    private ContainerHolder<LocaleService> LOCALE_SERVICE;
 
     public void setLocale(UUID uuid, Locale locale) {
         LOCALE_SERVICE.runOrNull(localeService -> localeService.setLocale(uuid, locale));
@@ -71,7 +71,7 @@ public class Locales {
     }
 
     public Template template(String placeholder, String localeKey) {
-        return Template.of(placeholder, Component.translatable(localeKey));
+        return Template.template(placeholder, Component.translatable(localeKey));
     }
 
 }

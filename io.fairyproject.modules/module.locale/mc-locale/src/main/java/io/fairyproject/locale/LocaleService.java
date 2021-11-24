@@ -25,7 +25,7 @@
 package io.fairyproject.locale;
 
 import com.google.common.base.Preconditions;
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.storage.DataClosable;

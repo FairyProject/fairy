@@ -28,8 +28,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
 import lombok.Getter;
 
 import java.util.ArrayList;

@@ -25,7 +25,7 @@
 package io.fairyproject.command.parameter.impl;
 
 import com.google.common.collect.ImmutableMap;
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.command.CommandContext;
 import io.fairyproject.command.parameter.ArgTransformer;
 

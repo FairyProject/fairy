@@ -1,9 +1,9 @@
 package io.fairyproject.module.controller;
 
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.Component;
-import io.fairyproject.bean.details.BeanDetails;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.Component;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.module.Module;
 import io.fairyproject.module.ModuleController;
 import io.fairyproject.module.ModuleService;
@@ -19,7 +19,7 @@ public class ExclusiveController implements ModuleController {
     private ModuleService moduleService;
 
     @Autowired
-    private BeanContext beanContext;
+    private ContainerContext containerContext;
 
     @Override
     public void onModuleLoad(Module module) {
@@ -27,7 +27,7 @@ public class ExclusiveController implements ModuleController {
             final Collection<String> excludedPackages = m.releaseExclusive(module);
             if (excludedPackages != null && !excludedPackages.isEmpty()) {
                 ThrowingRunnable.unchecked(() -> {
-                    final List<BeanDetails> beanDetails = this.beanContext.scanClasses()
+                    final List<ContainerObject> beanDetails = this.containerContext.scanClasses()
                             .name(m.getName() + " - excluded load")
                             .prefix(m.getPlugin().getName() + "-")
                             .mainClassloader(m.getClassLoader())

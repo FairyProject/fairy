@@ -25,7 +25,7 @@
 package io.fairyproject.mysql.pojo.impl;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 
 import java.util.UUID;
 

@@ -24,26 +24,26 @@
 
 package io.fairyproject.bukkit.impl;
 
-import io.fairyproject.bean.BeanConstructor;
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.ContainerConstruct;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.server.ServerImplementation;
 
 @Service(name = "bukkit-impl")
 public class BukkitImplService {
 
-    private final BeanContext beanContext;
+    private final ContainerContext containerContext;
 
-    @BeanConstructor
-    public BukkitImplService(BeanContext beanContext) {
-        this.beanContext = beanContext;
+    @ContainerConstruct
+    public BukkitImplService(ContainerContext containerContext) {
+        this.containerContext = containerContext;
     }
 
     @PreInitialize
     public void preInit() {
-        Imanity.IMPLEMENTATION = ServerImplementation.load(this.beanContext);
+        Imanity.IMPLEMENTATION = ServerImplementation.load(this.containerContext);
     }
 
 }

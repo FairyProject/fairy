@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.timer;
 
 import lombok.experimental.UtilityClass;
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 
 @UtilityClass
 public class Timers {

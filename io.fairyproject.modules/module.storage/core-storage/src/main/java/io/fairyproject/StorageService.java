@@ -24,11 +24,11 @@
 
 package io.fairyproject;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
+import io.fairyproject.jackson.JacksonService;
 import io.fairyproject.library.Library;
-import io.fairyproject.util.Utility;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 
 import javax.annotation.Nullable;
@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service(name = "storage")
-@ServiceDependency(dependencies = {"storageConfiguration", "serializer", "jackson"})
+@ServiceDependency({StorageConfiguration.class, SerializerFactory.class, JacksonService.class})
 public class StorageService {
 
     @Autowired

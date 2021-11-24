@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.listener.impl;
 
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.bukkit.util.BukkitUtil;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

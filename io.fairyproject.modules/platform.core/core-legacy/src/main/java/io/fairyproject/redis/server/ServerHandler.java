@@ -25,7 +25,7 @@
 package io.fairyproject.redis.server;
 
 import io.fairyproject.Fairy;
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.redis.server.enums.ServerState;
 import io.fairyproject.redis.server.message.ServerDeleteMessage;
 import io.fairyproject.redis.server.message.ServerStateChangedMessage;
@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service(name = "serverHandler")
-@ServiceDependency(dependencies = "redis", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))
+@ServiceDependency(value = RedisService.class, type = ServiceDependencyType.SUB_DISABLE)
 @Getter
 public class ServerHandler {
 

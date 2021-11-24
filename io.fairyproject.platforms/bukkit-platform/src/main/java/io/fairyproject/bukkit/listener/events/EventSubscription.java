@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.listener.events;
 
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.bukkit.timings.TimingService;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;

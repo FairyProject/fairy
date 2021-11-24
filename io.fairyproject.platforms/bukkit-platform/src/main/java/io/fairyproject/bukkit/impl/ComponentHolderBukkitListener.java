@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.impl;
 
-import io.fairyproject.bean.ComponentHolder;
+import io.fairyproject.container.ComponentHolder;
 import io.fairyproject.bukkit.Imanity;
 import org.bukkit.event.Listener;
 import io.fairyproject.bukkit.listener.FilteredListener;

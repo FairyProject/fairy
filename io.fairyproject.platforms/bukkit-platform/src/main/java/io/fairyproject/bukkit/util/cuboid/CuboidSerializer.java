@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.util.cuboid;
 
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.ObjectSerializer;
 
 import java.util.Map;

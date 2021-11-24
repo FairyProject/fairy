@@ -26,8 +26,8 @@ package io.fairyproject;
 
 import com.google.common.collect.ImmutableSet;
 import io.fairyproject.aspect.AsyncAspect;
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.details.SimpleBeanDetails;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.object.SimpleContainerObject;
 import io.fairyproject.cache.CacheableAspect;
 import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryHandler;
@@ -59,7 +59,7 @@ public abstract class FairyPlatform {
     private AtomicBoolean loadedDependencies;
 
     private LibraryHandler libraryHandler;
-    private BeanContext beanContext;
+    private ContainerContext containerContext;
 
     public void load() {
         this.taskScheduler = this.createTaskScheduler();
@@ -72,9 +72,9 @@ public abstract class FairyPlatform {
         this.loadDependencies();
         this.loadBindable();
 
-        this.beanContext = new BeanContext();
-        this.beanContext.registerBean(new SimpleBeanDetails(this, "fairyBootstrap", this.getClass()));
-        this.beanContext.init();
+        this.containerContext = new ContainerContext();
+        this.containerContext.registerBean(new SimpleContainerObject(this, this.getClass()));
+        this.containerContext.init();
     }
 
     public void disable() {
@@ -84,7 +84,7 @@ public abstract class FairyPlatform {
             ex.printStackTrace();
         }
 
-        this.beanContext.stop();
+        this.containerContext.stop();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
     }
 

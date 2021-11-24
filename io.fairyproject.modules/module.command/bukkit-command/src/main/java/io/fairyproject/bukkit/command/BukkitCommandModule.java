@@ -1,24 +1,24 @@
 package io.fairyproject.bukkit.command;
 
-import io.fairyproject.bean.BeanConstructor;
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.ContainerConstruct;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.command.presence.DefaultPresenceProvider;
 import io.fairyproject.command.CommandService;
 
-@Service(name = "bukkit:command", dependencies = "command")
+@Service(name = "bukkit:command", depends = CommandService.class)
 public class BukkitCommandModule {
-    private final BeanContext beanContext;
+    private final ContainerContext containerContext;
 
-    @BeanConstructor
-    public BukkitCommandModule(BeanContext beanContext) {
-        this.beanContext = beanContext;
+    @ContainerConstruct
+    public BukkitCommandModule(ContainerContext containerContext) {
+        this.containerContext = containerContext;
     }
 
     @PreInitialize
     public void preInit() {
-        CommandService commandService = (CommandService) this.beanContext.getBean(CommandService.class);
+        CommandService commandService = (CommandService) this.containerContext.getBean(CommandService.class);
         commandService.registerDefaultPresenceProvider(new DefaultPresenceProvider());
     }
 }

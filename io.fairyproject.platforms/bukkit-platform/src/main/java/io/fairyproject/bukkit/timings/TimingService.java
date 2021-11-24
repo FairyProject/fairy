@@ -25,8 +25,8 @@
 package io.fairyproject.bukkit.timings;
 
 import org.bukkit.plugin.Plugin;
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;

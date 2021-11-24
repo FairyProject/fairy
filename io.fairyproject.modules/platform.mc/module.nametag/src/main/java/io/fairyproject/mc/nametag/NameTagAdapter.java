@@ -27,7 +27,7 @@ package io.fairyproject.mc.nametag;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import net.kyori.adventure.text.Component;
 
 @Getter

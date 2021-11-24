@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.storage;
 
 import com.google.common.collect.Lists;
+import io.fairyproject.StorageService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -37,12 +38,12 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.PostInitialize;
-import io.fairyproject.bean.ServiceDependency;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.ServiceDependency;
 import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bean.details.BeanDetails;
+import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.task.Task;
 
 import java.util.*;
@@ -62,7 +63,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @param <T> the Data Class
  */
-@ServiceDependency(dependencies = {"storage"})
+@ServiceDependency(StorageService.class)
 public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
     private static final Logger LOGGER = LogManager.getLogger(ThreadedPlayerStorage.class);
@@ -73,7 +74,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
     private Set<UUID> asyncLoginReject, syncLoginReject;
 
     @Autowired
-    private BeanContext beanContext;
+    private ContainerContext containerContext;
 
     /**
      * build configuration for this storage, only called once on @PostInitialize
@@ -173,7 +174,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
     }
 
     @PostInitialize
-    public final void onPostInitializeStorage(BeanDetails beanDetails) {
+    public final void onPostInitializeStorage(ContainerObject containerObject) {
         this.storedObjects = new ConcurrentHashMap<>();
         this.asyncLoginReject = new HashSet<>();
         this.syncLoginReject = new HashSet<>();
@@ -181,7 +182,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
         this.storageConfiguration = this.buildStorageConfiguration();
         if (this.storageConfiguration == null) {
             LOGGER.error("No storage configuration were enabled.");
-            this.beanContext.unregisterBean(beanDetails);
+            this.containerContext.unregisterBean(containerObject);
             return;
         }
 
@@ -225,7 +226,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, this.storageConfiguration.getLoginRejectMessage(uuid, name, LoginRejectReason.ERROR));
                     }
                 }).build(this.getPlugin())
-                .bindWith(beanDetails);
+                .bindWith(containerObject);
 
         Events.subscribe(AsyncPlayerPreLoginEvent.class)
                 .priority(EventPriority.MONITOR)
@@ -239,7 +240,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                         }
                     }
                 }).build(this.getPlugin())
-                .bindWith(beanDetails);
+                .bindWith(containerObject);
 
         Events.subscribe(PlayerLoginEvent.class)
                 .priority(EventPriority.LOWEST)
@@ -265,7 +266,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
                     this.onLoadedMain(player, t);
                 }).build(this.getPlugin())
-                .bindWith(beanDetails);
+                .bindWith(containerObject);
 
         Events.subscribe(PlayerLoginEvent.class)
                 .priority(EventPriority.MONITOR)
@@ -279,7 +280,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                         }
                     }
                 }).build(this.getPlugin())
-                .bindWith(beanDetails);
+                .bindWith(containerObject);
 
         Events.subscribe(PlayerQuitEvent.class)
                 .priority(EventPriority.MONITOR)
@@ -291,7 +292,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     this.unload(player.getUniqueId());
                 })
                 .build(this.getPlugin())
-                .bindWith(beanDetails);
+                .bindWith(containerObject);
     }
 
     @Override

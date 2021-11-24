@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.sidebar;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.util.terminable.Terminable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;

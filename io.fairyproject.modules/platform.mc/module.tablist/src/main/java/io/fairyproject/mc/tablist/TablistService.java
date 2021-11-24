@@ -24,7 +24,7 @@
 
 package io.fairyproject.mc.tablist;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.mc.tablist.util.TabSlot;
 import io.fairyproject.mc.tablist.util.TablistImpl;
 import io.fairyproject.mc.tablist.util.impl.MainTablistImpl;

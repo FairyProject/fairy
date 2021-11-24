@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.timer;
 
 import com.google.common.collect.ImmutableSet;
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.bukkit.timer.event.*;
 import io.fairyproject.util.RV;
 import io.fairyproject.util.StringUtil;

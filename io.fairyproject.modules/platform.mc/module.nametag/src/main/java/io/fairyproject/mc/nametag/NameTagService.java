@@ -26,10 +26,10 @@ package io.fairyproject.mc.nametag;
 
 import com.google.common.primitives.Ints;
 import io.fairyproject.Fairy;
-import io.fairyproject.bean.ComponentHolder;
-import io.fairyproject.bean.ComponentRegistry;
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.ComponentHolder;
+import io.fairyproject.container.ComponentRegistry;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;

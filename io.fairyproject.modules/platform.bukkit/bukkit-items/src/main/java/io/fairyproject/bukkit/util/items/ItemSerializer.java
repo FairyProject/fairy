@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.util.items;
 
 import org.bukkit.inventory.ItemStack;
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.ObjectSerializer;
 
 @Component

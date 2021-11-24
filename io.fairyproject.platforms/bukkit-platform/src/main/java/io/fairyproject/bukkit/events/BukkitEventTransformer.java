@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.events;
 
-import io.fairyproject.bean.PreInitialize;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.mc.MCPlayer;

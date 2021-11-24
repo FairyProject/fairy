@@ -24,8 +24,7 @@
 
 package io.fairyproject.mc.tablist;
 
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.mc.MCAdventure;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.mc.tablist.util.*;

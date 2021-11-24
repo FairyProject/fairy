@@ -24,7 +24,7 @@
 
 package io.fairyproject.locale;
 
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

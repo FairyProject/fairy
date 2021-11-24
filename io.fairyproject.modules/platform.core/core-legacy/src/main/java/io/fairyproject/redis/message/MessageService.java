@@ -24,9 +24,10 @@
 
 package io.fairyproject.redis.message;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.redis.RedisService;
 import io.fairyproject.redis.message.annotation.HandleMessage;
+import io.fairyproject.redis.server.ServerHandler;
 import io.fairyproject.redis.subscription.RedisPubSub;
 import io.fairyproject.util.AccessUtil;
 
@@ -37,7 +38,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service(name = "messageService")
-@ServiceDependency(dependencies = "serverHandler", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))
+@ServiceDependency(value = ServerHandler.class, type = ServiceDependencyType.SUB_DISABLE)
 public class MessageService {
 
     private RedisPubSub<Object> redisPubSub;

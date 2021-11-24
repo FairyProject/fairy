@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.impl.server;
 
-import io.fairyproject.bean.BeanContext;
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.bukkit.impl.test.ImplementationFactory;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementation;
@@ -47,7 +47,7 @@ import java.util.*;
 public interface ServerImplementation {
 
     @SneakyThrows
-    static ServerImplementation load(BeanContext beanContext) {
+    static ServerImplementation load(ContainerContext containerContext) {
 
         ReflectLookup reflectLookup = new ReflectLookup(
                 Collections.singleton(ServerImplementation.class.getClassLoader()),

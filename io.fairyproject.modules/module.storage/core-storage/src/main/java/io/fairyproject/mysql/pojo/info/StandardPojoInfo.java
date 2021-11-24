@@ -25,8 +25,8 @@
 package io.fairyproject.mysql.pojo.info;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.SerializerFactory;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.SerializerFactory;
 import io.fairyproject.mysql.ColumnOrder;
 import io.fairyproject.mysql.ImanitySqlException;
 import io.fairyproject.mysql.pojo.CustomSerialize;

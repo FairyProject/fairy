@@ -24,7 +24,7 @@
 
 package io.fairyproject.redis.server.message.listener;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.redis.server.ImanityServer;
 import io.fairyproject.redis.server.ServerHandler;
 import io.fairyproject.redis.server.enums.ServerState;
@@ -35,7 +35,7 @@ import io.fairyproject.redis.message.MessageListener;
 import io.fairyproject.redis.message.annotation.HandleMessage;
 
 @Component(throwIfNotRegistered = false)
-@ServiceDependency(dependencies = "serverHandler", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))
+@ServiceDependency(value = ServerHandler.class, type = ServiceDependencyType.SUB_DISABLE)
 public class ServerListener implements MessageListener {
 
     @Autowired

@@ -25,13 +25,13 @@
 package io.fairyproject.locale;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import net.kyori.adventure.translation.Translator;
 
 import java.util.Locale;
 
 @Component
-@ServiceDependency(dependencies = "locale", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))
+@ServiceDependency(value = LocaleSerializer.class, type = ServiceDependencyType.SUB_DISABLE)
 public class LocaleSerializer implements ObjectSerializer<Locale, String> {
 
     @Autowired

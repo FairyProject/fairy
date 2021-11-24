@@ -25,11 +25,11 @@
 package io.fairyproject.bukkit.visibility;
 
 import org.bukkit.entity.Player;
-import io.fairyproject.bean.PreInitialize;
+import io.fairyproject.container.PreInitialize;
 import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.bean.ComponentHolder;
-import io.fairyproject.bean.ComponentRegistry;
-import io.fairyproject.bean.Service;
+import io.fairyproject.container.ComponentHolder;
+import io.fairyproject.container.ComponentRegistry;
+import io.fairyproject.container.Service;
 
 import java.util.LinkedList;
 import java.util.List;

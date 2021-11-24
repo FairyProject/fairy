@@ -38,7 +38,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 

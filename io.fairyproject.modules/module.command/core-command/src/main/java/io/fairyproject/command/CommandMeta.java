@@ -24,7 +24,7 @@
 
 package io.fairyproject.command;
 
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.command.annotation.*;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.argument.ArgMeta;

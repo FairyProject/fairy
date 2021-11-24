@@ -26,7 +26,7 @@ package io.fairyproject.bukkit.locale;
 
 import io.fairyproject.Repository;
 import io.fairyproject.Storage;
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorage;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorageConfiguration;
@@ -38,7 +38,7 @@ import org.bukkit.entity.Player;
 import java.util.UUID;
 
 @Service(name = "bukkit:locale-storage")
-@ServiceDependency(dependencies = "locale", type = @DependencyType(ServiceDependencyType.SUB_DISABLE))
+@ServiceDependency(value = LocaleService.class, type = ServiceDependencyType.SUB_DISABLE)
 public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> {
 
     private Repository<LocaleData, UUID> localeRepository;

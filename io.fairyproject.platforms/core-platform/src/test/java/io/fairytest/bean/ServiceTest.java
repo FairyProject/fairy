@@ -1,7 +1,7 @@
 package io.fairytest.bean;
 
-import io.fairyproject.bean.BeanContext;
-import io.fairyproject.bean.details.BeanDetails;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairytest.TestingBase;
 import io.fairytest.bean.annotated.AnnotatedRegistration;
@@ -11,7 +11,6 @@ import io.fairytest.bean.service.ServiceMock;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
@@ -22,10 +21,10 @@ public class ServiceTest extends TestingBase {
 
     @Test
     public void lifeCycle() {
-        final BeanContext beanContext = BeanContext.INSTANCE;
+        final ContainerContext containerContext = ContainerContext.INSTANCE;
 
         ThrowingRunnable.unchecked(() -> {
-            final List<BeanDetails> beanDetails = beanContext.scanClasses()
+            final List<ContainerObject> beanDetails = containerContext.scanClasses()
                     .name("test")
                     .mainClassloader(ServiceTest.class.getClassLoader())
                     .classPath("io.fairytest.bean.service")
@@ -62,7 +61,7 @@ public class ServiceTest extends TestingBase {
         assertEquals(-1, serviceMock.getPreDestroy());
         assertEquals(-1, serviceMock.getPostDestroy());
 
-        beanContext.disableBeanUnchecked("fairy:test");
+        containerContext.disableBeanUnchecked(ServiceMock.class);
 
         assertNotEquals(serviceMock.getPreDestroy(), -1);
         assertNotEquals(serviceMock.getPostDestroy(), -1);
@@ -83,10 +82,10 @@ public class ServiceTest extends TestingBase {
 
     @Test
     public void annotatedBeanRegistration() {
-        final BeanContext beanContext = BeanContext.INSTANCE;
+        final ContainerContext containerContext = ContainerContext.INSTANCE;
 
         ThrowingRunnable.unchecked(() -> {
-            final List<BeanDetails> beanDetails = beanContext.scanClasses()
+            final List<ContainerObject> beanDetails = containerContext.scanClasses()
                     .name("test")
                     .mainClassloader(ServiceTest.class.getClassLoader())
                     .classPath("io.fairytest.bean.annotated")
@@ -96,8 +95,7 @@ public class ServiceTest extends TestingBase {
             assertEquals(BeanInterfaceImpl.class, beanDetails.get(0).getInstance().getClass());
         }).run();
 
-        assertNotNull(beanContext.getBean(BeanInterface.class));
-        assertNotNull(beanContext.getBeanByName("beanInterface"));
+        assertNotNull(containerContext.getBean(BeanInterface.class));
         assertNotNull(AnnotatedRegistration.INTERFACE);
     }
 

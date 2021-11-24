@@ -1,6 +1,6 @@
 package io.fairyproject.discord;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.discord.button.ButtonReader;
 import io.fairyproject.discord.message.NextMessageReader;
 import io.fairyproject.discord.proxies.ProxyJDA;

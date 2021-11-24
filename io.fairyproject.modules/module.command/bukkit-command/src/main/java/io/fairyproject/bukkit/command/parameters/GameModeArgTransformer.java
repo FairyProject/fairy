@@ -24,11 +24,10 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.bean.Component;
+import io.fairyproject.container.Component;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import org.apache.commons.lang.StringUtils;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;

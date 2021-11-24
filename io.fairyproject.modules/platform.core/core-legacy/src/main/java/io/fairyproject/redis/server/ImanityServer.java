@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.fairyproject.redis.server.enums.ServerState;
 import lombok.Getter;
 import lombok.Setter;
-import io.fairyproject.bean.Beans;
+import io.fairyproject.container.Containers;
 import io.fairyproject.util.JsonChain;
 
 import java.io.IOException;
@@ -133,7 +133,7 @@ public class ImanityServer {
         @Override
         public ImanityServer deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
             if (serverHandler == null) {
-                serverHandler = Beans.get(ServerHandler.class);
+                serverHandler = Containers.get(ServerHandler.class);
             }
             return serverHandler.getServer(jsonParser.getValueAsString());
         }

@@ -25,7 +25,7 @@
 package io.fairyproject.command;
 
 import com.google.common.collect.HashMultimap;
-import io.fairyproject.bean.Autowired;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.command.annotation.Arg;
 import io.fairyproject.command.annotation.Command;
 import io.fairyproject.command.annotation.CommandPresence;

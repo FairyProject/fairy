@@ -25,7 +25,7 @@
 package io.fairyproject.redis;
 
 import io.fairyproject.Fairy;
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.jackson.JacksonService;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -39,7 +39,7 @@ import org.redisson.config.Config;
 import java.io.File;
 
 @Service(name = "redis")
-@ServiceDependency(dependencies = "jackson")
+@ServiceDependency(JacksonService.class)
 @Getter
 public class RedisService {
 

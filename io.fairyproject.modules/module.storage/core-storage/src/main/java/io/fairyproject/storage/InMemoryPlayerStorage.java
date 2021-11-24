@@ -25,7 +25,7 @@
 package io.fairyproject.storage;
 
 import com.google.common.collect.Lists;
-import io.fairyproject.bean.PostInitialize;
+import io.fairyproject.container.PostInitialize;
 
 import java.util.List;
 import java.util.Map;

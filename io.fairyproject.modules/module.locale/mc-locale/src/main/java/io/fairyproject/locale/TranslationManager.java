@@ -1,10 +1,10 @@
 package io.fairyproject.locale;
 
 import com.google.common.collect.Sets;
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.PostInitialize;
-import io.fairyproject.bean.PreDestroy;
-import io.fairyproject.bean.ServiceDependency;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.PreDestroy;
+import io.fairyproject.container.ServiceDependency;
 import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.util.FileUtil;
 import net.kyori.adventure.key.Key;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ServiceDependency(
-        dependencies = "locale"
+        value = LocaleSerializer.class
 )
 public abstract class TranslationManager {
 

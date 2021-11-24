@@ -26,8 +26,8 @@ package io.fairyproject.config;
 
 import io.fairyproject.config.annotation.Convert;
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.bean.Autowired;
-import io.fairyproject.bean.SerializerFactory;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.SerializerFactory;
 
 import java.lang.reflect.Field;
 import java.util.*;

@@ -1,6 +1,6 @@
 package io.fairytest.bean.service;
 
-import io.fairyproject.bean.*;
+import io.fairyproject.container.*;
 import io.fairyproject.jackson.JacksonService;
 import lombok.Getter;
 
@@ -13,15 +13,15 @@ public class ServiceMock {
     @Autowired
     public JacksonService jacksonService;
 
-    public BeanContext beanContext;
+    public ContainerContext containerContext;
 
     @Getter
     private long construct = -1, preInitialize = -1, postInitialize = -1, preDestroy = -1, postDestroy = -1;
 
-    @BeanConstructor
-    public ServiceMock(BeanContext beanContext) {
+    @ContainerConstruct
+    public ServiceMock(ContainerContext containerContext) {
         this.construct = System.currentTimeMillis();
-        this.beanContext = beanContext;
+        this.containerContext = containerContext;
     }
 
     @PreInitialize

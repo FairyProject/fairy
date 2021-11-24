@@ -4,22 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.fairyproject.bean.*;
-import io.fairyproject.bean.details.BeanDetails;
+import io.fairyproject.container.*;
+import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryRepository;
-import io.fairyproject.library.relocate.Relocate;
 import io.fairyproject.module.relocator.JarRelocator;
 import io.fairyproject.module.relocator.Relocation;
 import io.fairyproject.util.FairyVersion;
 import io.fairyproject.util.PreProcessBatch;
 import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.URLClassLoaderAccess;
-import io.fairyproject.util.entry.Entry;
-import io.fairyproject.util.entry.EntryArrayList;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import io.fairyproject.Fairy;
@@ -32,7 +27,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -45,9 +39,9 @@ import java.util.zip.ZipEntry;
 public class ModuleService {
 
     @Autowired
-    private static BeanContext BEAN_CONTEXT;
+    private static ContainerContext BEAN_CONTEXT;
 
-    public static final int PLUGIN_LISTENER_PRIORITY = BeanContext.PLUGIN_LISTENER_PRIORITY + 100;
+    public static final int PLUGIN_LISTENER_PRIORITY = ContainerContext.PLUGIN_LISTENER_PRIORITY + 100;
 
     private static final Logger LOGGER = LogManager.getLogger(ModuleService.class);
     private static PreProcessBatch PENDING = PreProcessBatch.create();
@@ -57,7 +51,7 @@ public class ModuleService {
             @Override
             public void onPluginInitial(Plugin plugin) {
                 PENDING.runOrQueue(plugin.getName(), () -> {
-                    final ModuleService moduleService = Beans.get(ModuleService.class);
+                    final ModuleService moduleService = Containers.get(ModuleService.class);
                     plugin.getDescription().getModules().forEach(pair -> {
                         final String name = pair.getKey();
                         final String version = pair.getValue();
@@ -80,7 +74,7 @@ public class ModuleService {
                     PENDING.remove(plugin.getName());
                     return;
                 }
-                final ModuleService moduleService = Beans.get(ModuleService.class);
+                final ModuleService moduleService = Containers.get(ModuleService.class);
                 plugin.getLoadedModules().forEach(module -> {
                     if (module.removeRef() <= 0) {
                         moduleService.unregister(module);
@@ -232,7 +226,7 @@ public class ModuleService {
             this.onModuleLoad(module);
 
             // Scan classes
-            final List<BeanDetails> details = BEAN_CONTEXT.scanClasses()
+            final List<ContainerObject> details = BEAN_CONTEXT.scanClasses()
                     .name(plugin.getName() + "-" + module.getName())
                     .prefix(plugin.getName() + "-")
                     .mainClassloader(classLoader)
