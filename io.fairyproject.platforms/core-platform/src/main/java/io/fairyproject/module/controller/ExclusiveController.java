@@ -25,11 +25,11 @@ public class ExclusiveController implements ModuleController {
     public void onModuleLoad(Module module) {
         for (Module m : moduleService.all()) {
             final Collection<String> excludedPackages = m.releaseExclusive(module);
-            if (excludedPackages != null) {
+            if (excludedPackages != null && !excludedPackages.isEmpty()) {
                 ThrowingRunnable.unchecked(() -> {
                     final List<BeanDetails> beanDetails = this.beanContext.scanClasses()
                             .name(m.getName() + " - excluded load")
-                            .prefix(m.getName())
+                            .prefix(m.getPlugin().getName() + "-")
                             .mainClassloader(m.getClassLoader())
                             .classLoader(this.getClass().getClassLoader())
                             .classPath(excludedPackages)

@@ -12,6 +12,7 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -32,17 +33,22 @@ public class Module implements Terminable, TerminableConsumer {
     private final Multimap<String, String> exclusives;
     private transient final Multimap<String, String> excluded;
 
+    private final Path notShadedPath;
+    private final Path shadedPath;
+
     private boolean abstraction;
     private boolean closed;
 
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
     private final AtomicInteger refCount;
 
-    public Module(String name, String classPath, ClassLoader classLoader, Plugin plugin) {
+    public Module(String name, String classPath, ClassLoader classLoader, Plugin plugin, Path notShadedPath, Path shadedPath) {
         this.name = name;
         this.classPath = classPath;
         this.classLoader = classLoader;
         this.plugin = plugin;
+        this.notShadedPath = notShadedPath;
+        this.shadedPath = shadedPath;
         this.dependModules = new ArrayList<>();
         this.exclusives = HashMultimap.create();
         this.excluded = HashMultimap.create();

@@ -20,6 +20,7 @@ public class ModuleExtension {
     private final ListProperty<String> depends;
     private final ListProperty<String> subDepends;
     private final ListProperty<String> platforms;
+    private final ListProperty<Lib> libraries;
     // <module, package>
     private final MapProperty<String, String> exclusives;
 
@@ -31,6 +32,7 @@ public class ModuleExtension {
         this.depends = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.subDepends = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.platforms = objectFactory.listProperty(String.class).convention(Collections.emptyList());
+        this.libraries = objectFactory.listProperty(Lib.class).convention(Collections.emptyList());
         this.exclusives = objectFactory.mapProperty(String.class, String.class).convention(Collections.emptyMap());
     }
 
@@ -39,11 +41,19 @@ public class ModuleExtension {
     }
 
     public void subDepend(String name) {
-        this.subDepends.add(name);
+        this.depends.add(name);
     }
 
     public void platform(String name) {
         this.platforms.add(name);
+    }
+
+    public void library(String gradleDependency) {
+        this.libraries.add(new Lib(gradleDependency, null));
+    }
+
+    public void library(String gradleDependency, String repository) {
+        this.libraries.add(new Lib(gradleDependency, repository));
     }
 
     public void exclude(String module, String curPackage) {

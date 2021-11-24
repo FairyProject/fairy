@@ -29,11 +29,18 @@ public class ModulePlugin implements Plugin<Project> {
             }
 
             for (String module : extension.getSubDepends().get()) {
-                new ModuleReader(p, configuration, new HashSet<>()).load(module, p.project(MODULE_PREFIX + module), new ArrayList<>());
+                new ModuleReader(p, configuration, loaded).load(module, p.project(MODULE_PREFIX + module), new ArrayList<>());
             }
 
             for (String platform : extension.getPlatforms().get()) {
                 configuration.getDependencies().add(p.getDependencies().create(p.project(PLATFORM_PREFIX + platform + "-platform")));
+            }
+
+            for (Lib library : extension.getLibraries().getOrElse(Collections.emptyList())) {
+                if (library.getRepository() != null) {
+                    p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
+                }
+                configuration.getDependencies().add(project.getDependencies().create(library.getDependency()));
             }
 
             Jar jar;
@@ -97,6 +104,12 @@ public class ModulePlugin implements Plugin<Project> {
             List<Pair<String, Object>> list = new ArrayList<>();
             final ModuleExtension extension = project.getExtensions().findByType(ModuleExtension.class);
             if (extension != null) {
+                for (Lib library : extension.getLibraries().getOrElse(Collections.emptyList())) {
+                    if (library.getRepository() != null) {
+                        this.project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
+                    }
+                    fairyModuleConfiguration.getDependencies().add(project.getDependencies().create(library.getDependency()));
+                }
                 for (String depend : extension.getDepends().get()) {
                     list.add(Pair.of(depend, this.project.project(MODULE_PREFIX + depend)));
                 }

@@ -37,6 +37,11 @@ public class BukkitCommandContext extends CommandContext {
         this.sender = user;
     }
 
+    @Override
+    public String name() {
+        return "player/console";
+    }
+
     public CommandSender getSender() {
         return this.sender;
     }

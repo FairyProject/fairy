@@ -1,7 +1,7 @@
 package io.fairyproject.gradle;
 
 import io.fairyproject.gradle.util.SneakyThrow;
-import io.fairyproject.gradle.util.VersionRetrieveUtil;
+import io.fairyproject.gradle.util.MavenUtil;
 import lombok.Getter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
@@ -19,7 +19,7 @@ public class FairyExtension {
 
     static {
         try {
-            LATEST = VersionRetrieveUtil.getLatest("core-platform");
+            LATEST = MavenUtil.getLatest("core-platform");
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
@@ -78,7 +78,17 @@ public class FairyExtension {
 
     public void module(String name) {
         try {
-            VersionRetrieveUtil.addExistingModule(this, name, null);
+            String module = null;
+            for (PlatformType platformType : this.fairyPlatforms.get()) {
+                module = platformType.searchModuleName(name);
+                if (module != null) {
+                    break;
+                }
+            }
+            if (module == null) {
+                throw new IllegalArgumentException("Couldn't find module " + name);
+            }
+            MavenUtil.addExistingModule(this, module, null);
         } catch (Exception ex) {
             SneakyThrow.sneaky(ex);
         }
@@ -86,7 +96,17 @@ public class FairyExtension {
 
     public void module(String name, String version) {
         try {
-            VersionRetrieveUtil.addExistingModule(this, name, version);
+            String module = null;
+            for (PlatformType platformType : this.fairyPlatforms.get()) {
+                module = platformType.searchModuleName(name);
+                if (module != null) {
+                    break;
+                }
+            }
+            if (module == null) {
+                throw new IllegalArgumentException("Couldn't find module " + name);
+            }
+            MavenUtil.addExistingModule(this, module, version);
         } catch (Exception ex) {
             SneakyThrow.sneaky(ex);
         }

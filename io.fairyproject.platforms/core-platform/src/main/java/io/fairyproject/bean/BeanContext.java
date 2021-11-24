@@ -406,103 +406,6 @@ public class BeanContext {
 
     }
 
-    private List<BeanDetails> loadInOrder(List<BeanDetails> beanDetailsList) {
-        Map<String, BeanDetails> unloaded = new HashMap<>();
-        for (BeanDetails beanDetails : beanDetailsList) {
-            unloaded.put(beanDetails.getName(), beanDetails);
-
-            if (beanDetails instanceof ServiceBeanDetails) {
-                ((ServiceBeanDetails) beanDetails).setupConstruction(this);
-            }
-        }
-
-        // Remove Services without valid dependency
-        Iterator<Map.Entry<String, BeanDetails>> removeIterator = unloaded.entrySet().iterator();
-        while (removeIterator.hasNext()) {
-            Map.Entry<String, BeanDetails> entry = removeIterator.next();
-            BeanDetails beanDetails = entry.getValue();
-
-            if (!beanDetails.hasDependencies()) {
-                continue;
-            }
-
-            for (Map.Entry<ServiceDependencyType, List<String>> allDependency : beanDetails.getDependencyEntries()) {
-                final ServiceDependencyType type = allDependency.getKey();
-
-                search: for (String dependency : allDependency.getValue()) {
-                    BeanDetails dependencyDetails = this.getBeanByName(dependency);
-
-                    if (dependencyDetails == null) {
-                        switch (type) {
-                            case FORCE:
-                                LOGGER.error("Couldn't find the dependency " + dependency + " for " + beanDetails.getName() + "!");
-                                removeIterator.remove();
-                                break search;
-                            case SUB_DISABLE:
-                                System.out.println(beanDetails.getName());
-                                removeIterator.remove();
-                                break search;
-                            case SUB:
-                                break;
-                        }
-                    // Prevent dependency each other
-                    } else {
-                        if (dependencyDetails.hasDependencies()
-                                && dependencyDetails.getAllDependencies().contains(beanDetails.getName())) {
-                            LOGGER.error("Target " + beanDetails.getName() + " and " + dependency + " depend to each other!");
-                            removeIterator.remove();
-
-                            unloaded.remove(dependency);
-                            break;
-                        }
-
-                        dependencyDetails.addChildren(beanDetails.getName());
-                    }
-                }
-            }
-        }
-
-        // Continually loop until all dependency found and loaded
-        List<BeanDetails> sorted = new NonNullArrayList<>();
-
-        while (!unloaded.isEmpty()) {
-            Iterator<Map.Entry<String, BeanDetails>> iterator = unloaded.entrySet().iterator();
-
-            while (iterator.hasNext()) {
-                Map.Entry<String, BeanDetails> entry = iterator.next();
-                BeanDetails beanDetails = entry.getValue();
-                boolean missingDependencies = false;
-
-                for (Map.Entry<ServiceDependencyType, List<String>> dependencyEntry : beanDetails.getDependencyEntries()) {
-                    final ServiceDependencyType type = dependencyEntry.getKey();
-                    for (String dependency : dependencyEntry.getValue()) {
-                        BeanDetails dependencyDetails = this.getBeanByName(dependency);
-                        if (dependencyDetails != null && dependencyDetails.getInstance() != null) {
-                            continue;
-                        }
-
-                        if (type == ServiceDependencyType.SUB && !unloaded.containsKey(dependency)) {
-                            continue;
-                        }
-
-                        missingDependencies = true;
-                    }
-                }
-
-                if (!missingDependencies) {
-                    if (beanDetails instanceof ServiceBeanDetails) {
-                        ((ServiceBeanDetails) beanDetails).build(this);
-                    }
-
-                    sorted.add(beanDetails);
-                    iterator.remove();
-                }
-            }
-        }
-
-        return sorted;
-    }
-
     public List<String> findClassPaths(Class<?> plugin) {
         ClasspathScan annotation = plugin.getAnnotation(ClasspathScan.class);
 
@@ -647,7 +550,7 @@ public class BeanContext {
             try (SimpleTiming ignored = logTiming("Scanning Bean Method")) {
                 for (Method method : reflectLookup.findAnnotatedStaticMethods(Bean.class)) {
                     if (method.getReturnType() == void.class) {
-                        new IllegalArgumentException("The Method " + method.toString() + " has annotated @Bean but no return type!").printStackTrace();
+                        new IllegalArgumentException("The Method " + method + " has annotated @Bean but no return type!").printStackTrace();
                     }
                     BeanParameterDetailsMethod detailsMethod = new BeanParameterDetailsMethod(method, BeanContext.this);
                     List<String> dependencies = new ArrayList<>();
@@ -763,6 +666,87 @@ public class BeanContext {
             }
 
             return beanDetailsList;
+        }
+
+        private List<BeanDetails> loadInOrder(List<BeanDetails> beanDetailsList) {
+            Map<String, BeanDetails> unloaded = new HashMap<>();
+            for (BeanDetails beanDetails : beanDetailsList) {
+                unloaded.put(beanDetails.getName(), beanDetails);
+                if (beanDetails instanceof ServiceBeanDetails) {
+                    ((ServiceBeanDetails) beanDetails).setupConstruction(BeanContext.this);
+                }
+            }
+            // Remove Services without valid dependency
+            Iterator<Map.Entry<String, BeanDetails>> removeIterator = unloaded.entrySet().iterator();
+            while (removeIterator.hasNext()) {
+                Map.Entry<String, BeanDetails> entry = removeIterator.next();
+                BeanDetails beanDetails = entry.getValue();
+                if (!beanDetails.hasDependencies()) {
+                    continue;
+                }
+                for (Map.Entry<ServiceDependencyType, List<String>> allDependency : beanDetails.getDependencyEntries()) {
+                    final ServiceDependencyType type = allDependency.getKey();
+                    search: for (String dependency : allDependency.getValue()) {
+                        BeanDetails dependencyDetails = BeanContext.this.getBeanByName(dependency);
+                        if (dependencyDetails == null) {
+                            switch (type) {
+                                case FORCE:
+                                    LOGGER.error("Couldn't find the dependency " + dependency + " for " + beanDetails.getName() + "!");
+                                    removeIterator.remove();
+                                    break search;
+                                case SUB_DISABLE:
+                                    removeIterator.remove();
+                                    break search;
+                                case SUB:
+                                    break;
+                            }
+                            // Prevent dependency each other
+                        } else {
+                            if (dependencyDetails.hasDependencies()
+                                    && dependencyDetails.getAllDependencies().contains(beanDetails.getName())) {
+                                LOGGER.error("Target " + beanDetails.getName() + " and " + dependency + " depend to each other!");
+                                removeIterator.remove();
+
+                                unloaded.remove(dependency);
+                                break;
+                            }
+
+                            dependencyDetails.addChildren(beanDetails.getName());
+                        }
+                    }
+                }
+            }
+            // Continually loop until all dependency found and loaded
+            List<BeanDetails> sorted = new NonNullArrayList<>();
+            while (!unloaded.isEmpty()) {
+                Iterator<Map.Entry<String, BeanDetails>> iterator = unloaded.entrySet().iterator();
+                while (iterator.hasNext()) {
+                    Map.Entry<String, BeanDetails> entry = iterator.next();
+                    BeanDetails beanDetails = entry.getValue();
+                    boolean missingDependencies = false;
+                    for (Map.Entry<ServiceDependencyType, List<String>> dependencyEntry : beanDetails.getDependencyEntries()) {
+                        final ServiceDependencyType type = dependencyEntry.getKey();
+                        for (String dependency : dependencyEntry.getValue()) {
+                            BeanDetails dependencyDetails = BeanContext.this.getBeanByName(dependency);
+                            if (dependencyDetails != null && dependencyDetails.getInstance() != null) {
+                                continue;
+                            }
+                            if (type == ServiceDependencyType.SUB && !unloaded.containsKey(dependency)) {
+                                continue;
+                            }
+                            missingDependencies = true;
+                        }
+                    }
+                    if (!missingDependencies) {
+                        if (beanDetails instanceof ServiceBeanDetails) {
+                            ((ServiceBeanDetails) beanDetails).build(BeanContext.this);
+                        }
+                        sorted.add(beanDetails);
+                        iterator.remove();
+                    }
+                }
+            }
+            return sorted;
         }
 
     }

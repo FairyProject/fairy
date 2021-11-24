@@ -6,6 +6,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.bean.*;
 import io.fairyproject.bean.details.BeanDetails;
+import io.fairyproject.library.Library;
+import io.fairyproject.library.LibraryRepository;
 import io.fairyproject.library.relocate.Relocate;
 import io.fairyproject.module.relocator.JarRelocator;
 import io.fairyproject.module.relocator.Relocation;
@@ -36,6 +38,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 @Service(name = "module")
@@ -131,7 +134,7 @@ public class ModuleService {
     public Module registerByName(String name, FairyVersion version, boolean canAbstract, Plugin plugin) {
         try {
             LOGGER.info("Registering module " + name + "...");
-            final Path path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + version.toString() + ".jar").toPath(), name, version.toString());
+            final Path path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + "-" + version.toString() + ".jar").toPath(), name, version.toString());
 
             return this.registerByPath(path, canAbstract, plugin);
         } catch (IOException e) {
@@ -152,21 +155,6 @@ public class ModuleService {
     public Module registerByPath(Path path, boolean canAbstract, Plugin plugin) {
         Module module = null;
         try {
-            // Relocation
-            final String fullFileName = path.getFileName().toString();
-            final String fileName = FilenameUtils.getBaseName(fullFileName);
-
-            Files.createDirectories(plugin.getDataFolder());
-
-            final Path finalPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
-            if (!Files.exists(finalPath)) {
-                final Relocation relocation = new Relocation("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
-                relocation.setOnlyRelocateShaded(true);
-                new JarRelocator(path.toFile(), finalPath.toFile(), Collections.singletonList(relocation), Collections.emptySet()).run();
-            }
-            path = finalPath;
-            Fairy.getPlatform().getClassloader().addJarToClasspath(path);
-
             final JarFile jarFile = new JarFile(path.toFile());
             final ZipEntry zipEntry = jarFile.getEntry("module.json");
             if (zipEntry == null) {
@@ -178,20 +166,17 @@ public class ModuleService {
             final String name = jsonObject.get("name").getAsString();
             final String classPath = plugin.getDescription().getShadedPackage() + ".fairy";
 
-            final ModuleClassloader classLoader = new ModuleClassloader(path);
-            module = new Module(name, classPath, classLoader, plugin);
-            module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
+            boolean abstraction = jsonObject.get("abstraction").getAsBoolean();
 
-            if (!canAbstract && module.isAbstraction()) {
+            if (!canAbstract && abstraction) {
                 LOGGER.error("The module " + name + " is a abstraction module! Couldn't directly depend on the module.");
                 return null;
             }
 
+            List<Module> dependedModules = new ArrayList<>();
             final JsonArray depends = jsonObject.getAsJsonArray("depends");
             for (JsonElement element : depends) {
-                JsonObject dependJson = element.getAsJsonObject();
-                final String depend = dependJson.get("module").getAsString();
-                final String[] split = depend.split(":");
+                final String[] split = element.getAsString().split(":");
                 String moduleName = split[0];
                 FairyVersion moduleVersion = FairyVersion.parse(split[1]);
                 Module dependModule = this.getByName(moduleName);
@@ -201,21 +186,55 @@ public class ModuleService {
                         LOGGER.error("Unable to find dependency module " + moduleName + " for " + name);
                         return null;
                     }
-                    module.getDependModules().add(dependModule);
                 }
+                dependedModules.add(dependModule);
                 dependModule.addRef(); // add reference
             }
+
+            // Relocation after depended on modules are loaded
+            final String fullFileName = path.getFileName().toString();
+            final String fileName = FilenameUtils.getBaseName(fullFileName);
+
+            Files.createDirectories(plugin.getDataFolder());
+
+            Path notShadedPath = path;
+            final Path finalPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
+            if (!Files.exists(finalPath)) {
+                final Relocation relocation = new Relocation("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
+                relocation.setOnlyRelocateShaded(true);
+                new JarRelocator(path.toFile(), finalPath.toFile(), Collections.singletonList(relocation), dependedModules.stream()
+                        .map(Module::getNotShadedPath)
+                        .map(Path::toFile)
+                        .collect(Collectors.toSet())).run();
+            }
+            path = finalPath;
+            Fairy.getPlatform().getClassloader().addJarToClasspath(path);
+
+            final ModuleClassloader classLoader = new ModuleClassloader(path);
+            module = new Module(name, classPath, classLoader, plugin, notShadedPath, path);
+            module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             for (Map.Entry<String, JsonElement> entry : jsonObject.getAsJsonObject("exclusive").entrySet()) {
                 module.getExclusives().put(entry.getValue().getAsString(), entry.getKey());
             }
 
+            for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
+                final JsonObject libObject = element.getAsJsonObject();
+                Library library = Library.builder()
+                        .gradle(libObject.get("dependency").getAsString())
+                        .repository(libObject.has("repository") ? new LibraryRepository(libObject.get("repository").getAsString()) : null)
+                        .build();
+
+                Fairy.getLibraryHandler().downloadLibraries(true, library);
+            }
+
             this.moduleByName.put(name, module);
             this.onModuleLoad(module);
 
+            // Scan classes
             final List<BeanDetails> details = BEAN_CONTEXT.scanClasses()
                     .name(plugin.getName() + "-" + module.getName())
-                    .prefix(module.getName())
+                    .prefix(plugin.getName() + "-")
                     .mainClassloader(classLoader)
                     .classLoader(this.getClass().getClassLoader())
                     .classPath(module.getClassPath())

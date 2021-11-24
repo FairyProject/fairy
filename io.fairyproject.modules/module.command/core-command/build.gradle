@@ -1,5 +1,1 @@
-version = "0.0.1b1"
-
-module {
-    abstraction = true
-}
+version = "0.0.1b2"

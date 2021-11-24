@@ -24,10 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -99,7 +96,7 @@ public class ModuleTask extends DefaultTask {
             JsonArray array = new JsonArray();
             for (String depend : modules) {
                 Project dependProject = getProject().project(ModulePlugin.MODULE_PREFIX + depend);
-                array.add(dependProject.getExtensions().getByType(ModuleExtension.class).getName().get());
+                array.add(dependProject.getExtensions().getByType(ModuleExtension.class).getName().get() + ":" + dependProject.getVersion());
             }
 
             jsonObject.add("depends", array);
@@ -109,6 +106,12 @@ public class ModuleTask extends DefaultTask {
             map.forEach(exclusive::addProperty);
 
             jsonObject.add("exclusive", exclusive);
+
+            array = new JsonArray();
+            for (Lib library : extension.getLibraries().getOrElse(Collections.emptyList())) {
+                array.add(library.toJsonObject());
+            }
+            jsonObject.add("libraries", array);
 
             out.putNextEntry(new JarEntry("module.json"));
             final Gson gson = new GsonBuilder().setPrettyPrinting().create();

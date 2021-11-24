@@ -22,6 +22,6 @@ public class DCCommandContext extends CommandContext {
 
     @Override
     public String name() {
-        return "discord-executor";
+        return "discord user/bot";
     }
 }

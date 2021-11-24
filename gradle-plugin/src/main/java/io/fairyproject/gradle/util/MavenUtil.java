@@ -1,5 +1,6 @@
 package io.fairyproject.gradle.util;
 
+import com.google.common.io.ByteStreams;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -16,9 +17,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 @UtilityClass
-public class VersionRetrieveUtil {
+public class MavenUtil {
 
     private final String VERSION_URL = "https://maven.imanity.dev/service/rest/v1/search/assets?repository=imanity-libraries&group=io.fairyproject&name=<module>&sort=version&maven.extension=jar";
+    private final String ITEM_URL = "https://maven.imanity.dev/service/rest/v1/search?repository=imanity-libraries&group=io.fairyproject&name=<module>";
 
     public String getLatest(String module) throws IOException {
         final java.net.URL url = new URL(VERSION_URL.replace("<module>", module));
@@ -43,45 +45,22 @@ public class VersionRetrieveUtil {
     }
 
     public void addExistingModule(FairyExtension extension, String from, @Nullable String version) throws IOException {
-        if (from.contains("-") || from.startsWith("module.")) {
-            // user specified platform
-            if (isExistingModule(from)) {
-                if (version == null) {
-                    version = getLatest(from);
-                }
-                extension.getFairyModules().put(from, version);
-                return;
-            }
-            throw new IllegalArgumentException("Couldn't find module " + from);
+        if (version == null) {
+            version = getLatest(from);
         }
-
-        boolean found = false;
-        for (PlatformType platformType : extension.getFairyPlatforms().get()) {
-            if (isExistingModule(platformType.getDependencyName() + "-" + from)) {
-                extension.getFairyModules().put(platformType.getDependencyName() + "-" + from, version == null ? getLatest(platformType.getDependencyName() + "-" + from) : version);
-                found = true;
-            }
-        }
-
-        if (!found) {
-            if (isExistingModule("core-" + from)) {
-                extension.getFairyModules().put("core-" + from, version == null ? getLatest("core-" + from) : version);
-                return;
-            }
-        }
-
-        throw new IllegalArgumentException("Couldn't find module " + from);
+        extension.getFairyModules().put(from, version);
     }
 
-    private boolean isExistingModule(String from) throws IOException {
-        final java.net.URL url = new URL(VERSION_URL.replace("<module>", from));
+    public boolean isExistingModule(String from) throws IOException {
+        final java.net.URL url = new URL(ITEM_URL.replace("<module>", from));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
         connection.setRequestMethod("GET");
         connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
 
         if (connection.getResponseCode() == 200) {
-            return true;
+            final JsonObject jsonObject = new Gson().fromJson(new InputStreamReader(connection.getInputStream()), JsonObject.class);
+            return jsonObject.get("items").getAsJsonArray().size() > 0;
         }
         return false;
     }

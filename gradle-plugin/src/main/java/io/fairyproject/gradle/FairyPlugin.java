@@ -8,7 +8,7 @@ import io.fairyproject.gradle.aspectj.AspectjCompile;
 import io.fairyproject.gradle.aspectj.DefaultWeavingSourceSet;
 import io.fairyproject.gradle.aspectj.WeavingSourceSet;
 import io.fairyproject.gradle.relocator.Relocation;
-import io.fairyproject.gradle.util.VersionRetrieveUtil;
+import io.fairyproject.gradle.util.MavenUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
@@ -247,6 +247,18 @@ public class FairyPlugin implements Plugin<Project> {
                 if (entry != null) {
                     final JsonObject jsonObject = gson.fromJson(new InputStreamReader(jarFile.getInputStream(entry)), JsonObject.class);
 
+                    if (jsonObject.has("libraries")) {
+                        for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
+                            final JsonObject library = element.getAsJsonObject();
+                            final String tag = library.get("dependency").getAsString();
+                            if (library.has("repository")) {
+                                final String repository = library.get("repository").getAsString();
+                                this.project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(repository));
+                            }
+                            this.project.getDependencies().add("compileOnly", this.project.getDependencies().create(tag));
+                        }
+                    }
+
                     for (Pair<String, Dependency> pair : this.readDependencies(jsonObject)) {
                         final List<String> tree = new ArrayList<>(moduleTree);
                         this.load(pair.getKey(), pair.getValue(), tree);
@@ -259,15 +271,16 @@ public class FairyPlugin implements Plugin<Project> {
             List<Pair<String, Dependency>> list = new ArrayList<>();
             if (jsonObject.has("depends")) {
                 for (JsonElement element : jsonObject.getAsJsonArray("depends")) {
-                    JsonObject dependJson = element.getAsJsonObject();
-                    final String name = dependJson.get("module").getAsString();
-                    String version = extension.getFairyModules().getOrDefault(name, null);
+                    final String full = element.getAsString();
+                    final String[] split = full.split(":");
+                    final String name = split[0];
+                    String version = split[1];
                     if (version == null) {
-                        version = VersionRetrieveUtil.getLatest(name);
+                        version = MavenUtil.getLatest(name);
                     }
                     list.add(Pair.of(name, this.project.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                            version,
-                            name
+                            name,
+                            version
                     ))));
                 }
             }

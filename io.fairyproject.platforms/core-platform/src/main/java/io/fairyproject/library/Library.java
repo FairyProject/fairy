@@ -29,6 +29,7 @@ import io.fairyproject.library.relocate.Relocate;
 import lombok.Builder;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -353,7 +354,7 @@ public class Library {
             return this;
         }
 
-        public Builder repository(@NotNull LibraryRepository repository) {
+        public Builder repository(@Nullable LibraryRepository repository) {
             this.repository = repository;
             return this;
         }
