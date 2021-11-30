@@ -19,7 +19,7 @@ public class DCCommandMap {
     }
 
     public BaseCommand findCommand(String name) {
-        return this.commands.getOrDefault(name, null);
+        return this.commands.getOrDefault(name.toLowerCase(), null);
     }
 
     public void register(BaseCommand command) {

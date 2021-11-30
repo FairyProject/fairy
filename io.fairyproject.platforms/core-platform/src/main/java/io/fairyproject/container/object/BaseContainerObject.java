@@ -197,22 +197,20 @@ public class BaseContainerObject implements ContainerObject {
     @Override
     public void lifeCycle(LifeCycle lifeCycle) {
         this.lifeCycle = lifeCycle;
-        ThrowingRunnable.unchecked(() -> {
-            switch (lifeCycle) {
-                case PRE_INIT:
-                    this.call(PreInitialize.class);
-                    break;
-                case POST_INIT:
-                    this.call(PostInitialize.class);
-                    break;
-                case PRE_DESTROY:
-                    this.call(PreDestroy.class);
-                    break;
-                case POST_DESTROY:
-                    this.call(PostDestroy.class);
-                    break;
-            }
-        }).run();
+        switch (lifeCycle) {
+            case PRE_INIT:
+                this.call(PreInitialize.class);
+                break;
+            case POST_INIT:
+                this.call(PostInitialize.class);
+                break;
+            case PRE_DESTROY:
+                this.call(PreDestroy.class);
+                break;
+            case POST_DESTROY:
+                this.call(PostDestroy.class);
+                break;
+        }
     }
 
     private void call(Class<? extends Annotation> annotation) {
@@ -221,13 +219,15 @@ public class BaseContainerObject implements ContainerObject {
         }
 
         for (Method method : this.annotatedMethods.getOrDefault(annotation, Collections.emptyList())) {
-            ThrowingRunnable.unchecked(() -> {
+            try {
                 if (method.getParameterCount() == 1) {
                     method.invoke(instance, this);
                 } else {
                     method.invoke(instance);
                 }
-            }).run();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
         }
     }
 

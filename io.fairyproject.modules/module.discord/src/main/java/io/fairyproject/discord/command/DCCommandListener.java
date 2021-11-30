@@ -1,13 +1,11 @@
 package io.fairyproject.discord.command;
 
-import io.fairyproject.container.Autowired;
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.Component;
-import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.*;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandListener;
 import io.fairyproject.command.CommandService;
 import io.fairyproject.discord.DCBot;
+import io.fairyproject.discord.event.DCBotInitializedEvent;
 import io.fairyproject.discord.event.DCMessageReceivedEvent;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.metadata.MetadataKey;
@@ -17,6 +15,7 @@ import net.dv8tion.jda.api.entities.User;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 
 @Component
 public class DCCommandListener implements CommandListener {
@@ -29,8 +28,8 @@ public class DCCommandListener implements CommandListener {
     @Autowired
     private CommandService commandService;
 
-    @PreInitialize
-    private void onPreInitialize() {
+    @PostInitialize
+    private void onPostInitialize() {
         this.commandService.registerDefaultPresenceProvider(new DCPresenceProvider());
     }
 
@@ -65,6 +64,18 @@ public class DCCommandListener implements CommandListener {
                 command.execute(commandContext);
             }
         });
+    }
+
+    @Subscribe
+    public void onBotInitialized(DCBotInitializedEvent event) {
+        final DCBot bot = event.getBot();
+
+        for (BaseCommand command : this.commandService.getCommands().values()) {
+            if (this.bots(command).contains(bot)) { // Imanity - better performance implementation
+                final DCCommandMap commandMap = bot.metadata().getOrPut(METADATA, () -> new DCCommandMap(bot));
+                commandMap.register(command);
+            }
+        }
     }
 
     private Collection<DCBot> bots(BaseCommand command) {

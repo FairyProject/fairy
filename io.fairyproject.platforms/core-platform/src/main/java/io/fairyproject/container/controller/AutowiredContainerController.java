@@ -23,7 +23,7 @@ public class AutowiredContainerController implements ContainerController {
     }
 
     @Override
-    public void applyBean(ContainerObject containerObject) throws Exception {
+    public void applyContainerObject(ContainerObject containerObject) throws Exception {
         Object object = containerObject.getInstance();
         if (object != null) {
             this.applyObject(object);
@@ -31,7 +31,7 @@ public class AutowiredContainerController implements ContainerController {
     }
 
     @Override
-    public void removeBean(ContainerObject containerObject) {
+    public void removeContainerObject(ContainerObject containerObject) {
 
     }
 

@@ -2,8 +2,10 @@ package io.fairyproject.discord;
 
 import io.fairyproject.container.*;
 import io.fairyproject.discord.button.ButtonReader;
+import io.fairyproject.discord.event.DCBotInitializedEvent;
 import io.fairyproject.discord.message.NextMessageReader;
 import io.fairyproject.discord.proxies.ProxyJDA;
+import io.fairyproject.event.EventBus;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.PreProcessBatch;
@@ -23,10 +25,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @AnnotateSuggest("io.fairyproject.discord.DCIndex")
+@ServiceDependency(DCInitializer.class)
 @Getter
 public abstract class DCBot implements ProxyJDA {
 
     private static final Map<Long, DCBot> BOT_BY_ID = new ConcurrentHashMap<>();
+
+    @Autowired
+    private static DCInitializer INITIALIZER;
 
     public static Collection<DCBot> all() {
         return BOT_BY_ID.values();
@@ -86,12 +92,16 @@ public abstract class DCBot implements ProxyJDA {
         }
 
         jdaBuilder = this.setupBuilder(jdaBuilder);
+        for (Object listener : INITIALIZER.getListeners()) {
+            jdaBuilder.addEventListeners(listener);
+        }
         this.jda = jdaBuilder.build();
         this.listenerBatch.flushQueue();
         this.nextMessageReader = new NextMessageReader(this);
         this.buttonReader = new ButtonReader();
 
         BOT_BY_ID.put(this.jda.getSelfUser().getIdLong(), this);
+        EventBus.call(new DCBotInitializedEvent(this));
     }
 
     @PreDestroy

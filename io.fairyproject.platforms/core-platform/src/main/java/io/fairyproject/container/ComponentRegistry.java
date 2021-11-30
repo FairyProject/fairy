@@ -44,7 +44,6 @@ public class ComponentRegistry {
     }
 
     public static ComponentHolder getComponentHolder(Class<?> type) {
-
         for (Entry<Class<?>, ComponentHolder> entry : COMPONENT_HOLDERS) {
             if (entry.getKey().isAssignableFrom(type)) {
                 return entry.getValue();
@@ -52,7 +51,6 @@ public class ComponentRegistry {
         }
 
         return null;
-
     }
 
     static void registerComponentHolders() {

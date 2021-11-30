@@ -81,7 +81,7 @@ public class ContainerContext {
     /**
      * Lookup Storages
      */
-    private final Map<Class<?>, ContainerObject> beanByType = new ConcurrentHashMap<>();
+    private final Map<Class<?>, ContainerObject> containerByType = new ConcurrentHashMap<>();
 
     /**
      * NOT THREAD SAFE
@@ -238,7 +238,7 @@ public class ContainerContext {
     }
 
     public ContainerObject registerBean(ContainerObject containerObject, boolean sort) {
-        this.beanByType.put(containerObject.getType(), containerObject);
+        this.containerByType.put(containerObject.getType(), containerObject);
         if (sort) {
             this.sortedBeans.add(containerObject);
         }
@@ -251,7 +251,7 @@ public class ContainerContext {
     }
 
     public Collection<ContainerObject> unregisterBean(@NonNull ContainerObject containerObject) {
-        this.beanByType.remove(containerObject.getType());
+        this.containerByType.remove(containerObject.getType());
 
         this.lock.writeLock().lock();
         this.sortedBeans.remove(containerObject);
@@ -280,7 +280,7 @@ public class ContainerContext {
     }
 
     public ContainerObject getBeanDetails(Class<?> type) {
-        return this.beanByType.get(type);
+        return this.containerByType.get(type);
     }
 
     public Object getBean(@NonNull Class<?> type) {
@@ -302,7 +302,7 @@ public class ContainerContext {
     }
 
     public boolean isBean(Class<?> beanClass) {
-        return this.beanByType.containsKey(beanClass);
+        return this.containerByType.containsKey(beanClass);
     }
 
     public boolean isBean(Object bean) {
@@ -310,7 +310,7 @@ public class ContainerContext {
     }
 
     public Collection<ContainerObject> findDetailsBindWith(Plugin plugin) {
-        return this.beanByType.values()
+        return this.containerByType.values()
                 .stream()
                 .filter(beanDetails -> beanDetails.isBind() && beanDetails.getBindPlugin().equals(plugin))
                 .collect(Collectors.toList());
@@ -376,7 +376,7 @@ public class ContainerContext {
             try {
                 containerObject.lifeCycle(lifeCycle);
             } catch (Throwable throwable) {
-                LOGGER.error(throwable);
+                LOGGER.error("An error occurs while calling life cycle method", throwable);
             }
         }
     }
@@ -540,35 +540,35 @@ public class ContainerContext {
                         continue;
                     }
 
-                    Class<?> beanType = detailsMethod.returnType();
+                    Class<?> objectType = detailsMethod.returnType();
                     if (register.as() != Void.class) {
-                        beanType = register.as();
+                        objectType = register.as();
                     }
 
-                    if (getBeanDetails(beanType) == null) {
-                        ContainerObject containerObject = new RelativeContainerObject(beanType, instance, dependencies.toArray(new Class<?>[0]));
+                    if (getBeanDetails(objectType) == null) {
+                        ContainerObject containerObject = new RelativeContainerObject(objectType, instance, dependencies.toArray(new Class<?>[0]));
 
-                        log("Found " + beanType + " with type " + instance.getClass().getSimpleName() + ", Registering it as bean...");
+                        log("Found " + objectType + " with type " + instance.getClass().getSimpleName() + ", Registering it as bean...");
 
                         attemptBindPlugin(containerObject);
                         registerBean(containerObject, false);
 
                         containerObjectList.add(containerObject);
                     } else {
-                        new ServiceAlreadyExistsException(beanType).printStackTrace();
+                        new ServiceAlreadyExistsException(objectType).printStackTrace();
                     }
                 }
             }
 
             // Load Beans in Dependency Tree Order
-            try (SimpleTiming ignored = logTiming("Initializing Beans")) {
+            try (SimpleTiming ignored = logTiming("Initializing ContainerObject")) {
                 containerObjectList = loadInOrder(containerObjectList);
             } catch (Throwable throwable) {
                 LOGGER.error("An error occurs while handling loadInOrder()", throwable);
             }
 
             // Unregistering Beans that returns false in shouldInitialize
-            try (SimpleTiming ignored = logTiming("Unregistering Disabled Beans")) {
+            try (SimpleTiming ignored = logTiming("Unregistering Disabled ContainerObject")) {
                 sortedBeans.addAll(containerObjectList);
 
                 for (ContainerObject containerObject : ImmutableList.copyOf(containerObjectList)) {
@@ -607,7 +607,11 @@ public class ContainerContext {
             try (SimpleTiming ignored = logTiming("Injecting Beans")) {
                 for (ContainerObject containerObject : containerObjectList) {
                     for (ContainerController controller : controllers) {
-                        controller.applyBean(containerObject);
+                        try {
+                            controller.applyContainerObject(containerObject);
+                        } catch (Throwable throwable) {
+                            LOGGER.warn("An error occurs while apply controller for " + containerObject.getType(), throwable);
+                        }
                     }
                 }
             }

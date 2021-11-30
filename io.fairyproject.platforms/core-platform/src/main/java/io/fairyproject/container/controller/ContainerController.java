@@ -5,8 +5,8 @@ import io.fairyproject.container.object.ContainerObject;
 // Internal class
 public interface ContainerController {
 
-    void applyBean(ContainerObject containerObject) throws Exception;
+    void applyContainerObject(ContainerObject containerObject) throws Exception;
 
-    void removeBean(ContainerObject containerObject) throws Exception;
+    void removeContainerObject(ContainerObject containerObject) throws Exception;
 
 }

@@ -85,7 +85,7 @@ public abstract class BaseCommand implements ICommand {
     }
 
     public <T extends Annotation> T getAnnotation(Class<T> type) {
-        return this.getClass().getAnnotation(type);
+        return this.getClass().getDeclaredAnnotation(type);
     }
 
     public void onArgumentFailed(CommandContext commandContext, String source, String reason) {

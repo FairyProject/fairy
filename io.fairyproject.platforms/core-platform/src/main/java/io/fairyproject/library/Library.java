@@ -28,6 +28,9 @@ import com.google.gson.JsonObject;
 import io.fairyproject.library.relocate.Relocate;
 import lombok.Builder;
 import lombok.Getter;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.graph.Dependency;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -183,7 +186,8 @@ public class Library {
                     "1RsiF3BiVztjlfTA+svDCuoDSGFuSpTZYHvUK8yBx8I="
     );
 
-    private final String mavenRepoPath;
+    private final String groupId;
+    private final String artifactId;
     private final String version;
     private final String name;
     private final byte[] checksum;
@@ -205,14 +209,9 @@ public class Library {
     }
 
     public Library(String groupId, String artifactId, String versionPackage, String version, String checksum, LibraryRepository repository, Relocate... relocations) {
-        this.mavenRepoPath = String.format(MAVEN_FORMAT,
-                rewriteEscaping(groupId).replace(".", "/"),
-                rewriteEscaping(artifactId),
-                versionPackage,
-                rewriteEscaping(artifactId),
-                version
-        );
-        this.name = artifactId;
+        this.groupId = rewriteEscaping(groupId);
+        this.artifactId = rewriteEscaping(artifactId);
+        this.name = rewriteEscaping(artifactId);
         this.version = version;
         if (checksum != null && !checksum.isEmpty()) {
             this.checksum = Base64.getDecoder().decode(checksum);
@@ -225,6 +224,16 @@ public class Library {
         for (Relocate relocate : relocations) {
             this.relocations.add(new Relocate(rewriteEscaping(relocate.getPattern()), relocate.getShadedPattern()));
         }
+    }
+
+    public Dependency getMavenDependency() {
+        Artifact artifact = new DefaultArtifact(
+                groupId,
+                artifactId,
+                "jar",
+                this.version
+        );
+        return new Dependency(artifact, null);
     }
 
     private static String rewriteEscaping(String s) {
@@ -296,12 +305,12 @@ public class Library {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Library library = (Library) o;
-        return Objects.equals(mavenRepoPath, library.mavenRepoPath) && Objects.equals(version, library.version) && Objects.equals(name, library.name) && Arrays.equals(checksum, library.checksum) && Objects.equals(repository, library.repository) && Objects.equals(relocations, library.relocations);
+        return Objects.equals(version, library.version) && Objects.equals(name, library.name) && Arrays.equals(checksum, library.checksum) && Objects.equals(repository, library.repository) && Objects.equals(relocations, library.relocations);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(mavenRepoPath, version, name, repository, relocations);
+        int result = Objects.hash(version, name, repository, relocations);
         result = 31 * result + Arrays.hashCode(checksum);
         return result;
     }

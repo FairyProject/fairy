@@ -26,18 +26,38 @@ package io.fairyproject.library;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.fairyproject.Fairy;
 import io.fairyproject.library.classloader.IsolatedClassLoader;
 import io.fairyproject.library.relocate.RelocateHandler;
-import io.fairyproject.util.URLClassLoaderAccess;
-import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import io.fairyproject.Fairy;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.URLClassLoaderAccess;
+import lombok.Getter;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transfer.AbstractTransferListener;
+import org.eclipse.aether.transfer.TransferEvent;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
 
 import java.io.File;
 import java.net.MalformedURLException;
@@ -45,13 +65,12 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Stream;
 
 public class LibraryHandler {
 
@@ -59,7 +78,11 @@ public class LibraryHandler {
     @Getter
     private final RelocateHandler relocateHandler;
 
-    private final Map<Library, Path> loaded = new ConcurrentHashMap<>();
+    private final RepositorySystem repository;
+    private final DefaultRepositorySystemSession session;
+    private final List<RemoteRepository> repositories;
+
+    private final Map<Library, List<Path>> loaded = new ConcurrentHashMap<>();
     private final Map<Plugin, URLClassLoaderAccess> pluginClassLoaders = new ConcurrentHashMap<>();
     private final Map<ImmutableSet<Library>, IsolatedClassLoader> loaders = new HashMap<>();
 
@@ -77,6 +100,26 @@ public class LibraryHandler {
         }
         this.libFolder = file.toPath();
 
+        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+
+        this.repository = locator.getService(RepositorySystem.class);
+        this.session = MavenRepositorySystemUtils.newSession();
+
+        session.setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL);
+        session.setLocalRepositoryManager(repository.newLocalRepositoryManager(session, new LocalRepository(file)));
+        session.setTransferListener(new AbstractTransferListener() {
+            @Override
+            public void transferStarted(TransferEvent event) {
+                LOGGER.info("Downloading {}", event.getResource().getResourceName());
+            }
+        });
+        session.setReadOnly();
+        this.repositories = repository.newResolutionRepositories(session, Arrays.asList(
+                new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build()
+        ));
+
         // ASM
         this.downloadLibraries(true,
                 Library.ASM,
@@ -91,8 +134,10 @@ public class LibraryHandler {
                 public void onPluginInitial(Plugin plugin) {
                     final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) plugin.getPluginClassLoader());
                     pluginClassLoaders.put(plugin, classLoader);
-                    for (Path path : loaded.values()) {
-                        classLoader.addPath(path);
+                    for (List<Path> paths : loaded.values()) {
+                        for (Path path : paths) {
+                            classLoader.addPath(path);
+                        }
                     }
                 }
 
@@ -125,12 +170,17 @@ public class LibraryHandler {
 
             URL[] urls = set.stream()
                     .map(this.loaded::get)
-                    .map(file -> {
-                        try {
-                            return file.toUri().toURL();
-                        } catch (MalformedURLException e) {
-                            throw new RuntimeException(e);
+                    .flatMap(files -> {
+                        URL[] retVal = new URL[files.size()];
+                        int i = 0;
+                        for (Path file : files) {
+                            try {
+                                retVal[i++] = file.toUri().toURL();
+                            } catch (MalformedURLException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
+                        return Stream.of(retVal);
                     })
                     .toArray(URL[]::new);
 
@@ -158,7 +208,6 @@ public class LibraryHandler {
                     latch.countDown();
                 }
             });
-
         }
 
         try {
@@ -168,55 +217,81 @@ public class LibraryHandler {
         }
     }
 
-    private Path loadLibrary(Library library, boolean addToUCP) throws Exception {
+    private List<Path> loadLibrary(Library library, boolean addToUCP) throws Exception {
         if (loaded.containsKey(library)) {
             return loaded.get(library);
         }
 
-        Path file = this.remapLibrary(library, this.downloadLibrary(library));
-        this.loaded.put(library, file);
+        List<Path> files = this.remapLibrary(library, this.downloadLibrary(library));
+        this.loaded.put(library, files);
         if (addToUCP) {
-//            this.classLoader.addJarToClasspath(file);
-            Fairy.getPlatform().getClassloader().addJarToClasspath(file);
-            for (URLClassLoaderAccess classLoader : this.pluginClassLoaders.values()) {
-                classLoader.addPath(file);
+            for (Path path : files) {
+                Fairy.getPlatform().getClassloader().addJarToClasspath(path);
+                for (URLClassLoaderAccess classLoader : this.pluginClassLoaders.values()) {
+                    classLoader.addPath(path);
+                }
             }
         }
-        return file;
+        return files;
     }
 
-    private Path remapLibrary(Library library, Path normalFile) {
+    private List<Path> remapLibrary(Library library, List<Path> normalFile) {
         if (library.getRelocations().isEmpty()) {
             return normalFile;
         }
 
-        Path remappedFile = this.libFolder.resolve(library.getFileName() + "-remapped.jar");
-        if (Files.exists(remappedFile)) {
-            return remappedFile;
+        List<Path> retVal = new ArrayList<>();
+        for (Path path : normalFile) {
+            final String name = path.getFileName().toString();
+            final String fileName = FilenameUtils.getName(name);
+            final String extension = FilenameUtils.getExtension(name);
+            Path remappedFile = this.libFolder.resolve(fileName + "-remapped." + extension);
+
+            if (Files.exists(remappedFile)) {
+                retVal.add(remappedFile);
+                continue;
+            }
+
+            try {
+                System.out.println("Remapping library " + library.getName() + "...");
+
+                this.relocateHandler.relocate(path, remappedFile, library.getRelocations());
+                retVal.add(remappedFile);
+            } catch (Throwable throwable) {
+                throw new RuntimeException("Something wrong while relocating library...", throwable);
+            }
         }
 
-        try {
-            System.out.println("Remapping library " + library.getName() + "...");
-
-            this.relocateHandler.relocate(normalFile, remappedFile, library.getRelocations());
-        } catch (Throwable throwable) {
-            throw new RuntimeException("Something wrong while relocating library...", throwable);
-        }
-        return remappedFile;
+        return retVal;
     }
 
-    protected Path downloadLibrary(Library library) throws LibraryDownloadException {
+    protected List<Path> downloadLibrary(Library library) {
         Path file = this.libFolder.resolve(library.getFileName() + ".jar");
 
         if (Files.exists(file)) {
-            return file;
+            return Collections.singletonList(file);
         }
 
+        DependencyResult result;
         try {
-            library.getRepository().download(library, file);
-            return file;
-        } catch (LibraryDownloadException ex) {
-            throw ex;
+            List<RemoteRepository> repositories = this.repositories;
+            if (library.getRepository() != null) {
+                repositories = repository.newResolutionRepositories(session, Arrays.asList(
+                        new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
+                        new RemoteRepository.Builder("custom", "default", library.getRepository().getUrl()).build()
+                ));;
+            }
+            result = repository.resolveDependencies(session, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(library.getMavenDependency()), repositories), null));
+        } catch (DependencyResolutionException ex) {
+            throw new RuntimeException("Error resolving libraries", ex);
         }
+
+        List<Path> paths = new ArrayList<>();
+        for (ArtifactResult artifactResult : result.getArtifactResults()) {
+            final Artifact artifact = artifactResult.getArtifact();
+            paths.add(artifact.getFile().toPath());
+        }
+
+        return paths;
     }
 }
