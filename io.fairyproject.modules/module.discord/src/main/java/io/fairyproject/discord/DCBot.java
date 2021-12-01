@@ -2,6 +2,7 @@ package io.fairyproject.discord;
 
 import io.fairyproject.container.*;
 import io.fairyproject.discord.button.ButtonReader;
+import io.fairyproject.discord.command.CommandPrefix;
 import io.fairyproject.discord.event.DCBotInitializedEvent;
 import io.fairyproject.discord.message.NextMessageReader;
 import io.fairyproject.discord.proxies.ProxyJDA;
@@ -9,18 +10,23 @@ import io.fairyproject.event.EventBus;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.PreProcessBatch;
+import io.fairyproject.util.collection.ConvertedList;
 import lombok.Getter;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.ChunkingFilter;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.security.auth.login.LoginException;
 import java.util.Collection;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -29,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 public abstract class DCBot implements ProxyJDA {
 
+    public static final String DEFAULT_COMMAND_PREFIX = "!";
     private static final Map<Long, DCBot> BOT_BY_ID = new ConcurrentHashMap<>();
 
     @Autowired
@@ -58,6 +65,8 @@ public abstract class DCBot implements ProxyJDA {
 
     private PreProcessBatch listenerBatch;
     private MetadataMap metadata;
+
+    private String commandPrefix;
 
     @Override
     public final JDA getJDA() {
@@ -102,6 +111,13 @@ public abstract class DCBot implements ProxyJDA {
 
         BOT_BY_ID.put(this.jda.getSelfUser().getIdLong(), this);
         EventBus.call(new DCBotInitializedEvent(this));
+
+        final CommandPrefix annotation = this.getClass().getAnnotation(CommandPrefix.class);
+        if (annotation != null) {
+            this.commandPrefix = annotation.value();
+        } else {
+            this.commandPrefix = DEFAULT_COMMAND_PREFIX;
+        }
     }
 
     @PreDestroy
@@ -138,6 +154,34 @@ public abstract class DCBot implements ProxyJDA {
                 this.jda.removeEventListener(obj);
             }
         }
+    }
+
+    public DCGuild getDCGuildById(long id) {
+        final Guild guild = this.jda.getGuildById(id);
+        assert guild != null;
+        return new DCGuild(guild, this);
+    }
+
+    @Nullable
+    public DCGuild getDCGuildById(@NotNull String id) {
+        final Guild guild = this.jda.getGuildById(id);
+        assert guild != null;
+        return new DCGuild(guild, this);
+    }
+
+    @NotNull
+    public List<DCGuild> getDCGuilds() {
+        return new ConvertedList<Guild, DCGuild>(this.getGuilds()) {
+            @Override
+            protected DCGuild toOuter(Guild guild) {
+                return new DCGuild(guild, DCBot.this);
+            }
+
+            @Override
+            protected Guild toInner(DCGuild dcGuild) {
+                return dcGuild.original();
+            }
+        };
     }
 
     protected JDABuilder setupBuilder(JDABuilder jdaBuilder) {
