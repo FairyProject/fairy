@@ -27,7 +27,6 @@ package io.fairyproject.bukkit.menu;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
 import io.fairyproject.bukkit.util.items.ItemBuilder;
-import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;

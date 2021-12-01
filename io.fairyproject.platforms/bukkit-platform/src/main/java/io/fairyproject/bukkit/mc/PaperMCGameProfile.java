@@ -5,7 +5,6 @@ import com.destroystokyo.paper.profile.ProfileProperty;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.util.Property;
 import io.fairyproject.util.collection.ConvertedSet;
-import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

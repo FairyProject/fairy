@@ -1,7 +1,6 @@
 package io.fairyproject.util.exceptionally;
 
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 import static java.util.Objects.requireNonNull;
 

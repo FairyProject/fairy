@@ -24,16 +24,15 @@
 
 package io.fairyproject.container.object;
 
+import io.fairyproject.container.ServiceDependencyType;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
 import lombok.Setter;
-import io.fairyproject.plugin.Plugin;
-import io.fairyproject.container.ServiceDependencyType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 @Getter

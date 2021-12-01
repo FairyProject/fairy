@@ -6,7 +6,6 @@ import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.item.*;
 import io.fairyproject.mc.protocol.netty.FriendlyByteBuf;
 import lombok.*;
-import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 
 import java.util.Collections;
