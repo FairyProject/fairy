@@ -51,7 +51,7 @@ public class ServiceContainerObject extends RelativeContainerObject {
     public void setupConstruction(ContainerContext containerContext) {
         this.constructorDetails = new ContainerParameterDetailsConstructor(this.getType(), containerContext);
         for (Parameter parameter : this.constructorDetails.getParameters()) {
-            ContainerObject details = containerContext.getBeanDetails(parameter.getType());
+            ContainerObject details = containerContext.getObjectDetails(parameter.getType());
 
             ServiceDependencyType type = ServiceDependencyType.FORCE;
             final DependencyType annotation = parameter.getAnnotation(DependencyType.class);

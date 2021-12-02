@@ -33,7 +33,6 @@ public class DCButton {
     }
 
     public ActionRow[] toActionRows(DCBot bot) {
-        final Button button = this.toButton(bot);
         return new ActionRow[]{this.toActionRow(bot)};
     }
 

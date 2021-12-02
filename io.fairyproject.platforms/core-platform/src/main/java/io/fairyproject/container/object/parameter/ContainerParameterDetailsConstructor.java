@@ -65,7 +65,7 @@ public class ContainerParameterDetailsConstructor extends ContainerParameterDeta
         this.constructor = constructorRet;
         this.parameters = this.constructor.getParameters();
         for (Parameter parameter : this.parameters) {
-            if (!containerContext.isBean(parameter.getType())) {
+            if (!containerContext.isObject(parameter.getType())) {
                 throw new IllegalArgumentException("The type " + parameter.getType().getName() + " it's not supposed to be in bean constructor!");
             }
         }

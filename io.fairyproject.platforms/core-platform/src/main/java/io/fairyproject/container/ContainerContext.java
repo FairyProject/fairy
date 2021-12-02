@@ -69,7 +69,7 @@ public class ContainerContext {
     protected static final Logger LOGGER = LogManager.getLogger(ContainerContext.class);
     protected static void log(String msg, Object... replacement) {
         if (SHOW_LOGS) {
-            LOGGER.info("[BeanContext] " + String.format(msg, replacement));
+            LOGGER.info(String.format(msg, replacement));
         }
     }
     protected static SimpleTiming logTiming(String msg) {
@@ -86,11 +86,11 @@ public class ContainerContext {
     /**
      * NOT THREAD SAFE
      */
-    private final List<ContainerObject> sortedBeans = new ArrayList<>();
+    private final List<ContainerObject> sortedObjects = new ArrayList<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
-     * Initializing Method for Bean Context
+     * Initializing Method for ContainerContext
      */
     public void init() {
         INSTANCE = this;
@@ -103,8 +103,8 @@ public class ContainerContext {
 
         ).toArray(new ContainerController[0]);
 
-        this.registerBean(new SimpleContainerObject(this, this.getClass()));
-        log("BeanContext has been registered as bean.");
+        this.registerObject(new SimpleContainerObject(this, this.getClass()));
+        log("ContainerContext has been registered as ContainerObject.");
 
         ComponentRegistry.registerComponentHolders();
         try {
@@ -136,8 +136,8 @@ public class ContainerContext {
 
                     try {
                         containerObject.bindWith(plugin);
-                        registerBean(containerObject, false);
-                        log("Plugin " + plugin.getName() + " has been registered as bean.");
+                        registerObject(containerObject, false);
+                        log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
                     } catch (Throwable throwable) {
                         LOGGER.error("An error occurs while registering plugin", throwable);
                         try {
@@ -198,78 +198,78 @@ public class ContainerContext {
     }
 
     /**
-     * Shutdown Method for Bean Context
+     * Shutdown Method for ContainerObject Context
      */
     public void stop() {
-        List<ContainerObject> detailsList = Lists.newArrayList(this.sortedBeans);
+        List<ContainerObject> detailsList = Lists.newArrayList(this.sortedObjects);
         Collections.reverse(detailsList);
 
         lifeCycle(LifeCycle.PRE_DESTROY, detailsList);
         for (ContainerObject details : detailsList) {
-            log("Bean " + details.getType() + " Disabled, due to framework being disabled.");
+            log("ContainerObject " + details.getType() + " Disabled, due to framework being disabled.");
 
             details.onDisable();
-            unregisterBean(details);
+            unregisterObject(details);
         }
         lifeCycle(LifeCycle.POST_DESTROY, detailsList);
     }
 
-    public void disableBeanUnchecked(Class<?> type) {
-        this.disableBeanUnchecked(this.getBeanDetails(type));
+    public void disableObjectUnchecked(Class<?> type) {
+        this.disableObjectUnchecked(this.getObjectDetails(type));
     }
 
-    public void disableBeanUnchecked(ContainerObject containerObject) {
-        ThrowingRunnable.unchecked(() -> this.disableBean(containerObject)).run();
+    public void disableObjectUnchecked(ContainerObject containerObject) {
+        ThrowingRunnable.unchecked(() -> this.disableObject(containerObject)).run();
     }
 
-    public void disableBean(Class<?> type) throws InvocationTargetException, IllegalAccessException {
-        this.disableBean(this.getBeanDetails(type));
+    public void disableObject(Class<?> type) throws InvocationTargetException, IllegalAccessException {
+        this.disableObject(this.getObjectDetails(type));
     }
 
-    public void disableBean(ContainerObject containerObject) throws InvocationTargetException, IllegalAccessException {
+    public void disableObject(ContainerObject containerObject) throws InvocationTargetException, IllegalAccessException {
         containerObject.lifeCycle(LifeCycle.PRE_DESTROY);
         containerObject.onDisable();
-        this.unregisterBean(containerObject);
+        this.unregisterObject(containerObject);
         containerObject.lifeCycle(LifeCycle.POST_DESTROY);
     }
 
-    public ContainerObject registerBean(ContainerObject containerObject) {
-        return this.registerBean(containerObject, true);
+    public ContainerObject registerObject(ContainerObject containerObject) {
+        return this.registerObject(containerObject, true);
     }
 
-    public ContainerObject registerBean(ContainerObject containerObject, boolean sort) {
+    public ContainerObject registerObject(ContainerObject containerObject, boolean sort) {
         this.containerByType.put(containerObject.getType(), containerObject);
         if (sort) {
-            this.sortedBeans.add(containerObject);
+            this.sortedObjects.add(containerObject);
         }
 
         return containerObject;
     }
 
-    public Collection<ContainerObject> unregisterBean(Class<?> type) {
-        return this.unregisterBean(this.getBeanDetails(type));
+    public Collection<ContainerObject> unregisterObject(Class<?> type) {
+        return this.unregisterObject(this.getObjectDetails(type));
     }
 
-    public Collection<ContainerObject> unregisterBean(@NonNull ContainerObject containerObject) {
+    public Collection<ContainerObject> unregisterObject(@NonNull ContainerObject containerObject) {
         this.containerByType.remove(containerObject.getType());
 
         this.lock.writeLock().lock();
-        this.sortedBeans.remove(containerObject);
+        this.sortedObjects.remove(containerObject);
         this.lock.writeLock().unlock();
 
         final ImmutableList.Builder<ContainerObject> builder = ImmutableList.builder();
 
         // Unregister Child Dependency
         for (Class<?> child : containerObject.getChildren()) {
-            ContainerObject childDetails = this.getBeanDetails(child);
+            ContainerObject childDetails = this.getObjectDetails(child);
 
             builder.add(childDetails);
-            builder.addAll(this.unregisterBean(childDetails));
+            builder.addAll(this.unregisterObject(childDetails));
         }
 
         // Remove Children from dependencies
         for (Class<?> dependency : containerObject.getAllDependencies()) {
-            ContainerObject dependDetails = this.getBeanDetails(dependency);
+            ContainerObject dependDetails = this.getObjectDetails(dependency);
 
             if (dependDetails != null) {
                 dependDetails.removeChildren(containerObject.getType());
@@ -279,21 +279,21 @@ public class ContainerContext {
         return builder.build();
     }
 
-    public ContainerObject getBeanDetails(Class<?> type) {
+    public ContainerObject getObjectDetails(Class<?> type) {
         return this.containerByType.get(type);
     }
 
-    public Object getBean(@NonNull Class<?> type) {
-        ContainerObject details = this.getBeanDetails(type);
+    public Object getContainerObject(@NonNull Class<?> type) {
+        ContainerObject details = this.getObjectDetails(type);
         if (details == null) {
             return null;
         }
         return details.getInstance();
     }
 
-    public boolean isRegisteredBeans(Class<?>... beans) {
-        for (Class<?> bean : beans) {
-            ContainerObject dependencyDetails = this.getBeanDetails(bean);
+    public boolean isRegisteredObject(Class<?>... types) {
+        for (Class<?> type : types) {
+            ContainerObject dependencyDetails = this.getObjectDetails(type);
             if (dependencyDetails == null || dependencyDetails.getInstance() == null) {
                 return false;
             }
@@ -301,18 +301,18 @@ public class ContainerContext {
         return true;
     }
 
-    public boolean isBean(Class<?> beanClass) {
-        return this.containerByType.containsKey(beanClass);
+    public boolean isObject(Class<?> objectClass) {
+        return this.containerByType.containsKey(objectClass);
     }
 
-    public boolean isBean(Object bean) {
-        return this.isBean(bean.getClass());
+    public boolean isObject(Object object) {
+        return this.isObject(object.getClass());
     }
 
     public Collection<ContainerObject> findDetailsBindWith(Plugin plugin) {
         return this.containerByType.values()
                 .stream()
-                .filter(beanDetails -> beanDetails.isBind() && beanDetails.getBindPlugin().equals(plugin))
+                .filter(containerObject -> containerObject.isBind() && containerObject.getBindPlugin().equals(plugin))
                 .collect(Collectors.toList());
     }
 
@@ -329,7 +329,7 @@ public class ContainerContext {
         ServiceDependency serviceDependency = type.getAnnotation(ServiceDependency.class);
         if (serviceDependency != null) {
             for (Class<?> dependency : serviceDependency.value()) {
-                if (!this.isRegisteredBeans(dependency)) {
+                if (!this.isRegisteredObject(dependency)) {
                     switch (serviceDependency.type()) {
                         case FORCE:
                             LOGGER.error("Couldn't find the dependency " + dependency + " for " + type.getSimpleName() + "!");
@@ -348,7 +348,7 @@ public class ContainerContext {
             return null;
         }
 
-        this.registerBean(containerObject);
+        this.registerObject(containerObject);
         this.attemptBindPlugin(containerObject);
 
         try {
@@ -366,7 +366,7 @@ public class ContainerContext {
             if (plugin != null) {
                 containerObject.bindWith(plugin);
 
-                log("Bean " + containerObject.getType() + " is now bind with plugin " + plugin.getName());
+                log("ContainerObject " + containerObject.getType() + " is now bind with plugin " + plugin.getName());
             }
         }
     }
@@ -452,18 +452,18 @@ public class ContainerContext {
             return this;
         }
 
-        public ClassPathScanner included(ContainerObject... beanDetails) {
-            this.included.addAll(Arrays.asList(beanDetails));
+        public ClassPathScanner included(ContainerObject... containerObjects) {
+            this.included.addAll(Arrays.asList(containerObjects));
             return this;
         }
 
-        public ClassPathScanner included(Collection<ContainerObject> beanDetails) {
-            this.included.addAll(beanDetails);
+        public ClassPathScanner included(Collection<ContainerObject> containerObjects) {
+            this.included.addAll(containerObjects);
             return this;
         }
 
         public List<ContainerObject> scan() throws Exception {
-            log("Start scanning beans for %s with packages [%s]...", scanName, String.join(" ", classPaths));
+            log("Start scanning containers for %s with packages [%s]...", scanName, String.join(" ", classPaths));
 
             // Build the instance for Reflection Lookup
             ReflectLookup reflectLookup;
@@ -491,9 +491,9 @@ public class ContainerContext {
                 reflectLookup = new ReflectLookup(configurationBuilder);
             }
 
-            // Scanning through the JAR to see every Service Bean can be registered
+            // Scanning through the JAR to see every Service ContainerObject can be registered
             List<ContainerObject> containerObjectList;
-            try (SimpleTiming ignored = logTiming("Scanning Beans")) {
+            try (SimpleTiming ignored = logTiming("Scanning ContainerObjects")) {
                 containerObjectList = new NonNullArrayList<>(included);
 
                 for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
@@ -501,34 +501,34 @@ public class ContainerContext {
                         Service service = type.getAnnotation(Service.class);
                         Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
 
-                        if (getBeanDetails(type) == null) {
-                            ServiceContainerObject beanDetails = new ServiceContainerObject(type, service.depends());
+                        if (getObjectDetails(type) == null) {
+                            ServiceContainerObject containerObject = new ServiceContainerObject(type, service.depends());
 
-                            log("Found " + beanDetails + " with type " + type.getSimpleName() + ", Registering it as bean...");
+                            log("Found " + containerObject + " with type " + type.getSimpleName() + ", Registering it as ContainerObject...");
 
-                            attemptBindPlugin(beanDetails);
-                            registerBean(beanDetails, false);
+                            attemptBindPlugin(containerObject);
+                            registerObject(containerObject, false);
 
-                            containerObjectList.add(beanDetails);
+                            containerObjectList.add(containerObject);
                         } else {
                             new ServiceAlreadyExistsException(type).printStackTrace();
                         }
                     } catch (Throwable throwable) {
-                        throw new IllegalStateException("An exception has been thrown while scanning bean for " + type.getName(), throwable);
+                        throw new IllegalStateException("An exception has been thrown while scanning ContainerObject for " + type.getName(), throwable);
                     }
                 }
             }
 
-            // Scanning methods that registers bean
-            try (SimpleTiming ignored = logTiming("Scanning Bean Method")) {
+            // Scanning methods that registers ContainerObject
+            try (SimpleTiming ignored = logTiming("Scanning ContainerObject Method")) {
                 for (Method method : reflectLookup.findAnnotatedStaticMethods(Register.class)) {
                     if (method.getReturnType() == void.class) {
-                        new IllegalArgumentException("The Method " + method + " has annotated @Bean but no return type!").printStackTrace();
+                        new IllegalArgumentException("The Method " + method + " has annotated @Register but no return type!").printStackTrace();
                     }
                     ContainerParameterDetailsMethod detailsMethod = new ContainerParameterDetailsMethod(method, ContainerContext.this);
                     List<Class<?>> dependencies = new ArrayList<>();
                     for (Parameter type : detailsMethod.getParameters()) {
-                        ContainerObject details = getBeanDetails(type.getType());
+                        ContainerObject details = getObjectDetails(type.getType());
                         if (details != null) {
                             dependencies.add(details.getType());
                         }
@@ -545,13 +545,13 @@ public class ContainerContext {
                         objectType = register.as();
                     }
 
-                    if (getBeanDetails(objectType) == null) {
+                    if (getObjectDetails(objectType) == null) {
                         ContainerObject containerObject = new RelativeContainerObject(objectType, instance, dependencies.toArray(new Class<?>[0]));
 
-                        log("Found " + objectType + " with type " + instance.getClass().getSimpleName() + ", Registering it as bean...");
+                        log("Found " + objectType + " with type " + instance.getClass().getSimpleName() + ", Registering it as ContainerObject...");
 
                         attemptBindPlugin(containerObject);
-                        registerBean(containerObject, false);
+                        registerObject(containerObject, false);
 
                         containerObjectList.add(containerObject);
                     } else {
@@ -560,16 +560,16 @@ public class ContainerContext {
                 }
             }
 
-            // Load Beans in Dependency Tree Order
+            // Load ContainerObjects in Dependency Tree Order
             try (SimpleTiming ignored = logTiming("Initializing ContainerObject")) {
                 containerObjectList = loadInOrder(containerObjectList);
             } catch (Throwable throwable) {
                 LOGGER.error("An error occurs while handling loadInOrder()", throwable);
             }
 
-            // Unregistering Beans that returns false in shouldInitialize
+            // Unregistering ContainerObjects that returns false in shouldInitialize
             try (SimpleTiming ignored = logTiming("Unregistering Disabled ContainerObject")) {
-                sortedBeans.addAll(containerObjectList);
+                sortedObjects.addAll(containerObjectList);
 
                 for (ContainerObject containerObject : ImmutableList.copyOf(containerObjectList)) {
                     if (!containerObjectList.contains(containerObject)) {
@@ -580,7 +580,7 @@ public class ContainerContext {
                             log("Unregistering " + containerObject + " due to it cancelled to register");
 
                             containerObjectList.remove(containerObject);
-                            for (ContainerObject details : unregisterBean(containerObject)) {
+                            for (ContainerObject details : unregisterObject(containerObject)) {
                                 log("Unregistering " + containerObject + " due to it dependency unregistered");
 
                                 containerObjectList.remove(details);
@@ -588,12 +588,12 @@ public class ContainerContext {
                         }
                     } catch (InvocationTargetException | IllegalAccessException e) {
                         LOGGER.error(e);
-                        unregisterBean(containerObject);
+                        unregisterObject(containerObject);
                     }
                 }
             }
 
-            // Call @PreInitialize methods for bean
+            // Call @PreInitialize methods for ContainerObject
             try (SimpleTiming ignored = logTiming("LifeCycle PRE_INIT")) {
                 lifeCycle(LifeCycle.PRE_INIT, containerObjectList);
             }
@@ -603,8 +603,8 @@ public class ContainerContext {
                 containerObjectList.addAll(ComponentRegistry.scanComponents(ContainerContext.this, reflectLookup, prefix));
             }
 
-            // Inject @Autowired fields for beans
-            try (SimpleTiming ignored = logTiming("Injecting Beans")) {
+            // Inject @Autowired fields for ContainerObjects
+            try (SimpleTiming ignored = logTiming("Injecting ContainerObjects")) {
                 for (ContainerObject containerObject : containerObjectList) {
                     for (ContainerController controller : controllers) {
                         try {
@@ -659,7 +659,7 @@ public class ContainerContext {
                 for (Map.Entry<ServiceDependencyType, List<Class<?>>> allDependency : containerObject.getDependencyEntries()) {
                     final ServiceDependencyType type = allDependency.getKey();
                     search: for (Class<?> dependency : allDependency.getValue()) {
-                        ContainerObject dependencyDetails = ContainerContext.this.getBeanDetails(dependency);
+                        ContainerObject dependencyDetails = ContainerContext.this.getObjectDetails(dependency);
                         if (dependencyDetails == null) {
                             switch (type) {
                                 case FORCE:
@@ -699,7 +699,7 @@ public class ContainerContext {
                     for (Map.Entry<ServiceDependencyType, List<Class<?>>> dependencyEntry : containerObject.getDependencyEntries()) {
                         final ServiceDependencyType type = dependencyEntry.getKey();
                         for (Class<?> dependency : dependencyEntry.getValue()) {
-                            ContainerObject dependencyDetails = ContainerContext.this.getBeanDetails(dependency);
+                            ContainerObject dependencyDetails = ContainerContext.this.getObjectDetails(dependency);
                             if (dependencyDetails != null && dependencyDetails.getInstance() != null) {
                                 continue;
                             }

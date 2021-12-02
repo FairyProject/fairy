@@ -37,7 +37,7 @@ public class Containers {
     private ContainerContext CONTAINER_CONTEXT;
 
     public <T> T get(Class<T> type) {
-        return type.cast(CONTAINER_CONTEXT.getBean(type));
+        return type.cast(CONTAINER_CONTEXT.getContainerObject(type));
     }
 
     public void inject(Object instance) {

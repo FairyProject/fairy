@@ -43,7 +43,7 @@ public class ContainerParameterDetailsMethod extends ContainerParameterDetailsAb
 
         this.parameters = this.method.getParameters();
         for (Parameter parameter : this.parameters) {
-            if (!containerContext.isBean(parameter.getType())) {
+            if (!containerContext.isObject(parameter.getType())) {
                 throw new IllegalArgumentException("The type " + parameter.getType().getName() + " is not a bean!, it's not supposed to be in bean method!");
             }
         }

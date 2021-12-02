@@ -71,7 +71,7 @@ public class AutowiredContainerController implements ContainerController {
                 return;
             }
         }
-        Object objectToInject = ContainerContext.INSTANCE.getBean(type);
+        Object objectToInject = ContainerContext.INSTANCE.getContainerObject(type);
         if (optional) {
             objectToInject = Optional.ofNullable(objectToInject);
         } else if (beanHolder) {

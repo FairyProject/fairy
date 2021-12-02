@@ -182,7 +182,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
         this.storageConfiguration = this.buildStorageConfiguration();
         if (this.storageConfiguration == null) {
             LOGGER.error("No storage configuration were enabled.");
-            this.containerContext.unregisterBean(containerObject);
+            this.containerContext.unregisterObject(containerObject);
             return;
         }
 

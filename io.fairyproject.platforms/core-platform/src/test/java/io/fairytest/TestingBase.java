@@ -9,9 +9,14 @@ import org.junit.BeforeClass;
 public abstract class TestingBase {
 
     public static PluginMock PLUGIN;
+    private static boolean INITIALIZED = false;
 
     @BeforeClass
     public static void setup() {
+        if (INITIALIZED) {
+            return;
+        }
+        INITIALIZED = true;
         FairyPlatform fairyPlatform = new FairyTestingPlatform();
         FairyPlatform.INSTANCE = fairyPlatform;
 

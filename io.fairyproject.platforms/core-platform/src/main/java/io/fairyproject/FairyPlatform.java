@@ -73,7 +73,7 @@ public abstract class FairyPlatform {
         this.loadBindable();
 
         this.containerContext = new ContainerContext();
-        this.containerContext.registerBean(new SimpleContainerObject(this, this.getClass()));
+        this.containerContext.registerObject(new SimpleContainerObject(this, this.getClass()));
         this.containerContext.init();
     }
 

@@ -61,7 +61,7 @@ public class ServiceTest extends TestingBase {
         assertEquals(-1, serviceMock.getPreDestroy());
         assertEquals(-1, serviceMock.getPostDestroy());
 
-        containerContext.disableBeanUnchecked(ServiceMock.class);
+        containerContext.disableObjectUnchecked(ServiceMock.class);
 
         assertNotEquals(serviceMock.getPreDestroy(), -1);
         assertNotEquals(serviceMock.getPostDestroy(), -1);
@@ -95,7 +95,7 @@ public class ServiceTest extends TestingBase {
             assertEquals(BeanInterfaceImpl.class, beanDetails.get(0).getInstance().getClass());
         }).run();
 
-        assertNotNull(containerContext.getBean(BeanInterface.class));
+        assertNotNull(containerContext.getContainerObject(BeanInterface.class));
         assertNotNull(AnnotatedRegistration.INTERFACE);
     }
 

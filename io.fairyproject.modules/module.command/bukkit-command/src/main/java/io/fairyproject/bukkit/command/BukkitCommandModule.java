@@ -18,7 +18,7 @@ public class BukkitCommandModule {
 
     @PreInitialize
     public void preInit() {
-        CommandService commandService = (CommandService) this.containerContext.getBean(CommandService.class);
+        CommandService commandService = (CommandService) this.containerContext.getContainerObject(CommandService.class);
         commandService.registerDefaultPresenceProvider(new DefaultPresenceProvider());
     }
 }

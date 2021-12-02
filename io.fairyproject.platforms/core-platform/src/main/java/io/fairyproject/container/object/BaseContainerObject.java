@@ -27,7 +27,6 @@ package io.fairyproject.container.object;
 import io.fairyproject.container.*;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.Utility;
-import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
@@ -314,7 +313,7 @@ public class BaseContainerObject implements ContainerObject {
         this.closed = true;
 
         this.onDisable();
-        BEAN_CONTEXT.unregisterBean(this);
+        BEAN_CONTEXT.unregisterObject(this);
     }
 
     @Override

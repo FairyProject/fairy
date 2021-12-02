@@ -43,7 +43,7 @@ public class ContainerParameterDetailsAbstract implements ContainerParameterDeta
         Object[] parameters = new Object[this.parameters.length];
 
         for (int i = 0; i < parameters.length; i++) {
-            Object bean = containerContext.getBean(this.parameters[i].getType());
+            Object bean = containerContext.getContainerObject(this.parameters[i].getType());
             if (bean == null) {
                 throw new IllegalArgumentException("Couldn't find bean " + this.parameters[i].getName() + "!");
             }

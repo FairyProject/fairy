@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.entities.User;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
 @Component
 public class DCCommandListener implements CommandListener {
@@ -84,7 +83,7 @@ public class DCCommandListener implements CommandListener {
         if (annotation != null) {
             bots = new ArrayList<>();
             for (Class<? extends DCBot> botClass : annotation.value()) {
-                final Object bot = this.containerContext.getBean(botClass);
+                final Object bot = this.containerContext.getContainerObject(botClass);
                 if (bot != null) {
                     bots.add((DCBot) bot);
                 } else {
