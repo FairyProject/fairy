@@ -8,6 +8,7 @@ import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -42,7 +43,7 @@ public class FairyTestingPlatform extends FairyPlatform {
     }
 
     @Override
-    public Set<Library> getDependencies() {
+    public Collection<Library> getDependencies() {
         return Collections.emptySet();
     }
 

@@ -20,7 +20,7 @@ public class ServiceMock {
 
     @ContainerConstruct
     public ServiceMock(ContainerContext containerContext) {
-        this.construct = System.currentTimeMillis();
+        this.construct = System.nanoTime();
         this.containerContext = containerContext;
     }
 

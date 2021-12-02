@@ -24,8 +24,6 @@
 
 package io.fairyproject;
 
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -35,6 +33,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 public class ExtendedClassLoader {
 
@@ -51,22 +50,29 @@ public class ExtendedClassLoader {
             throw new IllegalStateException("ClassLoader is not instance of URLClassLoader");
         }
 
-        this.addUrlMethod = Suppliers.memoize(() -> {
-            if (isJava9OrNewer()) {
-                LOGGER.info("It is safe to ignore any warning printed following this message " +
-                        "starting with 'WARNING: An illegal reflective access operation has occurred, Illegal reflective " +
-                        "access by " + getClass().getName() + "'. This is intended, and will not have any impact on the " +
-                        "operation of Imanity.");
-            }
+        this.addUrlMethod = new Supplier<Method>() {
+            private Method retVal;
+            @Override
+            public Method get() {
+                if (retVal == null) {
+                    if (isJava9OrNewer()) {
+                        LOGGER.info("It is safe to ignore any warning printed following this message " +
+                                "starting with 'WARNING: An illegal reflective access operation has occurred, Illegal reflective " +
+                                "access by " + getClass().getName() + "'. This is intended, and will not have any impact on the " +
+                                "operation of Imanity.");
+                    }
 
-            try {
-                Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
-                addUrlMethod.setAccessible(true);
-                return addUrlMethod;
-            } catch (NoSuchMethodException e) {
-                throw new RuntimeException(e);
+                    try {
+                        Method addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+                        addUrlMethod.setAccessible(true);
+                        retVal = addUrlMethod;
+                    } catch (NoSuchMethodException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                return retVal;
             }
-        });
+        };
     }
 
     public void addJarToClasspath(Path file) {

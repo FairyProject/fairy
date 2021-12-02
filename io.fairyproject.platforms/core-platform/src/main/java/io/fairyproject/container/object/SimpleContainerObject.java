@@ -24,6 +24,7 @@
 
 package io.fairyproject.container.object;
 
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
@@ -176,8 +177,16 @@ public class SimpleContainerObject implements ContainerObject {
         return this.plugin.isClosed();
     }
 
+    private boolean closed;
+
     @Override
     public void close() throws Exception {
-        this.plugin.close();
+        if (this.isClosed()) {
+            return;
+        }
+        this.closed = true;
+
+        this.onDisable();
+        ContainerContext.INSTANCE.unregisterObject(this);
     }
 }

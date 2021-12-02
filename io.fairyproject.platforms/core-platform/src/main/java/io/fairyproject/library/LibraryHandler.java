@@ -24,14 +24,13 @@
 
 package io.fairyproject.library;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.Fairy;
 import io.fairyproject.library.classloader.IsolatedClassLoader;
 import io.fairyproject.library.relocate.RelocateHandler;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.util.FairyThreadFactory;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.URLClassLoaderAccess;
 import lombok.Getter;
@@ -84,14 +83,15 @@ public class LibraryHandler {
 
     private final Map<Library, List<Path>> loaded = new ConcurrentHashMap<>();
     private final Map<Plugin, URLClassLoaderAccess> pluginClassLoaders = new ConcurrentHashMap<>();
-    private final Map<ImmutableSet<Library>, IsolatedClassLoader> loaders = new HashMap<>();
+    private final Map<Set<Library>, IsolatedClassLoader> loaders = new HashMap<>();
 
     private final Logger LOGGER = LogManager.getLogger(LibraryHandler.class);
-    private final ExecutorService EXECUTOR = Executors.newCachedThreadPool(new ThreadFactoryBuilder()
-        .setDaemon(true)
-        .setNameFormat("Library Downloader - %d")
-        .setUncaughtExceptionHandler((thread, throwable) -> Stacktrace.print(throwable))
-        .build());
+    private final ExecutorService EXECUTOR = Executors.newCachedThreadPool(FairyThreadFactory.builder()
+            .daemon(true)
+            .name("Library Downloader - <id>")
+            .uncaughtExceptionHandler((thread, throwable) -> Stacktrace.print(throwable))
+            .priority(Thread.NORM_PRIORITY - 1)
+            .build());
 
     public LibraryHandler() {
         File file = new File(Fairy.getPlatform().getDataFolder(), "libs");
@@ -154,7 +154,7 @@ public class LibraryHandler {
     }
 
     public IsolatedClassLoader obtainClassLoaderWith(Library... libraries) {
-        ImmutableSet<Library> set = ImmutableSet.copyOf(libraries);
+        Set<Library> set = new HashSet<>(Arrays.asList(libraries));
 
         for (Library dependency : libraries) {
             if (!this.loaded.containsKey(dependency)) {
@@ -279,7 +279,8 @@ public class LibraryHandler {
                 repositories = repository.newResolutionRepositories(session, Arrays.asList(
                         new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
                         new RemoteRepository.Builder("custom", "default", library.getRepository().getUrl()).build()
-                ));;
+                ));
+                ;
             }
             result = repository.resolveDependencies(session, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(library.getMavenDependency()), repositories), null));
         } catch (DependencyResolutionException ex) {

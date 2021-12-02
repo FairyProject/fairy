@@ -48,6 +48,7 @@ import io.fairyproject.task.ITaskScheduler;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -141,7 +142,7 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
     }
 
     @Override
-    public Set<Library> getDependencies() {
+    public Collection<Library> getDependencies() {
         Set<Library> libraries = new HashSet<>();
         if (SpigotUtil.SPIGOT_TYPE != SpigotUtil.SpigotType.IMANITY) {
             libraries.add(Library.FAST_UTIL);

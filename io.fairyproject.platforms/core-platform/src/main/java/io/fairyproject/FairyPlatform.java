@@ -24,26 +24,27 @@
 
 package io.fairyproject;
 
-import com.google.common.collect.ImmutableSet;
 import io.fairyproject.aspect.AsyncAspect;
+import io.fairyproject.cache.CacheableAspect;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.SimpleContainerObject;
-import io.fairyproject.cache.CacheableAspect;
 import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import io.fairyproject.task.ITaskScheduler;
 
 import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,23 +54,22 @@ public abstract class FairyPlatform {
     public static final Logger LOGGER = LogManager.getLogger(FairyPlatform.class);
 
     public static FairyPlatform INSTANCE;
+    private final AtomicBoolean loadedDependencies = new AtomicBoolean();
 
     private ITaskScheduler taskScheduler;
     private CompositeTerminable compositeTerminable;
-    private AtomicBoolean loadedDependencies;
 
     private LibraryHandler libraryHandler;
     private ContainerContext containerContext;
 
     public void load() {
-        this.taskScheduler = this.createTaskScheduler();
+        this.loadDependencies();
 
+        this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();
-        this.loadedDependencies = new AtomicBoolean();
     }
 
     public void enable() {
-        this.loadDependencies();
         this.loadBindable();
 
         this.containerContext = new ContainerContext();
@@ -102,19 +102,12 @@ public abstract class FairyPlatform {
         LOGGER.info("Loading Dependencies...");
         this.libraryHandler = new LibraryHandler();
 
-        Set<Library> main = ImmutableSet.of(
-                // SQL
-                Library.MARIADB_DRIVER,
-                Library.HIKARI,
-                Library.MYSQL_DRIVER,
-                Library.POSTGRESQL_DRIVER,
+        final Collection<Library> platformDependencies = this.getDependencies();
+        if (!platformDependencies.isEmpty()) {
+            this.libraryHandler.downloadLibraries(true, platformDependencies);
+        }
 
-                // MONGO
-                Library.MONGO_DB_SYNC,
-                Library.MONGO_DB_CORE,
-                Library.MONGOJACK,
-                Library.BSON,
-
+        Collection<Library> main = Arrays.asList(
                 // Caffeine
                 Library.CAFFEINE,
 
@@ -123,18 +116,6 @@ public abstract class FairyPlatform {
                 Library.SPRING_EL
         );
         this.libraryHandler.downloadLibraries(true, main);
-
-        Set<Library> isolated = ImmutableSet.of(
-                Library.H2_DRIVER
-        );
-        this.libraryHandler.downloadLibraries(false, isolated);
-
-        final Set<Library> platformDependencies = this.getDependencies();
-        if (!platformDependencies.isEmpty()) {
-            this.libraryHandler.downloadLibraries(true, platformDependencies);
-        }
-
-        this.libraryHandler.downloadLibraries(true, Library.REDISSON);
     }
 
     public <T extends AutoCloseable> T bind(T t) {
@@ -164,7 +145,7 @@ public abstract class FairyPlatform {
      *
      * @return Dependencies Set
      */
-    public abstract Set<Library> getDependencies();
+    public abstract Collection<Library> getDependencies();
 
     /**
      * on Post Services Initial

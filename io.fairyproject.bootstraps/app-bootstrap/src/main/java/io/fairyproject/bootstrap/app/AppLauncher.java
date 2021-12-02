@@ -40,6 +40,7 @@ public class AppLauncher {
         ApplicationHolder pluginHolder = new ApplicationHolder(jsonObject);
         pluginHolder.onLoad();
 
+        bootstrap.enable();
         pluginHolder.onEnable();
     }
 

@@ -34,6 +34,7 @@ import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,6 +49,12 @@ public class StorageService {
 
     @PreInitialize
     public void onPreInitialize() {
+        Fairy.getLibraryHandler().downloadLibraries(true, Arrays.asList(
+                Library.MARIADB_DRIVER,
+                Library.HIKARI,
+                Library.MYSQL_DRIVER,
+                Library.POSTGRESQL_DRIVER
+        ));
         Fairy.getLibraryHandler().downloadLibraries(true, Library.BYTE_BUDDY);
         ComponentRegistry.registerComponentHolder(new ComponentHolder() {
             @Override
