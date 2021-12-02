@@ -29,12 +29,11 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
-import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import org.bson.UuidRepresentation;
 import io.fairyproject.AbstractRepositoryProvider;
 import io.fairyproject.MongoRepository;
 import io.fairyproject.Repository;
-import io.fairyproject.util.Utility;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import org.bson.UuidRepresentation;
 import org.mongojack.JacksonMongoCollection;
 
 import java.io.Serializable;

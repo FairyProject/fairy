@@ -26,19 +26,18 @@ package io.fairyproject.bukkit.metadata;
 
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
-import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
+import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.PlayerMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.WorldMetadataRegistry;
 import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.metadata.*;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import io.fairyproject.mc.util.BlockPosition;
-import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
-import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;

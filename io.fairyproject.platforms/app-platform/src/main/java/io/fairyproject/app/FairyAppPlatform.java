@@ -2,13 +2,11 @@ package io.fairyproject.app;
 
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
-import io.fairyproject.task.async.AsyncTaskScheduler;
 import io.fairyproject.library.Library;
 import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.task.async.AsyncTaskScheduler;
 
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.File;
 import java.util.Set;
 
 public class FairyAppPlatform extends FairyPlatform {

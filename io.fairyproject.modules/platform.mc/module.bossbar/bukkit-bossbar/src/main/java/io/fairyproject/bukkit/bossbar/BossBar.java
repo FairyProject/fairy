@@ -27,16 +27,15 @@ package io.fairyproject.bukkit.bossbar;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.minecraft.DataWatcher;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import io.fairyproject.bukkit.reflection.wrapper.DataWatcherWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.PacketWrapper;
-import io.fairyproject.util.Utility;
+import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
-import io.fairyproject.bukkit.reflection.wrapper.DataWatcherWrapper;
-import io.fairyproject.mc.protocol.MCVersion;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

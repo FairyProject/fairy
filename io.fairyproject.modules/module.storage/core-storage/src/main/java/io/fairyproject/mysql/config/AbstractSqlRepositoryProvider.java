@@ -28,10 +28,9 @@ import io.fairyproject.AbstractRepositoryProvider;
 import io.fairyproject.Repository;
 import io.fairyproject.RepositoryType;
 import io.fairyproject.SQLRepository;
+import io.fairyproject.mysql.connection.AbstractConnectionFactory;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
-import io.fairyproject.mysql.connection.AbstractConnectionFactory;
-import io.fairyproject.util.Utility;
 
 import java.io.Serializable;
 import java.sql.SQLException;

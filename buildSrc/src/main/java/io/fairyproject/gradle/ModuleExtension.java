@@ -1,7 +1,6 @@
 package io.fairyproject.gradle;
 
 import lombok.Getter;
-import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Project;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;

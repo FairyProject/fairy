@@ -1,9 +1,12 @@
 package io.fairyproject.discord.command;
 
-import io.fairyproject.container.*;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandListener;
 import io.fairyproject.command.CommandService;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.Component;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PostInitialize;
 import io.fairyproject.discord.DCBot;
 import io.fairyproject.discord.event.DCBotInitializedEvent;
 import io.fairyproject.discord.event.DCMessageReceivedEvent;

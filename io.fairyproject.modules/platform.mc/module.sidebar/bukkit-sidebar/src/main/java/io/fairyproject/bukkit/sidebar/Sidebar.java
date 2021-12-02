@@ -24,12 +24,11 @@
 
 package io.fairyproject.bukkit.sidebar;
 
-import org.bukkit.ChatColor;
-import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.DisplaySlot;
 import io.fairyproject.Fairy;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
+import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 

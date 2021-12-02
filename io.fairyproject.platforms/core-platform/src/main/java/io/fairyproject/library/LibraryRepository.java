@@ -24,16 +24,7 @@
 
 package io.fairyproject.library;
 
-import com.google.common.io.ByteStreams;
 import lombok.Getter;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Base64;
 
 public class LibraryRepository {
 

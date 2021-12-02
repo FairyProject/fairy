@@ -26,7 +26,6 @@ package io.fairyproject.library;
 
 import com.google.gson.JsonObject;
 import io.fairyproject.library.relocate.Relocate;
-import lombok.Builder;
 import lombok.Getter;
 import org.eclipse.aether.artifact.Artifact;
 import org.eclipse.aether.artifact.DefaultArtifact;
