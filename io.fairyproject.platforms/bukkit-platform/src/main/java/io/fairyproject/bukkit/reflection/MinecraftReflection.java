@@ -24,30 +24,30 @@
 
 package io.fairyproject.bukkit.reflection;
 
+import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.bukkit.impl.annotation.ProviderTestImpl;
+import io.fairyproject.bukkit.impl.test.ImplementationFactory;
 import io.fairyproject.bukkit.reflection.annotation.ProtocolImpl;
 import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
+import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
+import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
+import io.fairyproject.bukkit.reflection.version.protocol.ProtocolCheck;
+import io.fairyproject.bukkit.reflection.wrapper.ChatComponentWrapper;
+import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
+import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
+import io.fairyproject.bukkit.reflection.wrapper.PacketWrapper;
+import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.reflect.ReflectLookup;
+import io.fairyproject.util.AccessUtil;
+import io.fairyproject.util.EquivalentConverter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.bukkit.impl.annotation.ProviderTestImpl;
-import io.fairyproject.bukkit.impl.test.ImplementationFactory;
-import io.fairyproject.bukkit.reflection.version.protocol.ProtocolCheck;
-import io.fairyproject.bukkit.reflection.wrapper.ChatComponentWrapper;
-import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
-import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
-import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
-import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
-import io.fairyproject.reflect.ReflectLookup;
-import io.fairyproject.util.AccessUtil;
-import io.fairyproject.bukkit.reflection.wrapper.PacketWrapper;
-import io.fairyproject.mc.protocol.MCVersion;
-import io.fairyproject.util.EquivalentConverter;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Constructor;
@@ -137,7 +137,7 @@ public class MinecraftReflection {
         }
 
         try {
-            NMS_ENTITY = NMS_CLASS_RESOLVER.resolve("Entity");
+            NMS_ENTITY = NMS_CLASS_RESOLVER.resolve("world.entity.Entity", "Entity");
             CRAFT_ENTITY = OBC_CLASS_RESOLVER.resolve("entity.CraftEntity");
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException(e);
@@ -168,18 +168,18 @@ public class MinecraftReflection {
         }
 
         try {
-            Class<?> entityHumanType = NMS_CLASS_RESOLVER.resolve("EntityHuman");
-            Class<?> entityPlayerType = NMS_CLASS_RESOLVER.resolve("EntityPlayer");
-            Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("PlayerConnection");
-            Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("NetworkManager");
+            Class<?> entityHumanType = NMS_CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman");
+            Class<?> entityPlayerType = NMS_CLASS_RESOLVER.resolve("server.level.EntityPlayer", "EntityPlayer");
+            Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("server.network.PlayerConnection", "PlayerConnection");
+            Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.NetworkManager", "NetworkManager");
 
             MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper(OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer")
                     .getDeclaredMethod("getHandle"));
             MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper(entityHumanType.getMethod("getProfile"));
             MinecraftReflection.FIELD_PLAYER_CONNECTION = new FieldResolver(entityPlayerType)
-                .resolveByFirstTypeDynamic(playerConnectionType);
+                    .resolveByFirstTypeDynamic(playerConnectionType);
 
-            Class<?> packetClass = NMS_CLASS_RESOLVER.resolve("Packet");
+            Class<?> packetClass = NMS_CLASS_RESOLVER.resolve("network.protocol.Packet", "Packet");
 
             MinecraftReflection.METHOD_SEND_PACKET = new MethodWrapper(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
 
@@ -199,7 +199,8 @@ public class MinecraftReflection {
         ReflectLookup reflectLookup = new ReflectLookup(Collections.singletonList(MinecraftReflection.class.getClassLoader()), Collections.singletonList("io.fairyproject"));
 
         Class<?> lastSuccess = null;
-        lookup: for (Class<?> type : reflectLookup.findAnnotatedClasses(ProtocolImpl.class)) {
+        lookup:
+        for (Class<?> type : reflectLookup.findAnnotatedClasses(ProtocolImpl.class)) {
             if (!ProtocolCheck.class.isAssignableFrom(type)) {
                 throw new IllegalArgumentException("The type " + type.getName() + " does not implement to ProtocolCheck!");
             }
@@ -236,6 +237,20 @@ public class MinecraftReflection {
         return MINECRAFT_VERSION.packageName() + ".";
     }
 
+    /**
+     * @return the current NMS version package
+     */
+    public static String getNMSPackage() {
+        return MINECRAFT_VERSION.getNmsPackage();
+    }
+
+    /**
+     * @return the current OBC package
+     */
+    public static String getOBCPackage() {
+        return MINECRAFT_VERSION.getObcPackage();
+    }
+
     public static <T> T getChannel(Player player) {
         Object entityPlayer = MinecraftReflection.PLAYER_GET_HANDLE.invoke(player);
         Object playerConnection = MinecraftReflection.FIELD_PLAYER_CONNECTION.get(entityPlayer);
@@ -262,7 +277,7 @@ public class MinecraftReflection {
 
     public static int setEntityId(int newIds) {
         if (ENTITY_ID_RESOLVER == null) {
-            ENTITY_ID_RESOLVER = new FieldResolver(NMS_CLASS_RESOLVER.resolveSilent("Entity"))
+            ENTITY_ID_RESOLVER = new FieldResolver(NMS_CLASS_RESOLVER.resolveSilent("world.entity.Entity", "Entity"))
                     .resolveWrapper("entityCount");
         }
 
@@ -308,7 +323,7 @@ public class MinecraftReflection {
     public static int getPing(Player player) {
         if (PING_FIELD == null) {
             try {
-                Class<?> type = NMS_CLASS_RESOLVER.resolve("EntityPlayer");
+                Class<?> type = NMS_CLASS_RESOLVER.resolve("server.level.EntityPlayer", "EntityPlayer");
                 PING_FIELD = new FieldResolver(type).resolveWrapper("ping");
             } catch (Throwable throwable) {
                 throw new RuntimeException(throwable);
@@ -356,18 +371,29 @@ public class MinecraftReflection {
 
         v1_16_R1(11601),
         v1_16_R2(11602),
+        v1_16_R3(11603),
 
-        /// (Potentially) Upcoming versions
         v1_17_R1(11701),
 
         v1_18_R1(11801),
 
-        v1_19_R1(11901);
+        /// (Potentially) Upcoming versions
+        v1_19_R1(11901),
+
+        v1_20_R1(12001);
 
         private final MinecraftVersion version;
 
+        Version(int version, String nmsFormat, String obcFormat, boolean nmsVersionPrefix) {
+            this.version = new MinecraftVersion(name(), version, nmsFormat, obcFormat, nmsVersionPrefix);
+        }
+
         Version(int version) {
-            this.version = new MinecraftVersion(name(), version);
+            if (version >= 11701) { // 1.17+ new class package name format
+                this.version = new MinecraftVersion(name(), version, "net.minecraft", "org.bukkit.craftbukkit.%s", false);
+            } else {
+                this.version = new MinecraftVersion(name(), version);
+            }
         }
 
         /**
@@ -430,20 +456,28 @@ public class MinecraftReflection {
             String name = Bukkit.getServer().getClass().getPackage().getName();
             String versionPackage = name.substring(name.lastIndexOf('.') + 1);
             for (Version version : values()) {
-                if (version.matchesPackageName(versionPackage)) { return version; }
+                if (version.matchesPackageName(versionPackage)) {
+                    return version;
+                }
             }
             System.err.println("[Imanity] Failed to find version enum for '" + name + "'/'" + versionPackage + "'");
 
             System.out.println("[Imanity] Generating dynamic constant...");
             Matcher matcher = NUMERIC_VERSION_PATTERN.matcher(versionPackage);
             while (matcher.find()) {
-                if (matcher.groupCount() < 3) { continue; }
+                if (matcher.groupCount() < 3) {
+                    continue;
+                }
 
                 String majorString = matcher.group(1);
                 String minorString = matcher.group(2);
-                if (minorString.length() == 1) { minorString = "0" + minorString; }
+                if (minorString.length() == 1) {
+                    minorString = "0" + minorString;
+                }
                 String patchString = matcher.group(3);
-                if (patchString.length() == 1) { patchString = "0" + patchString; }
+                if (patchString.length() == 1) {
+                    patchString = "0" + patchString;
+                }
 
                 String numVersionString = majorString + minorString + patchString;
                 int numVersion = Integer.parseInt(numVersionString);
@@ -455,11 +489,11 @@ public class MinecraftReflection {
                     Version[] oldValues = (Version[]) valuesField.get(null);
                     Version[] newValues = new Version[oldValues.length + 1];
                     System.arraycopy(oldValues, 0, newValues, 0, oldValues.length);
-                    Version dynamicVersion = (Version) newEnumInstance(Version.class, new Class[] {
+                    Version dynamicVersion = (Version) newEnumInstance(Version.class, new Class[]{
                             String.class,
                             int.class,
                             int.class
-                    }, new Object[] {
+                    }, new Object[]{
                             packge,
                             newValues.length - 1,
                             numVersion
@@ -498,10 +532,10 @@ public class MinecraftReflection {
 
     public static Class<? extends Enum> getEnumGamemodeClass() {
         try {
-            return NMS_CLASS_RESOLVER.resolve("EnumGamemode");
+            return NMS_CLASS_RESOLVER.resolve("world.level.EnumGamemode", "EnumGamemode");
         } catch (Throwable throwable) {
             try {
-                Class<? extends Enum> type = NMS_CLASS_RESOLVER.resolve("WorldSettings$EnumGamemode");
+                Class<? extends Enum> type = NMS_CLASS_RESOLVER.resolve("world.level.WorldSettings$EnumGamemode", "WorldSettings$EnumGamemode");
                 NMS_CLASS_RESOLVER.cache("EnumGamemode", type);
                 return type;
             } catch (Throwable throwable1) {
@@ -512,7 +546,7 @@ public class MinecraftReflection {
 
     public static Class<?> getIChatBaseComponentClass() {
         try {
-            return NMS_CLASS_RESOLVER.resolve("IChatBaseComponent");
+            return NMS_CLASS_RESOLVER.resolve("network.chat.IChatBaseComponent","IChatBaseComponent");
         } catch (ClassNotFoundException ex) {
             try {
                 return OBC_CLASS_RESOLVER
@@ -527,7 +561,7 @@ public class MinecraftReflection {
 
     public static Class<?> getChatModifierClass() {
         try {
-            return NMS_CLASS_RESOLVER.resolve("ChatModifier");
+            return NMS_CLASS_RESOLVER.resolve("network.chat.ChatModifier","ChatModifier");
         } catch (Throwable throwable) {
             try {
                 return NMS_CLASS_RESOLVER.resolveSubClass(getIChatBaseComponentClass(), "ChatModifier");
@@ -555,6 +589,7 @@ public class MinecraftReflection {
     private static EquivalentConverter.EnumConverter<ChatColor> CHAT_COLOR_CONVERTER;
 
     private static EquivalentConverter<ChatComponentWrapper> CHAT_COMPONENT_CONVERTER;
+
     public static Class<? extends Enum> getHealthDisplayTypeClass() {
         try {
             return NMS_CLASS_RESOLVER.resolve("EnumScoreboardHealthDisplay");
@@ -606,7 +641,7 @@ public class MinecraftReflection {
     }
 
     public static <T> EquivalentConverter<T> handle(final Function<T, Object> toHandle,
-                                                                                   final Function<Object, T> fromHandle) {
+                                                    final Function<Object, T> fromHandle) {
         return new EquivalentConverter<T>() {
             @Override
             public T getSpecific(Object generic) {

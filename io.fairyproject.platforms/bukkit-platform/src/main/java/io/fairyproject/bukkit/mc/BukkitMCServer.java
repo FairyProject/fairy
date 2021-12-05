@@ -23,7 +23,7 @@ public class BukkitMCServer implements MCServer {
         } catch (NoSuchMethodError ex) {
             try {
                 NMSClassResolver classResolver = new NMSClassResolver();
-                final Class<?> minecraftServer = classResolver.resolve("MinecraftServer");
+                final Class<?> minecraftServer = classResolver.resolve("server.MinecraftServer","MinecraftServer");
                 final Object server = minecraftServer.getMethod("getServer").invoke(null);
                 Method method = minecraftServer.getDeclaredMethod("a", UUID.class);
                 MethodHandle methodHandle = MethodHandles.lookup().unreflect(method);

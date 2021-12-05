@@ -78,7 +78,7 @@ public class BukkitNettyInjector implements NettyInjector {
     }
 
     public static Object getServerConnection() throws Exception {
-        Class<?> serverClazz = new NMSClassResolver().resolve("MinecraftServer");
+        Class<?> serverClazz = new NMSClassResolver().resolve("server.MinecraftServer","MinecraftServer");
         final MethodResolver methodResolver = new MethodResolver(serverClazz);
         Object server = methodResolver.resolve(serverClazz, 0).invoke(null);
         Object connection = null;

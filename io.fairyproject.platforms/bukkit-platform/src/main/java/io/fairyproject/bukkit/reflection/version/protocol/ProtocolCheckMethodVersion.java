@@ -49,9 +49,9 @@ public class ProtocolCheckMethodVersion implements ProtocolCheck {
     public ProtocolCheckMethodVersion() {
         NMSClassResolver nmsClassResolver = new NMSClassResolver();
         try {
-            Class<?> networkManager = nmsClassResolver.resolve("NetworkManager");
-            Class<?> playerConnection = nmsClassResolver.resolve("PlayerConnection");
-            Class<?> entityPlayer = nmsClassResolver.resolve("EntityPlayer");
+            Class<?> networkManager = nmsClassResolver.resolve("network.NetworkManager","NetworkManager");
+            Class<?> playerConnection = nmsClassResolver.resolve("server.network.PlayerConnection","PlayerConnection");
+            Class<?> entityPlayer = nmsClassResolver.resolve("server.level.EntityPlayer","EntityPlayer");
 
             FieldResolver fieldResolver = new FieldResolver(entityPlayer);
 
@@ -87,7 +87,7 @@ public class ProtocolCheckMethodVersion implements ProtocolCheck {
 
             try {
                 NMSClassResolver classResolver = new NMSClassResolver();
-                networkManager = classResolver.resolve("NetworkManager");
+                networkManager = classResolver.resolve("network.NetworkManager","NetworkManager");
             } catch (Throwable throwable) {
                 throw new IllegalArgumentException(throwable);
             }

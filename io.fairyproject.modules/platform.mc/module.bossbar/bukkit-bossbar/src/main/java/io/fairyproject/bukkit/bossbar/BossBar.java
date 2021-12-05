@@ -142,7 +142,7 @@ public class BossBar {
 
         ThrowingRunnable.unchecked(() -> {
             NMSClassResolver classResolver = new NMSClassResolver();
-            ConstructorResolver constructorResolver = new ConstructorResolver(classResolver.resolve("PacketPlayOutEntityMetadata"));
+            ConstructorResolver constructorResolver = new ConstructorResolver(classResolver.resolve("network.protocol.game.PacketPlayOutEntityMetadata","PacketPlayOutEntityMetadata"));
             Object packetMetadata = constructorResolver
                     .resolveWrapper(new Class[] {int.class, DataWatcher.TYPE, boolean.class})
                     .newInstanceSilent(entityId, dataWatcher, true);

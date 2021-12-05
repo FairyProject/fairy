@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.reflection.resolver.minecraft;
 
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import io.fairyproject.bukkit.reflection.resolver.ClassResolver;
 
 /**
@@ -35,9 +36,18 @@ public class NMSClassResolver extends ClassResolver {
 	@Override
 	public Class resolve(String... names) throws ClassNotFoundException {
 		for (int i = 0; i < names.length; i++) {
-			if (!names[i].startsWith("net.minecraft.server")) {
-				names[i] = "net.minecraft.server." + MinecraftReflection.getVersion() + names[i];
+			if(names[i].startsWith("net.minecraft"))
+				continue;
+
+			if(names[i].contains(".") && MinecraftVersion.VERSION.hasNMSVersionPrefix()) {
+				/* use class name only */
+				String[] path = names[i].split("\\.");
+				names[i] = MinecraftReflection.getNMSPackage() + "." + path[path.length - 1];
+				continue;
 			}
+
+			/* use the whole name */
+			names[i] = MinecraftReflection.getNMSPackage() + "." + names[i];
 		}
 		return super.resolve(names);
 	}
@@ -46,9 +56,10 @@ public class NMSClassResolver extends ClassResolver {
 	public Class resolveSubClass(Class<?> mainClass, String... names) throws ClassNotFoundException {
 		String prefix = mainClass.getName() + "$";
 
-		if (!prefix.startsWith("net.minecraft.server")) {
-			prefix = "net.minecraft.server." + MinecraftReflection.getVersion() + prefix;
-		}
+		if(prefix.contains(".") && MinecraftVersion.VERSION.hasNMSVersionPrefix()) {
+			String[] path = prefix.split("\\.");
+			prefix = MinecraftReflection.getNMSPackage() + "." + path[path.length - 1];
+		} else if(!prefix.startsWith("net.minecraft")) prefix = MinecraftReflection.getNMSPackage() + "." + prefix;
 
 		for (int i = 0; i < names.length; i++) {
 			names[i] = prefix + names[i];

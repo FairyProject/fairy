@@ -24,8 +24,8 @@
 
 package io.fairyproject.bukkit.reflection.minecraft;
 
-import org.bukkit.Bukkit;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import org.bukkit.Bukkit;
 
 import java.util.regex.Matcher;
 
@@ -45,14 +45,28 @@ public class MinecraftVersion {
 
     private final String packageName;
     private final int version;
+    private final String nmsFormat;
+    private final String obcFormat;
+    private final String nmsPackage;
+    private final String obcPackage;
+    private final boolean nmsVersionPrefix;
 
-    public MinecraftVersion(String packageName, int version) {
+    public MinecraftVersion(String packageName, int version, String nmsFormat, String obcFormat, boolean nmsVersionPrefix) {
         this.packageName = packageName;
         this.version = version;
+        this.nmsFormat = nmsFormat;
+        this.obcFormat = obcFormat;
+        this.nmsPackage = String.format(this.nmsFormat, packageName);
+        this.obcPackage = String.format(this.obcFormat, packageName);
+        this.nmsVersionPrefix = nmsVersionPrefix;
+    }
+
+    public MinecraftVersion(String packageName, int version) {
+        this(packageName, version, "net.minecraft.server.%s", "org.bukkit.craftbukkit.%s", true);
     }
 
     // Used by SantiyCheck
-    MinecraftVersion(MinecraftReflection.Version version) {
+    public MinecraftVersion(MinecraftReflection.Version version) {
         this(version.name(), version.version());
     }
 
@@ -64,10 +78,32 @@ public class MinecraftVersion {
     }
 
     /**
-     * @return the package name
+     * @deprecated use {@link #getNmsPackage()} / {@link #getObcPackage()} instead
      */
+    @Deprecated
     public String packageName() {
         return packageName;
+    }
+
+    /**
+     * @return the full package name for net.minecraft....
+     */
+    public String getNmsPackage() {
+        return nmsPackage;
+    }
+
+    /**
+     * @return the full package name for org.bukkit....
+     */
+    public String getObcPackage() {
+        return obcPackage;
+    }
+
+    /**
+     * @return if the nms package name has version prefix
+     */
+    public boolean hasNMSVersionPrefix() {
+        return nmsVersionPrefix;
     }
 
     /**
@@ -113,7 +149,16 @@ public class MinecraftVersion {
     }
 
     public static MinecraftVersion getVersion() {
-        String name = Bukkit.getServer().getClass().getPackage().getName();
+        Class serverClass;
+        try {
+            serverClass = Bukkit.getServer().getClass();
+        } catch (Exception e) {
+            System.err.println("[Imanity/MinecraftVersion] Failed to get bukkit server class: " + e.getMessage());
+            System.err.println("[Imanity/MinecraftVersion] Assuming we're in a test environment!");
+            return null;
+        }
+
+        String name = serverClass.getPackage().getName();
         String versionPackage = name.substring(name.lastIndexOf('.') + 1);
         for (MinecraftReflection.Version version : MinecraftReflection.Version.values()) {
             MinecraftVersion minecraftVersion = version.minecraft();
