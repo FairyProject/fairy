@@ -183,6 +183,19 @@ public class Library {
                     "jar-relocator",
                     "1.4",
                     "1RsiF3BiVztjlfTA+svDCuoDSGFuSpTZYHvUK8yBx8I="
+    ),
+    COMMONS_IO = new Library(
+            "commons-io",
+            "commons-io",
+            "2.7",
+            null
+    ),
+    ADVENTURE_API = new Library(
+            "net.kyori",
+            "adventure-platform-bukkit",
+            "4.0.1",
+            null,
+            new Relocate("net{}kyori", IMANITY_LIB_PACKAGE + "kyori")
     );
 
     private final String groupId;

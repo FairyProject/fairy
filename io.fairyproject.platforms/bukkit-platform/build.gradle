@@ -48,10 +48,6 @@ repositories {
     }
 }
 
-shadowJar {
-    relocate "net.kyori", relocate + "kyori"
-}
-
 processResources {
     filter ReplaceTokens, tokens: [
             "version": project.property("version")

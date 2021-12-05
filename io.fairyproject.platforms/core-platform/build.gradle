@@ -31,7 +31,6 @@ dependencies {
     compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
     compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
 
-    implementation "commons-io:commons-io:2.7"
     implementation "org.apache.maven:maven-resolver-provider:3.8.1"
     implementation "org.apache.maven.resolver:maven-resolver-connector-basic:1.7.0"
     implementation "org.apache.maven.resolver:maven-resolver-transport-http:1.7.0"

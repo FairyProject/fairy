@@ -126,6 +126,10 @@ public class LibraryHandler {
                 Library.ASM_TREE,
                 Library.ASM_COMMONS
         );
+        // APACHE
+        this.downloadLibraries(true,
+                Library.COMMONS_IO
+        );
 
         this.relocateHandler = new RelocateHandler(this);
         if (PluginManager.isInitialized()) {

@@ -65,7 +65,6 @@ public class RedisService {
     @SneakyThrows
     @PreInitialize
     public void preInit() {
-        Fairy.getLibraryHandler().downloadLibraries(true, Library.REDISSON);
         this.client = Redisson.create(Config.fromYAML(configFile).setCodec(new JsonJacksonCodec(JacksonService.INSTANCE.getMainMapper())));
     }
 
