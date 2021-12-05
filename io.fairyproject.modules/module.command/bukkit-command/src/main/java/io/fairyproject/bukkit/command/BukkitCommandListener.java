@@ -8,6 +8,7 @@ import io.fairyproject.command.CommandListener;
 import io.fairyproject.metadata.MetadataKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
+import org.bukkit.command.SimpleCommandMap;
 
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -24,7 +25,7 @@ public class BukkitCommandListener implements CommandListener {
     public void onPostInitialize() {
         this.commandMap = CommandUtil.getCommandMap();
         try {
-            this.knownMapField = this.commandMap.getClass().getDeclaredField("knownCommands");
+            this.knownMapField = SimpleCommandMap.class.getDeclaredField("knownCommands");
             this.knownMapField.setAccessible(true);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
