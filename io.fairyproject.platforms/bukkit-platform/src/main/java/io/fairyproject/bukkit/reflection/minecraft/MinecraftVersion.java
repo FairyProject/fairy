@@ -45,8 +45,6 @@ public class MinecraftVersion {
 
     private final String packageName;
     private final int version;
-    private final String nmsFormat;
-    private final String obcFormat;
     private final String nmsPackage;
     private final String obcPackage;
     private final boolean nmsVersionPrefix;
@@ -54,10 +52,8 @@ public class MinecraftVersion {
     public MinecraftVersion(String packageName, int version, String nmsFormat, String obcFormat, boolean nmsVersionPrefix) {
         this.packageName = packageName;
         this.version = version;
-        this.nmsFormat = nmsFormat;
-        this.obcFormat = obcFormat;
-        this.nmsPackage = String.format(this.nmsFormat, packageName);
-        this.obcPackage = String.format(this.obcFormat, packageName);
+        this.nmsPackage = String.format(nmsFormat, packageName);
+        this.obcPackage = String.format(obcFormat, packageName);
         this.nmsVersionPrefix = nmsVersionPrefix;
     }
 

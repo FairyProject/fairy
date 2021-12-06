@@ -27,7 +27,6 @@ package io.fairyproject.redis;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.*;
 import io.fairyproject.jackson.JacksonService;
-import io.fairyproject.library.Library;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import org.redisson.Redisson;
@@ -38,7 +37,6 @@ import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.Config;
 
 import java.io.File;
-import java.util.Arrays;
 
 @Service(name = "redis")
 @ServiceDependency(JacksonService.class)
