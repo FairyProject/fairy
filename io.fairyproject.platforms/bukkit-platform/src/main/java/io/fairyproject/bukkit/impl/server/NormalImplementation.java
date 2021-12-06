@@ -27,14 +27,21 @@ package io.fairyproject.bukkit.impl.server;
 import com.google.common.collect.HashMultimap;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.bukkit.impl.annotation.ServerImpl;
+import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementation;
 import io.fairyproject.bukkit.player.movement.impl.BukkitMovementImplementation;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
+import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
+import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.*;
 import io.fairyproject.bukkit.util.BlockPositionData;
 import io.fairyproject.bukkit.util.CoordXZ;
+import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.AccessUtil;
@@ -45,13 +52,6 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.material.MaterialData;
-import io.fairyproject.bukkit.impl.annotation.ServerImpl;
-import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
-import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
-import io.fairyproject.mc.util.BlockPosition;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -94,23 +94,23 @@ public class NormalImplementation implements ServerImplementation {
             final Field field = OBC_RESOLVER.resolve("inventory.CraftMetaSkull").getDeclaredField("profile");
             AccessUtil.setAccessible(field);
             GAME_PROFILE_FIELD = new FieldWrapper<>(field);
-            GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(CLASS_RESOLVER.resolve("EntityHuman").getMethod("getProfile"));
+            GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman").getMethod("getProfile"));
 
-            Class<?> minecraftServerType = CLASS_RESOLVER.resolve("MinecraftServer");
+            Class<?> minecraftServerType = CLASS_RESOLVER.resolve("server.MinecraftServer", "MinecraftServer");
             Object minecraftServer = minecraftServerType.getMethod("getServer").invoke(null);
             MINECRAFT_SERVER = new ObjectWrapper(minecraftServer);
 
             try {
-                Class<?> BLOCK_INFO_PACKET_TYPE = CLASS_RESOLVER.resolve("PacketPlayOutMultiBlockChange");
+                Class<?> BLOCK_INFO_PACKET_TYPE = CLASS_RESOLVER.resolve("network.protocol.game.PacketPlayOutMultiBlockChange", "PacketPlayOutMultiBlockChange");
                 Class<?> BLOCK_INFO_TYPE;
                 try {
-                    BLOCK_INFO_TYPE = CLASS_RESOLVER.resolve("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
+                    BLOCK_INFO_TYPE = CLASS_RESOLVER.resolve("network.protocol.game.PacketPlayOutMultiBlockChange$MultiBlockChangeInfo", "PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
                 } catch (ClassNotFoundException ex) {
                     BLOCK_INFO_TYPE = CLASS_RESOLVER.resolve("MultiBlockChangeInfo");
                 }
 
                 NormalImplementation.BLOCK_INFO_TYPE = BLOCK_INFO_TYPE;
-                Class<?> blockData = CLASS_RESOLVER.resolve("IBlockData");
+                Class<?> blockData = CLASS_RESOLVER.resolve("world.level.block.state.IBlockData", "IBlockData");
 
                 ConstructorResolver constructorResolver = new ConstructorResolver(BLOCK_INFO_TYPE);
                 BLOCK_INFO_CONSTRUCTOR = new ConstructorWrapper<>(constructorResolver.resolve(
@@ -125,7 +125,7 @@ public class NormalImplementation implements ServerImplementation {
 
             }
 
-            Class<?> blockType = CLASS_RESOLVER.resolve("Block");
+            Class<?> blockType = CLASS_RESOLVER.resolve("world.level.block.Block", "Block");
             try {
                 BLOCK_GET_BY_ID_METHOD = new MethodWrapper<>(blockType.getMethod("getById", int.class));
                 FROM_LEGACY_DATA_METHOD = new MethodWrapper<>(blockType.getMethod("fromLegacyData", int.class));
@@ -135,7 +135,7 @@ public class NormalImplementation implements ServerImplementation {
 
             }
 
-            Class<?> worldType = CLASS_RESOLVER.resolve("World");
+            Class<?> worldType = CLASS_RESOLVER.resolve("world.level.World", "World");
             MethodResolver methodResolver = new MethodResolver(worldType);
             GET_ENTITY_BY_ID_METHOD = methodResolver.resolveWrapper(
                     new ResolverQuery("getEntity", int.class),
@@ -146,19 +146,27 @@ public class NormalImplementation implements ServerImplementation {
             try {
                 BLOCK_SLIPPERINESS_FIELD = new FieldWrapper<>(blockType.getField("frictionFactor"));
             } catch (NoSuchFieldException ex) {
-                BLOCK_SLIPPERINESS_FIELD = new FieldWrapper<>(CLASS_RESOLVER.resolve("BlockBase").getDeclaredField("frictionFactor"));
+                try {
+                    BLOCK_SLIPPERINESS_FIELD = new FieldWrapper<>(blockType.getField("aL"));
+                } catch (NoSuchFieldException ex2) {
+                    try {
+                        BLOCK_SLIPPERINESS_FIELD = new FieldWrapper<>(CLASS_RESOLVER.resolve("world.level.block.state.BlockBase", "BlockBase").getDeclaredField("aL"));
+                    } catch (NoSuchFieldException ex3) {
+                        BLOCK_SLIPPERINESS_FIELD = new FieldWrapper<>(CLASS_RESOLVER.resolve("world.level.block.state.BlockBase", "BlockBase").getDeclaredField("frictionFactor"));
+                    }
+                }
             }
 
             NormalImplementation.BLOCK_SLIPPERINESS_FIELD = BLOCK_SLIPPERINESS_FIELD;
 
-            CHUNK_COORD_PAIR_TYPE = CLASS_RESOLVER.resolve("ChunkCoordIntPair");
+            CHUNK_COORD_PAIR_TYPE = CLASS_RESOLVER.resolve("world.level.ChunkCoordIntPair", "ChunkCoordIntPair");
             CHUNK_COORD_PAIR_CONSTRUCTOR = new ConstructorWrapper<>(CHUNK_COORD_PAIR_TYPE.getConstructor(int.class, int.class));
 
-            Class<?> entityHumanType = CLASS_RESOLVER.resolve("EntityHuman");
-            Class<?> spawnNamedEntityType = CLASS_RESOLVER.resolve("PacketPlayOutNamedEntitySpawn");
+            Class<?> entityHumanType = CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman");
+            Class<?> spawnNamedEntityType = CLASS_RESOLVER.resolve("network.protocol.game.PacketPlayOutNamedEntitySpawn", "PacketPlayOutNamedEntitySpawn");
             SPAWN_NAMED_ENTITY_CONSTRUCTOR = new ConstructorWrapper<>(spawnNamedEntityType.getConstructor(entityHumanType));
 
-            Class<?> destoryEntityType = CLASS_RESOLVER.resolve("PacketPlayOutEntityDestroy");
+            Class<?> destoryEntityType = CLASS_RESOLVER.resolve("network.protocol.game.PacketPlayOutEntityDestroy", "PacketPlayOutEntityDestroy");
             DESTROY_ENTITY_CONSTRUCTOR = new ConstructorWrapper<>(destoryEntityType.getConstructor(int[].class));
 
         } catch (Throwable throwable) {
@@ -328,12 +336,12 @@ public class NormalImplementation implements ServerImplementation {
             NMSClassResolver CLASS_RESOLVER = new NMSClassResolver();
 
             try {
-                CHAT_BASE_COMPONENT_TYPE = CLASS_RESOLVER.resolve("IChatBaseComponent");
+                CHAT_BASE_COMPONENT_TYPE = CLASS_RESOLVER.resolve("network.chat.IChatBaseComponent", "IChatBaseComponent");
 
-                Class<?> CHAT_SERIALIZER_TYPE = CLASS_RESOLVER.resolve("IChatBaseComponent$ChatSerializer");
+                Class<?> CHAT_SERIALIZER_TYPE = CLASS_RESOLVER.resolve("network.chat.IChatBaseComponent$ChatSerializer", "IChatBaseComponent$ChatSerializer");
 
                 CHAT_SERIALIZER_A = new MethodWrapper<>(CHAT_SERIALIZER_TYPE.getMethod("a", String.class));
-                Class<?> PACKET_PLAY_OUT_CHAT_TYPE = CLASS_RESOLVER.resolve("PacketPlayOutChat");
+                Class<?> PACKET_PLAY_OUT_CHAT_TYPE = CLASS_RESOLVER.resolve("network.protocol.game.PacketPlayOutChat", "PacketPlayOutChat");
 
                 PACKET_CHAT_CONSTRUCTOR = new ConstructorWrapper<>(PACKET_PLAY_OUT_CHAT_TYPE.getConstructor(CHAT_BASE_COMPONENT_TYPE, byte.class));
 

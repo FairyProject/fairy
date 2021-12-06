@@ -29,13 +29,13 @@ import com.google.gson.Gson;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.minecraft.ComponentParser;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
-import lombok.Getter;
-import org.bukkit.ChatColor;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
+import lombok.Getter;
+import org.bukkit.ChatColor;
 
 import java.io.StringReader;
 import java.util.Iterator;
@@ -43,18 +43,16 @@ import java.util.Iterator;
 /**
  * Represents a chat component added in Minecraft 1.7.2
  *
- * @credit ProtoclLib
  * @author Kristian
- *
+ * @credit ProtoclLib
  * @modified LeeGod
- *
  */
 public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
 
     private static final NMSClassResolver NMS_CLASS_RESOLVER = new NMSClassResolver();
     private static final OBCClassResolver OBC_CLASS_RESOLVER = new OBCClassResolver();
 
-    private static final Class<?> SERIALIZER = NMS_CLASS_RESOLVER.resolveSilent("ChatSerializer", "IChatBaseComponent$ChatSerializer");
+    private static final Class<?> SERIALIZER = NMS_CLASS_RESOLVER.resolveSilent("util.ChatDeserializer", "ChatSerializer", "IChatBaseComponent$ChatSerializer");
 
     public static Class<?> GENERIC_TYPE;
 
@@ -92,7 +90,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
         Class<?> chatDeserializerClass;
 
         try {
-            chatDeserializerClass = NMS_CLASS_RESOLVER.resolve("ChatDeserializer");
+            chatDeserializerClass = NMS_CLASS_RESOLVER.resolve("util.ChatDeserializer", "ChatDeserializer");
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException(ex);
         }
@@ -124,13 +122,13 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
         Class<?> chatComponentText;
 
         try {
-            chatComponentText = NMS_CLASS_RESOLVER.resolve("ChatComponentText");
+            chatComponentText = NMS_CLASS_RESOLVER.resolve("network.chat.ChatComponentText", "ChatComponentText");
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
 
         // And the component text constructor
-        CONSTRUCT_TEXT_COMPONENT = new ConstructorResolver(chatComponentText).resolveWrapper(new Class[] {String.class});
+        CONSTRUCT_TEXT_COMPONENT = new ConstructorResolver(chatComponentText).resolveWrapper(new Class[]{String.class});
     }
 
     private static Object deserialize(String json) {
@@ -160,6 +158,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
 
     /**
      * Construct a new chat component wrapper around the given NMS object.
+     *
      * @param handle - the NMS object.
      * @return The wrapper.
      */
@@ -169,6 +168,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
 
     /**
      * Construct a new chat component wrapper from the given JSON string.
+     *
      * @param json - the json.
      * @return The chat component wrapper.
      */
@@ -178,6 +178,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
 
     /**
      * Construct a wrapper around a new text chat component with the given text.
+     *
      * @param text - the text of the text chat component.
      * @return The wrapper around the new chat component.
      */
@@ -190,6 +191,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
      * Construct an array of chat components from a standard Minecraft message.
      * <p>
      * This uses {@link ChatColor} for formating.
+     *
      * @param message - the message.
      * @return The equivalent chat components.
      */
@@ -207,6 +209,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
      * Retrieve a copy of this component as a JSON string.
      * <p>
      * Note that any modifications to this JSON string will not update the current component.
+     *
      * @return The JSON representation of this object.
      */
     public String getJson() {
@@ -218,6 +221,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
 
     /**
      * Set the content of this component using a JSON object.
+     *
      * @param obj - the JSON that represents the new component.
      */
     public void setJson(String obj) {
@@ -282,6 +286,7 @@ public class ChatComponentWrapper extends WrapperAbstract implements Cloneable {
 
     /**
      * Retrieve a deep copy of the current chat component.
+     *
      * @return A copy of the current component.
      */
     @Override

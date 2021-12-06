@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service(name = "storage")
-@ServiceDependency({StorageConfiguration.class, SerializerFactory.class, JacksonService.class})
+@ServiceDependency({GlobalStorageConfiguration.class, SerializerFactory.class, JacksonService.class})
 public class StorageService {
 
     @Autowired
@@ -53,7 +53,8 @@ public class StorageService {
                 Library.MARIADB_DRIVER,
                 Library.HIKARI,
                 Library.MYSQL_DRIVER,
-                Library.POSTGRESQL_DRIVER
+                Library.POSTGRESQL_DRIVER,
+                Library.H2_DRIVER
         ));
         Fairy.getLibraryHandler().downloadLibraries(true, Library.BYTE_BUDDY);
         ComponentRegistry.registerComponentHolder(new ComponentHolder() {

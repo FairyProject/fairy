@@ -81,7 +81,7 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
             if (PROTOCOL_ID_FIELD == null) {
                 try {
                     final NMSClassResolver classResolver = new NMSClassResolver();
-                    PROTOCOL_ID_FIELD = new FieldResolver(classResolver.resolve("EnumProtocol")).resolveByFirstTypeDynamic(int.class);
+                    PROTOCOL_ID_FIELD = new FieldResolver(classResolver.resolve("network.EnumProtocol","EnumProtocol")).resolveByFirstTypeDynamic(int.class);
                     if (!PROTOCOL_ID_FIELD.exists()) {
                         throw new IllegalStateException("Field does not exists!");
                     }

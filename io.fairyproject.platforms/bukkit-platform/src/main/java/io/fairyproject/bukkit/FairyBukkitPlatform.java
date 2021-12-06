@@ -147,6 +147,7 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
         if (SpigotUtil.SPIGOT_TYPE != SpigotUtil.SpigotType.IMANITY) {
             libraries.add(Library.FAST_UTIL);
         }
+        libraries.add(Library.ADVENTURE_API);
         return libraries;
     }
 }

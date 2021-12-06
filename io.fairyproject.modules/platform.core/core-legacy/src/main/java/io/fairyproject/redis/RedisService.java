@@ -66,6 +66,7 @@ public class RedisService {
         this.client = Redisson.create(Config.fromYAML(configFile).setCodec(new JsonJacksonCodec(JacksonService.INSTANCE.getMainMapper())));
     }
 
+    @SneakyThrows
     @PostInitialize
     public void init() {
     }

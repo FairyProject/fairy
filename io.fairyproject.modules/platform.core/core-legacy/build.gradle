@@ -32,4 +32,5 @@ dependencies {
 
 module {
     depend("module.storage:core-storage")
+    library("org.redisson:redisson-all:3.13.6")
 }
