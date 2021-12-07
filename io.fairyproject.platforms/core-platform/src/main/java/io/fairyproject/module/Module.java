@@ -67,6 +67,15 @@ public class Module implements Terminable, TerminableConsumer {
         return packages;
     }
 
+    public Collection<String> getExcludedPackages(ModuleService moduleService) {
+        for (Map.Entry<String, String> entry : this.exclusives.entries()) {
+            if (moduleService.getByName(entry.getKey()) == null) {
+                this.excluded.put(entry.getKey(), entry.getValue());
+            }
+        }
+        return this.excluded.values();
+    }
+
     public int addRef() {
         return this.refCount.incrementAndGet();
     }

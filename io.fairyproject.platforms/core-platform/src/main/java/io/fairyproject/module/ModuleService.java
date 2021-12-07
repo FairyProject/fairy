@@ -4,12 +4,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.fairyproject.Fairy;
+import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.*;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryRepository;
 import io.fairyproject.module.relocator.JarRelocator;
 import io.fairyproject.module.relocator.Relocation;
+import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginListenerAdapter;
+import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.FairyVersion;
 import io.fairyproject.util.PreProcessBatch;
 import io.fairyproject.util.Stacktrace;
@@ -17,11 +22,6 @@ import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import io.fairyproject.Fairy;
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginListenerAdapter;
-import io.fairyproject.plugin.PluginManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -33,9 +33,10 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
-@Service(name = "module")
+@Service
 public class ModuleService {
 
     @Autowired
@@ -50,12 +51,31 @@ public class ModuleService {
         PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
             @Override
             public void onPluginInitial(Plugin plugin) {
+                System.out.println(plugin.getName() + " onPluginInitial");
                 PENDING.runOrQueue(plugin.getName(), () -> {
                     final ModuleService moduleService = Containers.get(ModuleService.class);
+
+                    // We will get all the paths first for relocation.
+                    Map<String, Path> paths = new HashMap<>();
+                    plugin.getDescription().getModules().forEach(pair -> {
+                        String name = pair.getKey();
+                        String version = pair.getValue();
+                        Path path = null;
+                        try {
+                            path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + "-" + FairyVersion.parse(version).toString() + ".jar").toPath(), name, version);
+                        } catch (Throwable throwable) {
+                            LOGGER.error("An error occurs while download module " + name, throwable);
+                        }
+                        paths.put(name, path);
+                    });
+                    // Relocation entries from all included modules
+                    final Path[] relocationEntries = paths.values().toArray(new Path[0]);
+
+                    // Then push all paths
                     plugin.getDescription().getModules().forEach(pair -> {
                         final String name = pair.getKey();
-                        final String version = pair.getValue();
-                        final Module module = moduleService.registerByName(name, FairyVersion.parse(version), plugin);
+                        final Path path = paths.get(name);
+                        final Module module = moduleService.registerByPath(path, plugin, relocationEntries);
 
                         if (module == null) {
                             plugin.closeAndReportException();
@@ -98,6 +118,7 @@ public class ModuleService {
 
     @PreInitialize
     public void onPreInitialize() {
+        System.out.println("ModuleService onPreInitialize");
         ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
                 .type(ModuleController.class)
                 .onEnable(obj -> {
@@ -141,12 +162,12 @@ public class ModuleService {
     }
 
     @Nullable
-    public Module registerByPath(Path path, Plugin plugin) {
-        return this.registerByPath(path, false, plugin);
+    public Module registerByPath(Path path, Plugin plugin, Path... relocationEntries) {
+        return this.registerByPath(path, false, plugin, relocationEntries);
     }
 
     @Nullable
-    public Module registerByPath(Path path, boolean canAbstract, Plugin plugin) {
+    public Module registerByPath(Path path, boolean canAbstract, Plugin plugin, Path... relocationEntries) {
         Module module = null;
         try {
             final JarFile jarFile = new JarFile(path.toFile());
@@ -196,10 +217,15 @@ public class ModuleService {
             if (!Files.exists(finalPath)) {
                 final Relocation relocation = new Relocation("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
                 relocation.setOnlyRelocateShaded(true);
-                new JarRelocator(path.toFile(), finalPath.toFile(), Collections.singletonList(relocation), dependedModules.stream()
+
+                final Set<File> entries = dependedModules.stream()
                         .map(Module::getNotShadedPath)
                         .map(Path::toFile)
-                        .collect(Collectors.toSet())).run();
+                        .collect(Collectors.toCollection(HashSet::new));
+                // Also included provided entries
+                entries.addAll(Stream.of(relocationEntries).map(Path::toFile).collect(Collectors.toList()));
+
+                new JarRelocator(path.toFile(), finalPath.toFile(), Collections.singletonList(relocation), entries).run();
             }
             path = finalPath;
             Fairy.getPlatform().getClassloader().addJarToClasspath(path);
@@ -209,7 +235,10 @@ public class ModuleService {
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             for (Map.Entry<String, JsonElement> entry : jsonObject.getAsJsonObject("exclusive").entrySet()) {
-                module.getExclusives().put(entry.getValue().getAsString(), entry.getKey());
+                String exclude = entry.getKey();
+                exclude = exclude.replace("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
+
+                module.getExclusives().put(entry.getValue().getAsString(), exclude);
             }
 
             for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
@@ -225,12 +254,15 @@ public class ModuleService {
             this.moduleByName.put(name, module);
             this.onModuleLoad(module);
 
+            final Collection<String> excludedPackages = module.getExcludedPackages(this);
+
             // Scan classes
             final List<ContainerObject> details = BEAN_CONTEXT.scanClasses()
                     .name(plugin.getName() + "-" + module.getName())
                     .prefix(plugin.getName() + "-")
-                    .mainClassloader(classLoader)
-                    .classLoader(this.getClass().getClassLoader())
+                    .classLoader(classLoader, this.getClass().getClassLoader())
+                    .excludePackage(excludedPackages)
+                    .url(path.toUri().toURL())
                     .classPath(module.getClassPath())
                     .scan();
             details.forEach(bean -> bean.bindWith(plugin));

@@ -2,14 +2,9 @@
 import io.fairyproject.gradle.ModulePlugin
 
 // Main script
-apply plugin: "java-library"
 apply plugin: "io.freefair.aspectj.post-compile-weaving"
-apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: "maven-publish"
 apply plugin: ModulePlugin
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 configurations {
     compileOnly {

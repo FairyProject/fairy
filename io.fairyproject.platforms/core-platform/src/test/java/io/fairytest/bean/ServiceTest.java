@@ -26,7 +26,8 @@ public class ServiceTest extends TestingBase {
         ThrowingRunnable.unchecked(() -> {
             final List<ContainerObject> beanDetails = containerContext.scanClasses()
                     .name("test")
-                    .mainClassloader(ServiceTest.class.getClassLoader())
+                    .classLoader(ServiceTest.class.getClassLoader())
+                    .url(ServiceTest.class.getProtectionDomain().getCodeSource().getLocation())
                     .classPath("io.fairytest.bean.service")
                     .scan();
             assertEquals(1, beanDetails.size());
@@ -87,7 +88,8 @@ public class ServiceTest extends TestingBase {
         ThrowingRunnable.unchecked(() -> {
             final List<ContainerObject> beanDetails = containerContext.scanClasses()
                     .name("test")
-                    .mainClassloader(ServiceTest.class.getClassLoader())
+                    .classLoader(ServiceTest.class.getClassLoader())
+                    .url(ServiceTest.class.getProtectionDomain().getCodeSource().getLocation())
                     .classPath("io.fairytest.bean.annotated")
                     .scan();
             assertEquals(1, beanDetails.size());

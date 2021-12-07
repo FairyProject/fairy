@@ -1,7 +1,5 @@
 //file:noinspection GroovyAssignabilityCheck
-apply plugin: "java-library"
 apply plugin: "maven-publish"
-apply plugin: "com.github.johnrengelman.shadow"
 
 version = project(":").version
 

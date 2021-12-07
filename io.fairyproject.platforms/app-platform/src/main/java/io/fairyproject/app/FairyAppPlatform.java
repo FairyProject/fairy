@@ -3,6 +3,7 @@ package io.fairyproject.app;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.library.Library;
+import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
@@ -43,6 +44,7 @@ public class FairyAppPlatform extends FairyPlatform {
         super.load();
 
         PluginManager.initialize(new AppPluginHandler());
+        ModuleService.init();
     }
 
     public void setMainApplication(Application mainApplication) {
@@ -62,12 +64,12 @@ public class FairyAppPlatform extends FairyPlatform {
                     .filter(it -> it.getName().endsWith(".class"))
                     .forEach(it -> {
                         try {
-                            this.appClasses.add(Class.forName(it.getName().replace("/", ".").substring(0, it.getName().length() - 6), true, mainApplication.getClassLoader()));
+                            this.appClasses.add(Class.forName(it.getName().replace("/", ".").substring(0, it.getName().length() - 6), false, mainApplication.getClassLoader()));
                         } catch (Throwable ignored) {
 
                         }
                     });
-        });
+        }).run();
     }
 
     public boolean isAppClass(Class<?> type) {

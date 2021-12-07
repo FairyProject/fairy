@@ -110,7 +110,8 @@ public class ContainerContext {
         try {
             this.scanClasses()
                     .name("framework")
-                    .mainClassloader(ContainerContext.class.getClassLoader())
+                    .url(this.getClass().getProtectionDomain().getCodeSource().getLocation())
+                    .classLoader(ContainerContext.class.getClassLoader())
                     .classPath("io.fairyproject")
                     .scan();
         } catch (Throwable throwable) {
@@ -153,7 +154,8 @@ public class ContainerContext {
                         classPaths.add(plugin.getDescription().getShadedPackage());
                         scanClasses()
                                 .name(plugin.getName())
-                                .mainClassloader(plugin.getPluginClassLoader())
+                                .classLoader(plugin.getPluginClassLoader())
+                                .url(plugin.getClass().getProtectionDomain().getCodeSource().getLocation())
                                 .classPath(classPaths)
                                 .included(containerObject)
                                 .scan();
@@ -401,9 +403,8 @@ public class ContainerContext {
         private String scanName;
         private final List<String> classPaths = new ArrayList<>();
         private final List<String> excludedPackages = new ArrayList<>();
-
-        private ClassLoader mainClassLoader;
-        private final List<ClassLoader> otherClassLoaders = new ArrayList<>();
+        private final List<URL> urls = new ArrayList<>();
+        private final List<ClassLoader> classLoaders = new ArrayList<>();
 
         private final List<ContainerObject> included = new ArrayList<>();
 
@@ -427,6 +428,11 @@ public class ContainerContext {
             return this;
         }
 
+        public ClassPathScanner url(URL... urls) {
+            this.urls.addAll(Arrays.asList(urls));
+            return this;
+        }
+
         public ClassPathScanner excludePackage(String... classPath) {
             this.excludedPackages.addAll(Arrays.asList(classPath));
             return this;
@@ -437,18 +443,13 @@ public class ContainerContext {
             return this;
         }
 
-        public ClassPathScanner mainClassloader(ClassLoader classLoader) {
-            this.mainClassLoader = classLoader;
-            return this;
-        }
-
         public ClassPathScanner classLoader(ClassLoader... classLoaders) {
-            this.otherClassLoaders.addAll(Arrays.asList(classLoaders));
+            this.classLoaders.addAll(Arrays.asList(classLoaders));
             return this;
         }
 
         public ClassPathScanner classLoader(Collection<ClassLoader> classLoaders) {
-            this.otherClassLoaders.addAll(classLoaders);
+            this.classLoaders.addAll(classLoaders);
             return this;
         }
 
@@ -463,7 +464,7 @@ public class ContainerContext {
         }
 
         public List<ContainerObject> scan() throws Exception {
-            log("Start scanning containers for %s with packages [%s]...", scanName, String.join(" ", classPaths));
+            log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
 
             // Build the instance for Reflection Lookup
             ReflectLookup reflectLookup;
@@ -471,10 +472,8 @@ public class ContainerContext {
                 final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
 
                 FilterBuilder filterBuilder = new FilterBuilder();
-                List<URL> urls = new ArrayList<>();
                 for (String classPath : classPaths) {
                     // Only search package in the main class loader
-                    urls.addAll(ClasspathHelper.forPackage(classPath, mainClassLoader));
                     filterBuilder.includePackage(classPath);
                 }
 
@@ -483,8 +482,7 @@ public class ContainerContext {
                 }
                 configurationBuilder.setUrls(urls);
 
-                final ArrayList<ClassLoader> classLoaders = new ArrayList<>(otherClassLoaders);
-                classLoaders.add(mainClassLoader);
+                final ArrayList<ClassLoader> classLoaders = new ArrayList<>(this.classLoaders);
                 configurationBuilder.addClassLoaders(classLoaders);
 
                 configurationBuilder.filterInputsBy(filterBuilder);

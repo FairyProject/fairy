@@ -26,13 +26,13 @@ public class ExclusiveController implements ModuleController {
         for (Module m : moduleService.all()) {
             final Collection<String> excludedPackages = m.releaseExclusive(module);
             if (excludedPackages != null && !excludedPackages.isEmpty()) {
-                ThrowingRunnable.unchecked(() -> {
+                ThrowingRunnable.sneaky(() -> {
                     final List<ContainerObject> beanDetails = this.containerContext.scanClasses()
                             .name(m.getName() + " - excluded load")
                             .prefix(m.getPlugin().getName() + "-")
-                            .mainClassloader(m.getClassLoader())
-                            .classLoader(this.getClass().getClassLoader())
+                            .classLoader(m.getClassLoader(), this.getClass().getClassLoader())
                             .classPath(excludedPackages)
+                            .url(m.getShadedPath().toUri().toURL())
                             .scan();
                     beanDetails.forEach(details -> details.bindWith(m.getPlugin()));
                 }).run();
