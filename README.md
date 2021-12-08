@@ -1,6 +1,6 @@
 <p align="center">
   <img width="20%" height="20%" src="https://i.imgur.com/CIxPcyV.png">
-  <br>temporary logo thanks to terminalsin xd<br>
+  <br> <br>
   <a href="https://www.codacy.com/gh/FairyProject/fairy/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=FairyProject/fairy&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/521e578f30d64d7d9e4d4eb30057c086"/></a>
   <a><img alt="Issues" src="https://img.shields.io/github/issues/FairyProject/fairy"></a>
   <a><img alt="Forks" src="https://img.shields.io/github/forks/FairyProject/fairy"></a>
@@ -10,100 +10,43 @@
 </p>
 
 # Fairy Framework
-Fairy is a compat &amp; open-sourced Framework made with love <3. Fairy is heavily inspired and uses components from Spring Boot. 
-It's objective is to bring the beauty of dependency injection and CRUD based design patterns to various games, including Minecraft
-via the Bukkit api. This project is a universal framework. 
-
-Some notable features include the compatibility with most spring boot components, kindly ported over by the FairProject team. If you
-would like to share a Fairy framework component, contact us via the issues tab!
+Fairy is a compat &amp; open-sourced Java Framework made with ♥. Fairy is heavily inspired from Spring Boot. 
+Its objective is to bring the beauty of dependency injection and CRUD based design patterns to various platforms, including Minecraft server with platforms like Bukkit api, Bungee api etc. This project is a universal framework.
 
 Main Maintainer: Imanity Software
 
-## Maven distribution
-Get started by importing Fairy via the immanity repository!
+### Advantage using Fairy Framework
+Fairy as a universal framework, it mainly built for minecraft server plugins in mind. It's easily the best framework for minecraft server open sourced due to it flexibility, dependency injection pattern, and powerful backing system. 
 
-```xml
-<repository>
-  <id>imanity-libraries</id>
-  <url>https://maven.imanity.dev/repository/imanity-libraries/</url>
-</repository>
-```
+With the flexibility Fairy had, we also have various platform supported that aren't minecraft related. [Application platform](https://github.com/FairyProject/fairy/tree/v5/io.fairyproject.platforms/app-platform) for independent platform, [Discord module]() built on top of JDA for better experience etc.
 
-```xml
-<dependency>
-  <groupId>org.fairy</groupId>
-  <artifactId>bukkit-all</artifactId>
-  <version>VERSION</version>
-  <scope>provided</scope>
-</dependency>
-```
+## Project State
+We are currently staying at **`0.5.1`**, the reason why we still have 0 as the major version prefix is because we thought there is missing pieces before we can start with version 1.
+Does not mean it's unusable.
 
-## Gradle distribution
-You can also importing with Gradle distribution!
+## Objective
+The objective of the project will be a fully `cross-platform` capable framework for minecraft. 
+Where you can write code once and use on every platform with any version.
+To achieve this it's nearly impossible for a single person or a small team, that's why this is open-sourced, if you can contribute the project we would be very appreciated!
 
-```groovy
-    maven {
-        url 'https://maven.imanity.dev/repository/imanity-libraries/'
-    }
-```
+## Getting Started
+If you are interested in creating a project using Fairy framework, please start from [Preparing Environment](https://github.com/FairyProject/fairy/wiki/Preparing-Environment) and [Setup Project](https://github.com/FairyProject/fairy/wiki/Setup-Project) wiki resource.
+Or you can jump straight over to [project examples](). 
 
-```groovy
-    compileOnly 'org.fairy:bukkit-all:VERSION'
-```
+## Licensing
+[MIT license](https://github.com/FairyProject/fairy/blob/v5/LICENSE) for the **♥**
 
+## Contributing
+Contributions can be made via pull requests to this repository.
+If you are not sure what to contribute with, you can either check the 
+[Project board](https://github.com/FairyProject/fairy/projects), 
+[Open issues](https://github.com/FairyProject/fairy/issues), 
+or ask us directly in [Discord](https://discord.gg/GBZKR3n).
 
-## Quick initialization tutorial
+If you have any issues before/during contribution feel free to come in our [Discord](https://discord.gg/GBZKR3n) to ask questions.
 
-Ever wanted to increase your productivity whilst writing [Bukkit](https://bukkit.org) plugins? Here's an example! 
+For every contributor, we will be rewarding a discord role in our discord:
 
-```java
-@Plugin(
-        name = "test",
-        version = "1.0.0",
-        description = "test",
-        load = PluginLoadOrder.POSTWORLD,
-        authors = {"Author"},
-        type = PluginType.BUKKIT
-)
-@ClasspathScan("me.test.testplugin") // Replace it with your package name
-public class Test extends BukkitPlugin {
+![image](https://user-images.githubusercontent.com/36093806/145171823-ffa0179c-1566-4037-b8a5-427b8b068396.png)
 
-    @Override
-    public void onPreEnable() {
-        // Before Fairy initalize this plugin
-    }
-
-    @Override
-    public void onPluginEnable() {
-        // After Fairy initalize to this plugin
-    }
-
-    @Override
-    public void onPluginDisable() {
-        // Plugin shutdown, and Before Fairy shut down
-    }
-
-    @Override
-    public void onFrameworkFullyDisable() {
-        // After Fairy fully shut down
-    }
-
-}
-```
-
-### Simple command example
-
-Here's an example of what a simply command looks like!
-
-```java
-@Component
-public class TestCommand implements CommandHolder {
-
-    @Command(names = {"test"}, permissionNode = "test.test")
-    public void handle(final BukkitCommandEvent event) {
-        event.getSender().sendMessage("Test command");
-    }
-}
-```
-
-Simple as that! 
+> we are planning to expand the reward for contributing, but this is it for now.
