@@ -38,7 +38,6 @@ Or you can jump straight over to [project examples]().
 
 ## Contributing
 Contributions can be made via pull requests to this repository.
-
 If you are not sure what to contribute with, you can either check the 
 [Project board](https://github.com/FairyProject/fairy/projects), 
 [Open issues](https://github.com/FairyProject/fairy/issues), 
@@ -47,5 +46,7 @@ or ask us directly in [Discord](https://discord.gg/GBZKR3n).
 If you have any issues before/during contribution feel free to come in our [Discord](https://discord.gg/GBZKR3n) to ask questions.
 
 For every contributor, we will be rewarding a discord role in our discord:
+
+![image](https://user-images.githubusercontent.com/36093806/145171823-ffa0179c-1566-4037-b8a5-427b8b068396.png)
 
 > we are planning to expand the reward for contributing, but this is it for now.
