@@ -23,6 +23,7 @@ public class AppLauncher {
         initConsole();
 
         AppBootstrap bootstrap = new AppBootstrap();
+        AppBootstrap.INSTANCE = bootstrap;
         if (!bootstrap.load()) {
             System.err.println("Failed to boot fairy! check stacktrace for the reason of failure!");
             System.exit(-1);

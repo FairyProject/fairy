@@ -30,6 +30,9 @@ public class FairyAppPlatform extends FairyPlatform {
     @Getter
     private Application mainApplication;
 
+    private final Object shutdownLock = new Object();
+    private boolean shuttingDown;
+
     public FairyAppPlatform() {
         FairyPlatform.INSTANCE = this;
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
@@ -94,9 +97,6 @@ public class FairyAppPlatform extends FairyPlatform {
                 Library.builder().gradle("com.google.guava:guava:30.0-jre").build()
         );
     }
-
-    private final Object shutdownLock = new Object();
-    private boolean shuttingDown;
 
     @Override
     public void shutdown() {

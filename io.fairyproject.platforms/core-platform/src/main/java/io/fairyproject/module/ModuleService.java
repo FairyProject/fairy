@@ -170,17 +170,12 @@ public class ModuleService {
     public Module registerByPath(Path path, boolean canAbstract, Plugin plugin, Path... relocationEntries) {
         Module module = null;
         try {
-            final JarFile jarFile = new JarFile(path.toFile());
-            final ZipEntry zipEntry = jarFile.getEntry("module.json");
-            if (zipEntry == null) {
-                LOGGER.error("Unable to find module.json from " + path);
+            JsonObject jsonObject = this.readModuleData(path);
+            if (jsonObject == null) {
                 return null;
             }
-
-            final JsonObject jsonObject = new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
-            final String name = jsonObject.get("name").getAsString();
-            final String classPath = plugin.getDescription().getShadedPackage() + ".fairy";
-
+            String name = jsonObject.get("name").getAsString();
+            String classPath = plugin.getDescription().getShadedPackage() + ".fairy";
             boolean abstraction = jsonObject.get("abstraction").getAsBoolean();
 
             if (!canAbstract && abstraction) {
@@ -188,22 +183,9 @@ public class ModuleService {
                 return null;
             }
 
-            List<Module> dependedModules = new ArrayList<>();
-            final JsonArray depends = jsonObject.getAsJsonArray("depends");
-            for (JsonElement element : depends) {
-                final String[] split = element.getAsString().split(":");
-                String moduleName = split[0];
-                FairyVersion moduleVersion = FairyVersion.parse(split[1]);
-                Module dependModule = this.getByName(moduleName);
-                if (dependModule == null) {
-                    dependModule = this.registerByName(moduleName, moduleVersion, true, plugin);
-                    if (dependModule == null) {
-                        LOGGER.error("Unable to find dependency module " + moduleName + " for " + name);
-                        return null;
-                    }
-                }
-                dependedModules.add(dependModule);
-                dependModule.addRef(); // add reference
+            final List<Module> dependedModules = this.loadDependModules(jsonObject, plugin, name);
+            if (dependedModules == null) {
+                return null;
             }
 
             // Relocation after depended on modules are loaded
@@ -215,18 +197,9 @@ public class ModuleService {
             Path notShadedPath = path;
             final Path finalPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
             if (!Files.exists(finalPath)) {
-                final Relocation relocation = new Relocation("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
-                relocation.setOnlyRelocateShaded(true);
-
-                final Set<File> entries = dependedModules.stream()
-                        .map(Module::getNotShadedPath)
-                        .map(Path::toFile)
-                        .collect(Collectors.toCollection(HashSet::new));
-                // Also included provided entries
-                entries.addAll(Stream.of(relocationEntries).map(Path::toFile).collect(Collectors.toList()));
-
-                new JarRelocator(path.toFile(), finalPath.toFile(), Collections.singletonList(relocation), entries).run();
+                this.remap(path, finalPath, plugin, dependedModules, relocationEntries);
             }
+
             path = finalPath;
             Fairy.getPlatform().getClassloader().addJarToClasspath(path);
 
@@ -234,22 +207,7 @@ public class ModuleService {
             module = new Module(name, classPath, classLoader, plugin, notShadedPath, path);
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
-            for (Map.Entry<String, JsonElement> entry : jsonObject.getAsJsonObject("exclusive").entrySet()) {
-                String exclude = entry.getKey();
-                exclude = exclude.replace("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
-
-                module.getExclusives().put(entry.getValue().getAsString(), exclude);
-            }
-
-            for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
-                final JsonObject libObject = element.getAsJsonObject();
-                Library library = Library.builder()
-                        .gradle(libObject.get("dependency").getAsString())
-                        .repository(libObject.has("repository") ? new LibraryRepository(libObject.get("repository").getAsString()) : null)
-                        .build();
-
-                Fairy.getLibraryHandler().downloadLibraries(true, library);
-            }
+            this.loadLibrariesAndExclusives(module, plugin, jsonObject);
 
             this.moduleByName.put(name, module);
             final Collection<String> excludedPackages = module.getExcludedPackages(this);
@@ -276,6 +234,71 @@ public class ModuleService {
         }
 
         return null;
+    }
+
+    private void loadLibrariesAndExclusives(Module module, Plugin plugin, JsonObject jsonObject) {
+        for (Map.Entry<String, JsonElement> entry : jsonObject.getAsJsonObject("exclusive").entrySet()) {
+            String exclude = entry.getKey();
+            exclude = exclude.replace("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
+
+            module.getExclusives().put(entry.getValue().getAsString(), exclude);
+        }
+
+        for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
+            final JsonObject libObject = element.getAsJsonObject();
+            Library library = Library.builder()
+                    .gradle(libObject.get("dependency").getAsString())
+                    .repository(libObject.has("repository") ? new LibraryRepository(libObject.get("repository").getAsString()) : null)
+                    .build();
+
+            Fairy.getLibraryHandler().downloadLibraries(true, library);
+        }
+    }
+
+    private JsonObject readModuleData(Path path) throws IOException {
+        final JarFile jarFile = new JarFile(path.toFile());
+        final ZipEntry zipEntry = jarFile.getEntry("module.json");
+        if (zipEntry == null) {
+            LOGGER.error("Unable to find module.json from " + path);
+            return null;
+        }
+
+        return new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
+    }
+
+    private List<Module> loadDependModules(JsonObject jsonObject, Plugin plugin, String name) {
+        List<Module> dependedModules = new ArrayList<>();
+        final JsonArray depends = jsonObject.getAsJsonArray("depends");
+        for (JsonElement element : depends) {
+            final String[] split = element.getAsString().split(":");
+            String moduleName = split[0];
+            FairyVersion moduleVersion = FairyVersion.parse(split[1]);
+            Module dependModule = this.getByName(moduleName);
+            if (dependModule == null) {
+                dependModule = this.registerByName(moduleName, moduleVersion, true, plugin);
+                if (dependModule == null) {
+                    LOGGER.error("Unable to find dependency module " + moduleName + " for " + name);
+                    return null;
+                }
+            }
+            dependedModules.add(dependModule);
+            dependModule.addRef(); // add reference
+        }
+        return dependedModules;
+    }
+
+    private void remap(Path fromPath, Path finalPath, Plugin plugin, List<Module> dependedModules, Path[] relocationEntries) throws IOException {
+        final Relocation relocation = new Relocation("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
+        relocation.setOnlyRelocateShaded(true);
+
+        final Set<File> entries = dependedModules.stream()
+                .map(Module::getNotShadedPath)
+                .map(Path::toFile)
+                .collect(Collectors.toCollection(HashSet::new));
+        // also, included provided entries
+        entries.addAll(Stream.of(relocationEntries).map(Path::toFile).collect(Collectors.toList()));
+
+        new JarRelocator(fromPath.toFile(), finalPath.toFile(), Collections.singletonList(relocation), entries).run();
     }
 
     public void unregister(@NonNull Module module) {
