@@ -16,6 +16,7 @@ public class ApplicationAction implements PluginAction {
     public void close() {
         this.closed = true;
         this.applicationHolder.onDisable();
+        AppBootstrap.INSTANCE.disable();
 
         System.exit(-1);
     }

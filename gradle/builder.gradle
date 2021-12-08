@@ -1,0 +1,21 @@
+apply plugin: "java-library"
+apply plugin: "com.github.johnrengelman.shadow"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+ext {
+    archieveName = project.name
+}
+
+// setup directory per version
+project.afterEvaluate(p -> {
+    var directoryProperty = tasks.shadowJar.destinationDirectory
+    var jarProperty = tasks.jar.destinationDirectory
+    var directory = directoryProperty.get().dir(p.version.toString())
+    directoryProperty.set(directory)
+    jarProperty.set(directory)
+
+    tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
+    tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
+})

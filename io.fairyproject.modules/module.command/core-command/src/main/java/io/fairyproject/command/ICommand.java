@@ -8,7 +8,7 @@ public interface ICommand {
 
     int getRequireInputParameterCount();
 
-    String getUsage();
+    String getUsage(CommandContext commandContext);
 
     void execute(CommandContext commandContext);
 

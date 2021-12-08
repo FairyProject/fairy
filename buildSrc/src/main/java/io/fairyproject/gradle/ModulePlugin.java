@@ -1,5 +1,6 @@
 package io.fairyproject.gradle;
 
+import com.google.common.collect.ImmutableSet;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
@@ -27,6 +28,7 @@ public class ModulePlugin implements Plugin<Project> {
             for (String module : extension.getDepends().get()) {
                 new ModuleReader(p, configuration, loaded).load(module, p.project(MODULE_PREFIX + module), new ArrayList<>());
             }
+            Set<String> actualDepends = ImmutableSet.copyOf(loaded);
 
             for (String module : extension.getSubDepends().get()) {
                 new ModuleReader(p, configuration, loaded).load(module, p.project(MODULE_PREFIX + module), new ArrayList<>());
@@ -53,7 +55,7 @@ public class ModulePlugin implements Plugin<Project> {
 
             task.setInJar(task.getInJar() != null ? task.getInJar() : jar.getArchiveFile().get().getAsFile());
             task.setExtension(extension);
-            task.setModules(loaded);
+            task.setModules(actualDepends);
         });
     }
 

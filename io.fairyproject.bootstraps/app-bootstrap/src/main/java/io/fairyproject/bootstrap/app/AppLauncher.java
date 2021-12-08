@@ -23,6 +23,7 @@ public class AppLauncher {
         initConsole();
 
         AppBootstrap bootstrap = new AppBootstrap();
+        AppBootstrap.INSTANCE = bootstrap;
         if (!bootstrap.load()) {
             System.err.println("Failed to boot fairy! check stacktrace for the reason of failure!");
             System.exit(-1);
@@ -42,6 +43,15 @@ public class AppLauncher {
 
         bootstrap.enable();
         pluginHolder.onEnable();
+
+        Thread shutdownHook = new Thread(() -> {
+            try {
+                io.fairyproject.Fairy.getPlatform().shutdown();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        });
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
     private static InputStream getResource(String filename) {

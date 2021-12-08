@@ -63,6 +63,11 @@ public class CommandContext {
         return property.getType().cast(this.properties.getOrDefault(property, null));
     }
 
+    // Used in usage sending
+    public String getCommandPrefix() {
+        return "/";
+    }
+
     public <T extends CommandContext> T as(Class<T> type) {
         if (!type.isInstance(this)) {
             throw new UnsupportedOperationException();
@@ -70,10 +75,12 @@ public class CommandContext {
         return type.cast(this);
     }
 
+    @SuppressWarnings("unchecked")
     public final void sendMessage(MessageType messageType, Collection<String> messages) {
         this.presenceProvider.sendMessage(this, messageType, messages.toArray(new String[0]));
     }
 
+    @SuppressWarnings("unchecked")
     public final void sendMessage(MessageType messageType, String... messages) {
         this.presenceProvider.sendMessage(this, messageType, messages);
     }

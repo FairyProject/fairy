@@ -40,7 +40,7 @@ public class ModuleExtension {
     }
 
     public void subDepend(String name) {
-        this.depends.add(name);
+        this.subDepends.add(name);
     }
 
     public void platform(String name) {

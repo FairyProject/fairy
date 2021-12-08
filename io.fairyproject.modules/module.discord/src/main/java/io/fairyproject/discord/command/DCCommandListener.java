@@ -60,10 +60,11 @@ public class DCCommandListener implements CommandListener {
             final String message = event.getMessage().getContentRaw();
             final String[] parts = message.split(" ");
 
-            final BaseCommand command = commandMap.findCommand(parts[0]);
-            if (command != null) {
+            final DCCommandMap.CommandHolder commandHolder = commandMap.findCommand(parts[0]);
+            if (commandHolder != null) {
                 DCCommandContext commandContext = new DCCommandContext(Arrays.copyOfRange(parts, 1, parts.length), bot, channel, author);
-                command.execute(commandContext);
+                commandContext.setCommandPrefix(commandHolder.getCommandPrefix());
+                commandHolder.getCommand().execute(commandContext);
             }
         });
     }
@@ -73,7 +74,7 @@ public class DCCommandListener implements CommandListener {
         final DCBot bot = event.getBot();
 
         for (BaseCommand command : this.commandService.getCommands().values()) {
-            if (this.bots(command).contains(bot)) { // Imanity - better performance implementation
+            if (this.bots(command).contains(bot)) { // TODO - Better performance implementation?
                 final DCCommandMap commandMap = bot.metadata().getOrPut(METADATA, () -> new DCCommandMap(bot));
                 commandMap.register(command);
             }
