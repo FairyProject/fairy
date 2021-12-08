@@ -101,10 +101,10 @@ public abstract class BaseCommand implements ICommand {
         for (ICommand command : this.subCommands.values()) {
             switch (command.getSubCommandType()) {
                 case CLASS_LEVEL:
-                    messages.add(command.getUsage() + " ...");
+                    messages.add(command.getUsage(commandContext) + " ...");
                     break;
                 case METHOD_LEVEL:
-                    messages.add(command.getUsage());
+                    messages.add(command.getUsage(commandContext));
                     break;
             }
         }
@@ -273,7 +273,7 @@ public abstract class BaseCommand implements ICommand {
 
                     argProperties.add(property);
                     if (property.getMissingArgument() == null) {
-                        property.onMissingArgument(commandContext -> this.onArgumentMissing(commandContext, this.getUsage()));
+                        property.onMissingArgument(commandContext -> this.onArgumentMissing(commandContext, this.getUsage(commandContext)));
                     }
 
                     if (property.getUnknownArgument() == null) {
@@ -508,12 +508,13 @@ public abstract class BaseCommand implements ICommand {
         return null;
     }
 
-    public String getUsage() {
+    @Override
+    public String getUsage(CommandContext commandContext) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         for (ArgProperty<?> arg : this.baseArgs) {
             stringJoiner.add("<" + arg.getKey() + ">");
         }
-        return (this.parentCommand != null ? this.parentCommand.getUsage() + " " : "/") + this.getCommandNames()[0] + " " + stringJoiner;
+        return (this.parentCommand != null ? this.parentCommand.getUsage(commandContext) + " " : commandContext.getCommandPrefix()) + this.getCommandNames()[0] + " " + stringJoiner;
     }
 
     @Override

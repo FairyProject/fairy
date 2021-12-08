@@ -172,13 +172,14 @@ public class CommandMeta implements ICommand {
         return commandContext.hasPermission(this.permission);
     }
 
-    public String getUsage() {
-        return this.getUsage(this.getName());
+    @Override
+    public String getUsage(CommandContext commandContext) {
+        return this.getUsage(commandContext, this.getName());
     }
 
-    public String getUsage(String aliasUsed) {
+    public String getUsage(CommandContext commandContext, String aliasUsed) {
         List<RV> replaceValues = new ArrayList<>();
-        replaceValues.add(RV.o("<baseCommand>", this.baseCommand.getUsage() + " " + aliasUsed.toLowerCase()));
+        replaceValues.add(RV.o("<baseCommand>", this.baseCommand.getUsage(commandContext) + " " + aliasUsed.toLowerCase()));
 
         for (int i = 0; i < this.arguments.size(); i++) {
             final ArgMeta argMeta = this.arguments.get(i);

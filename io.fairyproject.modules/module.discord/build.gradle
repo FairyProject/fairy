@@ -1,4 +1,4 @@
-version = "0.0.1b15"
+version = "0.0.1b16"
 
 module {
     subDepend("module.command:core-command")
