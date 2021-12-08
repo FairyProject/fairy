@@ -10,7 +10,12 @@ import java.nio.file.Path;
 
 public class AppBootstrap extends BaseBootstrap {
 
+    public static AppBootstrap INSTANCE;
     public static boolean FAIRY_READY = false;
+
+    public AppBootstrap() {
+        INSTANCE = this;
+    }
 
     @Override
     protected void onFailure(@Nullable Throwable throwable) {

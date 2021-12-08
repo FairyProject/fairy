@@ -29,7 +29,8 @@ plugins {
     id "com.gradle.plugin-publish" version "0.14.0" apply false
 }
 
-version = "0.5.1b9"
+// Core versioning
+version = "0.5.1b11"
 
 allprojects {
     if (isNotJavaProject(project)) {

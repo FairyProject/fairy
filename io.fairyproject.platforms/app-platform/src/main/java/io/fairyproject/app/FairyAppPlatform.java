@@ -95,9 +95,18 @@ public class FairyAppPlatform extends FairyPlatform {
         );
     }
 
+    private final Object shutdownLock = new Object();
+    private boolean shuttingDown;
+
     @Override
     public void shutdown() {
-        this.running = false;
+        synchronized (this.shutdownLock) {
+            if (this.shuttingDown) {
+                return;
+            }
+            this.shuttingDown = true;
+        }
+        LOGGER.info("Shutting down...");
 
         if (this.mainApplication != null) {
             try {
@@ -107,6 +116,7 @@ public class FairyAppPlatform extends FairyPlatform {
             }
         }
 
+        this.running = false;
         System.exit(-1);
     }
 

@@ -42,6 +42,15 @@ public class AppLauncher {
 
         bootstrap.enable();
         pluginHolder.onEnable();
+
+        Thread shutdownHook = new Thread(() -> {
+            try {
+                io.fairyproject.Fairy.getPlatform().shutdown();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        });
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
     private static InputStream getResource(String filename) {
