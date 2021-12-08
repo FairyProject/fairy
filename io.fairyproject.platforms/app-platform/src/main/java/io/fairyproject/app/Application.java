@@ -18,11 +18,13 @@ public abstract class Application extends Plugin {
      * The method that will be called on application starting
      */
     public void onAppEnable() {
+        // can be overwritten
     }
 
     /**
      * The method that will be called on application shutting down
      */
     public void onAppDisable() {
+        // can be overwritten
     }
 }
