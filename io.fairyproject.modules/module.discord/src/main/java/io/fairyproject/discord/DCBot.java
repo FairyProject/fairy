@@ -82,6 +82,12 @@ public abstract class DCBot implements ProxyJDA {
     public void onPreInitialize() {
         this.listenerBatch = PreProcessBatch.create();
         this.metadata = MetadataMap.create();
+        final CommandPrefix annotation = this.getClass().getAnnotation(CommandPrefix.class);
+        if (annotation != null) {
+            this.commandPrefix = annotation.value();
+        } else {
+            this.commandPrefix = DEFAULT_COMMAND_PREFIX;
+        }
     }
 
     @PostInitialize
@@ -111,13 +117,6 @@ public abstract class DCBot implements ProxyJDA {
 
         BOT_BY_ID.put(this.jda.getSelfUser().getIdLong(), this);
         EventBus.call(new DCBotInitializedEvent(this));
-
-        final CommandPrefix annotation = this.getClass().getAnnotation(CommandPrefix.class);
-        if (annotation != null) {
-            this.commandPrefix = annotation.value();
-        } else {
-            this.commandPrefix = DEFAULT_COMMAND_PREFIX;
-        }
     }
 
     @PreDestroy
@@ -146,8 +145,8 @@ public abstract class DCBot implements ProxyJDA {
     public void removeEventListener(Object... objs) {
         for (Object obj : objs) {
             final Class<?> aClass = obj.getClass();
-            String index = Reflect.getAnnotationValueOrThrow(aClass, DCIndex.class, DCIndex::value);
-            if (!index.equals(this.index)) {
+            String index = Reflect.getAnnotationValueOrNull(aClass, DCIndex.class, DCIndex::value);
+            if (index != null && !index.equals(this.index)) {
                 return;
             }
             if (!this.listenerBatch.remove(obj.getClass().getName())) {

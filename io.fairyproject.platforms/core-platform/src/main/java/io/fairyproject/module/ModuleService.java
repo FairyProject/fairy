@@ -252,8 +252,6 @@ public class ModuleService {
             }
 
             this.moduleByName.put(name, module);
-            this.onModuleLoad(module);
-
             final Collection<String> excludedPackages = module.getExcludedPackages(this);
 
             // Scan classes
@@ -266,6 +264,8 @@ public class ModuleService {
                     .classPath(module.getClassPath())
                     .scan();
             details.forEach(bean -> bean.bindWith(plugin));
+
+            this.onModuleLoad(module);
             return module;
         } catch (Exception e) {
             e.printStackTrace();
