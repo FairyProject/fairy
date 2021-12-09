@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="20%" height="20%" src="https://i.imgur.com/CIxPcyV.png">
+  <img width="40%" height="40%" src="https://i.imgur.com/Ix9w2No.png">
   <br> <br>
   <a href="https://www.codacy.com/gh/FairyProject/fairy/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=FairyProject/fairy&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/521e578f30d64d7d9e4d4eb30057c086"/></a>
   <a><img alt="Issues" src="https://img.shields.io/github/issues/FairyProject/fairy"></a>
