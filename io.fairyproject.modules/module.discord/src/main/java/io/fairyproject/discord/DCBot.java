@@ -188,7 +188,7 @@ public abstract class DCBot implements ProxyJDA {
                 .disableCache(CacheFlag.ACTIVITY)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .setChunkingFilter(ChunkingFilter.ALL)
-                .enableIntents(EnumSet.allOf(GatewayIntent.class));
+                .enableIntents(this.getGatewayIntents());
     }
 
     protected abstract String createToken();
