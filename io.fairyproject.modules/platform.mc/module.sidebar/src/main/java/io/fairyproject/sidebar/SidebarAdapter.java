@@ -22,22 +22,23 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.sidebar;
+package io.fairyproject.sidebar;
 
-import org.bukkit.entity.Player;
+import io.fairyproject.mc.MCPlayer;
+import net.kyori.adventure.text.Component;
 
 import java.util.List;
 
 public interface SidebarAdapter {
 
-    default void onBoardCreate(Player player, Sidebar board) {
-
+    default void onBoardCreate(MCPlayer player, Sidebar board) {
+        // optional overwrite
     }
 
 
-    String getTitle(Player player);
+    Component getTitle(MCPlayer player);
 
-    List<String> getLines(Player player);
+    List<Component> getLines(MCPlayer player);
 
     /**
      *

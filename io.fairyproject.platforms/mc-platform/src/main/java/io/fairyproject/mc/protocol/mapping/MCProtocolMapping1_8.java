@@ -22,6 +22,9 @@ public class MCProtocolMapping1_8 extends MCProtocolMapping {
             public void init() {
                 // Titles
                 this.registerOut(56, PacketPlay.Out.PlayerInfo.class);
+                this.registerOut(59, PacketPlay.Out.ScoreboardObjective.class);
+                this.registerOut(60, PacketPlay.Out.ScoreboardScore.class);
+                this.registerOut(61, PacketPlay.Out.ScoreboardDisplayObjective.class);
                 this.registerOut(62, PacketPlay.Out.ScoreboardTeam.class);
                 this.registerOut(69, PacketPlay.Out.Title.class);
                 this.registerOutDeserializer(69, (protocol, byteBuf, packetId, defaultType) -> {
