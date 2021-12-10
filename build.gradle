@@ -30,7 +30,7 @@ plugins {
 }
 
 // Core versioning
-version = "0.5.1b11"
+version = "0.5.1b12"
 
 allprojects {
     if (isNotJavaProject(project)) {
