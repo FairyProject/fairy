@@ -78,27 +78,27 @@ public class MinecraftReflection {
     /**
      * The CraftPlayer.getHandle method
      */
-    private static MethodWrapper PLAYER_GET_HANDLE;
+    private static MethodWrapper<?> PLAYER_GET_HANDLE;
 
     /**
      * Get game profile
      */
-    private static MethodWrapper PLAYER_GET_GAME_PROFILE;
+    private static MethodWrapper<?> PLAYER_GET_GAME_PROFILE;
 
     /**
      * The EntityPlayer.playerConnection field
      */
-    private static FieldWrapper FIELD_PLAYER_CONNECTION;
+    private static FieldWrapper<?> FIELD_PLAYER_CONNECTION;
 
     /**
      * The PlayerConnection.networkManager field
      */
-    private static FieldWrapper FIELD_NETWORK_MANAGER;
+    private static FieldWrapper<?> FIELD_NETWORK_MANAGER;
 
     /**
      * The NetworkManager.channel field
      */
-    private static FieldWrapper FIELD_CHANNEL;
+    private static FieldWrapper<?> FIELD_CHANNEL;
 
     /**
      * Netty Channel Type
@@ -173,15 +173,27 @@ public class MinecraftReflection {
             Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("server.network.PlayerConnection", "PlayerConnection");
             Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.NetworkManager", "NetworkManager");
 
-            MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper(OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer")
-                    .getDeclaredMethod("getHandle"));
-            MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper(entityHumanType.getMethod("getProfile"));
+            MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper<>(OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer").getDeclaredMethod("getHandle"));
+            MethodWrapper<?> playerProfileMethod;
+            try {
+                playerProfileMethod = new MethodWrapper<>(entityHumanType.getMethod("getProfile"));
+            } catch (Exception ex) {
+                playerProfileMethod = new MethodWrapper<>(entityHumanType.getMethod("fp"));
+            }
+            MinecraftReflection.PLAYER_GET_GAME_PROFILE = playerProfileMethod;
+
             MinecraftReflection.FIELD_PLAYER_CONNECTION = new FieldResolver(entityPlayerType)
                     .resolveByFirstTypeDynamic(playerConnectionType);
 
             Class<?> packetClass = NMS_CLASS_RESOLVER.resolve("network.protocol.Packet", "Packet");
 
-            MinecraftReflection.METHOD_SEND_PACKET = new MethodWrapper(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
+            MethodWrapper<Void> sendPacketMethod;
+            try {
+                sendPacketMethod = new MethodWrapper<>(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
+            } catch (Exception ex) {
+                sendPacketMethod = new MethodWrapper<>(playerConnectionType.getDeclaredMethod("a", packetClass));
+            }
+            MinecraftReflection.METHOD_SEND_PACKET = sendPacketMethod;
 
             MinecraftReflection.FIELD_NETWORK_MANAGER = new FieldResolver(playerConnectionType)
                     .resolveByFirstTypeWrapper(networkManagerType);

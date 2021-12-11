@@ -55,6 +55,7 @@ import org.bukkit.material.MaterialData;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -94,7 +95,13 @@ public class NormalImplementation implements ServerImplementation {
             final Field field = OBC_RESOLVER.resolve("inventory.CraftMetaSkull").getDeclaredField("profile");
             AccessUtil.setAccessible(field);
             GAME_PROFILE_FIELD = new FieldWrapper<>(field);
-            GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman").getMethod("getProfile"));
+
+            Class<?> humanEntityType = CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman");
+            try {
+                GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(humanEntityType.getMethod("getProfile"));
+            } catch (Exception e) {
+                GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(humanEntityType.getMethod("fp"));
+            }
 
             Class<?> minecraftServerType = CLASS_RESOLVER.resolve("server.MinecraftServer", "MinecraftServer");
             Object minecraftServer = minecraftServerType.getMethod("getServer").invoke(null);
