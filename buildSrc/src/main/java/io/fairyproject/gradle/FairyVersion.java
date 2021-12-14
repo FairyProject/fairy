@@ -1,4 +1,4 @@
-package io.fairyproject.util;
+package io.fairyproject.gradle;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
