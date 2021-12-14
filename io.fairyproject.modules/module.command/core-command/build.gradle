@@ -1,1 +1,1 @@
-version = "0.0.1b3"
+apply from: "$parent.projectDir/parent.gradle"

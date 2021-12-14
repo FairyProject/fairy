@@ -496,7 +496,7 @@ public class ContainerContext {
 
                 for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
                     try {
-                        Service service = type.getAnnotation(Service.class);
+                        Service service = type.getDeclaredAnnotation(Service.class);
                         Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
 
                         if (getObjectDetails(type) == null) {
