@@ -17,6 +17,11 @@ public class FairyVersion implements Comparable<FairyVersion> {
 
     private static final Pattern VERSION_PATTERN = Pattern.compile("(?<major>[0-9*]+)\\.(?<minor>[0-9*]+)\\.(?<revision>[0-9*]+)b(?<build>[0-9*]+)");
 
+    private int major;
+    private int minor;
+    private int revision;
+    private int build;
+
     public static FairyVersion parse(String version) {
         final Matcher matcher = VERSION_PATTERN.matcher(version);
         if (!matcher.find()) {
@@ -29,11 +34,6 @@ public class FairyVersion implements Comparable<FairyVersion> {
                 .build(Integer.parseInt(matcher.group("build")))
                 .build();
     }
-
-    private int major;
-    private int minor;
-    private int revision;
-    private int build;
 
     public boolean isAbove(FairyVersion version) {
         return this.compareTo(version) > 0;
