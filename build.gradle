@@ -79,6 +79,7 @@ allprojects {
 subprojects {
     if (isNotJavaProject(project)) {
         project.tasks.all { task -> task.enabled = false }
+        project.tasks.withType(PublishToMavenRepository).configureEach { it.enabled = false }
         return
     }
 
@@ -100,5 +101,5 @@ subprojects {
 }
 
 static boolean isNotJavaProject(Project project) {
-    return project.file("build.gradle") == null
+    return project.buildFile == null || !project.buildFile.exists()
 }

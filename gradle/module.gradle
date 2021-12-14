@@ -3,7 +3,9 @@ import io.fairyproject.gradle.ModulePlugin
 
 // Main script
 apply plugin: "io.freefair.aspectj.post-compile-weaving"
-apply plugin: "maven-publish"
+if (project.buildFile != null && project.buildFile.exists() && findProperty("deploy.imanityLibraries") == "true") {
+    apply plugin: "maven-publish"
+}
 apply plugin: ModulePlugin
 
 configurations {
@@ -16,7 +18,7 @@ processResources {
     expand projectVersion: project.version
 }
 
-if (project.file("build.gradle") != null && findProperty("deploy.imanityLibraries") == "true") {
+if (project.buildFile != null && project.buildFile.exists() && findProperty("deploy.imanityLibraries") == "true") {
     tasks.jar.archiveClassifier.set("sources")
     tasks.shadowJar.archiveClassifier.set(null)
 
