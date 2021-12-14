@@ -40,40 +40,36 @@ import java.util.zip.ZipEntry;
 public class ModuleService {
 
     @Autowired
-    private static ContainerContext BEAN_CONTEXT;
+    private static ContainerContext CONTAINER_CONTEXT;
 
     public static final int PLUGIN_LISTENER_PRIORITY = ContainerContext.PLUGIN_LISTENER_PRIORITY + 100;
 
     private static final Logger LOGGER = LogManager.getLogger(ModuleService.class);
-    private static PreProcessBatch PENDING = PreProcessBatch.create();
+    private static final PreProcessBatch PENDING = PreProcessBatch.create();
 
     public static void init() {
         PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
             @Override
             public void onPluginInitial(Plugin plugin) {
-                System.out.println(plugin.getName() + " onPluginInitial");
                 PENDING.runOrQueue(plugin.getName(), () -> {
                     final ModuleService moduleService = Containers.get(ModuleService.class);
 
                     // We will get all the paths first for relocation.
-                    Map<String, Path> paths = new HashMap<>();
+                    Map<String, Path> paths = new LinkedHashMap<>();
                     plugin.getDescription().getModules().forEach(pair -> {
                         String name = pair.getKey();
                         String version = pair.getValue();
-                        Path path = null;
-                        try {
-                            path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + "-" + FairyVersion.parse(version).toString() + ".jar").toPath(), name, version);
-                        } catch (Throwable throwable) {
-                            LOGGER.error("An error occurs while download module " + name, throwable);
-                        }
-                        paths.put(name, path);
+
+                        downloadModules(name, version, paths, false);
                     });
+                    List<String> modulesOrdered = new ArrayList<>(paths.keySet());
+                    Collections.reverse(modulesOrdered);
+
                     // Relocation entries from all included modules
                     final Path[] relocationEntries = paths.values().toArray(new Path[0]);
 
                     // Then push all paths
-                    plugin.getDescription().getModules().forEach(pair -> {
-                        final String name = pair.getKey();
+                    modulesOrdered.forEach(name -> {
                         final Path path = paths.get(name);
                         final Module module = moduleService.registerByPath(path, plugin, relocationEntries);
 
@@ -90,8 +86,7 @@ public class ModuleService {
 
             @Override
             public void onPluginDisable(Plugin plugin) {
-                if (PENDING != null) {
-                    PENDING.remove(plugin.getName());
+                if (PENDING.remove(plugin.getName())) {
                     return;
                 }
                 final ModuleService moduleService = Containers.get(ModuleService.class);
@@ -109,6 +104,44 @@ public class ModuleService {
         });
     }
 
+    private static void downloadModules(String name, String version, Map<String, Path> paths, boolean canAbstract) {
+        if (paths.containsKey(name)) {
+            return;
+        }
+        Path path;
+        try {
+            path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + "-" + FairyVersion.parse(version).toString() + ".jar").toPath(), name, version);
+        } catch (Throwable throwable) {
+            LOGGER.error("An error occurs while download module " + name, throwable);
+            return;
+        }
+
+        paths.put(name, path);
+
+        // We will read dependencies first.
+        try {
+            final JsonObject jsonObject = readModuleData(path);
+
+            assert jsonObject != null;
+            boolean abstraction = jsonObject.get("abstraction").getAsBoolean();
+
+            if (!canAbstract && abstraction) {
+                throw new IllegalArgumentException("The module " + name + " is a abstraction module! Couldn't directly depend on the module.");
+            }
+
+            final JsonArray depends = jsonObject.getAsJsonArray("depends");
+            for (JsonElement element : depends) {
+                final String[] split = element.getAsString().split(":");
+                String moduleName = split[0];
+                String moduleVersion = split[1];
+
+                downloadModules(moduleName, moduleVersion, paths, true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private final Map<String, Module> moduleByName = new ConcurrentHashMap<>();
     private final List<ModuleController> controllers = new ArrayList<>();
 
@@ -118,7 +151,6 @@ public class ModuleService {
 
     @PreInitialize
     public void onPreInitialize() {
-        System.out.println("ModuleService onPreInitialize");
         ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
                 .type(ModuleController.class)
                 .onEnable(obj -> {
@@ -141,49 +173,18 @@ public class ModuleService {
         return moduleByName.get(name);
     }
 
-    public Module registerByName(String name, FairyVersion version, Plugin plugin) {
-        return this.registerByName(name, version, false, plugin);
-    }
-
-    @Nullable
-    public Module registerByName(String name, FairyVersion version, boolean canAbstract, Plugin plugin) {
-        try {
-            LOGGER.info("Registering module " + name + "...");
-            final Path path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + "-" + version.toString() + ".jar").toPath(), name, version.toString());
-
-            return this.registerByPath(path, canAbstract, plugin);
-        } catch (IOException e) {
-            LOGGER.error("Unexpected IO error", e);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
     @Nullable
     public Module registerByPath(Path path, Plugin plugin, Path... relocationEntries) {
-        return this.registerByPath(path, false, plugin, relocationEntries);
-    }
-
-    @Nullable
-    public Module registerByPath(Path path, boolean canAbstract, Plugin plugin, Path... relocationEntries) {
         Module module = null;
         try {
-            JsonObject jsonObject = this.readModuleData(path);
+            JsonObject jsonObject = readModuleData(path);
             if (jsonObject == null) {
                 return null;
             }
             String name = jsonObject.get("name").getAsString();
             String classPath = plugin.getDescription().getShadedPackage() + ".fairy";
-            boolean abstraction = jsonObject.get("abstraction").getAsBoolean();
 
-            if (!canAbstract && abstraction) {
-                LOGGER.error("The module " + name + " is a abstraction module! Couldn't directly depend on the module.");
-                return null;
-            }
-
-            final List<Module> dependedModules = this.loadDependModules(jsonObject, plugin, name);
+            final List<Module> dependedModules = this.loadDependModules(jsonObject, name);
             if (dependedModules == null) {
                 return null;
             }
@@ -203,8 +204,7 @@ public class ModuleService {
             path = finalPath;
             Fairy.getPlatform().getClassloader().addJarToClasspath(path);
 
-            final ModuleClassloader classLoader = new ModuleClassloader(path);
-            module = new Module(name, classPath, classLoader, plugin, notShadedPath, path);
+            module = new Module(name, classPath, plugin, notShadedPath, path);
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             this.loadLibrariesAndExclusives(module, plugin, jsonObject);
@@ -213,10 +213,10 @@ public class ModuleService {
             final Collection<String> excludedPackages = module.getExcludedPackages(this);
 
             // Scan classes
-            final List<ContainerObject> details = BEAN_CONTEXT.scanClasses()
+            final List<ContainerObject> details = CONTAINER_CONTEXT.scanClasses()
                     .name(plugin.getName() + "-" + module.getName())
                     .prefix(plugin.getName() + "-")
-                    .classLoader(classLoader, this.getClass().getClassLoader())
+                    .classLoader(this.getClass().getClassLoader())
                     .excludePackage(excludedPackages)
                     .url(path.toUri().toURL())
                     .classPath(module.getClassPath())
@@ -255,7 +255,7 @@ public class ModuleService {
         }
     }
 
-    private JsonObject readModuleData(Path path) throws IOException {
+    private static JsonObject readModuleData(Path path) throws IOException {
         final JarFile jarFile = new JarFile(path.toFile());
         final ZipEntry zipEntry = jarFile.getEntry("module.json");
         if (zipEntry == null) {
@@ -266,20 +266,16 @@ public class ModuleService {
         return new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
     }
 
-    private List<Module> loadDependModules(JsonObject jsonObject, Plugin plugin, String name) {
+    private List<Module> loadDependModules(JsonObject jsonObject, String name) {
         List<Module> dependedModules = new ArrayList<>();
         final JsonArray depends = jsonObject.getAsJsonArray("depends");
         for (JsonElement element : depends) {
             final String[] split = element.getAsString().split(":");
             String moduleName = split[0];
-            FairyVersion moduleVersion = FairyVersion.parse(split[1]);
             Module dependModule = this.getByName(moduleName);
             if (dependModule == null) {
-                dependModule = this.registerByName(moduleName, moduleVersion, true, plugin);
-                if (dependModule == null) {
-                    LOGGER.error("Unable to find dependency module " + moduleName + " for " + name);
-                    return null;
-                }
+                LOGGER.error("Unable to find dependency module " + moduleName + " for " + name);
+                return null;
             }
             dependedModules.add(dependModule);
             dependModule.addRef(); // add reference

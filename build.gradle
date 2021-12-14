@@ -33,6 +33,8 @@ plugins {
 version = "0.5.1b12"
 
 allprojects {
+    apply from: "${rootDir}/gradle/tasks.gradle"
+
     if (isNotJavaProject(project)) {
         project.tasks.all { task -> task.enabled = false }
         return
@@ -71,11 +73,13 @@ allprojects {
         Mongojack = "org.mongojack:mongojack:" + findProperty("mongojack.version")
         Redisson = "org.redisson:redisson:3.13.2"
     }
+
 }
 
 subprojects {
     if (isNotJavaProject(project)) {
         project.tasks.all { task -> task.enabled = false }
+        project.tasks.withType(PublishToMavenRepository).configureEach { it.enabled = false }
         return
     }
 
@@ -97,5 +101,5 @@ subprojects {
 }
 
 static boolean isNotJavaProject(Project project) {
-    return project.file("build.gradle") == null
+    return project.buildFile == null || !project.buildFile.exists()
 }
