@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.sidebar;
+package io.fairyproject.sidebar;
 
 import lombok.*;
 
@@ -35,7 +35,7 @@ public class SidebarTeam {
 
     private final String name;
     private final String prefix;
-    private final boolean friendlyInvisibles;
+    private final boolean friendlyInvisible;
     private final boolean friendlyFire;
 
     private final List<String> nameSet = new ArrayList<>();

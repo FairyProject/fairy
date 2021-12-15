@@ -25,4 +25,8 @@ public class MCProtocol {
         this.protocolMapping = protocolMapping;
     }
 
+    public MCVersion version() {
+        return this.protocolMapping.getVersion();
+    }
+
 }
