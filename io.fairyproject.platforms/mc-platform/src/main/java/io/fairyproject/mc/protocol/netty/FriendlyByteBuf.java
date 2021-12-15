@@ -50,11 +50,11 @@ public class FriendlyByteBuf extends ByteBuf {
         return legacy ? MCAdventure.LEGACY.deserialize(this.readUtf(262144)) : MCAdventure.GSON.deserialize(this.readUtf(262144));
     }
 
-    public FriendlyByteBuf writeComponent(final net.kyori.adventure.text.Component component) {
+    public FriendlyByteBuf writeComponent(final Component component) {
         return this.writeUtf(MCAdventure.asJsonString(component, this.locale), 262144);
     }
 
-    public FriendlyByteBuf writeComponent(final net.kyori.adventure.text.Component component, boolean legacy) {
+    public FriendlyByteBuf writeComponent(final Component component, boolean legacy) {
         return this.writeUtf(legacy ? MCAdventure.asLegacyString(component, this.locale) : MCAdventure.asJsonString(component, this.locale), 262144);
     }
 

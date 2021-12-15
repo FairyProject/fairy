@@ -139,22 +139,20 @@ public class Sidebar {
     }
 
     public void clear(int line) {
-        if (line > 0 && line < 16) {
-            if (teams[line] != null) {
-                final PacketPlay.Out.ScoreboardScore packetA = PacketPlay.Out.ScoreboardScore.builder()
-                        .owner(this.getEntry(line))
-                        .objectiveName(player.getName())
-                        .score(line)
-                        .action(ScoreAction.REMOVE)
-                        .build();
-                final PacketPlay.Out.ScoreboardTeam packetB = getOrRegisterTeam(line);
-                packetB.setTeamAction(TeamAction.REMOVE);
+        if (line > 0 && line < 16 && teams[line] != null) {
+            final PacketPlay.Out.ScoreboardScore packetA = PacketPlay.Out.ScoreboardScore.builder()
+                    .owner(this.getEntry(line))
+                    .objectiveName(player.getName())
+                    .score(line)
+                    .action(ScoreAction.REMOVE)
+                    .build();
+            final PacketPlay.Out.ScoreboardTeam packetB = getOrRegisterTeam(line);
+            packetB.setTeamAction(TeamAction.REMOVE);
 
-                teams[line] = null;
+            teams[line] = null;
 
-                player.sendPacket(packetA);
-                player.sendPacket(packetB);
-            }
+            player.sendPacket(packetA);
+            player.sendPacket(packetB);
         }
     }
 
