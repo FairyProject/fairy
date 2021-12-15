@@ -25,7 +25,6 @@ public class Module implements Terminable, TerminableConsumer {
 
     private final String name;
     private final String classPath;
-    private final ClassLoader classLoader;
     private final Plugin plugin;
     private final List<Module> dependModules;
     // <module, package>
@@ -41,10 +40,9 @@ public class Module implements Terminable, TerminableConsumer {
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
     private final AtomicInteger refCount;
 
-    public Module(String name, String classPath, ClassLoader classLoader, Plugin plugin, Path notShadedPath, Path shadedPath) {
+    public Module(String name, String classPath, Plugin plugin, Path notShadedPath, Path shadedPath) {
         this.name = name;
         this.classPath = classPath;
-        this.classLoader = classLoader;
         this.plugin = plugin;
         this.notShadedPath = notShadedPath;
         this.shadedPath = shadedPath;
