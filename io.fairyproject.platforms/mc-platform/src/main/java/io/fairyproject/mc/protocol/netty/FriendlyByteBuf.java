@@ -46,8 +46,16 @@ public class FriendlyByteBuf extends ByteBuf {
         return MCAdventure.GSON.deserialize(this.readUtf(262144));
     }
 
+    public Component readComponent(boolean legacy) {
+        return legacy ? MCAdventure.LEGACY.deserialize(this.readUtf(262144)) : MCAdventure.GSON.deserialize(this.readUtf(262144));
+    }
+
     public FriendlyByteBuf writeComponent(final net.kyori.adventure.text.Component component) {
         return this.writeUtf(MCAdventure.asJsonString(component, this.locale), 262144);
+    }
+
+    public FriendlyByteBuf writeComponent(final net.kyori.adventure.text.Component component, boolean legacy) {
+        return this.writeUtf(legacy ? MCAdventure.asLegacyString(component, this.locale) : MCAdventure.asJsonString(component, this.locale), 262144);
     }
 
     public static int getVarIntSize(int value) {

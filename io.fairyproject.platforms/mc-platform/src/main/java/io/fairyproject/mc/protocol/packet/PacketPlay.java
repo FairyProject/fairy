@@ -86,7 +86,7 @@ public class PacketPlay {
                     this.displayName = Component.empty();
                     this.renderType = ObjectiveRenderType.INTEGER;
                 } else {
-                    this.displayName = byteBuf.readComponent();
+                    this.displayName = byteBuf.readComponent(MCProtocol.INSTANCE.version().below(MCVersion.V1_13));
                     this.renderType = byteBuf.readEnum(ObjectiveRenderType.class);
                 }
             }
@@ -96,7 +96,7 @@ public class PacketPlay {
                 byteBuf.writeUtf(this.objectiveName);
                 byteBuf.writeByte(this.method);
                 if (method == 0 || method == 2) {
-                    byteBuf.writeComponent(this.displayName);
+                    byteBuf.writeComponent(this.displayName, MCProtocol.INSTANCE.version().below(MCVersion.V1_13));
                     byteBuf.writeEnum(this.renderType);
                 }
             }
@@ -174,29 +174,35 @@ public class PacketPlay {
             }
             @NoArgsConstructor @AllArgsConstructor @Getter @Setter @Builder
             public static class Parameters {
-                private Component displayName;
-                private Component playerPrefix;
-                private Component playerSuffix;
-                private NameTagVisibility nametagVisibility;
-                private CollisionRule collisionRule;
-                private ChatFormatting color;
+                @Builder.Default
+                private Component displayName = Component.empty();
+                @Builder.Default
+                private Component playerPrefix = Component.empty();
+                @Builder.Default
+                private Component playerSuffix = Component.empty();
+                @Builder.Default
+                private NameTagVisibility nametagVisibility = NameTagVisibility.ALWAYS;
+                @Builder.Default
+                private CollisionRule collisionRule = CollisionRule.ALWAYS;
+                @Builder.Default
+                private ChatFormatting color = ChatFormatting.BLACK;
                 private int options;
 
                 public Parameters(FriendlyByteBuf buf) {
-                    switch (MCProtocol.INSTANCE.getProtocolMapping().getVersion()) {
+                    switch (MCProtocol.INSTANCE.version()) {
                         case V1_7:
-                            this.displayName = buf.readComponent();
-                            this.playerPrefix = buf.readComponent();
-                            this.playerSuffix = buf.readComponent();
+                            this.displayName = buf.readComponent(true);
+                            this.playerPrefix = buf.readComponent(true);
+                            this.playerSuffix = buf.readComponent(true);
                             this.options = buf.readByte();
                             this.color = buf.readEnum(ChatFormatting.class);
                             this.nametagVisibility = NameTagVisibility.ALWAYS;
                             this.collisionRule = CollisionRule.ALWAYS;
                             break;
                         case V1_8:
-                            this.displayName = buf.readComponent();
-                            this.playerPrefix = buf.readComponent();
-                            this.playerSuffix = buf.readComponent();
+                            this.displayName = buf.readComponent(true);
+                            this.playerPrefix = buf.readComponent(true);
+                            this.playerSuffix = buf.readComponent(true);
                             this.options = buf.readByte();
                             this.nametagVisibility = NameTagVisibility.getByName(buf.readUtf(40));
                             this.collisionRule = CollisionRule.ALWAYS;
@@ -209,24 +215,24 @@ public class PacketPlay {
                             this.nametagVisibility = NameTagVisibility.getByName(buf.readUtf(40));
                             this.collisionRule = CollisionRule.getByName(buf.readUtf(40));
                             this.color = buf.readEnum(ChatFormatting.class);
-                            this.playerPrefix = buf.readComponent();
-                            this.playerSuffix = buf.readComponent();
+                            this.playerPrefix = buf.readComponent(MCProtocol.INSTANCE.version().below(MCVersion.V1_13));
+                            this.playerSuffix = buf.readComponent(MCProtocol.INSTANCE.version().below(MCVersion.V1_13));
                             break;
                     }
                 }
 
                 public void write(FriendlyByteBuf buf) {
-                    buf.writeComponent(this.displayName);
-                    switch (MCProtocol.INSTANCE.getProtocolMapping().getVersion()) {
+                    buf.writeComponent(this.displayName, MCProtocol.INSTANCE.version().below(MCVersion.V1_13));
+                    switch (MCProtocol.INSTANCE.version()) {
                         case V1_7:
-                            buf.writeComponent(this.playerPrefix);
-                            buf.writeComponent(this.playerSuffix);
+                            buf.writeComponent(this.playerPrefix, true);
+                            buf.writeComponent(this.playerSuffix, true);
                             buf.writeByte(this.options);
                             buf.writeEnum(this.color);
                             break;
                         case V1_8:
-                            buf.writeComponent(this.playerPrefix);
-                            buf.writeComponent(this.playerSuffix);
+                            buf.writeComponent(this.playerPrefix, true);
+                            buf.writeComponent(this.playerSuffix, true);
                             buf.writeByte(this.options);
                             buf.writeUtf(this.nametagVisibility.name);
                             buf.writeEnum(this.color);
@@ -237,8 +243,8 @@ public class PacketPlay {
                             buf.writeUtf(this.nametagVisibility.name);
                             buf.writeUtf(this.collisionRule.name);
                             buf.writeEnum(this.color);
-                            buf.writeComponent(this.playerPrefix);
-                            buf.writeComponent(this.playerSuffix);
+                            buf.writeComponent(this.playerPrefix, MCProtocol.INSTANCE.version().below(MCVersion.V1_13));
+                            buf.writeComponent(this.playerSuffix, MCProtocol.INSTANCE.version().below(MCVersion.V1_13));
                             break;
                     }
                 }
@@ -270,7 +276,7 @@ public class PacketPlay {
             }
             @Override
             public void write(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().below(MCVersion.V1_17)) {
+                if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
                     byteBuf.writeVarInt(1);
                 }
                 byteBuf.writeComponent(component);
@@ -290,7 +296,7 @@ public class PacketPlay {
             }
             @Override
             public void write(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().below(MCVersion.V1_17)) {
+                if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
                     byteBuf.writeVarInt(2);
                 }
                 byteBuf.writeInt(this.fadeIn);
@@ -304,13 +310,13 @@ public class PacketPlay {
             private boolean resetTimes;
             @Override
             public void read(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().isOrAbove(MCVersion.V1_17)) {
+                if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_17)) {
                     this.resetTimes = byteBuf.readBoolean();
                 }
             }
             @Override
             public void write(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().below(MCVersion.V1_17)) {
+                if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
                     byteBuf.writeVarInt(resetTimes ? 4 : 3);
                 } else {
                     byteBuf.writeBoolean(this.resetTimes);

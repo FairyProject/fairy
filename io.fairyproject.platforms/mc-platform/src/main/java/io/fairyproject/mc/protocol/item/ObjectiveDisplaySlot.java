@@ -34,12 +34,12 @@ public enum ObjectiveDisplaySlot {
 
     ObjectiveDisplaySlot(@NotNull String id) {
         this.id = id;
-        this.serializeId = getSerializeId();
+        this.serializeId = createSerializeId();
     }
 
     ObjectiveDisplaySlot(@NotNull NamedTextColor color) {
         this.id = "sidebar.team." + color;
-        this.serializeId = getSerializeId();
+        this.serializeId = createSerializeId();
     }
 
     /**
@@ -52,12 +52,12 @@ public enum ObjectiveDisplaySlot {
     }
 
     private int createSerializeId() {
-        switch (this) {
-            case PLAYER_LIST:
+        switch (this.id) {
+            case "list":
                 return 0;
-            case SIDEBAR:
+            case "sidebar":
                 return 1;
-            case BELOW_NAME:
+            case "belowName":
                 return 2;
             default:
                 String string = this.id.substring("sidebar.team.".length());

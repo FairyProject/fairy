@@ -72,7 +72,7 @@ public class Sidebar {
                 .objectiveName(player.getName())
                 .displayName(title)
                 .renderType(ObjectiveRenderType.INTEGER)
-                .method(1)
+                .method(2)
                 .build());
     }
 
@@ -183,6 +183,7 @@ public class Sidebar {
                     .action(ScoreAction.CHANGE)
                     .build();
 
+            builder.teamAction(TeamAction.ADD);
             builder.player(getEntry(line));
             this.player.sendPacket(score);
 
