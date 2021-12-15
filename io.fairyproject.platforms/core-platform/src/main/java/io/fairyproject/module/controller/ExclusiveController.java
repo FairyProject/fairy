@@ -30,7 +30,7 @@ public class ExclusiveController implements ModuleController {
                     final List<ContainerObject> beanDetails = this.containerContext.scanClasses()
                             .name(m.getName() + " - excluded load")
                             .prefix(m.getPlugin().getName() + "-")
-                            .classLoader(m.getClassLoader(), this.getClass().getClassLoader())
+                            .classLoader(this.getClass().getClassLoader())
                             .classPath(excludedPackages)
                             .url(m.getShadedPath().toUri().toURL())
                             .scan();

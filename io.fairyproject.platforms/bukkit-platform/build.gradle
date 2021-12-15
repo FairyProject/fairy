@@ -50,6 +50,6 @@ repositories {
 
 processResources {
     filter ReplaceTokens, tokens: [
-            "version": project.property("version")
+            "version": project.version
     ]
 }

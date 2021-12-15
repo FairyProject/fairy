@@ -1,0 +1,50 @@
+import io.fairyproject.gradle.FairyVersion
+
+abstract class VersionModificationTask extends DefaultTask {
+
+    @Input
+    @Option(option = "type", description = "The type of versioning to increase/decrease")
+    String type
+
+    @Input
+    @Option(option = "offset", description = "The offset of versioning to increase/decrease")
+    String offset
+
+    @TaskAction
+    void doModification() {
+        if (project.buildFile != null && project.buildFile.exists()) {
+            def offset = Integer.parseInt(offset)
+
+            def v = project.buildFile.getText().find(project.version)
+            def version = FairyVersion.parse(v)
+
+            switch (type.toLowerCase()) {
+                case "b":
+                case "build":
+                    version.addBuild(offset)
+                    break
+                case "r":
+                case "revision":
+                    version.addRevision(offset)
+                    break
+                case "mi":
+                case "minor":
+                    version.addMinor(offset)
+                    break
+                case "ma":
+                case "major":
+                    version.addMajor(offset)
+                    break
+            }
+
+            String s = project.buildFile.getText().replaceFirst("version = \"$v\"","version = \""+version.toString()+"\"")
+            project.buildFile.setText(s)
+
+            println "Updating project $project.name from $v to $version"
+        }
+    }
+
+}
+
+task update(type: VersionModificationTask) {
+}
