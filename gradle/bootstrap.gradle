@@ -43,7 +43,7 @@ if (project.file("build.gradle") != null && findProperty("deploy.imanityLibrarie
 publish.dependsOn build
 shadowJar.dependsOn build
 
-if (project.name != "gradle-plugin") {
+if (project.name != "gradle-plugin" && project.name != "test-plugin") {
     shadowJar.dependsOn build
 }
 

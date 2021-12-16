@@ -1,0 +1,28 @@
+import io.fairyproject.gradle.FairyPlugin
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath project(":gradle-plugin")
+    }
+}
+
+apply plugin: "java"
+apply plugin: FairyPlugin
+
+fairy {
+    name = "debugPlugin"
+    version = "1.0.0"
+    mainPackage = "io.fairyproject.debug"
+
+    fairyIde = true
+
+    module("sidebar")
+}
+
+dependencies {
+    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+}

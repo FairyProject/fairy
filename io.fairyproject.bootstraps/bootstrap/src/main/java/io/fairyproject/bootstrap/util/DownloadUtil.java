@@ -3,12 +3,14 @@ package io.fairyproject.bootstrap.util;
 import lombok.experimental.UtilityClass;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @UtilityClass
 public class DownloadUtil {
@@ -17,6 +19,24 @@ public class DownloadUtil {
 
     @SuppressWarnings("Duplicates")
     public Path download(Path path, String core) throws IOException {
+        try {
+            Class.forName("io.fairyproject.debug.IDE");
+
+            // Running in IDE
+            final File projectFolder = Paths.get("").toAbsolutePath().getParent().toFile();
+            final File localRepoFolder = new File(projectFolder, "libs/local");
+
+            if (!localRepoFolder.exists()) {
+                throw new IllegalStateException("Couldn't found local repo setup at " + localRepoFolder.toPath() + "!");
+            }
+
+            File file = new File(localRepoFolder, core + "-platform.jar");
+            if (!file.exists()) {
+                throw new IllegalStateException("Couldn't found local module at local repo setup at " + file + "!");
+            }
+            return file.toPath();
+        } catch (ClassNotFoundException ignored) {
+        }
         final URL url = new URL(URL.replaceAll("<module>", core + "-platform"));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);

@@ -68,7 +68,15 @@ void initModules() {
 
     include "io.fairyproject.modules:platform.core:core-legacy"
     include "io.fairyproject.modules:platform.core:core-jackson"
+}
 
+void includeDebug() {
+    def debugPlugin = file("debug-plugin.settings.gradle")
+    if (debugPlugin.exists()) {
+        apply from: debugPlugin
+    } else {
+        debugPlugin.setText("// Uncomment to enable the debug plugin module\n//include(\"test-plugin\")\n")
+    }
 }
 
 initBootstrap()
@@ -76,4 +84,5 @@ initModules()
 initPlatforms()
 
 include "gradle-plugin"
+includeDebug()
 

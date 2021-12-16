@@ -1,3 +1,6 @@
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
+
 apply plugin: "java-library"
 apply plugin: "com.github.johnrengelman.shadow"
 
@@ -6,6 +9,21 @@ targetCompatibility = 1.8
 
 ext {
     archieveName = project.name
+}
+
+abstract class CopyJarToLocal extends DefaultTask {
+
+    @Input
+    String jarFrom
+    @Input
+    String jarTo
+
+    @TaskAction
+    void copy() {
+        new File(jarTo).getParentFile().mkdirs()
+        Files.copy(new File(jarFrom).toPath(), new File(jarTo).toPath(), StandardCopyOption.REPLACE_EXISTING)
+    }
+
 }
 
 // setup directory per version
@@ -18,4 +36,12 @@ project.afterEvaluate(p -> {
 
     tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
     tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
+
+//    println rootProject.file("libs/local/${tasks.shadowJar.archiveFileName}").toPath().toString()
+
+    def copyTask = tasks.create("copyJarToLocal", CopyJarToLocal)
+    copyTask.jarFrom = tasks.shadowJar.archiveFile.get().asFile.toPath().toString()
+    copyTask.jarTo = rootProject.file("libs/local/${tasks.shadowJar.archiveFileName.get()}").toPath().toString()
+
+    tasks.shadowJar.finalizedBy(copyTask)
 })

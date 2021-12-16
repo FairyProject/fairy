@@ -83,7 +83,7 @@ subprojects {
         return
     }
 
-    if (project.name == "gradle-plugin") {
+    if (project.name == "gradle-plugin" || project.name == "test-plugin") {
         return
     }
 
