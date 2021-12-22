@@ -13,17 +13,12 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
-import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
 import org.gradle.api.plugins.GroovyPlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -41,7 +36,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.jar.JarFile;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 public class FairyPlugin implements Plugin<Project> {
