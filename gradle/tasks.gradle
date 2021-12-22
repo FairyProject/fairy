@@ -49,11 +49,7 @@ abstract class VersionModificationTask extends DefaultTask {
 
 }
 
-abstract class DownloadBukkit extends DefaultTask {
-
-    @Input
-    @Option(option = "compile", description = "Should you recompile fairy for the debug")
-    boolean compile = true
+abstract class RunDebugBukkit extends DefaultTask {
 
     @TaskAction
     void download() {
@@ -99,30 +95,26 @@ abstract class DownloadBukkit extends DefaultTask {
                     "#Tue Jun 22 20:59:57 ICT 2021\n" +
                     "eula=true\n")
 
-        project.tasks.runDebugBukkit.mainClass.set("-jar")
-        project.tasks.runDebugBukkit.args = [
+        project.tasks.execBukkit.mainClass.set("-jar")
+        project.tasks.execBukkit.args = [
                 file.toPath().toString()
         ]
-        project.tasks.runDebugBukkit.standardInput = System.in
-        project.tasks.runDebugBukkit.workingDir("debug/bukkit")
+        project.tasks.execBukkit.standardInput = System.in
+        project.tasks.execBukkit.workingDir("debug/bukkit")
 
         def pluginProject = project.childProjects["test-plugin"]
         if (pluginProject != null) {
             def jar = new File(pluginProject.buildDir, "libs/test-plugin-all.jar")
 
-            project.tasks.runDebugBukkit.inputs.file(jar)
+            project.tasks.execBukkit.inputs.file(jar)
 
-            project.file("debug/plugins").mkdirs()
+            project.file("debug/bukkit/plugins").mkdirs()
             Files.copy(jar, project.file("debug/bukkit/plugins/debugPlugin.jar"))
         }
     }
 }
 
-abstract class SetupApp extends DefaultTask {
-
-    @Input
-    @Option(option = "compile", description = "Should you recompile fairy for the debug")
-    boolean compile = true
+abstract class RunDebugApp extends DefaultTask {
 
     @TaskAction
     void setup() {
@@ -139,17 +131,17 @@ abstract class SetupApp extends DefaultTask {
         def jar = new File(pluginProject.buildDir, "libs/test-plugin-all.jar")
         def file = project.file("debug/app/debugPlugin.jar")
 
-        project.tasks.runDebugApp.inputs.file(jar)
+        project.tasks.execApp.inputs.file(jar)
 
         project.file("debug/app").mkdirs()
         Files.copy(jar, file)
 
-        project.tasks.runDebugApp.mainClass.set("-jar")
-        project.tasks.runDebugApp.args = [
+        project.tasks.execApp.mainClass.set("-jar")
+        project.tasks.execApp.args = [
                 file.toPath().toString()
         ]
-        project.tasks.runDebugApp.standardInput = System.in
-        project.tasks.runDebugApp.workingDir("debug/app")
+        project.tasks.execApp.standardInput = System.in
+        project.tasks.execApp.workingDir("debug/app")
     }
 
 }
@@ -159,62 +151,78 @@ task update(type: VersionModificationTask) {
 
 project.afterEvaluate {
     if (project == rootProject) {
-        task setupApp(type: SetupApp) {
+        task execBukkit(type: JavaExec) {
+            group = "debug"
+        }
+
+        task execApp(type: JavaExec) {
+            group = "debug"
+        }
+
+        task runDebugApp(type: RunDebugApp) {
+            group = "debug"
+
+            if (project.childProjects["test-plugin"] != null) {
+                dependsOn(":test-plugin:build")
+            }
+
+            finalizedBy(execApp)
+        }
+
+        task runDebugBukkit(type: RunDebugBukkit) {
+            group = "debug"
+
+            if (project.childProjects["test-plugin"] != null) {
+                dependsOn(":test-plugin:build")
+            }
+
+            finalizedBy(execBukkit)
+        }
+
+        task runCompileDebugApp(type: RunDebugApp) {
             group = "debug"
 
             Task task = null
-            if (compile) {
-                project.allprojects.forEach(p -> {
-                    if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
-                        if (task != null)
-                            task.finalizedBy(p.tasks.shadowJar)
-                        else
-                            dependsOn(p.tasks.shadowJar)
-                        task = p.tasks.shadowJar
-                    }
-                })
-            }
+            project.allprojects.forEach(p -> {
+                if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
+                    if (task != null)
+                        task.finalizedBy(p.tasks.shadowJar)
+                    else
+                        dependsOn(p.tasks.shadowJar)
+                    task = p.tasks.shadowJar
+                }
+            })
 
             if (project.childProjects["test-plugin"] != null) {
                 if (task != null)
                     task.finalizedBy(":test-plugin:build")
-                else
-                    dependsOn(":test-plugin:build")
+                dependsOn(":test-plugin:build")
             }
+
+            finalizedBy(execApp)
         }
 
-        task downloadBukkit(type: DownloadBukkit) {
+        task runCompileDebugBukkit(type: RunDebugBukkit) {
             group = "debug"
 
             Task task = null
-            if (compile) {
-                project.allprojects.forEach(p -> {
-                    if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
-                        if (task != null)
-                            task.finalizedBy(p.tasks.shadowJar)
-                        else
-                            dependsOn(p.tasks.shadowJar)
-                        task = p.tasks.shadowJar
-                    }
-                })
-            }
+            project.allprojects.forEach(p -> {
+                if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
+                    if (task != null)
+                        task.finalizedBy(p.tasks.shadowJar)
+                    else
+                        dependsOn(p.tasks.shadowJar)
+                    task = p.tasks.shadowJar
+                }
+            })
 
             if (project.childProjects["test-plugin"] != null) {
                 if (task != null)
                     task.finalizedBy(":test-plugin:build")
-                else
-                    dependsOn(":test-plugin:build")
+                dependsOn(":test-plugin:build")
             }
-        }
 
-        task runDebugBukkit(type: JavaExec) {
-            group = "debug"
-            dependsOn(downloadBukkit)
-        }
-
-        task runDebugApp(type: JavaExec) {
-            group = "debug"
-            dependsOn(setupApp)
+            finalizedBy(execBukkit)
         }
     }
 }
