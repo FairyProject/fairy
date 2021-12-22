@@ -1,7 +1,6 @@
 package io.fairyproject.debug;
 
 import io.fairyproject.container.Component;
-import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.sidebar.SidebarAdapter;
 import io.fairyproject.util.CC;
@@ -38,7 +37,6 @@ public class DebugSidebarAdapter implements SidebarAdapter {
             component = component.append(net.kyori.adventure.text.Component.text(this.titleColors[i].toString() + charArray[i]));
         }
 
-        System.out.println(MCAdventure.asLegacyString(component, mcPlayer.getLocale()).length());
         return component;
     }
 

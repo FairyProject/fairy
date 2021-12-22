@@ -92,11 +92,12 @@ subprojects {
     if (project.name.contains("bootstrap")) {
         apply from: "${rootDir}/gradle/bootstrap.gradle"
     } else {
-        apply from: "${rootDir}/gradle/module.gradle"
-    }
-
-    if (project.name.endsWith("-platform")) {
-        apply from: "${rootDir}/gradle/platform.gradle"
+        apply from: "${rootDir}/gradle/basic.gradle"
+        if (project.name.endsWith("-platform")) {
+            apply from: "${rootDir}/gradle/platform.gradle"
+        } else {
+            apply from: "${rootDir}/gradle/module.gradle"
+        }
     }
 }
 

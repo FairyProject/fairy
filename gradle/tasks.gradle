@@ -49,6 +49,11 @@ abstract class VersionModificationTask extends DefaultTask {
 }
 
 abstract class DownloadBukkit extends DefaultTask {
+
+    @Input
+    @Option(option = "compile", description = "Should you recompile fairy for the debug")
+    boolean compile = true
+
     @TaskAction
     void download() {
         def folder = project.file("debug/spigots")
@@ -105,6 +110,8 @@ abstract class DownloadBukkit extends DefaultTask {
             def jar = new File(pluginProject.buildDir, "libs/test-plugin-all.jar")
 
             project.tasks.runDebugBukkit.inputs.file(jar)
+
+            project.file("debug/plugins").mkdirs()
             Files.copy(jar, project.file("debug/plugins/debugPlugin.jar"))
         }
     }
@@ -119,15 +126,17 @@ project.afterEvaluate {
             group = "debug"
 
             Task task = null
-            project.allprojects.forEach(p -> {
-                if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
-                    if (task != null)
-                        task.finalizedBy(p.tasks.shadowJar)
-                    else
-                        dependsOn(p.tasks.shadowJar)
-                    task = p.tasks.shadowJar
-                }
-            })
+            if (compile) {
+                project.allprojects.forEach(p -> {
+                    if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
+                        if (task != null)
+                            task.finalizedBy(p.tasks.shadowJar)
+                        else
+                            dependsOn(p.tasks.shadowJar)
+                        task = p.tasks.shadowJar
+                    }
+                })
+            }
 
             if (project.childProjects["test-plugin"] != null) {
                 if (task != null)
