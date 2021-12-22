@@ -1,1 +1,3 @@
+//file:noinspection GroovyAssignabilityCheck
+
 version = project(":").version

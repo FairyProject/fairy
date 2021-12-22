@@ -38,8 +38,6 @@ public class FairyAppPlatform extends FairyPlatform {
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
         this.mainThread = Thread.currentThread();
         this.running = true;
-
-        Runtime.getRuntime().addShutdownHook(new Thread(this::shutdown));
     }
 
     @Override

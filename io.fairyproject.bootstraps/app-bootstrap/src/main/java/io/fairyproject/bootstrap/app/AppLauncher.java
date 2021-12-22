@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.fairyproject.bootstrap.app.console.FairyTerminalConsole;
 import io.fairyproject.bootstrap.app.console.ForwardLogHandler;
+import net.minecrell.terminalconsole.TerminalConsoleAppender;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -49,6 +50,12 @@ public class AppLauncher {
                 io.fairyproject.Fairy.getPlatform().shutdown();
             } catch (Throwable throwable) {
                 throwable.printStackTrace();
+            } finally {
+                try {
+                    TerminalConsoleAppender.close();
+                } catch (IOException e) {
+                    // IGNORE
+                }
             }
         });
         Runtime.getRuntime().addShutdownHook(shutdownHook);

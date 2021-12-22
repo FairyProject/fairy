@@ -38,6 +38,7 @@ public class FairyExtension {
     private final Property<String> name;
     private final Property<String> description;
     private final Property<String> version;
+    private final Property<Boolean> fairyIde;
     private final ListProperty<String> authors;
 
     private final Map<PlatformType, Map<String, String>> nodes;
@@ -58,6 +59,7 @@ public class FairyExtension {
         this.name = objectFactory.property(String.class);
         this.description = objectFactory.property(String.class);
         this.version = objectFactory.property(String.class);
+        this.fairyIde = objectFactory.property(Boolean.class);
         this.authors = objectFactory.listProperty(String.class).convention(Collections.emptyList());
 
         this.nodes = new HashMap<>();

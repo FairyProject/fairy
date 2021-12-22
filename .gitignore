@@ -2,6 +2,11 @@
 # User-specific stuff
 .idea/
 
+debug-plugin.settings.gradle
+/debug
+
+libs/local
+
 *.iml
 *.ipr
 *.iws

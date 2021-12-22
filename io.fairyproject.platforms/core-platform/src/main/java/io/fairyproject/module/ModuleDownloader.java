@@ -1,14 +1,17 @@
 package io.fairyproject.module;
 
 import com.google.common.io.ByteStreams;
+import io.fairyproject.Debug;
 import lombok.experimental.UtilityClass;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @UtilityClass
 public class ModuleDownloader {
@@ -22,6 +25,20 @@ public class ModuleDownloader {
             return path;
         }
         path.toFile().getParentFile().mkdirs();
+        if (Debug.IN_FAIRY_IDE) {
+            final File projectFolder = Paths.get("").toAbsolutePath().getParent().getParent().toFile(); // double parent
+            final File localRepoFolder = new File(projectFolder, "libs/local");
+
+            if (!localRepoFolder.exists()) {
+                Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local repo setup at " + localRepoFolder + "!"));
+            }
+
+            File file = new File(localRepoFolder, module + ".jar");
+            if (!file.exists()) {
+                Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local module at local repo setup at " + file + "!"));
+            }
+            return file.toPath();
+        }
 
         final java.net.URL url = new URL(URL.replaceAll("<module>", module).replaceAll("<version>", version)); // TODO - ensure url correctly
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -43,7 +60,7 @@ public class ModuleDownloader {
             return path;
         }
 
-        throw new IllegalArgumentException("Connection responses a different code "+ responseCode);
+        throw new IllegalArgumentException("Connection responses a different code " + responseCode);
     }
 
 }

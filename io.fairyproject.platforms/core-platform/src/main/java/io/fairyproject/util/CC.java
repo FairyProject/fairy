@@ -24,8 +24,12 @@
 
 package io.fairyproject.util;
 
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class CC {
 
@@ -86,6 +90,8 @@ public class CC {
         SB_BAR = CC.GRAY + CC.STRIKE_THROUGH + "----------------------";
     }
 
+    private static final Pattern HEX_COLOR_PATTERN = Pattern.compile(CODE + "x(?>" + CODE + "[0-9a-f]){6}", Pattern.CASE_INSENSITIVE);
+
     public static List<String> translate(List<String> lines) {
         List<String> toReturn = new ArrayList<>();
 
@@ -124,21 +130,29 @@ public class CC {
         return new String(b);
     }
 
-    public static String getLastColors(String input) {
+    public static String getLastColors(@NotNull String input) {
+        Validate.notNull(input, "Cannot get last colors from null text");
+
         StringBuilder result = new StringBuilder();
         int length = input.length();
 
-        // Search backwards from the end as it is faster
         for (int index = length - 1; index > -1; index--) {
             char section = input.charAt(index);
             if (section == CODE && index < length - 1) {
-                char c = input.charAt(index + 1);
+                if (index > 11 && input.charAt(index - 12) == CODE && (input.charAt(index - 11) == 'x' || input.charAt(index - 11) == 'X')) {
+                    String color = input.substring(index - 12, index + 2);
+                    if (HEX_COLOR_PATTERN.matcher(color).matches()) {
+                        result.insert(0, color);
+                        break;
+                    }
+                }
+                char color = input.charAt(index + 1);
 
-                if ("0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(c) > -1) {
-                    result.insert(0, CODE + c);
+                if ("0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(color) > -1) {
+                    result.insert(0, new String(new char[]{CODE, color}));
 
                     // Once we find a color or reset we can stop searching
-                    if ("klmno".indexOf(c) == -1 || c == 'r') {
+                    if ("klmno".indexOf(color) == -1 || color == 'r') {
                         break;
                     }
                 }
