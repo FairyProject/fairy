@@ -24,9 +24,10 @@ import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+@SuppressWarnings("unchecked")
 public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
 
-    private static final AttributeKey<Object> ATTRIBUTE_KEY = AttributeKey.valueOf("protocol");
+    private static final AttributeKey<Object> ATTRIBUTE_KEY;
     private static final Function<Player, Integer> PING;
     private static final Function<Player, Component> GET_DISPLAY_NAME;
     private static final Function<Player, MCGameProfile> GAME_PROFILE;
@@ -54,6 +55,17 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
                     .trial(() -> Player.class.getMethod("displayName", Component.class), NoSuchMethodException.class, (player, component) -> player.as(Player.class).displayName(component))
                     .find((player, component) -> player.as(Player.class).setDisplayName(MCAdventure.asLegacyString(component, player.getLocale())))
                     .unchecked();
+
+            AttributeKey<Object> attributeKey;
+            try {
+                attributeKey = AttributeKey.valueOf("protocol");
+            } catch (IllegalArgumentException ex) {
+                NMSClassResolver classResolver = new NMSClassResolver();
+                final Class<?> networkManagerClass = classResolver.resolve("NetworkManager");
+                attributeKey = (AttributeKey<Object>) new FieldResolver(networkManagerClass).resolveByFirstType(AttributeKey.class).get(null);
+            }
+
+            ATTRIBUTE_KEY = attributeKey;
         } catch (Throwable e) {
             throw new IllegalStateException(e);
         }

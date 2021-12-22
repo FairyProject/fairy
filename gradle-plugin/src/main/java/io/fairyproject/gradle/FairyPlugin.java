@@ -16,6 +16,7 @@ import org.gradle.api.Project;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
@@ -41,6 +42,7 @@ public class FairyPlugin implements Plugin<Project> {
 
     private static final String REPOSITORY = "https://maven.imanity.dev/repository/imanity-libraries/";
     private static final String DEPENDENCY_FORMAT = "io.fairyproject:%s:%s";
+    public static boolean IS_IN_IDE = false;
 
     private FairyExtension extension;
     private Configuration aspectJConfiguration;
@@ -60,31 +62,54 @@ public class FairyPlugin implements Plugin<Project> {
         final Configuration fairyModuleConfiguration = project.getConfigurations().maybeCreate("fairyModule");
         final FairyTask fairyTask = project.getTasks().create("fairyBuild", FairyTask.class);
         project.afterEvaluate(p -> {
+            IS_IN_IDE = extension.getFairyIde().getOrElse(false);
+            if (IS_IN_IDE) {
+                IDEDependencyLookup.init(project.getRootProject());
+            }
+
             p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyConfiguration);
             p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyModuleConfiguration);
-            p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(REPOSITORY));
+            if (!IS_IN_IDE)
+                p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(REPOSITORY));
             final List<PlatformType> platformTypes = this.extension.getFairyPlatforms().getOrNull();
             if (platformTypes == null) {
                 throw new IllegalArgumentException("No platforms found!");
             }
 
             for (PlatformType platformType : platformTypes) {
-                fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                        platformType.getDependencyName() + "-bootstrap",
-                        this.extension.getFairyVersion().get()
-                )));
-                p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
-                        platformType.getDependencyName() + "-platform",
-                        this.extension.getFairyVersion().get()
-                ));
+                if (IS_IN_IDE) {
+                    final Project bootstrapProject = p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-bootstrap"));
+
+                    final ModuleDependency dependency = (ModuleDependency) p.getDependencies().create(bootstrapProject);
+                    dependency.setTargetConfiguration("shadow");
+
+                    fairyConfiguration.getDependencies().add(dependency);
+                    p.getDependencies().add("compileOnly", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
+                } else {
+                    fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
+                            platformType.getDependencyName() + "-bootstrap",
+                            this.extension.getFairyVersion().get()
+                    )));
+                    p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
+                            platformType.getDependencyName() + "-platform",
+                            this.extension.getFairyVersion().get()
+                    ));
+                }
             }
 
             final Configuration copy = fairyModuleConfiguration.copy();
             for (Map.Entry<String, String> moduleEntry : this.extension.getFairyModules().entrySet()) {
-                final Dependency dependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                        moduleEntry.getKey(),
-                        moduleEntry.getValue()
-                ));
+                final Dependency dependency;
+                if (IS_IN_IDE) {
+                    final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(moduleEntry.getKey()));
+                    dependency = this.project.getDependencies().create(dependProject);
+                    ((ModuleDependency) dependency).setTargetConfiguration("shadow");
+                } else {
+                    dependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
+                            moduleEntry.getKey(),
+                            moduleEntry.getValue()
+                    ));
+                }
 
                 try {
                     new ModuleReader(project, extension, fairyModuleConfiguration, copy, new HashSet<>()).load(moduleEntry.getKey(), dependency, new ArrayList<>());
@@ -103,6 +128,7 @@ public class FairyPlugin implements Plugin<Project> {
 
             if (platformTypes.contains(PlatformType.APP)) {
                 jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
+                jar.getManifest().getAttributes().put("Multi-Release", "true");
             }
 
             List<Object> list = new ArrayList<>();
@@ -278,10 +304,18 @@ public class FairyPlugin implements Plugin<Project> {
                     if (version == null) {
                         version = MavenUtil.getLatest(name);
                     }
-                    list.add(Pair.of(name, this.project.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                            name,
-                            version
-                    ))));
+                    if (IS_IN_IDE) {
+                        final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(name));
+                        final ModuleDependency dependency = (ModuleDependency) this.project.getDependencies().create(dependProject);
+                        dependency.setTargetConfiguration("shadow");
+
+                        list.add(Pair.of(name, dependency));
+                    } else {
+                        list.add(Pair.of(name, this.project.getDependencies().create(String.format(DEPENDENCY_FORMAT,
+                                name,
+                                version
+                        ))));
+                    }
                 }
             }
             return list;

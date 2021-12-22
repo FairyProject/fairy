@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.*;
@@ -197,7 +198,7 @@ public class ModuleService {
 
             Path notShadedPath = path;
             final Path finalPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
-            if (!Files.exists(finalPath)) {
+            if (Debug.IN_FAIRY_IDE || !Files.exists(finalPath)) {
                 this.remap(path, finalPath, plugin, dependedModules, relocationEntries);
             }
 

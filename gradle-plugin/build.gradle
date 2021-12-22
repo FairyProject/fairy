@@ -5,7 +5,7 @@ repositories {
 version = "1.0.0b3"
 
 apply plugin: "java-gradle-plugin"
-//apply plugin: "maven-publish"
+apply plugin: "maven-publish"
 apply plugin: "com.gradle.plugin-publish"
 
 gradlePlugin {
@@ -17,14 +17,14 @@ gradlePlugin {
     }
 }
 
-//publishing {
-//    repositories {
-//        maven {
-//            name = 'localPluginRepository'
-//            url = '../local-plugin-repository'
-//        }
-//    }
-//}
+publishing {
+    repositories {
+        maven {
+            name = 'localPluginRepository'
+            url = '../libs/local'
+        }
+    }
+}
 
 pluginBundle {
     tags = ["fairy", "bukkit", "minecraft"]

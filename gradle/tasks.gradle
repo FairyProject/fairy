@@ -1,4 +1,7 @@
+import com.google.common.io.Files
+import io.fairyproject.gradle.ExtensionUtil
 import io.fairyproject.gradle.FairyVersion
+import org.yaml.snakeyaml.Yaml
 
 abstract class VersionModificationTask extends DefaultTask {
 
@@ -46,5 +49,180 @@ abstract class VersionModificationTask extends DefaultTask {
 
 }
 
+abstract class RunDebugBukkit extends DefaultTask {
+
+    @TaskAction
+    void download() {
+        def folder = project.file("debug/bukkit/spigots")
+        if (!folder.exists())
+            folder.mkdirs()
+
+        def config = project.file("debug/bukkit/spigots/spigot.yml")
+        if (!config.exists()) {
+            config.setText("version: \"1.8.8\"\nbuild: \"444\"")
+        }
+
+        Yaml yaml = new Yaml()
+        Map<String, Object> map = yaml.load(config.getText())
+
+        def version = map.get("version")
+        def build = map.get("build")
+
+        def file = project.file("debug/bukkit/spigots/${version}-${build}.jar")
+        if (!file.exists()) {
+            HttpURLConnection connection = new URL("https://papermc.io/api/v2/projects/paper/versions/$version/builds/$build/downloads/paper-$version-${build}.jar").openConnection() as HttpURLConnection
+
+            connection.setDoInput(true)
+            def inputStream = connection.getInputStream()
+            FileOutputStream outputStream = new FileOutputStream(file)
+
+            int bytesRead
+            byte[] buffer = new byte[4096];
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                outputStream.write(buffer, 0, bytesRead)
+            }
+
+            outputStream.close()
+            inputStream.close()
+
+            println "Downloaded $version-${build}.jar"
+        }
+
+        def eula = project.file("debug/bukkit/eula.txt")
+        if (!eula.exists())
+            eula.setText("#By changing the setting below to TRUE you are indicating your agreement to our EULA (https://account.mojang.com/documents/minecraft_eula).\n" +
+                    "#and also agreeing that tacos are tasty.\n" +
+                    "#Tue Jun 22 20:59:57 ICT 2021\n" +
+                    "eula=true\n")
+
+        project.tasks.execBukkit.mainClass.set("-jar")
+        project.tasks.execBukkit.args = [
+                file.toPath().toString()
+        ]
+        project.tasks.execBukkit.standardInput = System.in
+        project.tasks.execBukkit.workingDir("debug/bukkit")
+
+        def pluginProject = project.childProjects["test-plugin"]
+        if (pluginProject != null) {
+            def jar = new File(pluginProject.buildDir, "libs/test-plugin-all.jar")
+
+            project.tasks.execBukkit.inputs.file(jar)
+
+            project.file("debug/bukkit/plugins").mkdirs()
+            Files.copy(jar, project.file("debug/bukkit/plugins/debugPlugin.jar"))
+        }
+    }
+}
+
+abstract class RunDebugApp extends DefaultTask {
+
+    @TaskAction
+    void setup() {
+        def pluginProject = project.childProjects["test-plugin"]
+        if (pluginProject == null) {
+            throw new IllegalStateException("No test-plugin to debug application.")
+        }
+
+        def extension = pluginProject.getExtensions().getByName("fairy")
+        if (!ExtensionUtil.hasPlatform(extension, "APP")) {
+            throw new IllegalStateException("test-plugin is not application platform.")
+        }
+
+        def jar = new File(pluginProject.buildDir, "libs/test-plugin-all.jar")
+        def file = project.file("debug/app/debugPlugin.jar")
+
+        project.tasks.execApp.inputs.file(jar)
+
+        project.file("debug/app").mkdirs()
+        Files.copy(jar, file)
+
+        project.tasks.execApp.mainClass.set("-jar")
+        project.tasks.execApp.args = [
+                file.toPath().toString()
+        ]
+        project.tasks.execApp.standardInput = System.in
+        project.tasks.execApp.workingDir("debug/app")
+    }
+
+}
+
 task update(type: VersionModificationTask) {
+}
+
+project.afterEvaluate {
+    if (project == rootProject) {
+        task execBukkit(type: JavaExec) {
+            group = "debug"
+        }
+
+        task execApp(type: JavaExec) {
+            group = "debug"
+        }
+
+        task runDebugApp(type: RunDebugApp) {
+            group = "debug"
+
+            if (project.childProjects["test-plugin"] != null) {
+                dependsOn(":test-plugin:build")
+            }
+
+            finalizedBy(execApp)
+        }
+
+        task runDebugBukkit(type: RunDebugBukkit) {
+            group = "debug"
+
+            if (project.childProjects["test-plugin"] != null) {
+                dependsOn(":test-plugin:build")
+            }
+
+            finalizedBy(execBukkit)
+        }
+
+        task runCompileDebugApp(type: RunDebugApp) {
+            group = "debug"
+
+            Task task = null
+            project.allprojects.forEach(p -> {
+                if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
+                    if (task != null)
+                        task.finalizedBy(p.tasks.shadowJar)
+                    else
+                        dependsOn(p.tasks.shadowJar)
+                    task = p.tasks.shadowJar
+                }
+            })
+
+            if (project.childProjects["test-plugin"] != null) {
+                if (task != null)
+                    task.finalizedBy(":test-plugin:build")
+                dependsOn(":test-plugin:build")
+            }
+
+            finalizedBy(execApp)
+        }
+
+        task runCompileDebugBukkit(type: RunDebugBukkit) {
+            group = "debug"
+
+            Task task = null
+            project.allprojects.forEach(p -> {
+                if (p.name != "test-plugin" && p.name != "gradle-plugin" && p.tasks.findByName("shadowJar") != null) {
+                    if (task != null)
+                        task.finalizedBy(p.tasks.shadowJar)
+                    else
+                        dependsOn(p.tasks.shadowJar)
+                    task = p.tasks.shadowJar
+                }
+            })
+
+            if (project.childProjects["test-plugin"] != null) {
+                if (task != null)
+                    task.finalizedBy(":test-plugin:build")
+                dependsOn(":test-plugin:build")
+            }
+
+            finalizedBy(execBukkit)
+        }
+    }
 }
