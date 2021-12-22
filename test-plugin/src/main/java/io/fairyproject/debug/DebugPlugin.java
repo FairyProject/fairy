@@ -1,9 +1,10 @@
 package io.fairyproject.debug;
 
 import io.fairyproject.Debug;
+import io.fairyproject.app.Application;
 import io.fairyproject.plugin.Plugin;
 
-public class DebugPlugin extends Plugin {
+public class DebugPlugin extends Application {
 
     @Override
     public void onInitial() {
@@ -15,7 +16,7 @@ public class DebugPlugin extends Plugin {
     }
 
     @Override
-    public void onPluginEnable() {
+    public void onAppEnable() {
 
     }
 

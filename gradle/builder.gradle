@@ -44,4 +44,12 @@ project.afterEvaluate(p -> {
     copyTask.jarTo = rootProject.file("libs/local/${tasks.shadowJar.archiveFileName.get()}").toPath().toString()
 
     tasks.shadowJar.finalizedBy(copyTask)
+
+    configurations {
+        shadow
+    }
+
+    artifacts {
+        shadow tasks.shadowJar.archiveFile.get().asFile
+    }
 })

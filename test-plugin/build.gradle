@@ -20,9 +20,5 @@ fairy {
 
     fairyIde = true
 
-    module("sidebar")
-}
-
-dependencies {
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    platform("app")
 }

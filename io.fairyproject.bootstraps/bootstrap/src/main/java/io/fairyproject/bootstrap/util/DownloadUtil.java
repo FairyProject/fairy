@@ -23,7 +23,7 @@ public class DownloadUtil {
             Class.forName("io.fairyproject.debug.IDE");
 
             // Running in IDE
-            final File projectFolder = Paths.get("").toAbsolutePath().getParent().toFile();
+            final File projectFolder = Paths.get("").toAbsolutePath().getParent().getParent().toFile(); // double parent
             final File localRepoFolder = new File(projectFolder, "libs/local");
 
             if (!localRepoFolder.exists()) {

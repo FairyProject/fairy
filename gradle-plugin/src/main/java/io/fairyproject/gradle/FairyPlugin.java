@@ -13,10 +13,15 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
@@ -79,7 +84,12 @@ public class FairyPlugin implements Plugin<Project> {
 
             for (PlatformType platformType : platformTypes) {
                 if (IS_IN_IDE) {
-                    fairyConfiguration.getDependencies().add(p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-bootstrap"))));
+                    final Project bootstrapProject = p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-bootstrap"));
+
+                    final ModuleDependency dependency = (ModuleDependency) p.getDependencies().create(bootstrapProject);
+                    dependency.setTargetConfiguration("shadow");
+
+                    fairyConfiguration.getDependencies().add(dependency);
                     p.getDependencies().add("compileOnly", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                 } else {
                     fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
@@ -99,6 +109,7 @@ public class FairyPlugin implements Plugin<Project> {
                 if (IS_IN_IDE) {
                     final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(moduleEntry.getKey()));
                     dependency = this.project.getDependencies().create(dependProject);
+                    ((ModuleDependency) dependency).setTargetConfiguration("shadow");
                 } else {
                     dependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
                             moduleEntry.getKey(),
@@ -123,6 +134,7 @@ public class FairyPlugin implements Plugin<Project> {
 
             if (platformTypes.contains(PlatformType.APP)) {
                 jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
+                jar.getManifest().getAttributes().put("Multi-Release", "true");
             }
 
             List<Object> list = new ArrayList<>();
@@ -300,7 +312,10 @@ public class FairyPlugin implements Plugin<Project> {
                     }
                     if (IS_IN_IDE) {
                         final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(name));
-                        list.add(Pair.of(name, this.project.getDependencies().create(dependProject)));
+                        final ModuleDependency dependency = (ModuleDependency) this.project.getDependencies().create(dependProject);
+                        dependency.setTargetConfiguration("shadow");
+
+                        list.add(Pair.of(name, dependency));
                     } else {
                         list.add(Pair.of(name, this.project.getDependencies().create(String.format(DEPENDENCY_FORMAT,
                                 name,

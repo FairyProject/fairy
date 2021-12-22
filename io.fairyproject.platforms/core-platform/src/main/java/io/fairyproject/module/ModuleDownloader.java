@@ -26,7 +26,7 @@ public class ModuleDownloader {
         }
         path.toFile().getParentFile().mkdirs();
         if (Debug.IN_FAIRY_IDE) {
-            final File projectFolder = Paths.get("").toAbsolutePath().getParent().toFile();
+            final File projectFolder = Paths.get("").toAbsolutePath().getParent().getParent().toFile(); // double parent
             final File localRepoFolder = new File(projectFolder, "libs/local");
 
             if (!localRepoFolder.exists()) {
