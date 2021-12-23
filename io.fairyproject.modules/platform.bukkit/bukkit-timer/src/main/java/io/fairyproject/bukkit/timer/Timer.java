@@ -27,6 +27,7 @@ package io.fairyproject.bukkit.timer;
 import com.google.common.collect.ImmutableSet;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.bukkit.timer.event.*;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.util.RV;
 import io.fairyproject.util.StringUtil;
 import io.fairyproject.util.terminable.Terminable;
@@ -34,6 +35,12 @@ import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.Template;
+import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -125,6 +132,7 @@ public abstract class Timer implements Terminable, TerminableConsumer {
     public void extend(long millis) {
         this.extend(millis, TimerExtendEvent.Reason.PLUGIN);
     }
+
     public void extend(long millis, TimerExtendEvent.Reason reason) {
         TimerExtendEvent event = new TimerExtendEvent(this, this.duration, this.duration + millis, millis, reason);
         event.call();
@@ -141,6 +149,7 @@ public abstract class Timer implements Terminable, TerminableConsumer {
     public void setDuration(long duration) {
         this.setDuration(duration, TimerExtendEvent.Reason.PLUGIN);
     }
+
     public void setDuration(long duration, TimerExtendEvent.Reason reason) {
         TimerExtendEvent event = new TimerExtendEvent(this, this.duration, duration, duration - this.duration, reason);
         event.call();
@@ -154,16 +163,20 @@ public abstract class Timer implements Terminable, TerminableConsumer {
         this.elapsedTime = this.startTime + this.duration;
     }
 
-    public String getAnnounceMessage(Player player, int seconds) {
-        return "Time Remaining: <seconds>";
+    /**
+     * get the announcement message for timer to announce
+     *
+     * @param player the Player that receives this message
+     * @param seconds the Time seconds to announce
+     * @return the message component
+     */
+    public Component getAnnounceMessage(Player player, int seconds) {
+        return Component.text("Time Remaining: ", NamedTextColor.YELLOW)
+                .append(Component.text(seconds));
     }
 
-    public String getScoreboardText(Player player) {
-        return "&fTimer: &e" + this.getSecondsRemaining() + "s";
-    }
-
-    public void sendMessage(Player player, String message, int seconds) {
-        player.sendMessage(message);
+    public void sendMessage(Player player, Component message, int seconds) {
+        MCPlayer.from(player).sendMessage(message);
     }
 
     public final void tick() {
@@ -171,10 +184,10 @@ public abstract class Timer implements Terminable, TerminableConsumer {
         if (this.shouldAnnounce(seconds)) {
             Collection<? extends Player> players = this.getReceivers();
             if (players != null) {
-                players.forEach(player -> this.sendMessage(player, StringUtil.replace(this.getAnnounceMessage(player, seconds),
-                        RV.o("<player>", player.getName()),
-                        RV.o("<seconds>", seconds)
-                ), seconds));
+                for (Player player : players) {
+                    Component component = this.getAnnounceMessage(player, seconds);
+                    this.sendMessage(player, component, seconds);
+                }
             }
         }
 
