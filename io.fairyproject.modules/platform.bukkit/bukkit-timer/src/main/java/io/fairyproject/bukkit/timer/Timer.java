@@ -25,22 +25,16 @@
 package io.fairyproject.bukkit.timer;
 
 import com.google.common.collect.ImmutableSet;
-import io.fairyproject.container.Autowired;
 import io.fairyproject.bukkit.timer.event.*;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.util.RV;
-import io.fairyproject.util.StringUtil;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.Template;
-import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
