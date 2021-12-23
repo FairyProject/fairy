@@ -85,6 +85,7 @@ public class FairyPlugin implements Plugin<Project> {
 
                     fairyConfiguration.getDependencies().add(dependency);
                     p.getDependencies().add("compileOnly", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
+                    p.getDependencies().add("testImplementation", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-tests")));
                 } else {
                     fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-bootstrap",
@@ -92,6 +93,10 @@ public class FairyPlugin implements Plugin<Project> {
                     )));
                     p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-platform",
+                            this.extension.getFairyVersion().get()
+                    ));
+                    p.getDependencies().add("testImplementation", String.format(DEPENDENCY_FORMAT,
+                            platformType.getDependencyName() + "-tests",
                             this.extension.getFairyVersion().get()
                     ));
                 }

@@ -151,7 +151,7 @@ public class MinecraftVersion {
         } catch (Exception e) {
             System.err.println("[Imanity/MinecraftVersion] Failed to get bukkit server class: " + e.getMessage());
             System.err.println("[Imanity/MinecraftVersion] Assuming we're in a test environment!");
-            return null;
+            return new MinecraftVersion("v1_8_R3", 183);
         }
 
         String name = serverClass.getPackage().getName();

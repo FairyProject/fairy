@@ -20,5 +20,10 @@ fairy {
 
     fairyIde = true
 
-    platform("app")
+    platform("bukkit")
+}
+
+dependencies {
+    compileOnly project.spigot()
+    testImplementation project(":io.fairyproject.platforms:bukkit-platform")
 }

@@ -6,6 +6,9 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class Debug {
 
+    // Is fairy framework currently running under unit testing?
+    public boolean UNIT_TEST = false;
+
     // the boolean to determine if you are in Fairy Project IDE
     public boolean IN_FAIRY_IDE = false;
 

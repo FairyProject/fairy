@@ -2,8 +2,8 @@ package io.fairytest.bean;
 
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.tests.TestingBase;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import io.fairytest.TestingBase;
 import io.fairytest.bean.annotated.AnnotatedRegistration;
 import io.fairytest.bean.annotated.BeanInterface;
 import io.fairytest.bean.annotated.BeanInterfaceImpl;

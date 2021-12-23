@@ -43,6 +43,7 @@ dependencies {
     implementation JacksonAnnotations
     implementation JacksonJsr310
 
+    testImplementation project(":io.fairyproject.tests:core-tests")
     testImplementation "org.springframework:spring-expression:5.3.2"
     testImplementation "javax.el:javax.el-api:3.0.1-b04"
 }

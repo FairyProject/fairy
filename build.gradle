@@ -95,7 +95,7 @@ subprojects {
         apply from: "${rootDir}/gradle/basic.gradle"
         if (project.name.endsWith("-platform")) {
             apply from: "${rootDir}/gradle/platform.gradle"
-        } else {
+        } else if (!project.name.endsWith("-tests")) {
             apply from: "${rootDir}/gradle/module.gradle"
         }
     }

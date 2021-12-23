@@ -37,6 +37,13 @@ void initBootstrap() {
     include "io.fairyproject.bootstraps:bootstrap"
 }
 
+void initTests() {
+    include "io.fairyproject.tests:bukkit-tests"
+    include "io.fairyproject.tests:app-tests"
+    include "io.fairyproject.tests:core-tests"
+    include "io.fairyproject.tests:mc-tests"
+}
+
 void initModules() {
     include "io.fairyproject.modules:platform.bukkit:bukkit-timer"
     include "io.fairyproject.modules:platform.bukkit:bukkit-items"
@@ -82,6 +89,7 @@ void includeDebug() {
 initBootstrap()
 initModules()
 initPlatforms()
+initTests()
 
 include "gradle-plugin"
 includeDebug()

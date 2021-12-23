@@ -4,7 +4,7 @@ import io.fairyproject.container.*;
 import io.fairyproject.jackson.JacksonService;
 import lombok.Getter;
 
-@Service(name = "fairy:test")
+@Service
 public class ServiceMock {
 
     @Autowired

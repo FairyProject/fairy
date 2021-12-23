@@ -29,6 +29,7 @@ import io.fairyproject.bukkit.mc.*;
 import io.fairyproject.bukkit.plugin.FairyInternalPlugin;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.library.Library;
+import io.fairyproject.mc.MCInitializer;
 import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -45,6 +46,7 @@ import io.fairyproject.bukkit.impl.BukkitPluginHandler;
 import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.task.ITaskScheduler;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -52,12 +54,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
+public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
     private static final Logger LOGGER = LogManager.getLogger(FairyBukkitPlatform.class);
 
     public static FairyBukkitPlatform INSTANCE;
-    public static FairyInternalPlugin PLUGIN;
+    public static Plugin PLUGIN;
     public static BukkitAudiences AUDIENCES;
 
     private final ExtendedClassLoader classLoader;
@@ -83,7 +85,7 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
 
         PluginManager.initialize(new BukkitPluginHandler());
         ModuleService.init();
-        new BukkitMCInitializer().run();
+        this.createMCInitializer().apply();
     }
 
     @Override
@@ -104,6 +106,10 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
     @Override
     public void onPostServicesInitial() {
         Events.call(new PostServicesInitialEvent());
+    }
+
+    public MCInitializer createMCInitializer() {
+        return new BukkitMCInitializer();
     }
 
     @Override

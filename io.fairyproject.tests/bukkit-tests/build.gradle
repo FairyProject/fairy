@@ -1,0 +1,7 @@
+dependencies {
+    compileOnly project(":io.fairyproject.platforms:bukkit-platform")
+    api project.spigot()
+
+    api project(":io.fairyproject.tests:mc-tests")
+    api 'com.github.seeseemelk:MockBukkit-v1.16:1.5.2'
+}

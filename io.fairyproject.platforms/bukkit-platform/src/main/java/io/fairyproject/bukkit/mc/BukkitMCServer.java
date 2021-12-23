@@ -1,5 +1,6 @@
 package io.fairyproject.bukkit.mc;
 
+import io.fairyproject.Debug;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.mc.MCEntity;
@@ -17,26 +18,32 @@ public class BukkitMCServer implements MCServer {
     private static final Function<UUID, Entity> UUID_TO_ENTITY;
     static {
         Function<UUID, Entity> uuidToEntity;
-        try {
-            Bukkit.getEntity(UUID.randomUUID());
-            uuidToEntity = Bukkit::getEntity;
-        } catch (NoSuchMethodError ex) {
+        if (Debug.UNIT_TEST) {
+            uuidToEntity = uuid -> {
+                throw new IllegalStateException("Unit testing unsupported.");
+            };
+        } else {
             try {
-                NMSClassResolver classResolver = new NMSClassResolver();
-                final Class<?> minecraftServer = classResolver.resolve("server.MinecraftServer","MinecraftServer");
-                final Object server = minecraftServer.getMethod("getServer").invoke(null);
-                Method method = minecraftServer.getDeclaredMethod("a", UUID.class);
-                MethodHandle methodHandle = MethodHandles.lookup().unreflect(method);
+                Bukkit.getEntity(UUID.randomUUID());
+                uuidToEntity = Bukkit::getEntity;
+            } catch (NoSuchMethodError ex) {
+                try {
+                    NMSClassResolver classResolver = new NMSClassResolver();
+                    final Class<?> minecraftServer = classResolver.resolve("server.MinecraftServer","MinecraftServer");
+                    final Object server = minecraftServer.getMethod("getServer").invoke(null);
+                    Method method = minecraftServer.getDeclaredMethod("a", UUID.class);
+                    MethodHandle methodHandle = MethodHandles.lookup().unreflect(method);
 
-                uuidToEntity = uuid -> {
-                    try {
-                        return MinecraftReflection.getBukkitEntity(methodHandle.invoke(server, uuid));
-                    } catch (Throwable throwable) {
-                        throw new RuntimeException(throwable);
-                    }
-                };
-            } catch (Throwable throwable) {
-                throw new IllegalStateException(throwable);
+                    uuidToEntity = uuid -> {
+                        try {
+                            return MinecraftReflection.getBukkitEntity(methodHandle.invoke(server, uuid));
+                        } catch (Throwable throwable) {
+                            throw new RuntimeException(throwable);
+                        }
+                    };
+                } catch (Throwable throwable) {
+                    throw new IllegalStateException(throwable);
+                }
             }
         }
 

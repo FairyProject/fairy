@@ -3,7 +3,7 @@ package io.fairytest.plugin;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.fairyproject.plugin.PluginDescription;
-import io.fairytest.TestingBase;
+import io.fairyproject.tests.TestingBase;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
