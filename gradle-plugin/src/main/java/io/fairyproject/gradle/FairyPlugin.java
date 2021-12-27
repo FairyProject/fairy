@@ -124,7 +124,7 @@ public class FairyPlugin implements Plugin<Project> {
             }
 
             Map<String, String> implementationModules = new HashMap<>();
-            for (File file : p.getConfigurations().getByName("runtimeClasspath")) {
+            for (File file : p.getConfigurations().getByName("runtimeClasspath").copy()) {
                 final JsonObject jsonObject;
                 try {
                     jsonObject = readModuleData(file.toPath());
