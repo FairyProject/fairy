@@ -1,6 +1,7 @@
 package io.fairyproject.gradle;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.gradle.aspectj.AjcAction;
@@ -8,6 +9,7 @@ import io.fairyproject.gradle.aspectj.AspectjCompile;
 import io.fairyproject.gradle.aspectj.DefaultWeavingSourceSet;
 import io.fairyproject.gradle.aspectj.WeavingSourceSet;
 import io.fairyproject.gradle.relocator.Relocation;
+import io.fairyproject.gradle.util.FairyVersion;
 import io.fairyproject.gradle.util.MavenUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
@@ -20,10 +22,7 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.plugins.GroovyPlugin;
-import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.*;
 import org.gradle.api.plugins.scala.ScalaPlugin;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -34,6 +33,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -123,6 +123,39 @@ public class FairyPlugin implements Plugin<Project> {
                 }
             }
 
+            Map<String, String> implementationModules = new HashMap<>();
+            for (File file : p.getConfigurations().getByName("runtimeClasspath")) {
+                final JsonObject jsonObject;
+                try {
+                    jsonObject = readModuleData(file.toPath());
+                } catch (Throwable throwable) {
+                    throw new IllegalStateException(throwable);
+                }
+
+                if (jsonObject == null) {
+                    continue;
+                }
+
+                final JsonArray depends = jsonObject.getAsJsonArray("depends");
+                for (JsonElement element : depends) {
+                    final String[] split = element.getAsString().split(":");
+                    String name = split[0];
+                    String version = split[1];
+                    // Always get the latest version if multiple dependencies request same module
+                    implementationModules.compute(name, (ignored, curVersion) -> {
+                        if (curVersion == null) {
+                            return version;
+                        }
+                        final FairyVersion fairyVersion = FairyVersion.parse(curVersion);
+                        if (fairyVersion.isAbove(FairyVersion.parse(version))) {
+                            return curVersion;
+                        } else {
+                            return version;
+                        }
+                    });
+                }
+            }
+
             Jar jar;
             try {
                 jar = (Jar) p.getTasks().getByName("shadowJar");
@@ -132,7 +165,9 @@ public class FairyPlugin implements Plugin<Project> {
             jar.finalizedBy(fairyTask);
 
             if (platformTypes.contains(PlatformType.APP)) {
-                jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
+                if (!this.extension.getLibraryMode().get()) {
+                    jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
+                }
                 jar.getManifest().getAttributes().put("Multi-Release", "true");
             }
 
@@ -144,14 +179,27 @@ public class FairyPlugin implements Plugin<Project> {
             jar.from(list);
 
             List<Relocation> relocations = new ArrayList<>();
-            relocations.add(new Relocation("io.fairyproject", extension.getMainPackage().get() + ".fairy").setOnlyRelocateShaded(true));
+            if (!this.extension.getLibraryMode().get()) {
+                relocations.add(new Relocation("io.fairyproject", extension.getMainPackage().get() + ".fairy").setOnlyRelocateShaded(true));
+            }
 
             fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());
             fairyTask.setRelocateEntries(fairyModuleConfiguration.getFiles());
             fairyTask.setClassifier(extension.getClassifier().getOrNull());
             fairyTask.setRelocations(relocations);
             fairyTask.setExtension(extension);
+            fairyTask.setDependModules(implementationModules);
         });
+    }
+
+    private static JsonObject readModuleData(Path path) throws IOException {
+        final JarFile jarFile = new JarFile(path.toFile());
+        final ZipEntry zipEntry = jarFile.getEntry("fairy.json");
+        if (zipEntry == null) {
+            return null;
+        }
+
+        return new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
     }
 
     private void configurePlugin(String language) {
