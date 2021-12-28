@@ -25,13 +25,13 @@
 package io.fairyproject.sidebar;
 
 import io.fairyproject.Fairy;
+import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.item.*;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
-import net.kyori.adventure.text.Component;
 
 import java.util.List;
 import java.util.Optional;

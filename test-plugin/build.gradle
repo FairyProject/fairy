@@ -25,5 +25,5 @@ fairy {
 
 dependencies {
     compileOnly project.spigot()
-    testImplementation project(":io.fairyproject.platforms:bukkit-platform")
+    testImplementation "org.imanity.spigot:1.16.5:1.16.5"
 }

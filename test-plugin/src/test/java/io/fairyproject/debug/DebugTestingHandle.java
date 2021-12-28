@@ -1,10 +1,10 @@
 package io.fairyproject.debug;
 
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.tests.TestingHandle;
 import io.fairyproject.tests.bukkit.FairyBukkitTestingPlatform;
-import org.jetbrains.annotations.Nullable;
 
 public class DebugTestingHandle implements TestingHandle {
     @Override
@@ -14,11 +14,16 @@ public class DebugTestingHandle implements TestingHandle {
 
     @Override
     public FairyPlatform platform() {
-        return new FairyBukkitTestingPlatform();
+        return new FairyBukkitTestingPlatform() {
+            @Override
+            public MinecraftVersion version() {
+                return new MinecraftVersion("v1_16_R3", 11603);
+            }
+        };
     }
 
     @Override
-    public @Nullable String scanPath() {
+    public String scanPath() {
         return "io.fairyproject.debug";
     }
 }

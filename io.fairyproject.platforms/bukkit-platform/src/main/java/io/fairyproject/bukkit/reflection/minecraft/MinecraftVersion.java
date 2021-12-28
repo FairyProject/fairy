@@ -31,7 +31,7 @@ import java.util.regex.Matcher;
 
 public class MinecraftVersion {
 
-    public static final MinecraftVersion VERSION;
+    public static MinecraftVersion VERSION;
 
     static {
         System.out.println("[Imanity/MinecraftVersion] I am loaded from package " + MinecraftReflection.class.getPackage().getName());
@@ -40,7 +40,9 @@ public class MinecraftVersion {
         } catch (Exception e) {
             throw new RuntimeException("Failed to get version", e);
         }
-        System.out.println("[Imanity/MinecraftVersion] Version is " + VERSION);
+        if (VERSION != null) {
+            System.out.println("[Imanity/MinecraftVersion] Version is " + VERSION);
+        }
     }
 
     private final String packageName;
@@ -48,6 +50,7 @@ public class MinecraftVersion {
     private final String nmsPackage;
     private final String obcPackage;
     private final boolean nmsVersionPrefix;
+    private MinecraftReflection.Version versionEnum;
 
     public MinecraftVersion(String packageName, int version, String nmsFormat, String obcFormat, boolean nmsVersionPrefix) {
         this.packageName = packageName;
@@ -139,6 +142,13 @@ public class MinecraftVersion {
         return this.packageName.toLowerCase().contains(packageName.toLowerCase());
     }
 
+    public MinecraftReflection.Version versionEnum() {
+        if (versionEnum == null) {
+            versionEnum = MinecraftReflection.Version.valueOf(this.packageName);
+        }
+        return versionEnum;
+    }
+
     @Override
     public String toString() {
         return packageName + " (" + version() + ")";
@@ -151,10 +161,14 @@ public class MinecraftVersion {
         } catch (Exception e) {
             System.err.println("[Imanity/MinecraftVersion] Failed to get bukkit server class: " + e.getMessage());
             System.err.println("[Imanity/MinecraftVersion] Assuming we're in a test environment!");
-            return new MinecraftVersion("v1_8_R3", 183);
+            return new MinecraftVersion("v1_16_R3", 11603);
         }
 
         String name = serverClass.getPackage().getName();
+        if (name.equals("be.seeseemelk.mockbukkit")) {
+            System.err.println("[Imanity/MinecraftVersion] MockBukkit found! we are in test environment! we will let developer take care of version setting...");
+            return null;
+        }
         String versionPackage = name.substring(name.lastIndexOf('.') + 1);
         for (MinecraftReflection.Version version : MinecraftReflection.Version.values()) {
             MinecraftVersion minecraftVersion = version.minecraft();
@@ -193,6 +207,6 @@ public class MinecraftVersion {
 
         System.err.println("[Imanity/MinecraftVersion] Failed to create dynamic version for " + versionPackage);
 
-        return new MinecraftVersion("UNKNOWN", -1);
+        return new MinecraftVersion("v1_16_R3", 11603);
     }
 }

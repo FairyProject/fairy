@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit;
 
+import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.container.ComponentRegistry;
 import io.fairyproject.bukkit.mc.*;
 import io.fairyproject.bukkit.plugin.FairyInternalPlugin;
@@ -85,6 +86,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
         PluginManager.initialize(new BukkitPluginHandler());
         ModuleService.init();
+        MinecraftReflection.init();
         this.createMCInitializer().apply();
     }
 
@@ -153,7 +155,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         if (SpigotUtil.SPIGOT_TYPE != SpigotUtil.SpigotType.IMANITY) {
             libraries.add(Library.FAST_UTIL);
         }
-        libraries.add(Library.ADVENTURE_API);
+//        libraries.add(Library.ADVENTURE_API);
         return libraries;
     }
 }

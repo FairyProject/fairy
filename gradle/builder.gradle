@@ -45,11 +45,7 @@ project.afterEvaluate(p -> {
 
     tasks.shadowJar.finalizedBy(copyTask)
 
-    configurations {
-        shadow
-    }
-
-    artifacts {
-        shadow tasks.shadowJar.archiveFile.get().asFile
+    shadowJar {
+        relocate "net.kyori", relocate + "kyori"
     }
 })

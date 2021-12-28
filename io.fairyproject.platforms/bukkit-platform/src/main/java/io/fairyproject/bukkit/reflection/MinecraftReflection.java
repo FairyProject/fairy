@@ -65,7 +65,6 @@ import java.util.regex.Pattern;
 public class MinecraftReflection {
     public static final Pattern NUMERIC_VERSION_PATTERN = Pattern.compile("v([0-9])_([0-9]*)_R([0-9])");
 
-    public static final Version VERSION;
     public static final MinecraftVersion MINECRAFT_VERSION = MinecraftVersion.VERSION;
 
     public static String NETTY_PREFIX;
@@ -121,15 +120,7 @@ public class MinecraftReflection {
         return MCVersion.getVersionFromRaw(PROTOCOL_CHECK.getVersion(player));
     }
 
-    static {
-        Version tempVersion = Version.UNKNOWN;
-        try {
-            tempVersion = Version.getVersion();
-        } catch (Exception e) {
-            System.out.println("[Imanity] Failed to get legacy version");
-        }
-        VERSION = tempVersion;
-
+    public static void init() {
         try {
             Version.runSanityCheck();
         } catch (Exception e) {
@@ -449,66 +440,6 @@ public class MinecraftReflection {
             assert v1_13_R2.newerThan(v1_8_R1);
 
             assert v1_13_R2.newerThan(v1_8_R1) && v1_13_R2.olderThan(v1_14_R1);
-        }
-
-        @Deprecated
-        public static Version getVersion() {
-            String name = Bukkit.getServer().getClass().getPackage().getName();
-            String versionPackage = name.substring(name.lastIndexOf('.') + 1);
-            for (Version version : values()) {
-                if (version.matchesPackageName(versionPackage)) {
-                    return version;
-                }
-            }
-            System.err.println("[Imanity] Failed to find version enum for '" + name + "'/'" + versionPackage + "'");
-
-            System.out.println("[Imanity] Generating dynamic constant...");
-            Matcher matcher = NUMERIC_VERSION_PATTERN.matcher(versionPackage);
-            while (matcher.find()) {
-                if (matcher.groupCount() < 3) {
-                    continue;
-                }
-
-                String majorString = matcher.group(1);
-                String minorString = matcher.group(2);
-                if (minorString.length() == 1) {
-                    minorString = "0" + minorString;
-                }
-                String patchString = matcher.group(3);
-                if (patchString.length() == 1) {
-                    patchString = "0" + patchString;
-                }
-
-                String numVersionString = majorString + minorString + patchString;
-                int numVersion = Integer.parseInt(numVersionString);
-                String packge = versionPackage;
-
-                try {
-                    // Add enum value
-                    Field valuesField = new FieldResolver(Version.class).resolve("$VALUES");
-                    Version[] oldValues = (Version[]) valuesField.get(null);
-                    Version[] newValues = new Version[oldValues.length + 1];
-                    System.arraycopy(oldValues, 0, newValues, 0, oldValues.length);
-                    Version dynamicVersion = (Version) newEnumInstance(Version.class, new Class[]{
-                            String.class,
-                            int.class,
-                            int.class
-                    }, new Object[]{
-                            packge,
-                            newValues.length - 1,
-                            numVersion
-                    });
-                    newValues[newValues.length - 1] = dynamicVersion;
-                    valuesField.set(null, newValues);
-
-                    System.out.println("[Imanity] Injected dynamic version " + packge + " (#" + numVersion + ").");
-                    return dynamicVersion;
-                } catch (ReflectiveOperationException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            return UNKNOWN;
         }
 
         @Override

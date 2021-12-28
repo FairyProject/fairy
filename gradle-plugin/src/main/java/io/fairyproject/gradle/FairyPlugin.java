@@ -80,18 +80,29 @@ public class FairyPlugin implements Plugin<Project> {
                 if (IS_IN_IDE) {
                     final Project bootstrapProject = p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-bootstrap"));
 
-                    final ModuleDependency dependency = (ModuleDependency) p.getDependencies().create(bootstrapProject);
+                    ModuleDependency dependency = (ModuleDependency) p.getDependencies().create(bootstrapProject);
                     dependency.setTargetConfiguration("shadow");
 
                     fairyConfiguration.getDependencies().add(dependency);
-                    p.getDependencies().add("compileOnly", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
-                    p.getDependencies().add("testImplementation", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-tests")));
+
+                    dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
+                    dependency.setTargetConfiguration("shadow");
+                    p.getDependencies().add("compileOnly", dependency);
+                    p.getDependencies().add("testImplementation", dependency);
+
+                    dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-tests")));
+                    dependency.setTargetConfiguration("shadow");
+                    p.getDependencies().add("testImplementation", dependency);
                 } else {
                     fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-bootstrap",
                             this.extension.getFairyVersion().get()
                     )));
                     p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
+                            platformType.getDependencyName() + "-platform",
+                            this.extension.getFairyVersion().get()
+                    ));
+                    p.getDependencies().add("testImplementation", String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-platform",
                             this.extension.getFairyVersion().get()
                     ));

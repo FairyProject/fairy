@@ -94,7 +94,7 @@ public class DataWatcher {
     }
 
     public static Object getValue(Object dataWatcher, int index, Object dataWatcherObject/*1.9*/) throws ReflectiveOperationException {
-        if (MinecraftReflection.VERSION.olderThan(MinecraftReflection.Version.v1_9_R1)) {
+        if (MinecraftVersion.VERSION.versionEnum().olderThan(MinecraftReflection.Version.v1_9_R1)) {
             return V1_8.getWatchableObjectValue(V1_8.getValue(dataWatcher, index));
         } else {
             return V1_9.getValue(dataWatcher, dataWatcherObject);
@@ -342,7 +342,7 @@ public class DataWatcher {
                 try {
                     this.type = new FieldResolver(nmsClassResolver.resolve(className)).resolve(fieldNames).get(null);
                 } catch (Exception e) {
-                    if (MinecraftReflection.VERSION.newerThan(MinecraftReflection.Version.v1_9_R1)) {
+                    if (MinecraftVersion.VERSION.versionEnum().newerThan(MinecraftReflection.Version.v1_9_R1)) {
                         System.err.println("[Imanity] Failed to find DataWatcherObject for " + className + " " + Arrays.toString(fieldNames));
                     }
                 }
@@ -352,7 +352,7 @@ public class DataWatcher {
                 try {
                     this.type = new FieldResolver(nmsClassResolver.resolve(className)).resolveIndex(index).get(null);
                 } catch (Exception e) {
-                    if (MinecraftReflection.VERSION.newerThan(MinecraftReflection.Version.v1_9_R1)) {
+                    if (MinecraftVersion.VERSION.versionEnum().newerThan(MinecraftReflection.Version.v1_9_R1)) {
                         System.err.println("[Imanity] Failed to find DataWatcherObject for " + className + " #" + index);
                     }
                 }
@@ -370,7 +370,7 @@ public class DataWatcher {
                     }
                     this.type = new FieldResolver(clazz).resolveIndex(firstObject + offset).get(null);
                 } catch (Exception e) {
-                    if (MinecraftReflection.VERSION.newerThan(MinecraftReflection.Version.v1_9_R1)) {
+                    if (MinecraftVersion.VERSION.versionEnum().newerThan(MinecraftReflection.Version.v1_9_R1)) {
                         System.err.println("[Imanity] Failed to find DataWatcherObject for " + className + " #" + index + " (" + firstObject + "+" + offset + ")");
                     }
                 }

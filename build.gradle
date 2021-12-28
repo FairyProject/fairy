@@ -30,7 +30,7 @@ plugins {
 }
 
 // Core versioning
-version = "0.5.1b12"
+version = "0.5.1b18"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"
@@ -97,6 +97,8 @@ subprojects {
             apply from: "${rootDir}/gradle/platform.gradle"
         } else if (!project.name.endsWith("-tests")) {
             apply from: "${rootDir}/gradle/module.gradle"
+        } else {
+            version = project(":").version
         }
     }
 }
