@@ -51,8 +51,7 @@ For every contributor, we will be rewarding a discord role in our discord:
 
 > we are planning to expand the reward for contributing, but this is it for now.
  
-PR Requirements
------------------
+## PR Requirements
 
 *    There should be 0 issue found in [`Codacy`](https://app.codacy.com/gh/FairyProject/fairy/dashboard?branch=v5).
 *    No tabs; use 4 spaces instead.
