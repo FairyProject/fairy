@@ -21,6 +21,7 @@ fairy {
     fairyIde = true
 
     platform("bukkit")
+    module("timer")
 }
 
 dependencies {

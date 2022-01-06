@@ -1,66 +1,129 @@
 package io.fairyproject.module;
 
-import com.google.common.io.ByteStreams;
 import io.fairyproject.Debug;
+import io.fairyproject.FairyPlatform;
 import lombok.experimental.UtilityClass;
+import org.apache.logging.log4j.LogManager;
+import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
+import org.eclipse.aether.DefaultRepositorySystemSession;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.collection.CollectRequest;
+import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
+import org.eclipse.aether.graph.Dependency;
+import org.eclipse.aether.impl.DefaultServiceLocator;
+import org.eclipse.aether.repository.LocalRepository;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.repository.RepositoryPolicy;
+import org.eclipse.aether.resolution.ArtifactResult;
+import org.eclipse.aether.resolution.DependencyRequest;
+import org.eclipse.aether.resolution.DependencyResolutionException;
+import org.eclipse.aether.resolution.DependencyResult;
+import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
+import org.eclipse.aether.spi.connector.transport.TransporterFactory;
+import org.eclipse.aether.transfer.AbstractTransferListener;
+import org.eclipse.aether.transfer.TransferEvent;
+import org.eclipse.aether.transport.http.HttpTransporterFactory;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 @UtilityClass
 public class ModuleDownloader {
 
-    private final String URL = "https://maven.imanity.dev/service/rest/v1/search/assets/download?repository=imanity-libraries&maven.groupId=io.fairyproject&maven.artifactId=<module>&version=<version>&maven.extension=jar";
+    public static final boolean LOCAL_REPO = Boolean.getBoolean("fairy.local-repo");
+    public static final Path MODULE_DIR = new File(FairyPlatform.INSTANCE.getDataFolder(), "modules").toPath().toAbsolutePath();
 
+    private static final RepositorySystem REPOSITORY;
+    private static final DefaultRepositorySystemSession SESSION;
+    private static final List<RemoteRepository> REPOSITORIES;
+
+    static {
+        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
+        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
+        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
+
+        REPOSITORY = locator.getService(RepositorySystem.class);
+        SESSION = MavenRepositorySystemUtils.newSession();
+
+        SESSION.setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL);
+        SESSION.setLocalRepositoryManager(REPOSITORY.newLocalRepositoryManager(SESSION, new LocalRepository(LOCAL_REPO ? locateMavenLocal() : MODULE_DIR.toFile())));
+        SESSION.setTransferListener(new AbstractTransferListener() {
+            @Override
+            public void transferStarted(TransferEvent event) {
+                LogManager.getLogger().info("Downloading {}", event.getResource().getResourceName());
+            }
+        });
+        SESSION.setReadOnly();
+        REPOSITORIES = REPOSITORY.newResolutionRepositories(SESSION, Arrays.asList(
+                new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build()
+        ));
+    }
+
+    private File locateMavenLocal() {
+        String localOverride = System.getProperty("maven.repo.local");
+        if (localOverride != null) {
+            return new File(localOverride);
+        } else {
+            return (new File(System.getProperty("user.home"), "/.m2/repository")).getAbsoluteFile();
+        }
+    }
 
     @SuppressWarnings("Duplicates")
-    public Path download(Path path, String module, String version) throws IOException {
-        if (Files.exists(path)) {
-            return path;
-        }
-        path.toFile().getParentFile().mkdirs();
+    public static Path download(String groupId, String artifactId, String version, @Nullable String customRepository) throws IOException {
+        Files.createDirectories(MODULE_DIR);
+
         if (Debug.IN_FAIRY_IDE) {
-            final File projectFolder = Paths.get("").toAbsolutePath().getParent().getParent().toFile(); // double parent
+            final File projectFolder = Paths.get("").toAbsolutePath().getParent().toFile(); // double parent
             final File localRepoFolder = new File(projectFolder, "libs/local");
 
             if (!localRepoFolder.exists()) {
                 Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local repo setup at " + localRepoFolder + "!"));
             }
 
-            File file = new File(localRepoFolder, module + ".jar");
+            File file = new File(localRepoFolder, groupId + "." + artifactId + ".jar");
             if (!file.exists()) {
                 Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local module at local repo setup at " + file + "!"));
             }
             return file.toPath();
         }
 
-        final java.net.URL url = new URL(URL.replaceAll("<module>", module).replaceAll("<version>", version)); // TODO - ensure url correctly
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-        connection.setDoInput(true);
-        connection.setRequestMethod("GET");
-        connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
-
-        final int responseCode = connection.getResponseCode();
-        if (responseCode >= 200 && responseCode < 300) {
-            byte[] bytes;
-            try (InputStream in = connection.getInputStream()) {
-                bytes = ByteStreams.toByteArray(in);
-                if (bytes.length == 0) {
-                    throw new IllegalStateException("Empty stream");
-                }
+        DependencyResult result;
+        try {
+            List<RemoteRepository> repositories = ModuleDownloader.REPOSITORIES;
+            if (customRepository != null) {
+                repositories = REPOSITORY.newResolutionRepositories(SESSION, Arrays.asList(
+                        new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
+                        new RemoteRepository.Builder("custom", "default", customRepository).build()
+                ));
             }
 
-            Files.write(path, bytes);
-            return path;
+            Artifact artifact = new DefaultArtifact(
+                    groupId,
+                    artifactId,
+                    "jar",
+                    version
+            );
+            final Dependency dependency = new Dependency(
+                    artifact,
+                    null
+            );
+
+            result = REPOSITORY.resolveDependencies(SESSION, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(dependency), repositories), null));
+        } catch (DependencyResolutionException ex) {
+            throw new RuntimeException("Error resolving libraries", ex);
         }
 
-        throw new IllegalArgumentException("Connection responses a different code " + responseCode);
+        final ArtifactResult artifactResult = result.getArtifactResults().get(0); // Assuming we only have 1 result
+        return artifactResult.getArtifact().getFile().toPath();
     }
 
 }

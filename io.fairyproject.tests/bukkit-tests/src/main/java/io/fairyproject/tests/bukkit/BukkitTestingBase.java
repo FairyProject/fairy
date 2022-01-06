@@ -16,7 +16,9 @@ public class BukkitTestingBase {
 
     @BeforeClass
     public static void setup() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        SERVER = MockBukkit.getOrCreateMock();
+        if (!MockBukkit.isMocked()) {
+            SERVER = MockBukkit.mock(new BukkitServerMockImpl());
+        }
         PLUGIN = MockBukkit.createMockPlugin();
 
         FairyBukkitPlatform.PLUGIN = PLUGIN;

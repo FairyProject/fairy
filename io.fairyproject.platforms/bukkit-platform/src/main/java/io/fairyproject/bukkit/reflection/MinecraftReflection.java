@@ -65,8 +65,6 @@ import java.util.regex.Pattern;
 public class MinecraftReflection {
     public static final Pattern NUMERIC_VERSION_PATTERN = Pattern.compile("v([0-9])_([0-9]*)_R([0-9])");
 
-    public static final MinecraftVersion MINECRAFT_VERSION = MinecraftVersion.VERSION;
-
     public static String NETTY_PREFIX;
 
     private static NMSClassResolver NMS_CLASS_RESOLVER = new NMSClassResolver();
@@ -225,21 +223,21 @@ public class MinecraftReflection {
      * @return the current NMS/OBC version (format <code>&lt;version&gt;.</code>
      */
     public static String getVersion() {
-        return MINECRAFT_VERSION.packageName() + ".";
+        return MinecraftVersion.VERSION.packageName() + ".";
     }
 
     /**
      * @return the current NMS version package
      */
     public static String getNMSPackage() {
-        return MINECRAFT_VERSION.getNmsPackage();
+        return MinecraftVersion.VERSION.getNmsPackage();
     }
 
     /**
      * @return the current OBC package
      */
     public static String getOBCPackage() {
-        return MINECRAFT_VERSION.getObcPackage();
+        return MinecraftVersion.VERSION.getObcPackage();
     }
 
     public static <T> T getChannel(Player player) {

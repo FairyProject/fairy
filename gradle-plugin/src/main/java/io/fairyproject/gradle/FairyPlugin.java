@@ -61,6 +61,7 @@ public class FairyPlugin implements Plugin<Project> {
         final Configuration fairyConfiguration = project.getConfigurations().maybeCreate("fairy");
         final Configuration fairyModuleConfiguration = project.getConfigurations().maybeCreate("fairyModule");
         final FairyTask fairyTask = project.getTasks().create("fairyBuild", FairyTask.class);
+        final FairyTestTask fairyTestTask = project.getTasks().create("fairyTest", FairyTestTask.class);
         project.afterEvaluate(p -> {
             IS_IN_IDE = extension.getFairyIde().getOrElse(false);
             if (IS_IN_IDE) {
@@ -69,8 +70,14 @@ public class FairyPlugin implements Plugin<Project> {
 
             p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyConfiguration);
             p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyModuleConfiguration);
-            if (!IS_IN_IDE)
-                p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(REPOSITORY));
+
+            if (!IS_IN_IDE) {
+                if (this.extension.getLocalRepo().get()) {
+                    p.getRepositories().add(p.getRepositories().mavenLocal());
+                } else {
+                    p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(REPOSITORY));
+                }
+            }
             final List<PlatformType> platformTypes = this.extension.getFairyPlatforms().getOrNull();
             if (platformTypes == null) {
                 throw new IllegalArgumentException("No platforms found!");
@@ -175,6 +182,8 @@ public class FairyPlugin implements Plugin<Project> {
             }
             jar.finalizedBy(fairyTask);
 
+            p.getTasks().getByName("compileTestJava").finalizedBy(fairyTestTask);
+
             if (platformTypes.contains(PlatformType.APP)) {
                 if (!this.extension.getLibraryMode().get()) {
                     jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
@@ -200,6 +209,7 @@ public class FairyPlugin implements Plugin<Project> {
             fairyTask.setRelocations(relocations);
             fairyTask.setExtension(extension);
             fairyTask.setDependModules(implementationModules);
+            fairyTestTask.setExtension(extension);
         });
     }
 
@@ -327,6 +337,7 @@ public class FairyPlugin implements Plugin<Project> {
 
             allLoadedModules.add(moduleName);
             fairyModuleConfiguration.getDependencies().add(dependency);
+            project.getDependencies().add("testCompileOnly", dependency);
 
             // copy for retrieve files
             final Configuration copy = copiedConfiguration.copy();

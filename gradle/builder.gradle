@@ -41,7 +41,7 @@ project.afterEvaluate(p -> {
 
     def copyTask = tasks.create("copyJarToLocal", CopyJarToLocal)
     copyTask.jarFrom = tasks.shadowJar.archiveFile.get().asFile.toPath().toString()
-    copyTask.jarTo = rootProject.file("libs/local/${tasks.shadowJar.archiveFileName.get()}").toPath().toString()
+    copyTask.jarTo = rootProject.file("libs/local/io.fairyproject.${tasks.shadowJar.archiveFileName.get()}").toPath().toString()
 
     tasks.shadowJar.finalizedBy(copyTask)
 
