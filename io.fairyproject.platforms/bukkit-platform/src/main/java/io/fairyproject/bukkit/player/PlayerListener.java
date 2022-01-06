@@ -24,7 +24,6 @@
 
 package io.fairyproject.bukkit.player;
 
-import io.fairyproject.bukkit.mc.BukkitMCPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -43,13 +42,6 @@ import io.fairyproject.task.Task;
 
 @Component
 public class PlayerListener implements Listener {
-
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerLogin(PlayerJoinEvent event) {
-        final Player player = event.getPlayer();
-
-        Metadata.provideForPlayer(player).put(MCPlayer.METADATA, new BukkitMCPlayer(player));
-    }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {

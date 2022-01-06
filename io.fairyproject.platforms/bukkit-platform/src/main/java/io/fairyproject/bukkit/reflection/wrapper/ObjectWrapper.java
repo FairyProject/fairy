@@ -40,9 +40,12 @@ public class ObjectWrapper extends WrapperAbstract {
     private final MethodResolver methodResolver;
 
     public ObjectWrapper(Object object) {
+        this(object, object.getClass());
+    }
+
+    public ObjectWrapper(Object object, Class<?> type) {
         this.object = object;
 
-        Class<?> type = object.getClass();
         this.fieldResolver = new FieldResolver(type);
         this.methodResolver = new MethodResolver(type);
     }

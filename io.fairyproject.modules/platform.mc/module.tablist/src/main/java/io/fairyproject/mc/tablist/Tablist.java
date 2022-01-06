@@ -25,11 +25,11 @@
 package io.fairyproject.mc.tablist;
 
 import io.fairyproject.container.Autowired;
+import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.mc.tablist.util.*;
 import lombok.Getter;
-import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.util.CC;
 

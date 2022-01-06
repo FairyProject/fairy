@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.listener;
 
 import com.google.common.collect.ImmutableList;
 import io.fairyproject.util.terminable.TerminableConsumer;
+import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -53,7 +54,13 @@ public class ListenerSubscription implements AutoCloseable {
         if (!this.registered.compareAndSet(false, true)) {
             return;
         }
-        this.listeners.forEach(listener -> Bukkit.getPluginManager().registerEvents(listener, this.plugin));
+        this.listeners.forEach(listener -> {
+            try {
+                Bukkit.getPluginManager().registerEvents(listener, this.plugin);
+            } catch (Throwable throwable) {
+                LogManager.getLogger().error("Error while registering listener " + listener.getClass().getName(), throwable);
+            }
+        });
         if (this.terminableConsumer != null) {
             this.terminableConsumer.bind(this);
         }

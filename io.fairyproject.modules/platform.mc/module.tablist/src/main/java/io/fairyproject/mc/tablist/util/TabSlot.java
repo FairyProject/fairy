@@ -24,8 +24,8 @@
 
 package io.fairyproject.mc.tablist.util;
 
-import lombok.Getter;
 import net.kyori.adventure.text.Component;
+import lombok.Getter;
 
 @Getter
 public class TabSlot {

@@ -25,8 +25,8 @@
 package io.fairyproject.mc.nametag;
 
 import io.fairyproject.mc.protocol.item.NameTagVisibility;
-import lombok.Data;
 import net.kyori.adventure.text.Component;
+import lombok.Data;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;

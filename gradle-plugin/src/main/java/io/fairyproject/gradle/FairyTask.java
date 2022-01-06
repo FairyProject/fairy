@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -53,6 +54,9 @@ public class FairyTask extends DefaultTask {
     @Input
     private FairyExtension extension;
 
+    @Input
+    private Map<String, String> dependModules;
+
     @TaskAction
     public void run() throws IOException {
         int index = inJar.getName().lastIndexOf('.');
@@ -66,10 +70,17 @@ public class FairyTask extends DefaultTask {
         String name = fileName + (classifier == null ? "" : "-" + classifier) + inJar.getName().substring(index);
         File outJar = new File(inJar.getParentFile(), name);
 
-        File tempOutJar = File.createTempFile(name, ".jar");
+        File tempOutJar;
 
-        JarRelocator jarRelocator = new JarRelocator(inJar, tempOutJar, this.relocations, this.relocateEntries);
-        jarRelocator.run();
+        final Boolean libraryMode = extension.getLibraryMode().get();
+        if (!libraryMode) {
+            tempOutJar = File.createTempFile(name, ".jar");
+
+            JarRelocator jarRelocator = new JarRelocator(inJar, tempOutJar, this.relocations, this.relocateEntries);
+            jarRelocator.run();
+        } else {
+            tempOutJar = inJar;
+        }
 
         try (JarOutputStream out = new JarOutputStream(new FileOutputStream(outJar))) {
             String mainClass = null;
@@ -117,8 +128,8 @@ public class FairyTask extends DefaultTask {
                 }
             }
 
-            if (mainClass == null) {
-                System.out.println("No main class found, this project will be considered as a dependency project.");
+            if (mainClass == null && !libraryMode) {
+                System.out.println("No main class found! Is there something wrong?");
             }
 
             for (PlatformType platformType : this.extension.getFairyPlatforms().get()) {
@@ -126,14 +137,18 @@ public class FairyTask extends DefaultTask {
                 if (fileGenerator == null)
                     continue;
 
-                final Pair<String, byte[]> pair = fileGenerator.generate(this.extension, mainClass);
+                final Pair<String, byte[]> pair = fileGenerator.generate(this.extension, mainClass, this.dependModules);
+                if (pair != null) {
+                    out.putNextEntry(new JarEntry(pair.getLeft()));
+                    out.write(pair.getRight());
+                }
+            }
+
+            final Pair<String, byte[]> pair = new FileGeneratorFairy().generate(this.extension, mainClass, this.dependModules);
+            if (pair != null) {
                 out.putNextEntry(new JarEntry(pair.getLeft()));
                 out.write(pair.getRight());
             }
-
-            final Pair<String, byte[]> pair = new FileGeneratorFairy().generate(this.extension, mainClass);
-            out.putNextEntry(new JarEntry(pair.getLeft()));
-            out.write(pair.getRight());
         }
     }
 

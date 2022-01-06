@@ -26,12 +26,13 @@ package io.fairyproject.bukkit.reflection.version.protocol;
 
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.annotation.ProtocolImpl;
+import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import org.bukkit.entity.Player;
 
 @ProtocolImpl
 public class ProtocolCheckNone implements ProtocolCheck {
     @Override
     public int getVersion(Player player) {
-        return MinecraftReflection.VERSION.version();
+        return MinecraftVersion.VERSION.versionEnum().version();
     }
 }

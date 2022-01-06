@@ -39,7 +39,8 @@ public enum MCVersion {
     V1_14(477, 480, 485, 490, 498),
     V1_15(573, 575, 578),
     V1_16(735, 736, 751, 753, 754),
-    V1_17(true, 755, 756);
+    V1_17(true, 755, 756),
+    V1_18(true, 757);
 
     private final int[] rawVersion;
     private final boolean hexColorSupport;

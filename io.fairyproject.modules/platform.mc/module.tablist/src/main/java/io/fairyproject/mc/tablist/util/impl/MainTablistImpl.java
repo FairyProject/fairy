@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.tablist.util.impl;
 
+import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCGameProfile;
@@ -34,7 +35,6 @@ import io.fairyproject.mc.protocol.item.TeamAction;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.mc.tablist.util.*;
 import io.fairyproject.mc.util.Property;
-import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.tablist.Tablist;
 import io.fairyproject.util.CC;

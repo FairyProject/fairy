@@ -28,6 +28,7 @@ import com.google.common.collect.HashMultimap;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.annotation.ServerImpl;
+import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementation;
@@ -97,8 +98,8 @@ public class NormalImplementation implements ServerImplementation {
             GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman").getMethod("getProfile"));
 
             Class<?> minecraftServerType = CLASS_RESOLVER.resolve("server.MinecraftServer", "MinecraftServer");
-            Object minecraftServer = minecraftServerType.getMethod("getServer").invoke(null);
-            MINECRAFT_SERVER = new ObjectWrapper(minecraftServer);
+            Object minecraftServer = Bukkit.getServer().getClass().getMethod("getServer").invoke(Bukkit.getServer());
+            MINECRAFT_SERVER = new ObjectWrapper(minecraftServer, minecraftServerType);
 
             try {
                 Class<?> BLOCK_INFO_PACKET_TYPE = CLASS_RESOLVER.resolve("network.protocol.game.PacketPlayOutMultiBlockChange", "PacketPlayOutMultiBlockChange");
@@ -413,7 +414,7 @@ public class NormalImplementation implements ServerImplementation {
     @Override
     public boolean callMoveEvent(Player player, Location from, Location to) {
         PlayerMoveEvent event = new PlayerMoveEvent(player, from, to);
-        Imanity.callEvent(event);
+        Events.call(event);
         return !event.isCancelled();
     }
 

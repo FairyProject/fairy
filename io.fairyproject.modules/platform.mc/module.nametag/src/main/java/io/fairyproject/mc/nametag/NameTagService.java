@@ -31,6 +31,7 @@ import io.fairyproject.container.ComponentRegistry;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
 import io.fairyproject.event.Subscribe;
+import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
@@ -39,7 +40,6 @@ import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.Utility;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;

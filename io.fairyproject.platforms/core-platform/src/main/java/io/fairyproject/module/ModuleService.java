@@ -28,6 +28,7 @@ import org.jetbrains.annotations.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -63,6 +64,29 @@ public class ModuleService {
 
                         downloadModules(name, version, paths, false);
                     });
+
+                    if (Debug.UNIT_TEST) {
+                        // only useful for unit testing
+                        try {
+                            final Class<?> moduleClass = Class.forName("MODULE", true, plugin.getClassLoader());
+                            final Field field = moduleClass.getDeclaredField("ALL");
+
+                            final List<String> all = (List<String>) field.get(null);
+                            for (String tag : all) {
+                                String[] split = tag.split(":");
+//                                String groupId = split[0]; // TODO
+                                String artifactId = split[1];
+                                String version = split[2];
+
+                                downloadModules(artifactId, version, paths, false);
+                            }
+                        } catch (ClassNotFoundException ignored) {
+                            ignored.printStackTrace();
+                        } catch (Exception ex) {
+                            throw new IllegalStateException("Failed to load modules for " + plugin.getName(), ex);
+                        }
+                    }
+
                     List<String> modulesOrdered = new ArrayList<>(paths.keySet());
                     Collections.reverse(modulesOrdered);
 
@@ -111,7 +135,7 @@ public class ModuleService {
         }
         Path path;
         try {
-            path = ModuleDownloader.download(new File(FairyPlatform.INSTANCE.getDataFolder(), "modules/" + name + "-" + FairyVersion.parse(version).toString() + ".jar").toPath(), name, version);
+            path = ModuleDownloader.download("io.fairyproject", name, version, null);
         } catch (Throwable throwable) {
             LOGGER.error("An error occurs while download module " + name, throwable);
             return;
@@ -183,7 +207,7 @@ public class ModuleService {
                 return null;
             }
             String name = jsonObject.get("name").getAsString();
-            String classPath = plugin.getDescription().getShadedPackage() + ".fairy";
+            String classPath = !Debug.UNIT_TEST && !Debug.IN_FAIRY_IDE ? plugin.getDescription().getShadedPackage() + ".fairy" : "io.fairyproject";
 
             final List<Module> dependedModules = this.loadDependModules(jsonObject, name);
             if (dependedModules == null) {
@@ -196,16 +220,17 @@ public class ModuleService {
 
             Files.createDirectories(plugin.getDataFolder());
 
-            Path notShadedPath = path;
-            final Path finalPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
-            if (Debug.IN_FAIRY_IDE || !Files.exists(finalPath)) {
-                this.remap(path, finalPath, plugin, dependedModules, relocationEntries);
+            Path shadedPath = path;
+            if (!Debug.UNIT_TEST && !Debug.IN_FAIRY_IDE) {
+                shadedPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
+                if (!Files.exists(shadedPath)) {
+                    this.remap(path, shadedPath, plugin, dependedModules, relocationEntries);
+                }
             }
 
-            path = finalPath;
-            Fairy.getPlatform().getClassloader().addJarToClasspath(path);
+            Fairy.getPlatform().getClassloader().addJarToClasspath(shadedPath);
 
-            module = new Module(name, classPath, plugin, notShadedPath, path);
+            module = new Module(name, classPath, plugin, path, shadedPath);
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             this.loadLibrariesAndExclusives(module, plugin, jsonObject);
@@ -219,7 +244,7 @@ public class ModuleService {
                     .prefix(plugin.getName() + "-")
                     .classLoader(this.getClass().getClassLoader())
                     .excludePackage(excludedPackages)
-                    .url(path.toUri().toURL())
+                    .url(shadedPath.toUri().toURL())
                     .classPath(module.getClassPath())
                     .scan();
             details.forEach(bean -> bean.bindWith(plugin));
