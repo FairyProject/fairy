@@ -52,7 +52,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
         maven { url "https://repo.viaversion.com/" }
-        maven { url "https://ci.athion.net/job/FastAsyncWorldEdit/ws/mvn/" }
+//        maven { url "https://ci.athion.net/job/FastAsyncWorldEdit/ws/mvn/" }
         maven { url "https://maven.sk89q.com/repo/" }
         flatDir { dir("${this.projectDir.path}/libs") }
     }

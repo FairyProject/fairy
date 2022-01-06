@@ -24,11 +24,11 @@
 
 package io.fairyproject.bukkit.util.schematic.impl;
 
-import com.google.common.base.Preconditions;
-import com.sk89q.worldedit.Vector;
-import com.sk89q.worldedit.bukkit.BukkitWorld;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
-import com.sk89q.worldedit.regions.CuboidRegion;
+//import com.google.common.base.Preconditions;
+//import com.sk89q.worldedit.Vector;
+//import com.sk89q.worldedit.bukkit.BukkitWorld;
+//import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
+//import com.sk89q.worldedit.regions.CuboidRegion;
 import io.fairyproject.mc.util.BlockPosition;
 
 import java.io.File;
@@ -46,15 +46,15 @@ public class FAWESchematic extends WorldEditSchematic {
 
     @Override
     public void save(org.bukkit.World world) throws IOException {
-        Preconditions.checkNotNull(this.file);
-        Preconditions.checkNotNull(this.top);
-        Preconditions.checkNotNull(this.bottom);
-
-        Vector top = new Vector(this.top.getX(), this.top.getY(), this.top.getZ());
-        Vector bottom = new Vector(this.bottom.getX(), this.bottom.getY(), this.bottom.getZ());
-
-        CuboidRegion region = new CuboidRegion(new BukkitWorld(world), top, bottom);
-        com.boydti.fawe.object.schematic.Schematic schematic = new com.boydti.fawe.object.schematic.Schematic(region);
-        schematic.save(this.file, ClipboardFormat.SCHEMATIC);
+//        Preconditions.checkNotNull(this.file);
+//        Preconditions.checkNotNull(this.top);
+//        Preconditions.checkNotNull(this.bottom);
+//
+//        Vector top = new Vector(this.top.getX(), this.top.getY(), this.top.getZ());
+//        Vector bottom = new Vector(this.bottom.getX(), this.bottom.getY(), this.bottom.getZ());
+//
+//        CuboidRegion region = new CuboidRegion(new BukkitWorld(world), top, bottom);
+//        com.boydti.fawe.object.schematic.Schematic schematic = new com.boydti.fawe.object.schematic.Schematic(region);
+//        schematic.save(this.file, ClipboardFormat.SCHEMATIC);
     }
 }

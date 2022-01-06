@@ -44,8 +44,8 @@ public abstract class Schematic {
 
     public static Schematic create(File file) {
         switch (Schematic.TYPE) {
-            case FAWE:
-                return new FAWESchematic(file);
+//            case FAWE:
+//                return new FAWESchematic(file);
             case WORLDEDIT:
                 return new WorldEditSchematic(file);
         }
@@ -55,8 +55,8 @@ public abstract class Schematic {
 
     public static Schematic create(File file, BlockPosition top, BlockPosition bottom) {
         switch (Schematic.TYPE) {
-            case FAWE:
-                return new FAWESchematic(file, top, bottom);
+//            case FAWE:
+//                return new FAWESchematic(file, top, bottom);
             case WORLDEDIT:
                 return new WorldEditSchematic(file, top, bottom);
         }
@@ -69,12 +69,12 @@ public abstract class Schematic {
 
         lookup:
         {
-            try {
-                Class.forName("com.boydti.fawe.FaweAPI");
-                lookupType = SchematicType.FAWE;
-                break lookup;
-            } catch (ClassNotFoundException ex) {
-            }
+//            try {
+//                Class.forName("com.boydti.fawe.FaweAPI");
+//                lookupType = SchematicType.FAWE;
+//                break lookup;
+//            } catch (ClassNotFoundException ex) {
+//            }
 
             try {
                 Class.forName("com.sk89q.worldedit.EditSession");
