@@ -38,7 +38,7 @@ public class BukkitMCServer implements MCServer {
                         try {
                             return MinecraftReflection.getBukkitEntity(methodHandle.invoke(server, uuid));
                         } catch (Throwable throwable) {
-                            throw new RuntimeException(throwable);
+                            throw new IllegalStateException(throwable);
                         }
                     };
                 } catch (Throwable throwable) {

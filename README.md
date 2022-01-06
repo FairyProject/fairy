@@ -53,12 +53,12 @@ For every contributor, we will be rewarding a discord role in our discord:
  
 ## PR Requirements
 
-*    There should be 0 issue found in [`Codacy`](https://app.codacy.com/gh/FairyProject/fairy/dashboard?branch=v5).
-*    No tabs; use 4 spaces instead.
-    *    Empty lines should contain no spaces.
-*    No trailing whitespaces.
-*    No one-line methods.
-*    Major additions are preferred to have documentation.
-*    Follow test driven development where available.
-    *    Fairy starting from 0.5.1 will start going in the direction of TDD, if you can contribute to improve test coverage in this project we would be grateful!
-*    Avoid moving or renaming classes.
+* There should be 0 issue found in [`Codacy`](https://app.codacy.com/gh/FairyProject/fairy/dashboard?branch=v5).
+* No tabs; use 4 spaces instead.
+  * Empty lines should contain no spaces.
+* No trailing whitespaces.
+* No one-line methods.
+* Major additions are preferred to have documentation.
+* Follow test driven development where available.
+  * Fairy starting from 0.5.1 will start going in the direction of TDD, if you can contribute to improve test coverage in this project we would be grateful!
+* Avoid moving or renaming classes.

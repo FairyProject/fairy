@@ -220,19 +220,17 @@ public class ModuleService {
 
             Files.createDirectories(plugin.getDataFolder());
 
-            Path notShadedPath = path;
+            Path shadedPath = path;
             if (!Debug.UNIT_TEST && !Debug.IN_FAIRY_IDE) {
-                final Path finalPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
-                if (!Files.exists(finalPath)) {
-                    this.remap(path, finalPath, plugin, dependedModules, relocationEntries);
+                shadedPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
+                if (!Files.exists(shadedPath)) {
+                    this.remap(path, shadedPath, plugin, dependedModules, relocationEntries);
                 }
-
-                path = finalPath;
             }
 
-            Fairy.getPlatform().getClassloader().addJarToClasspath(path);
+            Fairy.getPlatform().getClassloader().addJarToClasspath(shadedPath);
 
-            module = new Module(name, classPath, plugin, notShadedPath, path);
+            module = new Module(name, classPath, plugin, path, shadedPath);
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             this.loadLibrariesAndExclusives(module, plugin, jsonObject);
@@ -246,7 +244,7 @@ public class ModuleService {
                     .prefix(plugin.getName() + "-")
                     .classLoader(this.getClass().getClassLoader())
                     .excludePackage(excludedPackages)
-                    .url(path.toUri().toURL())
+                    .url(shadedPath.toUri().toURL())
                     .classPath(module.getClassPath())
                     .scan();
             details.forEach(bean -> bean.bindWith(plugin));
