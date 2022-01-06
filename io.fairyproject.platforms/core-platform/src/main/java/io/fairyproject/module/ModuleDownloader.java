@@ -64,7 +64,8 @@ public class ModuleDownloader {
         });
         SESSION.setReadOnly();
         REPOSITORIES = REPOSITORY.newResolutionRepositories(SESSION, Arrays.asList(
-                new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build()
+                new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
+                new RemoteRepository.Builder("imanityLibraries", "default", "https://maven.imanity.dev/repository/imanity-libraries").build()
         ));
     }
 
