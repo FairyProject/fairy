@@ -24,8 +24,8 @@
 
 package io.fairyproject.mc.tablist.util;
 
-import io.fairyproject.mc.MCPlayer;
 import net.kyori.adventure.text.Component;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.tablist.Tablist;
 
 public interface TablistImpl {

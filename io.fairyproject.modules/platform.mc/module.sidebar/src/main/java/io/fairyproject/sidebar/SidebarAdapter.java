@@ -24,8 +24,8 @@
 
 package io.fairyproject.sidebar;
 
-import io.fairyproject.mc.MCPlayer;
 import net.kyori.adventure.text.Component;
+import io.fairyproject.mc.MCPlayer;
 
 import java.util.List;
 

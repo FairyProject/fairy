@@ -24,40 +24,42 @@
 
 package io.fairyproject.bukkit;
 
-import io.fairyproject.container.ComponentRegistry;
-import io.fairyproject.bukkit.mc.*;
-import io.fairyproject.bukkit.plugin.FairyInternalPlugin;
+import io.fairyproject.ExtendedClassLoader;
+import io.fairyproject.FairyPlatform;
+import io.fairyproject.bukkit.events.PostServicesInitialEvent;
+import io.fairyproject.bukkit.impl.BukkitPluginHandler;
+import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
+import io.fairyproject.bukkit.impl.ComponentHolderBukkitListener;
+import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.mc.BukkitMCInitializer;
+import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.SpigotUtil;
+import io.fairyproject.container.ComponentRegistry;
 import io.fairyproject.library.Library;
+import io.fairyproject.mc.MCInitializer;
 import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
-import io.fairyproject.bukkit.events.PostServicesInitialEvent;
-import io.fairyproject.bukkit.impl.ComponentHolderBukkitListener;
-import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.impl.BukkitPluginHandler;
-import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
-import io.fairyproject.ExtendedClassLoader;
-import io.fairyproject.task.ITaskScheduler;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
+public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
     private static final Logger LOGGER = LogManager.getLogger(FairyBukkitPlatform.class);
 
     public static FairyBukkitPlatform INSTANCE;
-    public static FairyInternalPlugin PLUGIN;
+    public static Plugin PLUGIN;
     public static BukkitAudiences AUDIENCES;
 
     private final ExtendedClassLoader classLoader;
@@ -83,7 +85,8 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
 
         PluginManager.initialize(new BukkitPluginHandler());
         ModuleService.init();
-        new BukkitMCInitializer().run();
+        MinecraftReflection.init();
+        this.createMCInitializer().apply();
     }
 
     @Override
@@ -104,6 +107,10 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
     @Override
     public void onPostServicesInitial() {
         Events.call(new PostServicesInitialEvent());
+    }
+
+    public MCInitializer createMCInitializer() {
+        return new BukkitMCInitializer();
     }
 
     @Override
@@ -147,7 +154,7 @@ public final class FairyBukkitPlatform extends FairyPlatform implements Terminab
         if (SpigotUtil.SPIGOT_TYPE != SpigotUtil.SpigotType.IMANITY) {
             libraries.add(Library.FAST_UTIL);
         }
-        libraries.add(Library.ADVENTURE_API);
+//        libraries.add(Library.ADVENTURE_API);
         return libraries;
     }
 }

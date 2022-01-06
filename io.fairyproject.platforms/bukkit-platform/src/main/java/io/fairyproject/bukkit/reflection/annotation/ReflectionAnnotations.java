@@ -175,9 +175,9 @@ public class ReflectionAnnotations {
 					if (MinecraftVersion.VERSION.equal(versions[i])) {// Wohoo, perfect match!
 						list.add(names[i]);
 					} else {
-						if (names[i].startsWith(">") && MinecraftReflection.VERSION.newerThan(versions[i])) {// Match if the current version is newer
+						if (names[i].startsWith(">") && MinecraftVersion.VERSION.versionEnum().newerThan(versions[i])) {// Match if the current version is newer
 							list.add(names[i].substring(1));
-						} else if (names[i].startsWith("<") && MinecraftReflection.VERSION.olderThan(versions[i])) {// Match if the current version is older
+						} else if (names[i].startsWith("<") && MinecraftVersion.VERSION.versionEnum().olderThan(versions[i])) {// Match if the current version is older
 							list.add(names[i].substring(1));
 						}
 					}

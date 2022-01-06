@@ -1,4 +1,4 @@
-package io.fairytest.entity;
+package io.fairyproject.tests;
 
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
@@ -10,7 +10,6 @@ import io.fairyproject.task.async.AsyncTaskScheduler;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
 
 public class FairyTestingPlatform extends FairyPlatform {
 

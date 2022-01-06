@@ -3,8 +3,9 @@ package io.fairyproject.bukkit.mc;
 import io.fairyproject.bukkit.protocol.BukkitNettyInjector;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
-import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.mapping.MCProtocolMapping;
 import io.fairyproject.mc.protocol.mapping.MCProtocolMapping1_8;
+import io.fairyproject.mc.protocol.netty.NettyInjector;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -12,12 +13,26 @@ import java.util.Collection;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public class BukkitMCInitializer implements Runnable {
+public class BukkitMCInitializer implements MCInitializer {
+
     @Override
-    public void run() {
-        MCProtocol.initialize(new BukkitNettyInjector(), new MCProtocolMapping1_8()); // TODO
-        MCServer.Companion.CURRENT = new BukkitMCServer();
-        MCEntity.Companion.BRIDGE = new MCEntity.Bridge() {
+    public NettyInjector createNettyInjector() {
+        return new BukkitNettyInjector();
+    }
+
+    @Override
+    public MCProtocolMapping createProtocolMapping() {
+        return new MCProtocolMapping1_8(); // TODO
+    }
+
+    @Override
+    public MCServer createMCServer() {
+        return new BukkitMCServer();
+    }
+
+    @Override
+    public MCEntity.Bridge createEntityBridge() {
+        return new MCEntity.Bridge() {
             @Override
             public MCEntity from(Object entity) {
                 if (!(entity instanceof org.bukkit.entity.Entity)) {
@@ -26,7 +41,11 @@ public class BukkitMCInitializer implements Runnable {
                 return new BukkitMCEntity((org.bukkit.entity.Entity) entity);
             }
         };
-        MCWorld.Companion.BRIDGE = new MCWorld.Bridge() {
+    }
+
+    @Override
+    public MCWorld.Bridge createWorldBridge() {
+        return new MCWorld.Bridge() {
             @Override
             public MCWorld from(Object world) {
                 if (!(world instanceof org.bukkit.World)) {
@@ -35,7 +54,11 @@ public class BukkitMCInitializer implements Runnable {
                 return new BukkitMCWorld((org.bukkit.World) world);
             }
         };
-        MCPlayer.Companion.BRIDGE = new MCPlayer.Bridge() {
+    }
+
+    @Override
+    public MCPlayer.Bridge createPlayerBridge() {
+        return new MCPlayer.Bridge() {
             @Override
             public UUID from(Object obj) {
                 return Players.tryGetUniqueId(obj);
@@ -65,7 +88,11 @@ public class BukkitMCInitializer implements Runnable {
                         .collect(Collectors.toList());
             }
         };
-        MCGameProfile.Companion.BRIDGE = new MCGameProfile.Bridge() {
+    }
+
+    @Override
+    public MCGameProfile.Bridge createGameProfileBridge() {
+        return new MCGameProfile.Bridge() {
             @Override
             public MCGameProfile create(String name, UUID uuid) {
                 return new BukkitMCGameProfile(name, uuid);

@@ -32,4 +32,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface ServerImpl {
+
+    int value() default 0;
+
 }

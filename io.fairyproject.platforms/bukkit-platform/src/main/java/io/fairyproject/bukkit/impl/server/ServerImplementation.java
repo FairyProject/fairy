@@ -55,18 +55,25 @@ public interface ServerImplementation {
         );
 
         Class<?> lastSuccess = null;
+        int priority = Integer.MIN_VALUE;
         lookup: for (Class<?> type : reflectLookup.findAnnotatedClasses(ServerImpl.class)) {
             if (!ServerImplementation.class.isAssignableFrom(type)) {
                 throw new IllegalArgumentException("The type " + type.getName() + " does not implement to ProtocolCheck!");
             }
 
+            final ServerImpl annotation = type.getAnnotation(ServerImpl.class);
             ImplementationFactory.TestResult result = ImplementationFactory.test(type.getAnnotation(ProviderTestImpl.class));
             switch (result) {
                 case NO_PROVIDER:
-                    lastSuccess = type;
+                    if (annotation.value() > priority) {
+                        lastSuccess = type;
+                        priority = annotation.value();
+                    }
                     break;
                 case SUCCESS:
-                    lastSuccess = type;
+                    if (annotation.value() > priority) {
+                        lastSuccess = type;
+                    }
                     break lookup;
                 case FAILURE:
                     break;

@@ -27,6 +27,7 @@ package io.fairyproject.container;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import io.fairyproject.Debug;
 import io.fairyproject.container.controller.SubscribeEventContainerController;
 import io.fairyproject.container.object.*;
 import io.fairyproject.container.object.parameter.ContainerParameterDetailsMethod;
@@ -52,6 +53,9 @@ import org.reflections.util.FilterBuilder;
 
 import java.lang.reflect.*;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -152,10 +156,24 @@ public class ContainerContext {
                     try {
                         final List<String> classPaths = findClassPaths(aClass);
                         classPaths.add(plugin.getDescription().getShadedPackage());
-                        scanClasses()
+                        final ClassPathScanner scanner = scanClasses()
                                 .name(plugin.getName())
-                                .classLoader(plugin.getPluginClassLoader())
-                                .url(plugin.getClass().getProtectionDomain().getCodeSource().getLocation())
+                                .classLoader(plugin.getPluginClassLoader());
+
+                        if (Debug.UNIT_TEST) {
+                            // Hard coded, anyway to make it safer?
+                            final Path pathMain = Paths.get("build/classes/java/main").toAbsolutePath();
+                            if (Files.exists(pathMain))
+                                scanner.url(pathMain.toUri().toURL());
+
+                            final Path pathTest = Paths.get("build/classes/java/test").toAbsolutePath();
+                            if (Files.exists(pathTest))
+                                scanner.url(pathTest.toUri().toURL());
+                        } else {
+                            scanner.url(plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
+                        }
+
+                        scanner
                                 .classPath(classPaths)
                                 .included(containerObject)
                                 .scan();

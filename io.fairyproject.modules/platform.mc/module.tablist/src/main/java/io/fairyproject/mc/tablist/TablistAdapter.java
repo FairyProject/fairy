@@ -24,9 +24,9 @@
 
 package io.fairyproject.mc.tablist;
 
+import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.tablist.util.TabSlot;
 import io.fairyproject.mc.MCPlayer;
-import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;

@@ -26,7 +26,7 @@ package io.fairyproject.bukkit.util.schematic;
 
 public enum SchematicType {
 
-    FAWE,
+//    FAWE, // remove support for now, their repository seems to be died
     WORLDEDIT,
     BUKKIT
 

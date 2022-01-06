@@ -20,5 +20,11 @@ fairy {
 
     fairyIde = true
 
-    platform("app")
+    platform("bukkit")
+    module("timer")
+}
+
+dependencies {
+    compileOnly project.spigot()
+    testImplementation "org.imanity.spigot:1.16.5:1.16.5"
 }

@@ -24,11 +24,11 @@
 
 package io.fairyproject.mc.tablist.util;
 
+import net.kyori.adventure.text.Component;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import io.fairyproject.mc.tablist.Tablist;
-import net.kyori.adventure.text.Component;
 
 import java.util.UUID;
 
