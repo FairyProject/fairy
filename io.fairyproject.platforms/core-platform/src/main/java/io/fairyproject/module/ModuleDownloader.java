@@ -103,6 +103,7 @@ public class ModuleDownloader {
             if (customRepository != null) {
                 repositories = REPOSITORY.newResolutionRepositories(SESSION, Arrays.asList(
                         new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
+                        new RemoteRepository.Builder("imanityLibraries", "default", "https://maven.imanity.dev/repository/imanity-libraries").build(),
                         new RemoteRepository.Builder("custom", "default", customRepository).build()
                 ));
             }
