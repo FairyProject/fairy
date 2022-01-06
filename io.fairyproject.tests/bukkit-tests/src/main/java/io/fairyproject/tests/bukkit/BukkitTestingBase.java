@@ -9,7 +9,7 @@ import org.junit.BeforeClass;
 
 import java.lang.reflect.InvocationTargetException;
 
-public class BukkitTestingBase {
+public abstract class BukkitTestingBase {
 
     protected static ServerMock SERVER;
     protected static MockPlugin PLUGIN;

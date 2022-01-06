@@ -121,7 +121,8 @@ public class ModuleDownloader {
 
             result = REPOSITORY.resolveDependencies(SESSION, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(dependency), repositories), null));
         } catch (DependencyResolutionException ex) {
-            throw new RuntimeException("Error resolving libraries", ex);
+            Debug.logExceptionAndPause(new IllegalStateException("Error resolving libraries!", ex));
+            return null;
         }
 
         final ArtifactResult artifactResult = result.getArtifactResults().get(0); // Assuming we only have 1 result

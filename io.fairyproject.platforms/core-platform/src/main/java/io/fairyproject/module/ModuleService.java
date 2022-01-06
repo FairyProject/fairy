@@ -74,7 +74,7 @@ public class ModuleService {
                             final List<String> all = (List<String>) field.get(null);
                             for (String tag : all) {
                                 String[] split = tag.split(":");
-                                String groupId = split[0]; // TODO
+//                                String groupId = split[0]; // TODO
                                 String artifactId = split[1];
                                 String version = split[2];
 

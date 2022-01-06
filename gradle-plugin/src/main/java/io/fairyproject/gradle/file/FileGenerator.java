@@ -1,10 +1,9 @@
 package io.fairyproject.gradle.file;
 
-import org.apache.commons.lang3.tuple.Pair;
 import io.fairyproject.gradle.FairyExtension;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
 
 public interface FileGenerator {

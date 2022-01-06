@@ -2,14 +2,12 @@ package io.fairyproject.tests;
 
 import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
-import io.fairyproject.library.Library;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.BeforeClass;
 
 import java.io.File;

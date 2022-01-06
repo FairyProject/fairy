@@ -1,12 +1,11 @@
 package io.fairyproject.gradle.file;
 
-import io.fairyproject.gradle.util.PropertyUtil;
-import org.apache.commons.lang3.tuple.Pair;
 import io.fairyproject.gradle.FairyExtension;
 import io.fairyproject.gradle.PlatformType;
+import io.fairyproject.gradle.util.PropertyUtil;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
