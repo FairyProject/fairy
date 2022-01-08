@@ -65,6 +65,8 @@ import java.util.regex.Pattern;
 public class MinecraftReflection {
     public static final Pattern NUMERIC_VERSION_PATTERN = Pattern.compile("v([0-9])_([0-9]*)_R([0-9])");
 
+    public static final MinecraftVersion MINECRAFT_VERSION = MinecraftVersion.VERSION;
+
     public static String NETTY_PREFIX;
 
     private static NMSClassResolver NMS_CLASS_RESOLVER = new NMSClassResolver();

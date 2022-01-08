@@ -25,24 +25,29 @@
 package io.fairyproject.bukkit.reflection.minecraft;
 
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 
 import java.util.regex.Matcher;
 
 public class MinecraftVersion {
 
+    private static final Logger LOGGER = LogManager.getLogger(MinecraftVersion.class);
+
     public static MinecraftVersion VERSION;
 
     static {
-        System.out.println("[Imanity/MinecraftVersion] I am loaded from package " + MinecraftReflection.class.getPackage().getName());
+        LOGGER.info("I am loaded from package " + MinecraftReflection.class.getPackage().getName());
         try {
             VERSION = MinecraftVersion.getVersion();
         } catch (Exception e) {
             throw new RuntimeException("Failed to get version", e);
         }
-        if (VERSION != null) {
-            System.out.println("[Imanity/MinecraftVersion] Version is " + VERSION);
-        }
+
+        if (VERSION != null)
+            LOGGER.info("Version is " + VERSION);
+        else LOGGER.warn("Failed to recognise the version");
     }
 
     private final String packageName;
@@ -159,16 +164,17 @@ public class MinecraftVersion {
         try {
             serverClass = Bukkit.getServer().getClass();
         } catch (Exception e) {
-            System.err.println("[Imanity/MinecraftVersion] Failed to get bukkit server class: " + e.getMessage());
-            System.err.println("[Imanity/MinecraftVersion] Assuming we're in a test environment!");
-            return new MinecraftVersion("v1_16_R3", 11603);
+            LOGGER.error("Failed to get bukkit server class: ", e);
+            LOGGER.error("Assuming we're in a test environment!");
+            return null;
         }
 
         String name = serverClass.getPackage().getName();
         if (name.equals("be.seeseemelk.mockbukkit")) {
-            System.err.println("[Imanity/MinecraftVersion] MockBukkit found! we are in test environment! we will let developer take care of version setting...");
+            System.err.println("MockBukkit found! we are in test environment! we will let developer take care of version setting...");
             return null;
         }
+
         String versionPackage = name.substring(name.lastIndexOf('.') + 1);
         for (MinecraftReflection.Version version : MinecraftReflection.Version.values()) {
             MinecraftVersion minecraftVersion = version.minecraft();
@@ -176,9 +182,9 @@ public class MinecraftVersion {
                 return minecraftVersion;
             }
         }
-        System.err.println("[Imanity/MinecraftVersion] Failed to find version enum for '" + name + "'/'" + versionPackage + "'");
+        LOGGER.error("Failed to find version enum for '" + name + "'/'" + versionPackage + "'");
 
-        System.out.println("[Imanity/MinecraftVersion] Generating dynamic constant...");
+        LOGGER.info("Generating dynamic constant...");
         Matcher matcher = MinecraftReflection.NUMERIC_VERSION_PATTERN.matcher(versionPackage);
         while (matcher.find()) {
             if (matcher.groupCount() < 3) {
@@ -200,13 +206,13 @@ public class MinecraftVersion {
             String packageName = "v" + versionPackage.substring(1).toUpperCase();
 
             //dynamic register version
-            System.out.println("[Imanity/MinecraftVersion] Injected dynamic version " + packageName + " (#" + numVersion + ").");
-            System.out.println("[Imanity/MinecraftVersion] Please inform inventivetalent about the outdated version, as this is not guaranteed to work.");
+            LOGGER.info("Injected dynamic version " + packageName + " (#" + numVersion + ").");
+            LOGGER.info("Please inform inventivetalent about the outdated version, as this is not guaranteed to work.");
             return new MinecraftVersion(packageName, numVersion);
         }
 
-        System.err.println("[Imanity/MinecraftVersion] Failed to create dynamic version for " + versionPackage);
+        LOGGER.error("Failed to create dynamic version for " + versionPackage);
 
-        return new MinecraftVersion("v1_16_R3", 11603);
+        return new MinecraftVersion("UNKNOWN", -1);
     }
 }
