@@ -56,6 +56,10 @@ public class Session implements AutoCloseable {
         return this.query().whereQuery(query, value).first(clazz);
     }
 
+    public <T> List<T> findAllByQuery(Class<T> clazz, String query, Object value) {
+        return this.query().whereQuery(query, value).results(clazz);
+    }
+
     public Query byId(Class<?> clazz, Object id) {
         return this.query().byId(clazz, id);
     }

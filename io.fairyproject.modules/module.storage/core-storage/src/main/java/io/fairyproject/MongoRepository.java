@@ -120,6 +120,18 @@ public class MongoRepository<T, ID extends Serializable> extends AbstractReposit
     }
 
     @Override
+    public <Q> Iterable<T> findAllByQuery(String query, Q value) {
+        List<T> result = new ArrayList<>();
+        this.run(() -> {
+            for(T t : this.collection.find(Filters.eq(query, value))) {
+                result.add(t);
+            }
+        });
+
+        return result;
+    }
+
+    @Override
     public long count() {
         return this.supply(() -> this.collection.countDocuments());
     }
