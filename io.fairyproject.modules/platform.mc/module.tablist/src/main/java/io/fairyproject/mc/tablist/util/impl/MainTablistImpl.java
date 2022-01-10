@@ -104,7 +104,7 @@ public class MainTablistImpl implements TablistImpl {
         } else {
             final PacketPlay.Out.PlayerInfo packet = PacketPlay.Out.PlayerInfo.builder()
                     .action(PlayerInfoAction.UPDATE_DISPLAY_NAME)
-                    .entry(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, tabEntry.getText()))
+                    .entry(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, text))
                     .build();
 
             player.sendPacket(packet);

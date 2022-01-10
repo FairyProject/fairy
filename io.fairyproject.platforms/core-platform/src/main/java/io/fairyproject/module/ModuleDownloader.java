@@ -83,7 +83,7 @@ public class ModuleDownloader {
         Files.createDirectories(MODULE_DIR);
 
         if (Debug.IN_FAIRY_IDE) {
-            final File projectFolder = Paths.get("").toAbsolutePath().getParent().toFile(); // double parent
+            final File projectFolder = (Debug.UNIT_TEST ? Paths.get("").toAbsolutePath().getParent() : Paths.get("").toAbsolutePath().getParent().getParent()).toFile(); // double parent
             final File localRepoFolder = new File(projectFolder, "libs/local");
 
             if (!localRepoFolder.exists()) {

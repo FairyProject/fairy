@@ -10,7 +10,7 @@ public abstract class FairyBukkitTestingPlatform extends FairyBukkitPlatform {
 
     public FairyBukkitTestingPlatform() {
         super(new File("build/tmp/fairy"));
-        MinecraftVersion.VERSION = this.version();
+        MinecraftVersion.forceSet(this.version());
     }
 
     @Override

@@ -91,7 +91,7 @@ public class HologramSingle {
     protected void sendSpawnPacket(Collection<? extends Player> players) {
 
         players.forEach(player -> {
-            if (MinecraftVersion.VERSION.newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
 
                 packetContainer.getIntegers()
@@ -117,7 +117,7 @@ public class HologramSingle {
     protected void sendTeleportPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
 
-            if (MinecraftVersion.VERSION.newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
 
                 packetContainer.getIntegers()
@@ -169,7 +169,7 @@ public class HologramSingle {
 
     protected void sendDestroyPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
-            if (MinecraftVersion.VERSION.newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
 
                 packetContainer.getIntegerArrays()

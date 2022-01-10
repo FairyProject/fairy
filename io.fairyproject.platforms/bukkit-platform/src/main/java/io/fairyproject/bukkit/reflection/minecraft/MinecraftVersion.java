@@ -31,18 +31,25 @@ import java.util.regex.Matcher;
 
 public class MinecraftVersion {
 
-    public static MinecraftVersion VERSION;
+    private static MinecraftVersion VERSION;
 
-    static {
-        System.out.println("[Imanity/MinecraftVersion] I am loaded from package " + MinecraftReflection.class.getPackage().getName());
-        try {
-            VERSION = MinecraftVersion.getVersion();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to get version", e);
+    public static MinecraftVersion get() {
+        if (VERSION == null) {
+            System.out.println("[Imanity/MinecraftVersion] I am loaded from package " + MinecraftReflection.class.getPackage().getName());
+            try {
+                VERSION = MinecraftVersion.getVersion();
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to get version", e);
+            }
+            if (VERSION != null) {
+                System.out.println("[Imanity/MinecraftVersion] Version is " + VERSION);
+            }
         }
-        if (VERSION != null) {
-            System.out.println("[Imanity/MinecraftVersion] Version is " + VERSION);
-        }
+        return VERSION;
+    }
+
+    public static void forceSet(MinecraftVersion version) {
+        VERSION = version;
     }
 
     private final String packageName;
@@ -154,7 +161,7 @@ public class MinecraftVersion {
         return packageName + " (" + version() + ")";
     }
 
-    public static MinecraftVersion getVersion() {
+    private static MinecraftVersion getVersion() {
         Class serverClass;
         try {
             serverClass = Bukkit.getServer().getClass();

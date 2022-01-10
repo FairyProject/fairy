@@ -223,21 +223,21 @@ public class MinecraftReflection {
      * @return the current NMS/OBC version (format <code>&lt;version&gt;.</code>
      */
     public static String getVersion() {
-        return MinecraftVersion.VERSION.packageName() + ".";
+        return MinecraftVersion.get().packageName() + ".";
     }
 
     /**
      * @return the current NMS version package
      */
     public static String getNMSPackage() {
-        return MinecraftVersion.VERSION.getNmsPackage();
+        return MinecraftVersion.get().getNmsPackage();
     }
 
     /**
      * @return the current OBC package
      */
     public static String getOBCPackage() {
-        return MinecraftVersion.VERSION.getObcPackage();
+        return MinecraftVersion.get().getObcPackage();
     }
 
     public static <T> T getChannel(Player player) {
@@ -378,11 +378,17 @@ public class MinecraftReflection {
         }
 
         Version(int version) {
-            if (version >= 11701) { // 1.17+ new class package name format
-                this.version = new MinecraftVersion(name(), version, "net.minecraft", "org.bukkit.craftbukkit.%s", false);
-            } else {
-                this.version = new MinecraftVersion(name(), version);
+            MinecraftVersion v = null;
+            try {
+                if (version >= 11701) { // 1.17+ new class package name format
+                    v = new MinecraftVersion(name(), version, "net.minecraft", "org.bukkit.craftbukkit.%s", false);
+                } else {
+                    v = new MinecraftVersion(name(), version);
+                }
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
             }
+            this.version = v;
         }
 
         /**

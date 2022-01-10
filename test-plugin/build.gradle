@@ -21,7 +21,8 @@ fairy {
     fairyIde = true
 
     platform("bukkit")
-    module("timer")
+    module("sidebar")
+    module("tablist")
 }
 
 dependencies {
