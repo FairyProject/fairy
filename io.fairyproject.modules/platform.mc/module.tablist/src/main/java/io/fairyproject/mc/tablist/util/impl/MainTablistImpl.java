@@ -89,7 +89,7 @@ public class MainTablistImpl implements TablistImpl {
 
         if (version == MCVersion.V1_7) {
 
-            String[] newStrings = Tablist.splitStrings(MCAdventure.asLegacyString(tabEntry.getText(), player.getLocale()), tabEntry.getRawSlot());
+            String[] newStrings = Tablist.splitStrings(MCAdventure.asLegacyString(text, player.getLocale()), tabEntry.getRawSlot());
             final PacketPlay.Out.ScoreboardTeam packet = PacketPlay.Out.ScoreboardTeam.builder()
                     .name(LegacyClientUtil.name(tabEntry.getRawSlot() - 1))
                     .parameters(Optional.of(PacketPlay.Out.ScoreboardTeam.Parameters.builder()

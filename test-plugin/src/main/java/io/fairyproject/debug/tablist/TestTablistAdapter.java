@@ -6,7 +6,6 @@ import io.fairyproject.mc.tablist.TablistAdapter;
 import io.fairyproject.mc.tablist.util.TabColumn;
 import io.fairyproject.mc.tablist.util.TabSlot;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
