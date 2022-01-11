@@ -17,7 +17,7 @@ public final class PlayerLocaleUtil {
             final Method modernMethod = Player.class.getMethod("getLocale");
             function = player -> {
                 try {
-                    return (String) modernMethod.invoke(player.spigot());
+                    return (String) modernMethod.invoke(player);
                 } catch (ReflectiveOperationException e) {
                     throw new RuntimeException(e);
                 }

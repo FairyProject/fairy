@@ -53,6 +53,8 @@ public interface Repository<T, ID extends Serializable> {
 
     Iterable<T> findAllById(List<ID> ids);
 
+    <Q> Iterable<T> findAllByQuery(String query, Q value);
+
     long count();
 
     void deleteById(ID id);

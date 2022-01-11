@@ -130,6 +130,11 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
     }
 
     @Override
+    public <Q> Iterable<T> findAllByQuery(String queryName, Q value) {
+        return this.supplySession(session -> session.findAllByQuery(this.type(), queryName, value));
+    }
+
+    @Override
     public long count() {
         return this.supplySession(session -> session.query().count(this.type()).first(Long.class));
     }

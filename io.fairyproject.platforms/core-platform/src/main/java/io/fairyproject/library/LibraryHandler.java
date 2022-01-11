@@ -284,7 +284,6 @@ public class LibraryHandler {
                         new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
                         new RemoteRepository.Builder("custom", "default", library.getRepository().getUrl()).build()
                 ));
-                ;
             }
             result = repository.resolveDependencies(session, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(library.getMavenDependency()), repositories), null));
         } catch (DependencyResolutionException ex) {

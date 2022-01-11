@@ -28,6 +28,7 @@ import com.cryptomorin.xseries.XMaterial;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fairyproject.Fairy;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -63,7 +64,7 @@ import java.util.function.Function;
 @Setter
 public abstract class Menu implements TerminableConsumer {
 
-    private static final MetadataKey<Menu> METADATA = MetadataKey.create("imanity:menu", Menu.class);
+    private static final MetadataKey<Menu> METADATA = MetadataKey.create(Fairy.METADATA_PREFIX + "menu", Menu.class);
     private static final Map<Class<? extends Menu>, List<Menu>> MENU_BY_TYPE = new ConcurrentHashMap<>();
 
     private static void addMenu(Menu menu) {

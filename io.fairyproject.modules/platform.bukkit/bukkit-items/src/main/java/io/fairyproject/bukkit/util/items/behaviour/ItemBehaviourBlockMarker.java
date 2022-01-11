@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
+import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.util.items.ImanityItem;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
@@ -39,7 +40,7 @@ import io.fairyproject.bukkit.metadata.Metadata;
 
 public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
 
-    private static final MetadataKey<String> METADATA = MetadataKey.createStringKey("fairy:block-marker");
+    private static final MetadataKey<String> METADATA = MetadataKey.createStringKey(Fairy.METADATA_PREFIX + "block-marker");
 
     @Override
     public void init(ImanityItem item) {

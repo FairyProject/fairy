@@ -71,6 +71,7 @@ public enum MCVersion {
     }
 
     public static MCVersion getVersionFromRaw(int input) {
+        System.out.println("INPUT: " + input);
         for (MCVersion mcVersion : values()) {
             if (ArrayUtils.contains(mcVersion.rawVersion, input)) {
                 return mcVersion;
