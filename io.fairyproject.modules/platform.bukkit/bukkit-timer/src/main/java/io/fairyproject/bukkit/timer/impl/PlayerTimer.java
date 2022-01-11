@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.timer.impl;
 
+import io.fairyproject.Fairy;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import io.fairyproject.bukkit.metadata.Metadata;
@@ -37,7 +38,7 @@ import java.util.Collections;
 @Getter
 public class PlayerTimer extends TimerBase {
 
-    public static final MetadataKey<TimerList> TIMER_METADATA_KEY = MetadataKey.create("Imanity-TimerList", TimerList.class);
+    public static final MetadataKey<TimerList> TIMER_METADATA_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "TimerList", TimerList.class);
 
     public static TimerList getTimerList(Player player) {
         return Metadata.provideForPlayer(player)

@@ -35,7 +35,7 @@ class BukkitBootstrap extends BaseBootstrap {
 
     @Override
     protected BasePlatformBridge createPlatformBridge() {
-        return new io.fairyproject.bootstrap.bukkit.BukkitPlatformBridge(this);
+        return new BukkitPlatformBridge(this);
     }
 
     @Override

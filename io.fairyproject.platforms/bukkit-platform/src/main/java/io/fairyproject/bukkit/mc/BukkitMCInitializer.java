@@ -1,9 +1,12 @@
 package io.fairyproject.bukkit.mc;
 
 import io.fairyproject.bukkit.protocol.BukkitNettyInjector;
+import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
 import io.fairyproject.mc.protocol.mapping.MCProtocolMapping;
+import io.fairyproject.mc.protocol.mapping.MCProtocolMapping1_18;
 import io.fairyproject.mc.protocol.mapping.MCProtocolMapping1_8;
 import io.fairyproject.mc.protocol.netty.NettyInjector;
 import org.bukkit.Bukkit;
@@ -22,7 +25,10 @@ public class BukkitMCInitializer implements MCInitializer {
 
     @Override
     public MCProtocolMapping createProtocolMapping() {
-        return new MCProtocolMapping1_8(); // TODO
+        if (MinecraftVersion.VERSION.newerThan(MinecraftReflection.Version.v1_18_R1))
+            return new MCProtocolMapping1_18();
+        else
+            return new MCProtocolMapping1_8();
     }
 
     @Override
