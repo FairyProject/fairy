@@ -5,6 +5,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 @Getter
 public abstract class Subscriber<E> implements Comparable<Subscriber<E>> {
 
@@ -39,5 +41,18 @@ public abstract class Subscriber<E> implements Comparable<Subscriber<E>> {
     @Override
     public int compareTo(@NotNull Subscriber<E> o) {
         return o.priority - this.priority;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Subscriber<?> that = (Subscriber<?>) o;
+        return priority == that.priority && type.equals(that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, priority);
     }
 }

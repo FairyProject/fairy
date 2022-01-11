@@ -1,10 +1,10 @@
 //package io.fairyproject.debug;
 //
 //import io.fairyproject.container.Component;
+//import io.fairyproject.libs.kyori.adventure.text.format.NamedTextColor;
 //import io.fairyproject.mc.MCPlayer;
 //import io.fairyproject.sidebar.SidebarAdapter;
 //import io.fairyproject.util.CC;
-//import net.kyori.adventure.text.format.NamedTextColor;
 //import org.bukkit.ChatColor;
 //import org.bukkit.Location;
 //import org.bukkit.entity.Player;
@@ -27,47 +27,47 @@
 //    }
 //
 //    @Override
-//    public net.kyori.adventure.text.Component getTitle(MCPlayer mcPlayer) {
+//    public io.fairyproject.libs.kyori.adventure.text.Component getTitle(MCPlayer mcPlayer) {
 //        offset++;
 //        this.setTitleColorOffset(offset);
 //
-//        net.kyori.adventure.text.Component component = net.kyori.adventure.text.Component.empty();
+//        io.fairyproject.libs.kyori.adventure.text.Component component = io.fairyproject.libs.kyori.adventure.text.Component.empty();
 //        final char[] charArray = this.title.toCharArray();
 //        for (int i = 0; i < charArray.length; i++) {
-//            component = component.append(net.kyori.adventure.text.Component.text(this.titleColors[i].toString() + charArray[i]));
+//            component = component.append(io.fairyproject.libs.kyori.adventure.text.Component.text(this.titleColors[i].toString() + charArray[i]));
 //        }
 //
 //        return component;
 //    }
 //
 //    @Override
-//    public List<net.kyori.adventure.text.Component> getLines(MCPlayer mcPlayer) {
+//    public List<io.fairyproject.libs.kyori.adventure.text.Component> getLines(MCPlayer mcPlayer) {
 //        // Port MCPlayer to bukkit player
 //        final Player player = mcPlayer.as(Player.class);
 //        final Location location = player.getLocation();
 //
 //        return Arrays.asList(
 //                // ----------------------
-//                net.kyori.adventure.text.Component.text(CC.SB_BAR),
+//                io.fairyproject.libs.kyori.adventure.text.Component.text(CC.SB_BAR),
 //
 //                // Welcome: PLAYER!
-//                net.kyori.adventure.text.Component.text("Welcome ", NamedTextColor.AQUA)
-//                        .append(net.kyori.adventure.text.Component.text(mcPlayer.getName() + "!", NamedTextColor.WHITE)),
+//                io.fairyproject.libs.kyori.adventure.text.Component.text("Welcome ", NamedTextColor.AQUA)
+//                        .append(io.fairyproject.libs.kyori.adventure.text.Component.text(mcPlayer.getName() + "!", NamedTextColor.WHITE)),
 //
 //                // Your version: V1_8
-//                net.kyori.adventure.text.Component.text("Your version: ", NamedTextColor.AQUA)
-//                        .append(net.kyori.adventure.text.Component.text(mcPlayer.getVersion().toString(), NamedTextColor.WHITE)),
+//                io.fairyproject.libs.kyori.adventure.text.Component.text("Your version: ", NamedTextColor.AQUA)
+//                        .append(io.fairyproject.libs.kyori.adventure.text.Component.text(mcPlayer.getVersion().toString(), NamedTextColor.WHITE)),
 //
 //                // Your gamemode: SURVIVAL
-//                net.kyori.adventure.text.Component.text("Your gamemode: ", NamedTextColor.AQUA)
-//                        .append(net.kyori.adventure.text.Component.text(player.getGameMode().toString(), NamedTextColor.WHITE)),
+//                io.fairyproject.libs.kyori.adventure.text.Component.text("Your gamemode: ", NamedTextColor.AQUA)
+//                        .append(io.fairyproject.libs.kyori.adventure.text.Component.text(player.getGameMode().toString(), NamedTextColor.WHITE)),
 //
 //                // Your location: 0, 0, 0
-//                net.kyori.adventure.text.Component.text("Your location: ", NamedTextColor.AQUA)
-//                        .append(net.kyori.adventure.text.Component.text(location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ(), NamedTextColor.WHITE)),
+//                io.fairyproject.libs.kyori.adventure.text.Component.text("Your location: ", NamedTextColor.AQUA)
+//                        .append(io.fairyproject.libs.kyori.adventure.text.Component.text(location.getBlockX() + ", " + location.getBlockY() + ", " + location.getBlockZ(), NamedTextColor.WHITE)),
 //
 //                // ----------------------
-//                net.kyori.adventure.text.Component.text(CC.SB_BAR)
+//                io.fairyproject.libs.kyori.adventure.text.Component.text(CC.SB_BAR)
 //        );
 //    }
 //

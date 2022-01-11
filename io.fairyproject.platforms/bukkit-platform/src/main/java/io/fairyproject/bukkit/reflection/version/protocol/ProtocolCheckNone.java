@@ -33,6 +33,6 @@ import org.bukkit.entity.Player;
 public class ProtocolCheckNone implements ProtocolCheck {
     @Override
     public int getVersion(Player player) {
-        return MinecraftVersion.VERSION.versionEnum().version();
+        return MinecraftVersion.get().versionEnum().version();
     }
 }

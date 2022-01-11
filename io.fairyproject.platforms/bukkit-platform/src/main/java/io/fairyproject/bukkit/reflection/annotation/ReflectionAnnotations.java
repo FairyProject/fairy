@@ -70,8 +70,8 @@ public class ReflectionAnnotations {
 				String[] names = nameList.toArray(new String[nameList.size()]);
 				for (int i = 0; i < names.length; i++) {// Replace NMS & OBC
 					names[i] = names[i]
-							.replace("{nms}", "net.minecraft.server." + MinecraftVersion.VERSION.packageName())
-							.replace("{obc}", "org.bukkit.craftbukkit." + MinecraftVersion.VERSION.packageName());
+							.replace("{nms}", "net.minecraft.server." + MinecraftVersion.get().packageName())
+							.replace("{obc}", "org.bukkit.craftbukkit." + MinecraftVersion.get().packageName());
 				}
 				try {
 					if (ClassWrapper.class.isAssignableFrom(field.getType())) {
@@ -172,12 +172,12 @@ public class ReflectionAnnotations {
 					throw new RuntimeException("versions array cannot have more elements than the names (" + clazz + ")");
 				}
 				for (int i = 0; i < versions.length; i++) {
-					if (MinecraftVersion.VERSION.equal(versions[i])) {// Wohoo, perfect match!
+					if (MinecraftVersion.get().equal(versions[i])) {// Wohoo, perfect match!
 						list.add(names[i]);
 					} else {
-						if (names[i].startsWith(">") && MinecraftVersion.VERSION.versionEnum().newerThan(versions[i])) {// Match if the current version is newer
+						if (names[i].startsWith(">") && MinecraftVersion.get().versionEnum().newerThan(versions[i])) {// Match if the current version is newer
 							list.add(names[i].substring(1));
-						} else if (names[i].startsWith("<") && MinecraftVersion.VERSION.versionEnum().olderThan(versions[i])) {// Match if the current version is older
+						} else if (names[i].startsWith("<") && MinecraftVersion.get().versionEnum().olderThan(versions[i])) {// Match if the current version is older
 							list.add(names[i].substring(1));
 						}
 					}

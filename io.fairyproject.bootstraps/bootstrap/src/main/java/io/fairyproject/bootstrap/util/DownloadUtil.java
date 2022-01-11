@@ -30,7 +30,7 @@ public class DownloadUtil {
                 throw new IllegalStateException("Couldn't found local repo setup at " + localRepoFolder.toPath() + "!");
             }
 
-            File file = new File(localRepoFolder, core + "-platform.jar");
+            File file = new File(localRepoFolder, "io.fairyproject." + core + "-platform.jar");
             if (!file.exists()) {
                 throw new IllegalStateException("Couldn't found local module at local repo setup at " + file + "!");
             }

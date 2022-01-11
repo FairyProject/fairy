@@ -207,7 +207,7 @@ public class ModuleService {
                 return null;
             }
             String name = jsonObject.get("name").getAsString();
-            String classPath = !Debug.UNIT_TEST && !Debug.IN_FAIRY_IDE ? plugin.getDescription().getShadedPackage() + ".fairy" : "io.fairyproject";
+            String classPath = !Debug.UNIT_TEST ? plugin.getDescription().getShadedPackage() + ".fairy" : "io.fairyproject";
 
             final List<Module> dependedModules = this.loadDependModules(jsonObject, name);
             if (dependedModules == null) {
@@ -221,7 +221,7 @@ public class ModuleService {
             Files.createDirectories(plugin.getDataFolder());
 
             Path shadedPath = path;
-            if (!Debug.UNIT_TEST && !Debug.IN_FAIRY_IDE) {
+            if (!Debug.UNIT_TEST) {
                 shadedPath = plugin.getDataFolder().resolve(fileName + "-remapped.jar");
                 if (!Files.exists(shadedPath)) {
                     this.remap(path, shadedPath, plugin, dependedModules, relocationEntries);
