@@ -1,0 +1,5 @@
+dependencies {
+    compileOnly project(":io.fairyproject.platforms:app-platform")
+
+    api project(":io.fairyproject.tests:core-tests")
+}
