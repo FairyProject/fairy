@@ -25,18 +25,25 @@
 package io.fairyproject.sidebar;
 
 import io.fairyproject.Fairy;
-import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.item.*;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.protocol.item.ObjectiveDisplaySlot;
+import io.fairyproject.mc.protocol.item.ObjectiveRenderType;
+import io.fairyproject.mc.protocol.item.ScoreAction;
+import io.fairyproject.mc.protocol.item.TeamAction;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
+import net.kyori.adventure.text.Component;
 
 import java.util.List;
 import java.util.Optional;
 
 public class Sidebar {
+
+    private static final boolean charLimit = MCProtocol.INSTANCE.getProtocolMapping().getVersion().isOrBelow(MCVersion.V1_12);
 
     public static final MetadataKey<Sidebar> METADATA_TAG = MetadataKey.create(Fairy.METADATA_PREFIX + "Scoreboard", Sidebar.class);
 
@@ -107,26 +114,31 @@ public class Sidebar {
         String prefix;
         String suffix;
 
-        if (value.length() <= 16) {
+        if (charLimit) {
+            if (value.length() <= 16) {
+                prefix = value;
+                suffix = "";
+            } else {
+                prefix = value.substring(0, 16);
+                String lastColor = CC.getLastColors(prefix);
+
+                if (lastColor.isEmpty() || lastColor.equals(" "))
+                    lastColor = CC.CODE + "f";
+
+                if (prefix.endsWith(CC.CODE + "")) {
+                    prefix = prefix.substring(0, 15);
+                    suffix = lastColor + value.substring(15);
+
+                } else
+                    suffix = lastColor + value.substring(16);
+
+                if (suffix.length() > 16) {
+                    suffix = suffix.substring(0, 16);
+                }
+            }
+        } else {
             prefix = value;
             suffix = "";
-        } else {
-            prefix = value.substring(0, 16);
-            String lastColor = CC.getLastColors(prefix);
-
-            if (lastColor.isEmpty() || lastColor.equals(" "))
-                lastColor = CC.CODE + "f";
-
-            if (prefix.endsWith(CC.CODE + "")) {
-                prefix = prefix.substring(0, 15);
-                suffix = lastColor + value.substring(15);
-
-            } else
-                suffix = lastColor + value.substring(16);
-
-            if (suffix.length() > 16) {
-                suffix = suffix.substring(0, 16);
-            }
         }
 
         builder.playerPrefix(MCAdventure.LEGACY.deserialize(prefix));
