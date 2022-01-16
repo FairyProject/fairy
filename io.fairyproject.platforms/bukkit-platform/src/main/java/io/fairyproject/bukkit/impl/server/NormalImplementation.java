@@ -34,6 +34,7 @@ import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementation;
 import io.fairyproject.bukkit.player.movement.impl.BukkitMovementImplementation;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
@@ -98,11 +99,7 @@ public class NormalImplementation implements ServerImplementation {
             GAME_PROFILE_FIELD = new FieldWrapper<>(field);
 
             Class<?> humanEntityType = CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman");
-            try {
-                GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(humanEntityType.getMethod("getProfile"));
-            } catch (Exception e) {
-                GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(humanEntityType.getMethod("fp"));
-            }
+            GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodWrapper<>(MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_18_R1) ? humanEntityType.getMethod("fp") : humanEntityType.getMethod("getProfile"));
 
             Class<?> minecraftServerType = CLASS_RESOLVER.resolve("server.MinecraftServer", "MinecraftServer");
             Object minecraftServer = Bukkit.getServer().getClass().getMethod("getServer").invoke(Bukkit.getServer());

@@ -25,7 +25,7 @@ public class BukkitMCInitializer implements MCInitializer {
 
     @Override
     public MCProtocolMapping createProtocolMapping() {
-        if (MinecraftVersion.VERSION.newerThan(MinecraftReflection.Version.v1_18_R1))
+        if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_18_R1))
             return new MCProtocolMapping1_18();
         else
             return new MCProtocolMapping1_8();

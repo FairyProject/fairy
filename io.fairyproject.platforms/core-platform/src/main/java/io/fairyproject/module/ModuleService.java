@@ -300,8 +300,7 @@ public class ModuleService {
             String moduleName = split[0];
             Module dependModule = this.getByName(moduleName);
             if (dependModule == null) {
-                LOGGER.error("Unable to find dependency module " + moduleName + " for " + name + " BUT CONTINUE XD");
-                //return null;
+                LOGGER.error("Unable to find dependency module " + moduleName + " for " + name);
                 continue;
             }
             dependedModules.add(dependModule);

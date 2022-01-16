@@ -43,7 +43,6 @@ import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.EquivalentConverter;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
@@ -56,7 +55,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -64,8 +62,6 @@ import java.util.regex.Pattern;
  */
 public class MinecraftReflection {
     public static final Pattern NUMERIC_VERSION_PATTERN = Pattern.compile("v([0-9])_([0-9]*)_R([0-9])");
-
-    public static final MinecraftVersion MINECRAFT_VERSION = MinecraftVersion.VERSION;
 
     public static String NETTY_PREFIX;
 
@@ -165,26 +161,18 @@ public class MinecraftReflection {
             Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.NetworkManager", "NetworkManager");
 
             MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper<>(OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer").getDeclaredMethod("getHandle"));
-            MethodWrapper<?> playerProfileMethod;
-            try {
-                playerProfileMethod = new MethodWrapper<>(entityHumanType.getMethod("getProfile"));
-            } catch (Exception ex) {
-                playerProfileMethod = new MethodWrapper<>(entityHumanType.getMethod("fp"));
-            }
-            MinecraftReflection.PLAYER_GET_GAME_PROFILE = playerProfileMethod;
+            MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper<>(MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_18_R1)
+                    ? entityHumanType.getMethod("fp")
+                    : entityHumanType.getMethod("getProfile"));
 
             MinecraftReflection.FIELD_PLAYER_CONNECTION = new FieldResolver(entityPlayerType)
                     .resolveByFirstTypeDynamic(playerConnectionType);
 
             Class<?> packetClass = NMS_CLASS_RESOLVER.resolve("network.protocol.Packet", "Packet");
 
-            MethodWrapper<Void> sendPacketMethod;
-            try {
-                sendPacketMethod = new MethodWrapper<>(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
-            } catch (Exception ex) {
-                sendPacketMethod = new MethodWrapper<>(playerConnectionType.getDeclaredMethod("a", packetClass));
-            }
-            MinecraftReflection.METHOD_SEND_PACKET = sendPacketMethod;
+            MinecraftReflection.METHOD_SEND_PACKET = new MethodWrapper<>(MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_18_R1)
+                    ? playerConnectionType.getDeclaredMethod("a", packetClass)
+                    : playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
 
             MinecraftReflection.FIELD_NETWORK_MANAGER = new FieldResolver(playerConnectionType)
                     .resolveByFirstTypeWrapper(networkManagerType);
@@ -495,7 +483,7 @@ public class MinecraftReflection {
 
     public static Class<?> getIChatBaseComponentClass() {
         try {
-            return NMS_CLASS_RESOLVER.resolve("network.chat.IChatBaseComponent","IChatBaseComponent");
+            return NMS_CLASS_RESOLVER.resolve("network.chat.IChatBaseComponent", "IChatBaseComponent");
         } catch (ClassNotFoundException ex) {
             try {
                 return OBC_CLASS_RESOLVER
@@ -510,7 +498,7 @@ public class MinecraftReflection {
 
     public static Class<?> getChatModifierClass() {
         try {
-            return NMS_CLASS_RESOLVER.resolve("network.chat.ChatModifier","ChatModifier");
+            return NMS_CLASS_RESOLVER.resolve("network.chat.ChatModifier", "ChatModifier");
         } catch (Throwable throwable) {
             try {
                 return NMS_CLASS_RESOLVER.resolveSubClass(getIChatBaseComponentClass(), "ChatModifier");
