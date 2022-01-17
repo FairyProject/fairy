@@ -25,7 +25,6 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.security.auth.login.LoginException;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -186,12 +185,22 @@ public abstract class DCBot implements ProxyJDA {
     protected JDABuilder setupBuilder(JDABuilder jdaBuilder) {
         return jdaBuilder
                 .disableCache(CacheFlag.ACTIVITY)
-                .setMemberCachePolicy(MemberCachePolicy.ALL)
-                .setChunkingFilter(ChunkingFilter.ALL)
-                .enableIntents(this.getGatewayIntents());
+                .setMemberCachePolicy(this.createMemberCachePolicy())
+                .setChunkingFilter(this.createChunkingFilter())
+                .enableIntents(this.createGatewayIntents());
     }
 
     protected abstract String createToken();
+
+    protected abstract Collection<GatewayIntent> createGatewayIntents();
+
+    protected MemberCachePolicy createMemberCachePolicy() {
+        return MemberCachePolicy.ALL;
+    }
+
+    protected ChunkingFilter createChunkingFilter() {
+        return ChunkingFilter.ALL;
+    }
 
     public enum Mode {
         LIGHT,
