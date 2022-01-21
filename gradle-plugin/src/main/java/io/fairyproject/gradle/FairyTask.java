@@ -61,11 +61,13 @@ public class FairyTask extends DefaultTask {
     public void run() throws IOException {
         int index = inJar.getName().lastIndexOf('.');
         String fileName = inJar.getName().substring(0, index);
-        if (fileName.endsWith("-" + classifier)) {
+        if (classifier != null && fileName.endsWith("-" + classifier)) {
             fileName = fileName.substring(0, fileName.length() - ("-" + classifier).length());
-            final File dest = new File(fileName + "-shadow" + inJar.getName().substring(index));
+            final File dest = new File(inJar.getParentFile(), fileName + "-shadow" + inJar.getName().substring(index));
             inJar.renameTo(dest);
             inJar = dest;
+
+            index = inJar.getName().lastIndexOf('.');
         }
         String name = fileName + (classifier == null ? "" : "-" + classifier) + inJar.getName().substring(index);
         File outJar = new File(inJar.getParentFile(), name);
