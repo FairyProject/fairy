@@ -36,7 +36,14 @@ public class FairyTestTask extends DefaultTask {
         }
 
         final File directory = testSourceSet.getOutput().getClassesDirs().getSingleFile();
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+
         final File moduleClass = new File(directory, "MODULE.class");
+        if (!moduleClass.exists()) {
+            moduleClass.createNewFile();
+        }
 
         Files.write(moduleClass.toPath(), this.dump());
     }

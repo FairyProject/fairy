@@ -8,11 +8,11 @@ import io.fairyproject.container.Component;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.discord.DCBot;
+import io.fairyproject.discord.channel.DCMessageChannel;
 import io.fairyproject.discord.event.DCBotInitializedEvent;
 import io.fairyproject.discord.event.DCMessageReceivedEvent;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.metadata.MetadataKey;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.User;
 
 import java.util.ArrayList;
@@ -54,7 +54,7 @@ public class DCCommandListener implements CommandListener {
     public void onMessageReceived(DCMessageReceivedEvent event) {
         final DCBot bot = event.getBot();
         final User author = event.getAuthor();
-        final MessageChannel channel = event.getChannel();
+        final DCMessageChannel channel = new DCMessageChannel(event.getChannel(), bot);
 
         bot.metadata().ifPresent(METADATA, commandMap -> {
             final String message = event.getMessage().getContentRaw();
