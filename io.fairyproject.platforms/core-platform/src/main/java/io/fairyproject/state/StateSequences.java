@@ -32,6 +32,8 @@ public class StateSequences extends StateCollection {
 
     private int index = 0;
     private boolean skipping = false;
+    private boolean skippingWithoutNotifyOthers = false;
+    private int skippingTo = -1;
 
     public StateSequences(List<State> states) {
         super(states);
@@ -42,7 +44,17 @@ public class StateSequences extends StateCollection {
     }
 
     public void skip() {
+        this.skip(this.index + 1);
+    }
+
+    public void skip(int skippingTo) {
+        this.skip(skippingTo, skippingWithoutNotifyOthers);
+    }
+
+    public void skip(int skippingTo, boolean skippingWithoutNotifyOthers) {
         this.skipping = true;
+        this.skippingTo = skippingTo;
+        this.skippingWithoutNotifyOthers = skippingWithoutNotifyOthers;
     }
 
     public void addNext(State state) {
@@ -69,28 +81,37 @@ public class StateSequences extends StateCollection {
 
     @Override
     protected void onUpdate() {
-        final State currentState = this.getCurrentState();
+        State currentState = this.getCurrentState();
         currentState.update();
 
-        final boolean readyToEnd = currentState.isReadyToEnd();
-        if (readyToEnd && !currentState.isPaused() || skipping) {
-            if (this.skipping) {
-                if (!readyToEnd) {
+        int curIndex = this.index;
+        while (this.index < this.skippingTo) {
+            final boolean readyToEnd = currentState.isReadyToEnd();
+            if (readyToEnd && !currentState.isPaused() || skipping) {
+                if (this.skipping && !readyToEnd) {
                     currentState.onSuspend();
                 }
-                this.skipping = false;
+
+                if (this.index == curIndex || !this.skippingWithoutNotifyOthers) {
+                    currentState.end();
+                }
+                this.index++;
+
+                if (this.index > this.lastIndex()) {
+                    this.end();
+                    return;
+                }
+
+                currentState = this.getCurrentState();
+                if (this.index == curIndex || this.index == this.skippingTo || !this.skippingWithoutNotifyOthers) {
+                    currentState.start();
+                }
             }
-
-            currentState.end();
-            this.index++;
-
-            if (this.index > this.lastIndex()) {
-                this.end();
-                return;
-            }
-
-            this.getCurrentState().start();
         }
+
+        this.skipping = false;
+        this.skippingTo = -1;
+        this.skippingWithoutNotifyOthers = false;
     }
 
     @Override
