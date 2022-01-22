@@ -60,7 +60,8 @@ public class StateSequencesTest extends TestingBase {
 
     private static class ExState extends StateBase {
 
-        private boolean start, end;
+        private boolean start;
+        private boolean end;
 
         @Override
         protected void onStart() {
@@ -69,7 +70,7 @@ public class StateSequencesTest extends TestingBase {
 
         @Override
         protected void onUpdate() {
-
+            // nothing
         }
 
         @Override
