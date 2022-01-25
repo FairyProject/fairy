@@ -84,7 +84,7 @@ public class FairyAppPlatform extends FairyPlatform {
 
     @Override
     public File getDataFolder() {
-        return new File(".");
+        return new File("fairy");
     }
 
     @Override
