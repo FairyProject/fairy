@@ -38,7 +38,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service(name = "storage")
+@Service
 @ServiceDependency({GlobalStorageConfiguration.class, SerializerFactory.class, JacksonService.class})
 public class StorageService {
 
