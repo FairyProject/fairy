@@ -9,6 +9,25 @@ import org.junit.Test;
 public class StateSequencesTest extends TestingBase {
 
     @Test
+    public void sequenceEndingFirstNaturally() {
+        ExState a = new ExState() {
+            @Override
+            protected boolean canEnd() {
+                return true;
+            }
+        };
+
+        ExState b = new ExState();
+        StateSequences states = new StateSequences(a, b);
+        states.start();
+
+        states.update();
+        Assert.assertTrue(a.start);
+        Assert.assertTrue(a.end);
+        Assert.assertTrue(b.start);
+    }
+
+    @Test
     public void sequenceSkipTo() {
         ExState a = new ExState();
         ExState b = new ExState();

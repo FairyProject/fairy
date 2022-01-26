@@ -85,7 +85,7 @@ public class StateSequences extends StateCollection {
         currentState.update();
 
         int curIndex = this.index;
-        while (this.index < this.skippingTo) {
+        while (this.index == curIndex || this.index < this.skippingTo) {
             final boolean readyToEnd = currentState.isReadyToEnd();
             if (readyToEnd && !currentState.isPaused() || skipping) {
                 if (this.skipping && !readyToEnd) {
