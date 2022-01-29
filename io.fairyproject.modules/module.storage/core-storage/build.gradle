@@ -41,6 +41,5 @@ module {
     library("org.mongodb:bson:4.2.3")
     library("org.mongodb:mongodb-driver-core:4.2.3")
     library("org.mongodb:mongodb-driver-sync:4.2.3")
-    library("org.mongodb:mongodb-driver-sync:4.2.3")
     library("org.mongojack:mongojack:4.2.0")
 }
