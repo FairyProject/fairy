@@ -40,7 +40,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
-@Service(name = "storageConfiguration")
+@Service
 @Getter
 public class GlobalStorageConfiguration extends YamlConfiguration {
 

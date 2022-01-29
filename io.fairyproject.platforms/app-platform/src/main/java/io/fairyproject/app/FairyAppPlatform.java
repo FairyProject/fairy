@@ -84,7 +84,7 @@ public class FairyAppPlatform extends FairyPlatform {
 
     @Override
     public File getDataFolder() {
-        return new File(".");
+        return new File("fairy");
     }
 
     @Override
@@ -92,7 +92,8 @@ public class FairyAppPlatform extends FairyPlatform {
         return Arrays.asList(
                 Library.builder().gradle("commons-io:commons-io:2.7").build(),
                 Library.builder().gradle("com.google.code.gson:gson:2.8.6").build(),
-                Library.builder().gradle("com.google.guava:guava:30.0-jre").build()
+                Library.builder().gradle("com.google.guava:guava:30.0-jre").build(),
+                Library.builder().gradle("org.yaml:snakeyaml:1.20").build()
         );
     }
 
