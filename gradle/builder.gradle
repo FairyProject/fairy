@@ -26,6 +26,8 @@ abstract class CopyJarToLocal extends DefaultTask {
 
 }
 
+
+
 // setup directory per version
 project.afterEvaluate(p -> {
     var directoryProperty = tasks.shadowJar.destinationDirectory
@@ -46,6 +48,10 @@ project.afterEvaluate(p -> {
     tasks.shadowJar.finalizedBy(copyTask)
 
     shadowJar {
+        // XSeries
+        exclude("com/cryptomorin/xseries/messages/*")
+        relocate("com.cryptomorin.xseries", "io.fairyproject.bukkit.xseries")
+
         relocate "net.kyori", relocate + "kyori"
     }
 })
