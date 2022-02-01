@@ -7,6 +7,7 @@ import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.ServiceDependency;
 import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.util.FileUtil;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -32,6 +33,7 @@ public abstract class TranslationManager {
     protected static final Logger LOGGER = LogManager.getLogger(TranslationManager.class);
 
     protected final Set<Locale> installed = Sets.newConcurrentHashSet();
+    @Getter
     protected TranslationRegistry translationRegistry;
     protected boolean loaded;
 
