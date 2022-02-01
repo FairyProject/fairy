@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ServiceDependency(
-        value = LocaleSerializer.class
+        value = LocaleService.class
 )
 public abstract class TranslationManager {
 
@@ -105,22 +105,22 @@ public abstract class TranslationManager {
             }
         });
 
-        ResourceBundle bundle = null;
-        switch (this.defaultLocaleFileType()) {
-            case PROPERTIES:
-                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), UTF8ResourceBundleControl.get());
-                break;
-            case YAML:
-                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), YamlResourceBundle.Control.INSTANCE);
-                break;
-        }
-        try {
-            this.translationRegistry.registerAll(this.defaultLocale(), bundle, false);
-        } catch (IllegalArgumentException e) {
-            if (!isAdventureDuplicatesException(e)) {
-                LOGGER.warn("Error loading default locale file", e);
-            }
-        }
+//        ResourceBundle bundle = null;
+//        switch (this.defaultLocaleFileType()) {
+//            case PROPERTIES:
+//                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), UTF8ResourceBundleControl.get());
+//                break;
+//            case YAML:
+//                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), YamlResourceBundle.Control.INSTANCE);
+//                break;
+//        }
+//        try {
+//            this.translationRegistry.registerAll(this.defaultLocale(), bundle, false);
+//        } catch (IllegalArgumentException e) {
+//            if (!isAdventureDuplicatesException(e)) {
+//                LOGGER.warn("Error loading default locale file", e);
+//            }
+//        }
     }
 
     public void unload() {

@@ -15,10 +15,10 @@ import io.fairyproject.module.relocator.Relocation;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.util.FairyVersion;
 import io.fairyproject.util.PreProcessBatch;
 import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.entry.EntryArrayList;
-import lombok.NonNull;
+import lombok.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,12 +56,12 @@ public class ModuleService {
                     final ModuleService moduleService = Containers.get(ModuleService.class);
 
                     // We will get all the paths first for relocation.
-                    EntryArrayList<String, Path> paths = new EntryArrayList<>();
+                    ModuleDataList modules = new ModuleDataList();
                     plugin.getDescription().getModules().forEach(pair -> {
                         String name = pair.getKey();
                         String version = pair.getValue();
 
-                        downloadModules(name, version, paths, false);
+                        downloadModules(name, version, modules, false);
                     });
 
                     if (Debug.UNIT_TEST) {
@@ -77,7 +77,7 @@ public class ModuleService {
                                 String artifactId = split[1];
                                 String version = split[2];
 
-                                downloadModules(artifactId, version, paths, false);
+                                downloadModules(artifactId, version, modules, false);
                             }
                         } catch (ClassNotFoundException ignored) {
                             ignored.printStackTrace();
@@ -86,15 +86,16 @@ public class ModuleService {
                         }
                     }
 
-                    Collections.reverse(paths);
+                    Collections.reverse(modules);
 
                     // Relocation entries from all included modules
-                    final Path[] relocationEntries = paths.values().toArray(new Path[0]);
+                    final Path[] relocationEntries = modules.stream()
+                            .map(ModuleData::getPath)
+                            .toArray(Path[]::new);
 
                     // Then push all paths
-                    paths.stream().distinct().forEach(entry -> {
-                        final String name = entry.getKey();
-                        final Path path = paths.get(name);
+                    modules.forEach(moduleData -> {
+                        final Path path = moduleData.getPath();
                         final Module module = moduleService.registerByPath(path, plugin, relocationEntries);
 
                         if (module == null) {
@@ -128,10 +129,7 @@ public class ModuleService {
         });
     }
 
-    private static void downloadModules(String name, String version, EntryArrayList<String, Path> paths, boolean canAbstract) {
-        if (paths.containsKey(name)) {
-            return;
-        }
+    private static void downloadModules(String name, String version, ModuleDataList paths, boolean canAbstract) {
         Path path;
         try {
             path = ModuleDownloader.download("io.fairyproject", name, version, null);
@@ -140,7 +138,7 @@ public class ModuleService {
             return;
         }
 
-        paths.add(name, path);
+        paths.add(new ModuleData(name, FairyVersion.parse(version), path));
 
         // We will read dependencies first.
         try {
@@ -352,6 +350,49 @@ public class ModuleService {
                 Stacktrace.print(throwable);
             }
         }
+    }
+
+    @Getter
+    @Setter
+    @AllArgsConstructor
+    private static class ModuleData {
+
+        private String name;
+        private FairyVersion version;
+        private Path path;
+
+        @Override
+        public String toString() {
+            return this.name + ":" + version;
+        }
+    }
+
+    /**
+     * This is the extended module data list to ensure module data order while changing the content whenever the newly added module has newer version
+     */
+    private static class ModuleDataList extends ArrayList<ModuleData> {
+
+        private final Map<String, ModuleData> map = new HashMap<>();
+
+        @Override
+        public boolean add(ModuleData moduleData) {
+            final ModuleData previous = map.getOrDefault(moduleData.getName(), null);
+
+            if (previous != null) {
+                if (previous.getVersion().isBelow(moduleData.getVersion())) {
+                    previous.setVersion(moduleData.getVersion());
+                    previous.setPath(moduleData.getPath());
+                }
+
+                // swap order
+                this.remove(previous);
+                return super.add(previous);
+            } else {
+                map.put(moduleData.getName(), moduleData);
+                return super.add(moduleData);
+            }
+        }
+
     }
 
 }
