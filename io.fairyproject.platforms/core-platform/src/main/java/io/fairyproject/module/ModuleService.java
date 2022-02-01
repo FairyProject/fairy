@@ -6,7 +6,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
-import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.*;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.library.Library;
@@ -16,9 +15,9 @@ import io.fairyproject.module.relocator.Relocation;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.util.FairyVersion;
 import io.fairyproject.util.PreProcessBatch;
 import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.entry.EntryArrayList;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
@@ -57,7 +56,7 @@ public class ModuleService {
                     final ModuleService moduleService = Containers.get(ModuleService.class);
 
                     // We will get all the paths first for relocation.
-                    Map<String, Path> paths = new LinkedHashMap<>();
+                    EntryArrayList<String, Path> paths = new EntryArrayList<>();
                     plugin.getDescription().getModules().forEach(pair -> {
                         String name = pair.getKey();
                         String version = pair.getValue();
@@ -87,14 +86,14 @@ public class ModuleService {
                         }
                     }
 
-                    List<String> modulesOrdered = new ArrayList<>(paths.keySet());
-                    Collections.reverse(modulesOrdered);
+                    Collections.reverse(paths);
 
                     // Relocation entries from all included modules
                     final Path[] relocationEntries = paths.values().toArray(new Path[0]);
 
                     // Then push all paths
-                    modulesOrdered.forEach(name -> {
+                    paths.stream().distinct().forEach(entry -> {
+                        final String name = entry.getKey();
                         final Path path = paths.get(name);
                         final Module module = moduleService.registerByPath(path, plugin, relocationEntries);
 
@@ -129,7 +128,7 @@ public class ModuleService {
         });
     }
 
-    private static void downloadModules(String name, String version, Map<String, Path> paths, boolean canAbstract) {
+    private static void downloadModules(String name, String version, EntryArrayList<String, Path> paths, boolean canAbstract) {
         if (paths.containsKey(name)) {
             return;
         }
@@ -141,7 +140,7 @@ public class ModuleService {
             return;
         }
 
-        paths.put(name, path);
+        paths.add(name, path);
 
         // We will read dependencies first.
         try {
