@@ -12,11 +12,11 @@ final class BukkitPluginHolder extends BasePluginHolder {
 
     @Override
     protected ClassLoader getClassLoader() {
-        return BukkitPlugin.INSTANCE.getPluginClassLoader();
+        return ((BukkitPlugin) BukkitPlugin.INSTANCE).getPluginClassLoader();
     }
 
     @Override
     protected PluginAction getPluginAction() {
-        return new BukkitPluginAction(BukkitPlugin.INSTANCE);
+        return new BukkitPluginAction((BukkitPlugin) BukkitPlugin.INSTANCE);
     }
 }

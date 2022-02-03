@@ -33,5 +33,5 @@ test {
 
 dependencies {
     compileOnly project.spigot()
-    testImplementation "org.imanity.spigot:TacoSpigot:1.8.8"
+    testImplementation "org.imanity.spigot:1.16.5:1.16.5"
 }

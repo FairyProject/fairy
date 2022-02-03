@@ -22,6 +22,8 @@ public abstract class BukkitTestingBase {
 
             FairyBukkitPlatform.PLUGIN = PLUGIN;
             TestingBase.setup();
+
+            FairyBukkitTestingPlatform.patchBukkitPlugin(PLUGIN);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
