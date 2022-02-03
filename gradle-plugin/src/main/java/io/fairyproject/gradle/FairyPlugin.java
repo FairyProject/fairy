@@ -84,6 +84,12 @@ public class FairyPlugin implements Plugin<Project> {
             }
 
             for (PlatformType platformType : platformTypes) {
+                try {
+                    platformType.applyDependencies(p, extension);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException(e);
+                }
+
                 if (IS_IN_IDE) {
                     final Project bootstrapProject = p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-bootstrap"));
 

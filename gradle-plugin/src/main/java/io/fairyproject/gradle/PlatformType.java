@@ -3,6 +3,7 @@ package io.fairyproject.gradle;
 import io.fairyproject.gradle.file.FileGenerator;
 import io.fairyproject.gradle.file.FileGeneratorBukkit;
 import io.fairyproject.gradle.util.MavenUtil;
+import org.gradle.api.Project;
 
 import java.io.IOException;
 
@@ -17,6 +18,17 @@ public enum PlatformType {
         @Override
         public PlatformType[] inherited() {
             return new PlatformType[] { MC };
+        }
+
+        @Override
+        public void applyDependencies(Project project, FairyExtension extension) throws IOException {
+            String groupId = "dev.imanity.mockbukkit";
+            String version = extension.properties(PlatformType.BUKKIT).getOrDefault("api-version", "1.16");
+            String artifactId = "MockBukkit" + version;
+
+            project.getDependencies().add("testImplementation",
+                    groupId + ":" + artifactId + ":" + MavenUtil.getLatest(groupId, artifactId)
+            );
         }
     },
     BUNGEE,
@@ -36,6 +48,9 @@ public enum PlatformType {
 
     public FileGenerator createFileGenerator() {
         throw new UnsupportedOperationException("Platform " + this.name() + " hasn't been supported.");
+    }
+
+    public void applyDependencies(Project project, FairyExtension extension) throws IOException {
     }
 
     // name in parameter shouldn't contains platform prefix or "module." for example module.tablist should be tablist in input, bukkit-xseries should be xseries
