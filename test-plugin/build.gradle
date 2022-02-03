@@ -23,9 +23,15 @@ fairy {
     platform("bukkit")
     module("sidebar")
     module("tablist")
+
+    bukkitApi("1.16")
+}
+
+test {
+    useJUnitPlatform()
 }
 
 dependencies {
     compileOnly project.spigot()
-    testImplementation "org.imanity.spigot:1.16.5:1.16.5"
+    testImplementation "org.imanity.spigot:TacoSpigot:1.8.8"
 }

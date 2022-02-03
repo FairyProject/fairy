@@ -8,7 +8,7 @@ import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +19,7 @@ public abstract class TestingBase {
 
     private static boolean INITIALIZED = false;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         setup();
     }

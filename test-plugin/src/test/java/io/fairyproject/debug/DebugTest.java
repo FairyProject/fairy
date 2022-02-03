@@ -6,8 +6,8 @@ import be.seeseemelk.mockbukkit.entity.PlayerMock;
 import io.fairyproject.tests.bukkit.BukkitAssert;
 import io.fairyproject.tests.bukkit.BukkitTestingBase;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class DebugTest extends BukkitTestingBase {
 
@@ -18,7 +18,7 @@ public class DebugTest extends BukkitTestingBase {
         final WorldMock world = SERVER.addSimpleWorld("world");
 
         final BlockBreakEvent event = player.simulateBlockBreak(world.createBlock(new Coordinate()));
-        Assert.assertNotNull(event);
+        Assertions.assertNotNull(event);
         BukkitAssert.assertCancelled(event);
     }
 
