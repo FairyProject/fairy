@@ -5,6 +5,7 @@ import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.SimplePluginManager;
 
 import java.lang.reflect.Field;
@@ -64,12 +65,14 @@ public class CommandUtil {
 //                COMMAND_MAP_SUPPLIER = Bukkit::getCommandMap;
 //            } catch (NoSuchMethodError ex) {
                 try {
-                    Field field = SimplePluginManager.class.getDeclaredField("commandMap");
+                    final PluginManager pluginManager = Bukkit.getPluginManager();
+
+                    Field field = pluginManager.getClass().getDeclaredField("commandMap");
                     field.setAccessible(true);
 
                     COMMAND_MAP_SUPPLIER = () -> {
                         try {
-                            return (CommandMap) field.get(Bukkit.getPluginManager());
+                            return (CommandMap) field.get(pluginManager);
                         } catch (IllegalAccessException e) {
                             throw new IllegalStateException(e);
                         }
