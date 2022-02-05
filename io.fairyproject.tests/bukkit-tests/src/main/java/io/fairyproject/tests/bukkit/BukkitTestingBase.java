@@ -22,10 +22,11 @@ public abstract class BukkitTestingBase {
             PLUGIN = MockBukkit.createMockPlugin();
 
             FairyBukkitPlatform.PLUGIN = PLUGIN;
+            JavaPluginUtil.setCurrentPlugin(PLUGIN);
+
             TestingBase.setup();
 
             FairyBukkitTestingPlatform.patchBukkitPlugin(PLUGIN);
-            JavaPluginUtil.setCurrentPlugin(PLUGIN);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }
