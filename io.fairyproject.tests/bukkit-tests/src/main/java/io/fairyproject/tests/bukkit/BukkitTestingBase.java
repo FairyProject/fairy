@@ -4,6 +4,7 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.MockPlugin;
 import be.seeseemelk.mockbukkit.ServerMock;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.tests.TestingBase;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -24,6 +25,7 @@ public abstract class BukkitTestingBase {
             TestingBase.setup();
 
             FairyBukkitTestingPlatform.patchBukkitPlugin(PLUGIN);
+            JavaPluginUtil.setCurrentPlugin(PLUGIN);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

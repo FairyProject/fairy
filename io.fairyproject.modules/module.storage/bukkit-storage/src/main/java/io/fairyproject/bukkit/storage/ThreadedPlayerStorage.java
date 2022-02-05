@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.storage;
 
 import com.google.common.collect.Lists;
 import io.fairyproject.StorageService;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -89,7 +90,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
      * @return plugin
      */
     protected Plugin getPlugin() {
-        return JavaPlugin.getProvidingPlugin(this.getClass());
+        return JavaPluginUtil.getProvidingPlugin(this.getClass());
     }
 
     /**

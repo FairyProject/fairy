@@ -152,11 +152,7 @@ public class BukkitUtil {
         Class<?> caller = Reflect.getCallerClass(depth).orElse(null);
 
         if (caller != null) {
-            Plugin plugin = null;
-
-            try {
-                plugin = JavaPlugin.getProvidingPlugin(caller);
-            } catch (Throwable ignored) {}
+            Plugin plugin = JavaPluginUtil.getProvidingPlugin(caller);
 
             if (plugin != null) {
                 return plugin;
