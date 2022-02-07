@@ -4,7 +4,7 @@ import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Contract;
 
 @UtilityClass
-public class Conditions {
+public class ConditionUtils {
 
     @Contract("false, _ -> fail")
     public static void check(final boolean expression, final String message)

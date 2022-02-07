@@ -7,6 +7,7 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.tests.TestingBase;
 import io.fairyproject.tests.TestingHandle;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import org.junit.jupiter.api.BeforeAll;
 
 public abstract class BukkitTestingBase {
@@ -16,7 +17,7 @@ public abstract class BukkitTestingBase {
 
     @BeforeAll
     public static void setup() {
-        try {
+        ThrowingRunnable.sneaky(() -> {
             if (TestingBase.isInitialized()) {
                 return;
             }
@@ -37,9 +38,7 @@ public abstract class BukkitTestingBase {
             FairyBukkitTestingPlatform.patchBukkitPlugin(PLUGIN);
 
             TestingBase.setup(testingHandle);
-        } catch (Throwable throwable) {
-            throw new RuntimeException(throwable);
-        }
+        }).run();
     }
 
 }

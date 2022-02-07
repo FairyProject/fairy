@@ -50,7 +50,15 @@ public enum PlatformType {
         throw new UnsupportedOperationException("Platform " + this.name() + " hasn't been supported.");
     }
 
+    /**
+     * Applying custom dependencies to the project
+     *
+     * @param project the Project
+     * @param extension the Extension
+     * @throws IOException when IO failed
+     */
     public void applyDependencies(Project project, FairyExtension extension) throws IOException {
+        // To be overwritten
     }
 
     // name in parameter shouldn't contains platform prefix or "module." for example module.tablist should be tablist in input, bukkit-xseries should be xseries

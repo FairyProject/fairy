@@ -29,7 +29,7 @@ import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
-import io.fairyproject.util.Conditions;
+import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -144,7 +144,7 @@ public class LocaleService {
 
     public void setLocale(UUID uuid, @NonNull String localeName) {
         final Locale locale = parseLocale(localeName);
-        Conditions.notNull(locale, "Couldn't find locale with name " + localeName);
+        ConditionUtils.notNull(locale, "Couldn't find locale with name " + localeName);
 
         this.setLocale(uuid, locale);
     }

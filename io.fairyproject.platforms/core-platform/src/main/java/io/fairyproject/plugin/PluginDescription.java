@@ -3,7 +3,7 @@ package io.fairyproject.plugin;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.library.Library;
-import io.fairyproject.util.Conditions;
+import io.fairyproject.util.ConditionUtils;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -27,9 +27,9 @@ public class PluginDescription {
     private final List<Library> libraries;
 
     public PluginDescription(JsonObject jsonObject) {
-        Conditions.check(jsonObject.has("name"), "name property could not be found.");
-        Conditions.check(jsonObject.has("mainClass"), "mainClass property could not be found.");
-        Conditions.check(jsonObject.has("shadedPackage"), "shadedPackage property could not be found.");
+        ConditionUtils.check(jsonObject.has("name"), "name property could not be found.");
+        ConditionUtils.check(jsonObject.has("mainClass"), "mainClass property could not be found.");
+        ConditionUtils.check(jsonObject.has("shadedPackage"), "shadedPackage property could not be found.");
 
         this.name = jsonObject.get("name").getAsString();
         this.mainClass = jsonObject.get("mainClass").getAsString();

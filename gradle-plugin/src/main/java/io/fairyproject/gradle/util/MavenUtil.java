@@ -24,7 +24,7 @@ public class MavenUtil {
     }
 
     public String getLatest(String group, String artifact) throws IOException {
-        final java.net.URL url = new URL(VERSION_URL
+        final URL url = new URL(VERSION_URL
                 .replace("<module>", artifact)
                 .replace("<group>", group)
         );

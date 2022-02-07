@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.listener.asm;
 
 import com.google.common.collect.MapMaker;
-import io.fairyproject.util.Conditions;
+import io.fairyproject.util.ConditionUtils;
 import lombok.NonNull;
 
 import java.util.concurrent.ConcurrentMap;
@@ -42,7 +42,7 @@ public class SafeClassDefiner implements ClassDefiner {
     public Class<?> defineClass(@NonNull ClassLoader parentLoader, @NonNull String name, @NonNull byte[] data) {
         GeneratedClassLoader loader = loaders.computeIfAbsent(parentLoader, GeneratedClassLoader::new);
         synchronized (loader.getClassLoadingLock(name)) {
-            Conditions.check(!loader.hasClass(name), name + " already defined");
+            ConditionUtils.check(!loader.hasClass(name), name + " already defined");
             Class<?> c = loader.define(name, data);
             assert c.getName().equals(name);
             return c;
