@@ -6,6 +6,7 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.tests.TestingBase;
+import io.fairyproject.tests.TestingHandle;
 import org.junit.jupiter.api.BeforeAll;
 
 public abstract class BukkitTestingBase {
@@ -16,19 +17,28 @@ public abstract class BukkitTestingBase {
     @BeforeAll
     public static void setup() {
         try {
+            if (TestingBase.isInitialized()) {
+                return;
+            }
+
+            ServerMock serverMock = null;
+            TestingHandle testingHandle = TestingBase.findTestingHandle();
+            if (testingHandle instanceof BukkitTestingHandle) {
+                serverMock = ((BukkitTestingHandle) testingHandle).createServerMock();
+            }
+
             if (!MockBukkit.isMocked()) {
-                SERVER = MockBukkit.mock(new BukkitServerMockImpl());
+                SERVER = MockBukkit.mock(serverMock == null ? new BukkitServerMockImpl() : serverMock);
             }
             PLUGIN = MockBukkit.createMockPlugin();
 
             FairyBukkitPlatform.PLUGIN = PLUGIN;
             JavaPluginUtil.setCurrentPlugin(PLUGIN);
-
-            TestingBase.setup();
-
             FairyBukkitTestingPlatform.patchBukkitPlugin(PLUGIN);
+
+            TestingBase.setup(testingHandle);
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
+            throw new RuntimeException(throwable);
         }
     }
 
