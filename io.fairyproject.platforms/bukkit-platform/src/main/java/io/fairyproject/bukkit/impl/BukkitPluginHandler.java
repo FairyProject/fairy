@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.impl;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.plugin.PluginHandler;
 import io.fairyproject.reflect.ReflectObject;
 import org.bukkit.plugin.Plugin;
@@ -36,7 +37,7 @@ public class BukkitPluginHandler implements PluginHandler {
     @Override
     public @Nullable String getPluginByClass(Class<?> type) {
         try {
-            JavaPlugin plugin = JavaPlugin.getProvidingPlugin(type);
+            JavaPlugin plugin = JavaPluginUtil.getProvidingPlugin(type);
             if (plugin != null) {
                 return plugin.getName();
             }

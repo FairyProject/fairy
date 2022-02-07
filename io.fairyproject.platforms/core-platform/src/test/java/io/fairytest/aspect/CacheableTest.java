@@ -30,7 +30,8 @@ import io.fairyproject.CacheEvict;
 import io.fairyproject.CachePut;
 import io.fairyproject.Cacheable;
 import io.fairyproject.cache.EnableOwnCacheManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.springframework.util.Assert;
 
 import java.security.SecureRandom;
@@ -130,11 +131,13 @@ public class CacheableTest {
         MatcherAssert.assertThat(testPut, CoreMatchers.equalTo(testPut));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testNullParameter() throws Exception {
-        Imanity imanity = new Imanity();
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            Imanity imanity = new Imanity();
 
-        imanity.test((String) null);
+            imanity.test((String) null);
+        });
     }
 
     @EnableOwnCacheManager

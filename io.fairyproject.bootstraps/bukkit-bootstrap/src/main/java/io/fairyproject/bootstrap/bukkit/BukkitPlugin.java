@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 public final class BukkitPlugin extends JavaPlugin {
 
     private static final String FAIRY_JSON_PATH = "fairy.json";
-    public static BukkitPlugin INSTANCE;
+    public static JavaPlugin INSTANCE;
 
     private BukkitBootstrap bootstrap;
     private BukkitPluginHolder pluginHolder;

@@ -23,6 +23,12 @@ fairy {
     platform("bukkit")
     module("sidebar")
     module("tablist")
+
+    bukkitApi("1.16")
+}
+
+test {
+    useJUnitPlatform()
 }
 
 dependencies {

@@ -31,7 +31,7 @@ import net.kyori.adventure.translation.Translator;
 import java.util.Locale;
 
 @Component
-@ServiceDependency(value = LocaleSerializer.class, type = ServiceDependencyType.SUB_DISABLE)
+@ServiceDependency(value = LocaleService.class, type = ServiceDependencyType.SUB_DISABLE)
 public class LocaleSerializer implements ObjectSerializer<Locale, String> {
 
     @Autowired

@@ -3,8 +3,8 @@ package io.fairytest.state;
 import io.fairyproject.state.StateBase;
 import io.fairyproject.state.StateSequences;
 import io.fairyproject.tests.TestingBase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class StateSequencesTest extends TestingBase {
 
@@ -22,9 +22,9 @@ public class StateSequencesTest extends TestingBase {
         states.start();
 
         states.update();
-        Assert.assertTrue(a.start);
-        Assert.assertTrue(a.end);
-        Assert.assertTrue(b.start);
+        Assertions.assertTrue(a.start);
+        Assertions.assertTrue(a.end);
+        Assertions.assertTrue(b.start);
     }
 
     @Test
@@ -39,17 +39,17 @@ public class StateSequencesTest extends TestingBase {
 
         states.skip(3);
         states.update();
-        Assert.assertTrue(a.start);
-        Assert.assertTrue(a.end);
+        Assertions.assertTrue(a.start);
+        Assertions.assertTrue(a.end);
 
-        Assert.assertTrue(b.start);
-        Assert.assertTrue(b.end);
+        Assertions.assertTrue(b.start);
+        Assertions.assertTrue(b.end);
 
-        Assert.assertTrue(c.start);
-        Assert.assertTrue(c.end);
+        Assertions.assertTrue(c.start);
+        Assertions.assertTrue(c.end);
 
-        Assert.assertTrue(d.start);
-        Assert.assertFalse(d.end);
+        Assertions.assertTrue(d.start);
+        Assertions.assertFalse(d.end);
     }
 
     @Test
@@ -64,17 +64,17 @@ public class StateSequencesTest extends TestingBase {
 
         states.skip(3, true);
         states.update();
-        Assert.assertTrue(a.start);
-        Assert.assertTrue(a.end);
+        Assertions.assertTrue(a.start);
+        Assertions.assertTrue(a.end);
 
-        Assert.assertFalse(b.start);
-        Assert.assertFalse(b.end);
+        Assertions.assertFalse(b.start);
+        Assertions.assertFalse(b.end);
 
-        Assert.assertFalse(c.start);
-        Assert.assertFalse(c.end);
+        Assertions.assertFalse(c.start);
+        Assertions.assertFalse(c.end);
 
-        Assert.assertTrue(d.start);
-        Assert.assertFalse(d.end);
+        Assertions.assertTrue(d.start);
+        Assertions.assertFalse(d.end);
     }
 
     private static class ExState extends StateBase {

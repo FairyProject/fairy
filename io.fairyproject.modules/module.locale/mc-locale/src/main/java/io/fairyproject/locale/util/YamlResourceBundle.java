@@ -117,7 +117,7 @@ public class YamlResourceBundle extends ResourceBundle {
 
     @Override
     protected Object handleGetObject(@NotNull String key) {
-        return this.entries.get(key);
+        return this.entries.get(key).toString();
     }
 
     @NotNull

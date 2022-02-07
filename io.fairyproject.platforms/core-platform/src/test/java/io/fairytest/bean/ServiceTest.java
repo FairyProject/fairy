@@ -9,13 +9,13 @@ import io.fairytest.bean.annotated.BeanInterface;
 import io.fairytest.bean.annotated.BeanInterfaceImpl;
 import io.fairytest.bean.service.ServiceMock;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ServiceTest extends TestingBase {
 

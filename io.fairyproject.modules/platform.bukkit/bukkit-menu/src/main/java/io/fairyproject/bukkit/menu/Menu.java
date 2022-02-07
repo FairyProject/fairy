@@ -28,6 +28,7 @@ import com.cryptomorin.xseries.XMaterial;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.Getter;
 import lombok.Setter;
@@ -300,7 +301,7 @@ public abstract class Menu implements TerminableConsumer {
         Plugin plugin;
 
         try {
-            plugin = JavaPlugin.getProvidingPlugin(this.getClass());
+            plugin = JavaPluginUtil.getProvidingPlugin(this.getClass());
         } catch (Throwable ignored) {
             plugin = FairyBukkitPlatform.PLUGIN;
         }

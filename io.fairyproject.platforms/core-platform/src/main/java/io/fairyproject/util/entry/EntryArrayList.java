@@ -25,8 +25,10 @@
 package io.fairyproject.util.entry;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 public class EntryArrayList<K, V> extends ArrayList<Entry<K, V>> {
 
@@ -36,6 +38,36 @@ public class EntryArrayList<K, V> extends ArrayList<Entry<K, V>> {
 
     public boolean remove(K k, V v) {
         return this.remove(new Entry<>(k, v));
+    }
+
+    public boolean containsKey(K k) {
+        for (Entry<K, V> entry : this) {
+            if (entry.getKey() == k) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public V get(K k) {
+        for (Entry<K, V> entry : this) {
+            if (entry.getKey() == k) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    public List<K> keys() {
+        return stream()
+                .map(Entry::getKey)
+                .collect(Collectors.toList());
+    }
+
+    public List<V> values() {
+        return stream()
+                .map(Entry::getValue)
+                .collect(Collectors.toList());
     }
 
     public boolean removeIf(BiPredicate<K, V> filter) {

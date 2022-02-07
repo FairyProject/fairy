@@ -4,25 +4,41 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.MockPlugin;
 import be.seeseemelk.mockbukkit.ServerMock;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.tests.TestingBase;
-import org.junit.BeforeClass;
-
-import java.lang.reflect.InvocationTargetException;
+import io.fairyproject.tests.TestingHandle;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import org.junit.jupiter.api.BeforeAll;
 
 public abstract class BukkitTestingBase {
 
     protected static ServerMock SERVER;
     protected static MockPlugin PLUGIN;
 
-    @BeforeClass
-    public static void setup() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        if (!MockBukkit.isMocked()) {
-            SERVER = MockBukkit.mock(new BukkitServerMockImpl());
-        }
-        PLUGIN = MockBukkit.createMockPlugin();
+    @BeforeAll
+    public static void setup() {
+        ThrowingRunnable.sneaky(() -> {
+            if (TestingBase.isInitialized()) {
+                return;
+            }
 
-        FairyBukkitPlatform.PLUGIN = PLUGIN;
-        TestingBase.setup();
+            ServerMock serverMock = null;
+            TestingHandle testingHandle = TestingBase.findTestingHandle();
+            if (testingHandle instanceof BukkitTestingHandle) {
+                serverMock = ((BukkitTestingHandle) testingHandle).createServerMock();
+            }
+
+            if (!MockBukkit.isMocked()) {
+                SERVER = MockBukkit.mock(serverMock == null ? new BukkitServerMockImpl() : serverMock);
+            }
+            PLUGIN = MockBukkit.createMockPlugin();
+
+            FairyBukkitPlatform.PLUGIN = PLUGIN;
+            JavaPluginUtil.setCurrentPlugin(PLUGIN);
+            FairyBukkitTestingPlatform.patchBukkitPlugin(PLUGIN);
+
+            TestingBase.setup(testingHandle);
+        }).run();
     }
 
 }

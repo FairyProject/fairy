@@ -93,7 +93,7 @@ public class TestImplementation implements ServerImplementation {
 
     @Override
     public boolean isServerThread() {
-        return BukkitTestingBase.SERVER.isOnMainThread();
+        return BukkitTestingBase.SERVER.isPrimaryThread();
     }
 
     @Override

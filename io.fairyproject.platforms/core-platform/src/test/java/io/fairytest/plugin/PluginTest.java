@@ -5,8 +5,8 @@ import com.google.gson.JsonObject;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.tests.TestingBase;
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.io.InputStreamReader;
 
@@ -28,7 +28,7 @@ public class PluginTest extends TestingBase {
             throw new IllegalArgumentException("Unable to load fairy.json", throwable);
         }
 
-        Assert.assertEquals(expected, new PluginDescription(jsonObject));
+        Assertions.assertEquals(expected, new PluginDescription(jsonObject));
     }
 
 }

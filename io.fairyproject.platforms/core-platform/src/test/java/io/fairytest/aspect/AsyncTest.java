@@ -26,7 +26,8 @@ package io.fairytest.aspect;
 import org.hamcrest.CoreMatchers;
 import org.hamcrest.MatcherAssert;
 import io.fairyproject.Async;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.*;
 
@@ -77,9 +78,9 @@ public final class AsyncTest {
         );
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void throwsWhenMethodDoesNotReturnVoidOrFuture() {
-        new Foo().asyncMethodThatReturnsInt();
+        Assertions.assertThrows(IllegalStateException.class, () -> new Foo().asyncMethodThatReturnsInt());
     }
 
     private static final class Foo {

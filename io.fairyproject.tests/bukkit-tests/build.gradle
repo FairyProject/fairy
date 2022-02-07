@@ -3,5 +3,5 @@ dependencies {
     api project.spigot()
 
     api project(":io.fairyproject.tests:mc-tests")
-    api 'com.github.seeseemelk:MockBukkit-v1.16:1.5.2'
+    compileOnly "dev.imanity.mockbukkit:MockBukkit1.16:1.0.1"
 }
