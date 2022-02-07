@@ -5,13 +5,11 @@ import io.fairyproject.container.Autowired;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.ServiceDependency;
-import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.util.FileUtil;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
-import net.kyori.adventure.util.UTF8ResourceBundleControl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -96,7 +94,7 @@ public abstract class TranslationManager {
         // try registering the locale without a country code - if we don't already have a registration for that
         loaded.forEach((locale, bundle) -> {
             Locale localeWithoutCountry = new Locale(locale.getLanguage());
-            if (!locale.equals(localeWithoutCountry) && !localeWithoutCountry.equals(this.defaultLocale()) && this.installed.add(localeWithoutCountry)) {
+            if (!locale.equals(localeWithoutCountry) && this.installed.add(localeWithoutCountry)) {
                 try {
                     this.translationRegistry.registerAll(localeWithoutCountry, bundle, false);
                 } catch (IllegalArgumentException e) {
@@ -104,6 +102,8 @@ public abstract class TranslationManager {
                 }
             }
         });
+
+        this.addToGlobal();
 
 //        ResourceBundle bundle = null;
 //        switch (this.defaultLocaleFileType()) {
@@ -135,6 +135,10 @@ public abstract class TranslationManager {
         }
     }
 
+    protected void addToGlobal() {
+        GlobalTranslator.get().addSource(this.translationRegistry);
+    }
+
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean isAdventureDuplicatesException(Exception e) {
         return e instanceof IllegalArgumentException && (e.getMessage().startsWith("Invalid key") || e.getMessage().startsWith("Translation already exists"));
@@ -143,10 +147,6 @@ public abstract class TranslationManager {
     public abstract String getResourceDirectory();
 
     public abstract Path getTranslationsDirectory();
-
-    public abstract String defaultBundleKey();
-
-    public abstract LocaleFileType defaultLocaleFileType();
 
     public abstract Locale defaultLocale();
 

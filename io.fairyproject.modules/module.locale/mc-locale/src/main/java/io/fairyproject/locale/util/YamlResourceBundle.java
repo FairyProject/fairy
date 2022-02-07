@@ -31,13 +31,29 @@ public class YamlResourceBundle extends ResourceBundle {
     public YamlResourceBundle(InputStream inputStream) {
         this.entries = StreamSupport.stream(new Yaml().loadAll(inputStream).spliterator(), false)
                 .flatMap(this::parseDoc)
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .collect(Collectors.toMap(Pair::getKey, pair -> {
+                    final Object value = pair.getValue();
+                    if (value instanceof List) {
+                        return ((List<?>) value).stream()
+                                .map(Object::toString)
+                                .collect(Collectors.joining("\n"));
+                    }
+                    return value.toString();
+                }));
     }
 
     public YamlResourceBundle(Reader reader) {
         this.entries = StreamSupport.stream(new Yaml().loadAll(reader).spliterator(), false)
                 .flatMap(this::parseDoc)
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .collect(Collectors.toMap(Pair::getKey, pair -> {
+                    final Object value = pair.getValue();
+                    if (value instanceof List) {
+                        return ((List<?>) value).stream()
+                                .map(Object::toString)
+                                .collect(Collectors.joining("\n"));
+                    }
+                    return value.toString();
+                }));
     }
 
     public static class Control extends ResourceBundle.Control {
