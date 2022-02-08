@@ -50,7 +50,6 @@ void initModules() {
     include "io.fairyproject.modules:platform.bukkit:bukkit-menu"
     include "io.fairyproject.modules:platform.bukkit:bukkit-nms"
     include "io.fairyproject.modules:platform.bukkit:bukkit-xseries"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-nametag"
     include "io.fairyproject.modules:platform.bukkit:bukkit-visibility"
     include "io.fairyproject.modules:platform.bukkit:bukkit-visual"
 

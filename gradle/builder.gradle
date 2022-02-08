@@ -17,6 +17,10 @@ ext {
     archieveName = project.name
 }
 
+test {
+    useJUnitPlatform()
+}
+
 abstract class CopyJarToLocal extends DefaultTask {
 
     @Input

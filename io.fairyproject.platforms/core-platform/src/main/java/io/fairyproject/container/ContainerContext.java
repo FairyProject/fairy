@@ -24,7 +24,6 @@
 
 package io.fairyproject.container;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.fairyproject.Debug;
@@ -35,6 +34,7 @@ import io.fairyproject.container.exception.ServiceAlreadyExistsException;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
@@ -47,7 +47,6 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.NonNullArrayList;
 import io.fairyproject.util.SimpleTiming;
-import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
 
@@ -515,7 +514,7 @@ public class ContainerContext {
                 for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
                     try {
                         Service service = type.getDeclaredAnnotation(Service.class);
-                        Preconditions.checkNotNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
+                        ConditionUtils.notNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
 
                         if (getObjectDetails(type) == null) {
                             ServiceContainerObject containerObject = new ServiceContainerObject(type, service.depends());

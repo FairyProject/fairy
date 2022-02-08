@@ -26,7 +26,7 @@ package io.fairyproject.test;
 
 import io.fairyproject.mysql.connection.file.H2ConnectionFactory;
 import io.fairyproject.mysql.pojo.Transaction;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.persistence.*;
 import java.io.File;

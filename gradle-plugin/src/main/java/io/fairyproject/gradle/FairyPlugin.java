@@ -84,6 +84,12 @@ public class FairyPlugin implements Plugin<Project> {
             }
 
             for (PlatformType platformType : platformTypes) {
+                try {
+                    platformType.applyDependencies(p, extension);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException(e);
+                }
+
                 if (IS_IN_IDE) {
                     final Project bootstrapProject = p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-bootstrap"));
 
@@ -91,6 +97,7 @@ public class FairyPlugin implements Plugin<Project> {
                     dependency.setTargetConfiguration("shadow");
 
                     fairyConfiguration.getDependencies().add(dependency);
+                    p.getDependencies().add("testImplementation", dependency);
 
                     dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                     dependency.setTargetConfiguration("shadow");
@@ -101,10 +108,13 @@ public class FairyPlugin implements Plugin<Project> {
                     dependency.setTargetConfiguration("shadow");
                     p.getDependencies().add("testImplementation", dependency);
                 } else {
-                    fairyConfiguration.getDependencies().add(p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
+                    final Dependency bootstrapDependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-bootstrap",
                             this.extension.getFairyVersion().get()
-                    )));
+                    ));
+                    fairyConfiguration.getDependencies().add(bootstrapDependency);
+                    p.getDependencies().add("testImplementation", bootstrapDependency);
+
                     p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-platform",
                             this.extension.getFairyVersion().get()

@@ -16,11 +16,18 @@ import java.net.URL;
 @UtilityClass
 public class MavenUtil {
 
-    private final String VERSION_URL = "https://maven.imanity.dev/service/rest/v1/search/assets?repository=imanity-libraries&group=io.fairyproject&name=<module>&sort=version&maven.extension=jar";
+    private final String VERSION_URL = "https://maven.imanity.dev/service/rest/v1/search/assets?repository=imanity-libraries&group=<group>&name=<module>&sort=version&maven.extension=jar";
     private final String ITEM_URL = "https://maven.imanity.dev/service/rest/v1/search?repository=imanity-libraries&group=io.fairyproject&name=<module>";
 
     public String getLatest(String module) throws IOException {
-        final java.net.URL url = new URL(VERSION_URL.replace("<module>", module));
+        return getLatest("io.fairyproject", module);
+    }
+
+    public String getLatest(String group, String artifact) throws IOException {
+        final URL url = new URL(VERSION_URL
+                .replace("<module>", artifact)
+                .replace("<group>", group)
+        );
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
         connection.setRequestMethod("GET");

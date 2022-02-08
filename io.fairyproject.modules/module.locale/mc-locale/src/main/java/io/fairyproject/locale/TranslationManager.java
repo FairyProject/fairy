@@ -7,6 +7,7 @@ import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.ServiceDependency;
 import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.util.FileUtil;
+import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @ServiceDependency(
-        value = LocaleSerializer.class
+        value = LocaleService.class
 )
 public abstract class TranslationManager {
 
@@ -32,6 +33,7 @@ public abstract class TranslationManager {
     protected static final Logger LOGGER = LogManager.getLogger(TranslationManager.class);
 
     protected final Set<Locale> installed = Sets.newConcurrentHashSet();
+    @Getter
     protected TranslationRegistry translationRegistry;
     protected boolean loaded;
 
@@ -103,22 +105,22 @@ public abstract class TranslationManager {
             }
         });
 
-        ResourceBundle bundle = null;
-        switch (this.defaultLocaleFileType()) {
-            case PROPERTIES:
-                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), UTF8ResourceBundleControl.get());
-                break;
-            case YAML:
-                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), YamlResourceBundle.Control.INSTANCE);
-                break;
-        }
-        try {
-            this.translationRegistry.registerAll(this.defaultLocale(), bundle, false);
-        } catch (IllegalArgumentException e) {
-            if (!isAdventureDuplicatesException(e)) {
-                LOGGER.warn("Error loading default locale file", e);
-            }
-        }
+//        ResourceBundle bundle = null;
+//        switch (this.defaultLocaleFileType()) {
+//            case PROPERTIES:
+//                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), UTF8ResourceBundleControl.get());
+//                break;
+//            case YAML:
+//                bundle = ResourceBundle.getBundle(this.defaultBundleKey(), this.defaultLocale(), this.getClass().getClassLoader(), YamlResourceBundle.Control.INSTANCE);
+//                break;
+//        }
+//        try {
+//            this.translationRegistry.registerAll(this.defaultLocale(), bundle, false);
+//        } catch (IllegalArgumentException e) {
+//            if (!isAdventureDuplicatesException(e)) {
+//                LOGGER.warn("Error loading default locale file", e);
+//            }
+//        }
     }
 
     public void unload() {

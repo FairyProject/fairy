@@ -27,6 +27,7 @@ package io.fairyproject.bukkit;
 import com.google.common.collect.ImmutableList;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementation;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apache.logging.log4j.LogManager;
@@ -48,11 +49,7 @@ public final class Imanity {
     public static ServerImplementation IMPLEMENTATION;
 
     public static AbstractMovementImplementation registerMovementListener(MovementListener movementListener) {
-        Plugin plugin = null;
-
-        try {
-            plugin = JavaPlugin.getProvidingPlugin(movementListener.getClass());
-        } catch (Throwable ignored) {}
+        Plugin plugin = JavaPluginUtil.getProvidingPlugin(movementListener.getClass());
 
         if (plugin == null) {
             plugin = FairyBukkitPlatform.PLUGIN;

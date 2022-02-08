@@ -1,6 +1,7 @@
 package io.fairyproject.bukkit.command;
 
 import io.fairyproject.bukkit.command.event.BukkitCommandContext;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandContext;
 import lombok.Getter;
@@ -27,7 +28,7 @@ public class BukkitCommandExecutor extends Command {
             this.setAliases(Arrays.asList(Arrays.copyOfRange(name, 1, name.length - 1)));
         }
 
-        final JavaPlugin javaPlugin = JavaPlugin.getProvidingPlugin(command.getClass());
+        final JavaPlugin javaPlugin = JavaPluginUtil.getProvidingPlugin(command.getClass());
         if (javaPlugin != null) {
             this.fallbackPrefix = javaPlugin.getName();
         } else {

@@ -25,7 +25,7 @@
 package io.fairyproject.test;
 
 import io.fairyproject.mysql.connection.file.H2ConnectionFactory;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import javax.persistence.Column;
 import javax.persistence.Table;
@@ -33,7 +33,7 @@ import java.io.File;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestSelect {
 	

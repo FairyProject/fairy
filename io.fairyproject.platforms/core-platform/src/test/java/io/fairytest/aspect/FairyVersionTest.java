@@ -1,8 +1,8 @@
 package io.fairytest.aspect;
 
 import io.fairyproject.util.FairyVersion;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import java.util.TreeSet;
 
@@ -13,7 +13,7 @@ public class FairyVersionTest {
         FairyVersion lowerVersion = FairyVersion.parse("5.0.0b1");
         FairyVersion newerVersion = FairyVersion.parse("6.0.0b1");
 
-        Assert.assertTrue(newerVersion.isAbove(lowerVersion));
+        Assertions.assertTrue(newerVersion.isAbove(lowerVersion));
     }
 
     @Test
@@ -21,7 +21,7 @@ public class FairyVersionTest {
         FairyVersion lowerVersion = FairyVersion.parse("5.0.0b1");
         FairyVersion newerVersion = FairyVersion.parse("5.1.0b1");
 
-        Assert.assertTrue(newerVersion.isAbove(lowerVersion));
+        Assertions.assertTrue(newerVersion.isAbove(lowerVersion));
     }
 
     @Test
@@ -29,7 +29,7 @@ public class FairyVersionTest {
         FairyVersion lowerVersion = FairyVersion.parse("5.0.0b1");
         FairyVersion newerVersion = FairyVersion.parse("5.0.1b1");
 
-        Assert.assertTrue(newerVersion.isAbove(lowerVersion));
+        Assertions.assertTrue(newerVersion.isAbove(lowerVersion));
     }
 
     @Test
@@ -37,14 +37,14 @@ public class FairyVersionTest {
         FairyVersion lowerVersion = FairyVersion.parse("5.0.0b1");
         FairyVersion newerVersion = FairyVersion.parse("5.0.0b2");
 
-        Assert.assertTrue(newerVersion.isAbove(lowerVersion));
+        Assertions.assertTrue(newerVersion.isAbove(lowerVersion));
     }
 
     @Test
     public void checkToString() {
         FairyVersion version = FairyVersion.parse("5.0.0b1");
 
-        Assert.assertEquals(version.toString(), "5.0.0b1");
+        Assertions.assertEquals(version.toString(), "5.0.0b1");
     }
 
     @Test
@@ -56,7 +56,7 @@ public class FairyVersionTest {
         treeSet.add(newerVersion);
         treeSet.add(lowerVersion);
 
-        Assert.assertEquals(newerVersion, treeSet.last());
+        Assertions.assertEquals(newerVersion, treeSet.last());
     }
 
 }

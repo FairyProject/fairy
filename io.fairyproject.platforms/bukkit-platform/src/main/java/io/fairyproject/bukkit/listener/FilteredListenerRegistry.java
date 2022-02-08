@@ -24,7 +24,6 @@
 
 package io.fairyproject.bukkit.listener;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import io.fairyproject.bukkit.listener.annotation.IgnoredFilters;
 import io.fairyproject.bukkit.listener.annotation.PlayerSearchAttribute;
@@ -34,6 +33,7 @@ import io.fairyproject.bukkit.listener.asm.MethodHandleEventExecutor;
 import io.fairyproject.bukkit.listener.asm.StaticMethodHandleEventExecutor;
 import io.fairyproject.bukkit.listener.timings.TimedEventExecutor;
 import io.fairyproject.bukkit.player.PlayerEventRecognizer;
+import io.fairyproject.util.ConditionUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
@@ -134,9 +134,9 @@ public final class FilteredListenerRegistry {
 
     @NonNull
     private EventExecutor create(@NonNull Method m, @NonNull Class<? extends Event> eventClass, boolean ignoredFilters, FilteredEventList eventList) {
-        Preconditions.checkNotNull(m, "Null method");
-        Preconditions.checkArgument(m.getParameterCount() != 0, "Incorrect number of arguments %s", m.getParameterCount());
-        Preconditions.checkArgument(m.getParameterTypes()[0] == eventClass, "First parameter %s doesn't match event class %s", m.getParameterTypes()[0], eventClass);
+        ConditionUtils.notNull(m, "Null method");
+        ConditionUtils.check(m.getParameterCount() != 0, "Incorrect number of arguments %s", m.getParameterCount());
+        ConditionUtils.check(m.getParameterTypes()[0] == eventClass, "First parameter %s doesn't match event class %s", m.getParameterTypes()[0], eventClass);
         ClassDefiner definer = ClassDefiner.getInstance();
         if (Modifier.isStatic(m.getModifiers())) {
             return new StaticMethodHandleEventExecutor(eventClass, m, ignoredFilters, eventList);

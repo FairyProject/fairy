@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.reflection;
 
+import io.fairyproject.Debug;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.annotation.ProviderTestImpl;
 import io.fairyproject.bukkit.impl.test.ImplementationFactory;
@@ -121,6 +122,10 @@ public class MinecraftReflection {
             Version.runSanityCheck();
         } catch (Exception e) {
             throw new RuntimeException("Sanity check which should always succeed just failed! Am I crazy?!", e);
+        }
+
+        if (Debug.UNIT_TEST) {
+            return;
         }
 
         try {

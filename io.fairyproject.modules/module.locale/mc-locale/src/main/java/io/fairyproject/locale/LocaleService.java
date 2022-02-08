@@ -24,12 +24,12 @@
 
 package io.fairyproject.locale;
 
-import com.google.common.base.Preconditions;
 import io.fairyproject.container.*;
 import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
+import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -48,7 +48,7 @@ import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.UUID;
 
-@Service(name = "locale")
+@Service
 public class LocaleService {
 
     @Setter
@@ -144,7 +144,7 @@ public class LocaleService {
 
     public void setLocale(UUID uuid, @NonNull String localeName) {
         final Locale locale = parseLocale(localeName);
-        Preconditions.checkNotNull(locale, "Couldn't find locale with name " + localeName);
+        ConditionUtils.notNull(locale, "Couldn't find locale with name " + localeName);
 
         this.setLocale(uuid, locale);
     }

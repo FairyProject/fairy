@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.listener.events;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import lombok.experimental.UtilityClass;
@@ -81,10 +82,7 @@ public class Events {
         }
 
         Listener mainListener = listeners[0];
-        Plugin plugin = null;
-        try {
-            plugin = JavaPlugin.getProvidingPlugin(mainListener.getClass());
-        } catch (Throwable ignored) {}
+        Plugin plugin = JavaPluginUtil.getProvidingPlugin(mainListener.getClass());
 
         if (plugin == null) {
             plugin = FairyBukkitPlatform.PLUGIN;

@@ -8,10 +8,11 @@ import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
-import org.junit.BeforeClass;
+import org.junit.jupiter.api.BeforeAll;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -19,7 +20,11 @@ public abstract class TestingBase {
 
     private static boolean INITIALIZED = false;
 
-    @BeforeClass
+    public static boolean isInitialized() {
+        return INITIALIZED;
+    }
+
+    @BeforeAll
     public static void init() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         setup();
     }
@@ -28,18 +33,16 @@ public abstract class TestingBase {
         if (INITIALIZED) {
             return;
         }
+
+        setup(findTestingHandle());
+    }
+
+    public static void setup(TestingHandle testingHandle) {
+        if (INITIALIZED) {
+            return;
+        }
         INITIALIZED = true;
 
-        Class<?> testingHandleClass;
-        try (ScanResult scanResult = new ClassGraph().enableAllInfo().addClassLoader(TestingBase.class.getClassLoader()).scan()) {
-            final List<Class<?>> classes = scanResult.getClassesImplementing(TestingHandle.class.getName()).loadClasses();
-            if (classes.isEmpty()) {
-                throw new IllegalStateException("Couldn't find class with TestingHandle.");
-            }
-            testingHandleClass = classes.get(0);
-        }
-
-        final TestingHandle testingHandle = (TestingHandle) testingHandleClass.getDeclaredConstructor().newInstance();
         final Plugin plugin = testingHandle.plugin();
 
         Debug.UNIT_TEST = true;
@@ -77,6 +80,25 @@ public abstract class TestingBase {
         plugin.onPreEnable();
         PluginManager.INSTANCE.onPluginEnable(plugin);
         plugin.onPluginEnable();
+    }
+
+    public static TestingHandle findTestingHandle() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Class<?> testingHandleClass = null;
+        try (ScanResult scanResult = new ClassGraph().enableAllInfo().addClassLoader(TestingBase.class.getClassLoader()).scan()) {
+            final List<Class<?>> classes = scanResult.getClassesImplementing(TestingHandle.class.getName()).loadClasses();
+
+            for (Class<?> aClass : classes) {
+                if (!aClass.isInterface() && !Modifier.isAbstract(aClass.getModifiers())) {
+                    testingHandleClass = aClass;
+                    break;
+                }
+            }
+        }
+        if (testingHandleClass == null) {
+            throw new IllegalStateException("Couldn't find class with TestingHandle.");
+        }
+
+        return (TestingHandle) testingHandleClass.getDeclaredConstructor().newInstance();
     }
 
 }
