@@ -105,6 +105,7 @@ public class PacketPlay {
         @Getter @Setter @Builder
         public static class Tablist implements MCPacket {
             private Component header, footer;
+
             @Override
             public void read(FriendlyByteBuf byteBuf) {
                 this.header = byteBuf.readComponent();
@@ -123,11 +124,13 @@ public class PacketPlay {
             private PlayerInfoAction action;
             @Singular
             private List<PlayerInfoData> entries;
+
             @Override
             public void read(FriendlyByteBuf byteBuf) {
                 this.action = byteBuf.readEnum(PlayerInfoAction.class);
                 this.entries = byteBuf.readList(this.action::read);
             }
+
             @Override
             public void write(FriendlyByteBuf byteBuf) {
                 byteBuf.writeEnum(this.action);
@@ -160,6 +163,7 @@ public class PacketPlay {
                     this.players = Collections.emptyList();
                 }
             }
+
             @Override
             public void write(FriendlyByteBuf byteBuf) {
                 byteBuf.writeUtf(this.name);
@@ -172,6 +176,7 @@ public class PacketPlay {
                     byteBuf.writeCollection(this.players, FriendlyByteBuf::writeUtf);
                 }
             }
+
             @NoArgsConstructor @AllArgsConstructor @Getter @Setter @Builder
             public static class Parameters {
                 @Builder.Default
@@ -254,10 +259,12 @@ public class PacketPlay {
         @Getter @Setter @Builder
         public static class Title implements MCPacket {
             private Component component;
+
             @Override
             public void read(FriendlyByteBuf byteBuf) {
                 this.component = byteBuf.readComponent();
             }
+
             @Override
             public void write(FriendlyByteBuf byteBuf) {
                 if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().below(MCVersion.V1_17)) {
@@ -270,10 +277,12 @@ public class PacketPlay {
         @Getter @Setter @Builder
         public static class SubTitle implements MCPacket {
             private Component component;
+
             @Override
             public void read(FriendlyByteBuf byteBuf) {
                 this.component = byteBuf.readComponent();
             }
+
             @Override
             public void write(FriendlyByteBuf byteBuf) {
                 if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
@@ -288,12 +297,14 @@ public class PacketPlay {
             private int fadeIn;
             private int stay;
             private int fadeOut;
+
             @Override
             public void read(FriendlyByteBuf byteBuf) {
                 this.fadeIn = byteBuf.readInt();
                 this.stay = byteBuf.readInt();
                 this.fadeOut = byteBuf.readInt();
             }
+
             @Override
             public void write(FriendlyByteBuf byteBuf) {
                 if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
@@ -308,12 +319,14 @@ public class PacketPlay {
         @Getter @Setter @Builder
         public static class TitleClear implements MCPacket {
             private boolean resetTimes;
+
             @Override
             public void read(FriendlyByteBuf byteBuf) {
                 if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_17)) {
                     this.resetTimes = byteBuf.readBoolean();
                 }
             }
+
             @Override
             public void write(FriendlyByteBuf byteBuf) {
                 if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
@@ -321,6 +334,49 @@ public class PacketPlay {
                 } else {
                     byteBuf.writeBoolean(this.resetTimes);
                 }
+            }
+        }
+
+        @Getter @Setter @Builder
+        public static class WorldBorderInitialize implements MCPacket {
+
+            private double x;
+            private double z;
+            private double oldDiameter;
+            private double newDiameter;
+
+            private long speed;
+
+            private int portalTeleportBoundary;
+            private int warningBlocks;
+            private int warningTime;
+
+            @Override
+            public void read(FriendlyByteBuf byteBuf) {
+                this.x = byteBuf.readDouble();
+                this.z = byteBuf.readDouble();
+                this.oldDiameter = byteBuf.readDouble();
+                this.newDiameter = byteBuf.readDouble();
+
+                this.speed = byteBuf.readVarLong();
+
+                this.portalTeleportBoundary = byteBuf.readVarInt();
+                this.warningBlocks = byteBuf.readVarInt();
+                this.warningTime = byteBuf.readVarInt();
+            }
+
+            @Override
+            public void write(FriendlyByteBuf byteBuf) {
+                byteBuf.writeDouble(this.x);
+                byteBuf.writeDouble(this.z);
+                byteBuf.writeDouble(this.oldDiameter);
+                byteBuf.writeDouble(this.newDiameter);
+
+                byteBuf.writeVarLong(this.speed);
+
+                byteBuf.writeVarInt(this.portalTeleportBoundary);
+                byteBuf.writeVarInt(this.warningBlocks);
+                byteBuf.writeVarInt(this.warningTime);
             }
         }
 

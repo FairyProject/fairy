@@ -21,6 +21,8 @@ public class MCProtocolMapping1_18 extends MCProtocolMapping {
                 this.registerOut(16, PacketPlay.Out.TitleClear.class);
 
                 this.registerOut(95, PacketPlay.Out.Tablist.class);
+
+                this.registerOut(32, PacketPlay.Out.WorldBorderInitialize.class);
             }
         });
     }

@@ -114,12 +114,12 @@ public class ItemBuilder implements Listener, Cloneable {
 	}
 
 	public ItemBuilder enchantment(final XEnchantment enchantment, final int level) {
-		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), level);
+		itemStack.addUnsafeEnchantment(enchantment.getEnchant(), level);
 		return this;
 	}
 
 	public ItemBuilder enchantment(final XEnchantment enchantment) {
-		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), 1);
+		itemStack.addUnsafeEnchantment(enchantment.getEnchant(), 1);
 		return this;
 	}
 

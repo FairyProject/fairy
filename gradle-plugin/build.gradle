@@ -45,8 +45,8 @@ dependencies {
 
     compileOnly "org.projectlombok:lombok:1.18.22"
     annotationProcessor "org.projectlombok:lombok:1.18.22"
-    compileOnly "org.jetbrains:annotations:19.0.0"
-    annotationProcessor "org.jetbrains:annotations:19.0.0"
+    compileOnly "org.jetbrains:annotations:23.0.0"
+    annotationProcessor "org.jetbrains:annotations:23.0.0"
 
     implementation "com.google.code.gson:gson:" + findProperty("gson.version")
     implementation 'com.google.guava:guava:31.0.1-jre'
@@ -59,5 +59,5 @@ dependencies {
     compileOnly "org.aspectj:aspectjrt:1.9.7"
     compileOnly "org.aspectj:aspectjweaver:1.9.7"
 
-    testImplementation "junit:junit:4.13"
+    testImplementation 'junit:junit:4.13.2'
 }

@@ -24,9 +24,10 @@
 //file:noinspection GroovyAssignabilityCheck
 
 plugins {
-    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0" apply false
-    id "com.github.johnrengelman.shadow" version "7.0.0" apply false
-    id "com.gradle.plugin-publish" version "0.14.0" apply false
+    id "java"
+    id "io.freefair.aspectj.post-compile-weaving" version "6.2.0" apply false
+    id "com.github.johnrengelman.shadow" version "7.1.2" apply false
+    id "com.gradle.plugin-publish" version "0.20.0" apply false
 }
 
 // Core versioning
@@ -68,12 +69,11 @@ allprojects {
         JacksonAnnotations = "com.fasterxml.jackson.core:jackson-annotations:" + findProperty("jackson.version")
         JacksonJsr310 = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:" + findProperty("jackson.version")
 
-        HikariCP = "com.zaxxer:HikariCP:3.4.5"
-        MongoDB_driver_sync = "org.mongodb:mongodb-driver-sync:4.0.4"
+        HikariCP = "com.zaxxer:HikariCP:5.0.1"
+        MongoDB_driver_sync = "org.mongodb:mongodb-driver-sync:4.4.1"
         Mongojack = "org.mongojack:mongojack:" + findProperty("mongojack.version")
-        Redisson = "org.redisson:redisson:3.13.2"
+        Redisson = "org.redisson:redisson:3.16.8"
     }
-
 }
 
 subprojects {

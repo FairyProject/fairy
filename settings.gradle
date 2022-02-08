@@ -91,6 +91,6 @@ initModules()
 initPlatforms()
 initTests()
 
-include "gradle-plugin"
-includeDebug()
+//include "gradle-plugin"
+//includeDebug()
 

@@ -48,15 +48,15 @@ if (project.name != "gradle-plugin" && project.name != "test-plugin") {
 }
 
 tasks.withType(JavaCompile) {
-    sourceCompatibility = targetCompatibility = "1.8"
+    sourceCompatibility = targetCompatibility = JavaVersion.VERSION_16
     options.encoding = "UTF-8"
 }
 
 dependencies {
     compileOnly "org.projectlombok:lombok:1.18.22"
     annotationProcessor "org.projectlombok:lombok:1.18.22"
-    compileOnly "org.jetbrains:annotations:19.0.0"
-    annotationProcessor "org.jetbrains:annotations:19.0.0"
+    compileOnly "org.jetbrains:annotations:23.0.0"
+    annotationProcessor "org.jetbrains:annotations:23.0.0"
     compileOnly "javax.persistence:javax.persistence-api:2.2"
 
     if (project.name.contains("-")) {
@@ -73,8 +73,8 @@ dependencies {
     compileOnly "com.google.code.gson:gson:" + findProperty("gson.version")
     compileOnly "org.yaml:snakeyaml:" + findProperty("yaml.version")
     compileOnly "org.apache.logging.log4j:log4j-core:" + findProperty("log4j.version")
-    compileOnly "org.apache.commons:commons-lang3:3.11"
-    compileOnly "commons-io:commons-io:2.7"
+    compileOnly "org.apache.commons:commons-lang3:3.12.0"
+    compileOnly "commons-io:commons-io:2.11.0"
 
 }
 sourceSets {

@@ -4,8 +4,14 @@ import java.nio.file.StandardCopyOption
 apply plugin: "java-library"
 apply plugin: "com.github.johnrengelman.shadow"
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_16
+targetCompatibility = JavaVersion.VERSION_16
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(16)
+    }
+}
 
 ext {
     archieveName = project.name

@@ -149,30 +149,46 @@ public class CustomLocation {
 	}
 
 	public CustomLocation add(CustomLocation location) {
-		this.x += location.x;
-		this.y += location.y;
-		this.z += location.z;
+		return add(location.x, location.y, location.z);
+	}
+
+	public CustomLocation add(double x, double y, double z) {
+		this.x += x;
+		this.y += y;
+		this.z += z;
 		return this;
 	}
 
 	public CustomLocation subtract(CustomLocation location) {
-		this.x -= location.x;
-		this.y -= location.y;
-		this.z -= location.z;
+		return subtract(location.x, location.y, location.z);
+	}
+
+	public CustomLocation subtract(double x, double y, double z) {
+		this.x -= x;
+		this.y -= y;
+		this.z -= z;
 		return this;
 	}
 
 	public CustomLocation multiply(CustomLocation location) {
-		this.x *= location.x;
-		this.y *= location.y;
-		this.z *= location.z;
+		return multiply(location.x, location.y, location.z);
+	}
+
+	public CustomLocation multiply(double x, double y, double z) {
+		this.x *= x;
+		this.y *= y;
+		this.z *= z;
 		return this;
 	}
 
 	public CustomLocation divide(CustomLocation location) {
-		this.x /= location.x;
-		this.y /= location.y;
-		this.z /= location.z;
+		return divide(location.x, location.y, location.z);
+	}
+
+	public CustomLocation divide(double x, double y, double z) {
+		this.x /= x;
+		this.y /= y;
+		this.z /= z;
 		return this;
 	}
 
