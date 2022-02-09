@@ -289,7 +289,7 @@ public final class ImanityItem implements Terminable {
         }
 
         if (displayLoreLocale != null) {
-            String lore = MCAdventure.asItemString(displayNameLocale, LOCALE);
+            String lore = MCAdventure.asItemString(displayLoreLocale, LOCALE);
             for (PlaceholderEntry rv : this.displayLorePlaceholders) {
                 lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(player));
             }

@@ -125,21 +125,33 @@ public class ImanityItemBuilder {
         return this;
     }
 
-    public ImanityItemBuilder displayNameLocale(Component component) {
+    public ImanityItemBuilder displayName(Component component) {
         this.displayName = component;
         return this;
     }
 
-    public ImanityItemBuilder displayLoreLocale(Component component) {
+    public ImanityItemBuilder displayLore(Component component) {
         this.displayLore = component;
         return this;
     }
 
+    @Deprecated
+    public ImanityItemBuilder displayNameLocale(Component component) {
+        return this.displayName(component);
+    }
+
+    @Deprecated
+    public ImanityItemBuilder displayLoreLocale(Component component) {
+        return this.displayLore(component);
+    }
+
+    @Deprecated
     public ImanityItemBuilder appendNameReplace(String target, Function<Player, String> replacement) {
         this.displayNamePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
+    @Deprecated
     public ImanityItemBuilder appendLoreReplace(String target, Function<Player, String> replacement) {
         this.displayLorePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
