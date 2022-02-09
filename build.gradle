@@ -30,7 +30,7 @@ plugins {
 }
 
 // Core versioning
-version = "0.5.1b40"
+version = "0.5.1b41"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"
