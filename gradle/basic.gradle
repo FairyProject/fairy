@@ -74,11 +74,15 @@ dependencies {
             def platformName = names[0]
 
             compileOnly project(":io.fairyproject.platforms:$platformName-platform")
+            testImplementation project(":io.fairyproject.tests:$platformName-tests")
         }
     } else {
         compileOnly project(":io.fairyproject.platforms:core-platform")
+        testImplementation project(":io.fairyproject.tests:core-tests")
     }
 
+    compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
+    compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
     compileOnly "com.google.guava:guava:" + findProperty("guava.version")
     compileOnly "com.google.code.gson:gson:" + findProperty("gson.version")
     compileOnly "org.yaml:snakeyaml:" + findProperty("yaml.version")

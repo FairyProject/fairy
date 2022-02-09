@@ -31,29 +31,13 @@ public class YamlResourceBundle extends ResourceBundle {
     public YamlResourceBundle(InputStream inputStream) {
         this.entries = StreamSupport.stream(new Yaml().loadAll(inputStream).spliterator(), false)
                 .flatMap(this::parseDoc)
-                .collect(Collectors.toMap(Pair::getKey, pair -> {
-                    final Object value = pair.getValue();
-                    if (value instanceof List) {
-                        return ((List<?>) value).stream()
-                                .map(Object::toString)
-                                .collect(Collectors.joining("\n"));
-                    }
-                    return value.toString();
-                }));
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
     public YamlResourceBundle(Reader reader) {
         this.entries = StreamSupport.stream(new Yaml().loadAll(reader).spliterator(), false)
                 .flatMap(this::parseDoc)
-                .collect(Collectors.toMap(Pair::getKey, pair -> {
-                    final Object value = pair.getValue();
-                    if (value instanceof List) {
-                        return ((List<?>) value).stream()
-                                .map(Object::toString)
-                                .collect(Collectors.joining("\n"));
-                    }
-                    return value.toString();
-                }));
+                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
     }
 
     public static class Control extends ResourceBundle.Control {
@@ -87,8 +71,11 @@ public class YamlResourceBundle extends ResourceBundle {
     private Stream<Pair<String, Object>> parseNode(String key, Object value, List<Object> ancestors) {
         if (value instanceof Map) {
             return parseMapNode(key, (Map<String, Object>) value, ancestors);
-        } else if (value instanceof List) {
-            return parseListNode(key, (List<Object>) value, ancestors);
+        }
+        if (value instanceof List) {
+            value = ((List<?>) value).stream()
+                    .map(Object::toString)
+                    .collect(Collectors.joining("\n"));
         }
         return Stream.of(Pair.of(key, value));
     }
