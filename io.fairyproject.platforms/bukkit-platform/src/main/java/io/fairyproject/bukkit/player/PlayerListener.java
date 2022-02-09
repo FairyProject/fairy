@@ -24,21 +24,20 @@
 
 package io.fairyproject.bukkit.player;
 
+import io.fairyproject.Fairy;
+import io.fairyproject.bukkit.events.player.PlayerPostJoinEvent;
+import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.container.Component;
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.task.Task;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import io.fairyproject.Fairy;
-import io.fairyproject.container.Component;
-import io.fairyproject.bukkit.events.player.PlayerPostJoinEvent;
-import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.task.Task;
 
 @Component
 public class PlayerListener implements Listener {
@@ -49,12 +48,7 @@ public class PlayerListener implements Listener {
 
         Metadata.provideForPlayer(player).remove(MCPlayer.METADATA);
         Events.unregisterAll(player);
-        MetadataMap metadataMap = Metadata.provideForPlayer(player);
-        for (MetadataKey<?> key : metadataMap.asMap().keySet()) {
-            if (key.removeOnNonExists()) {
-                metadataMap.remove(key);
-            }
-        }
+        Metadata.get(player).ifPresent(MetadataMap::cleanup);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
