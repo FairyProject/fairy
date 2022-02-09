@@ -1,12 +1,26 @@
 package io.fairyproject.gradle;
 
 import com.google.common.collect.ImmutableSet;
+import io.fairyproject.gradle.aspect.AjcAction;
+import io.fairyproject.gradle.aspect.AspectjCompile;
+import io.fairyproject.gradle.aspect.DefaultWeavingSourceSet;
+import io.fairyproject.gradle.aspect.WeavingSourceSet;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.tasks.compile.HasCompileOptions;
+import org.gradle.api.plugins.GroovyPlugin;
+import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.api.plugins.JavaPluginExtension;
+import org.gradle.api.plugins.scala.ScalaPlugin;
+import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.SourceSetContainer;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.jvm.tasks.Jar;
 
 import java.util.*;

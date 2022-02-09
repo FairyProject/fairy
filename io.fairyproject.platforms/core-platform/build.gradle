@@ -37,7 +37,7 @@ dependencies {
     api "javax.persistence:javax.persistence-api:2.2"
     compileOnly "org.mongodb:mongo-java-driver:3.12.7"
     compileOnly "org.springframework:spring-expression:5.3.2"
-    compileOnly AspectJRuntime
+    api aspectjRuntime
     implementation JacksonCore
     implementation JacksonDataBind
     implementation JacksonAnnotations

@@ -9,10 +9,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -29,6 +26,7 @@ import java.util.jar.JarOutputStream;
 
 @Getter
 @Setter
+@CacheableTask
 public class FairyTask extends DefaultTask {
 
     private static final String PLUGIN_CLASS_PATH = "io/fairyproject/plugin/Plugin";
@@ -39,6 +37,7 @@ public class FairyTask extends DefaultTask {
     );
 
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     private File inJar;
 
     @Input

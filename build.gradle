@@ -24,13 +24,13 @@
 //file:noinspection GroovyAssignabilityCheck
 
 plugins {
-    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0" apply false
+//    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0" apply false
     id "com.github.johnrengelman.shadow" version "7.0.0" apply false
     id "com.gradle.plugin-publish" version "0.14.0" apply false
 }
 
 // Core versioning
-version = "0.5.1b39"
+version = "0.5.1b40"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"
@@ -61,7 +61,8 @@ allprojects {
         relocate = "io.fairyproject.libs."
 
         // Dependencies
-        AspectJRuntime = "org.aspectj:aspectjrt:" + findProperty("aspectj.version")
+        // TODO - naming rules
+        aspectjRuntime = "org.aspectj:aspectjrt:" + findProperty("aspectj.version")
 
         JacksonCore = "com.fasterxml.jackson.core:jackson-core:" + findProperty("jackson.version")
         JacksonDataBind = "com.fasterxml.jackson.core:jackson-databind:" + findProperty("jackson.version")

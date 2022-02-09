@@ -293,7 +293,7 @@ public class FairyPlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults(SourceSet sourceSet) {
         project.afterEvaluate(p ->
-                p.getDependencies().add(sourceSet.getImplementationConfigurationName(), "org.aspectj:aspectjrt:" + this.extension.getAspectJVersion().get())
+                p.getDependencies().add(sourceSet.getCompileOnlyConfigurationName(), "org.aspectj:aspectjrt:" + this.extension.getAspectJVersion().get())
         );
 
         DefaultWeavingSourceSet weavingSourceSet = new DefaultWeavingSourceSet(sourceSet);
@@ -305,7 +305,7 @@ public class FairyPlugin implements Plugin<Project> {
         Configuration inpath = project.getConfigurations().create(weavingSourceSet.getInpathConfigurationName());
         weavingSourceSet.setInPath(inpath);
 
-        project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName()).extendsFrom(aspectpath);
+//        project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName()).extendsFrom(aspectpath);
         project.getConfigurations().getByName(sourceSet.getCompileOnlyConfigurationName()).extendsFrom(inpath);
     }
 
