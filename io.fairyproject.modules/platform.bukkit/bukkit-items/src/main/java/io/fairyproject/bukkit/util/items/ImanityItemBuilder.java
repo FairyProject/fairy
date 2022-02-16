@@ -28,6 +28,9 @@ import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.bukkit.util.BukkitUtil;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
 import io.fairyproject.mc.PlaceholderEntry;
+import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.metadata.MetadataMapProxy;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
@@ -36,12 +39,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 
-public class ImanityItemBuilder {
+public class ImanityItemBuilder implements MetadataMapProxy {
 
     public static void example(Player tester) {
         // new item builder instance
@@ -84,8 +85,7 @@ public class ImanityItemBuilder {
     private final List<ItemBehaviour> behaviours = new ArrayList<>();
     private final List<PlaceholderEntry> displayNamePlaceholders = new ArrayList<>();
     private final List<PlaceholderEntry> displayLorePlaceholders = new ArrayList<>();
-
-    private final Map<String, Object> metadata = new HashMap<>();
+    private final MetadataMap metadataMap = MetadataMap.create();
 
     public ImanityItemBuilder(String id) {
         this(id, findPlugin(4));
@@ -162,8 +162,16 @@ public class ImanityItemBuilder {
         return this;
     }
 
+    /**
+     *
+     * @deprecated ImanityItem now uses metadata system built on top of {@link io.fairyproject.metadata.MetadataMap}
+     * @param key the Key
+     * @param object the Value
+     * @return this
+     */
+    @Deprecated
     public ImanityItemBuilder metadata(String key, Object object) {
-        this.metadata.put(key, object);
+        this.put(MetadataKey.create(key, Object.class), object);
         return this;
     }
 
@@ -181,8 +189,12 @@ public class ImanityItemBuilder {
                 this.behaviours,
                 this.displayNamePlaceholders,
                 this.displayLorePlaceholders,
-                this.metadata
+                this.metadataMap
         );
     }
 
+    @Override
+    public MetadataMap getMetadataMap() {
+        return this.metadataMap;
+    }
 }

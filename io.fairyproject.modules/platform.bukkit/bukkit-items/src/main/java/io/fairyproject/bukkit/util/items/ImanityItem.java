@@ -39,6 +39,9 @@ import io.fairyproject.bukkit.util.nms.NBTEditor;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.PlaceholderEntry;
+import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.metadata.MetadataMapProxy;
 import io.fairyproject.module.ModuleService;
 import io.fairyproject.util.StringUtil;
 import io.fairyproject.util.terminable.Terminable;
@@ -61,7 +64,7 @@ import java.util.function.Function;
 @Getter
 @JsonSerialize(using = ImanityItem.Serializer.class)
 @JsonDeserialize(using = ImanityItem.Deserializer.class)
-public final class ImanityItem implements Terminable {
+public final class ImanityItem implements Terminable, MetadataMapProxy {
 
     @Autowired
     private static ModuleService MODULE_SERVICE;
@@ -108,8 +111,8 @@ public final class ImanityItem implements Terminable {
     private String id;
     private boolean submitted;
     private ItemBuilder itemBuilder;
-    private Component displayNameLocale;
-    private Component displayLoreLocale;
+    private Component displayName;
+    private Component displayLore;
 
     private ItemCallback clickCallback;
     private ItemPlaceCallback placeCallback;
@@ -120,54 +123,56 @@ public final class ImanityItem implements Terminable {
     @Deprecated
     private final List<PlaceholderEntry> displayLorePlaceholders = new ArrayList<>();
 
-    private final Map<String, Object> metadata = new HashMap<>();
+    private final MetadataMap metadataMap;
 
     @Deprecated
     public ImanityItem() {
+        this.metadataMap = MetadataMap.create();
     }
 
-    protected ImanityItem(Plugin plugin,
-                          String id,
-                          ItemBuilder itemBuilder,
-                          String displayNameLocale,
-                          String displayLoreLocale,
-                          List<ItemBehaviour> behaviours,
-                          List<PlaceholderEntry> displayNamePlaceholders,
-                          List<PlaceholderEntry> displayLorePlaceholders,
-                          Map<String, Object> metadata) {
+    private ImanityItem(Plugin plugin,
+                        String id,
+                        ItemBuilder itemBuilder,
+                        String displayName,
+                        String displayLore,
+                        List<ItemBehaviour> behaviours,
+                        List<PlaceholderEntry> displayNamePlaceholders,
+                        List<PlaceholderEntry> displayLorePlaceholders,
+                        MetadataMap metadataMap) {
         this(plugin,
                 id,
                 itemBuilder,
-                Component.translatable(displayNameLocale),
-                Component.translatable(displayLoreLocale),
+                Component.translatable(displayName),
+                Component.translatable(displayLore),
                 behaviours,
                 displayNamePlaceholders,
                 displayLorePlaceholders,
-                metadata);
+                metadataMap);
     }
 
     protected ImanityItem(Plugin plugin,
                           String id,
                           ItemBuilder itemBuilder,
-                          Component displayNameLocale,
-                          Component displayLoreLocale,
+                          Component displayName,
+                          Component displayLore,
                           List<ItemBehaviour> behaviours,
                           List<PlaceholderEntry> displayNamePlaceholders,
                           List<PlaceholderEntry> displayLorePlaceholders,
-                          Map<String, Object> metadata) {
+                          MetadataMap metadataMap) {
         this.plugin = plugin;
         this.id = id;
         this.itemBuilder = itemBuilder;
-        this.displayNameLocale = displayNameLocale;
-        this.displayLoreLocale = displayLoreLocale;
+        this.displayName = displayName;
+        this.displayLore = displayLore;
         this.behaviours.addAll(behaviours);
         this.displayNamePlaceholders.addAll(displayNamePlaceholders);
         this.displayLorePlaceholders.addAll(displayLorePlaceholders);
-        this.metadata.putAll(metadata);
+        this.metadataMap = metadataMap;
     }
 
-    public  Object getMetadata(String key) {
-        return this.metadata.get(key);
+    @Deprecated
+    public Object getMetadata(String key) {
+        return this.metadataMap.getOrNull(MetadataKey.create(key, Object.class));
     }
 
     public ImanityItem item(ItemBuilder itemBuilder) {
@@ -175,21 +180,35 @@ public final class ImanityItem implements Terminable {
         return this;
     }
 
+    public ImanityItem displayName(Component displayName) {
+        this.displayName = displayName;
+        return this;
+    }
+
+    public ImanityItem displayLore(Component displayLore) {
+        this.displayLore = displayLore;
+        return this;
+    }
+
+    @Deprecated
     public ImanityItem displayNameLocale(Component locale) {
-        this.displayNameLocale = locale;
+        this.displayName = locale;
         return this;
     }
 
+    @Deprecated
     public ImanityItem displayLoreLocale(Component locale) {
-        this.displayLoreLocale = locale;
+        this.displayLore = locale;
         return this;
     }
 
+    @Deprecated
     public ImanityItem appendNameReplace(String target, Function<Player, String> replacement) {
         this.displayNamePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
     }
 
+    @Deprecated
     public ImanityItem appendLoreReplace(String target, Function<Player, String> replacement) {
         this.displayLorePlaceholders.add(PlaceholderEntry.entry(target, replacement));
         return this;
@@ -212,13 +231,13 @@ public final class ImanityItem implements Terminable {
         return this;
     }
 
+    @Deprecated
     public ImanityItem metadata(String key, Object object) {
-        this.metadata.put(key, object);
+        this.metadataMap.put(MetadataKey.create(key, Object.class), object);
         return this;
     }
 
     public ImanityItem submit() {
-
         if (this.getItemBuilder() == null) {
             throw new IllegalArgumentException("No Item registered!");
         }
@@ -243,7 +262,6 @@ public final class ImanityItem implements Terminable {
         this.submitted = true;
 
         return this;
-
     }
 
     public Material getType() {
@@ -251,7 +269,7 @@ public final class ImanityItem implements Terminable {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         this.unregister();
     }
 
@@ -276,11 +294,11 @@ public final class ImanityItem implements Terminable {
         if (this.getItemBuilder() == null) {
             throw new IllegalArgumentException("No Item registered!");
         }
-        Locale LOCALE = player.getLocale();
+        Locale locale = player.getLocale();
 
         ItemBuilder itemBuilder = this.itemBuilder.clone();
-        if (displayNameLocale != null) {
-            String name = MCAdventure.asItemString(displayNameLocale, LOCALE);
+        if (displayName != null) {
+            String name = MCAdventure.asItemString(displayName, locale);
             for (PlaceholderEntry rv : this.displayNamePlaceholders) {
                 name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(player));
             }
@@ -288,8 +306,8 @@ public final class ImanityItem implements Terminable {
             itemBuilder.name(name);
         }
 
-        if (displayLoreLocale != null) {
-            String lore = MCAdventure.asItemString(displayLoreLocale, LOCALE);
+        if (displayLore != null) {
+            String lore = MCAdventure.asItemString(displayLore, locale);
             for (PlaceholderEntry rv : this.displayLorePlaceholders) {
                 lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(player));
             }
@@ -303,6 +321,11 @@ public final class ImanityItem implements Terminable {
         return itemBuilder
                 .tag(this.id, "imanity", "item", "id")
                 .build();
+    }
+
+    @Override
+    public MetadataMap getMetadataMap() {
+        return this.metadataMap;
     }
 
     public static class Serializer extends StdSerializer<ImanityItem> {
