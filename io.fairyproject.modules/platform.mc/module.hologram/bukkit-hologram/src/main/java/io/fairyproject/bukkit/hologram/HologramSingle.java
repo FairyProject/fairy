@@ -33,6 +33,8 @@ import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.ProtocolLibHelper;
 import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import io.fairyproject.bukkit.util.SpigotUtil;
+import io.fairyproject.mc.MCAdventure;
+import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -89,7 +91,6 @@ public class HologramSingle {
     }
 
     protected void sendSpawnPacket(Collection<? extends Player> players) {
-
         players.forEach(player -> {
             if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
@@ -111,7 +112,6 @@ public class HologramSingle {
                 ProtocolLibHelper.send(player, packetContainer);
             }
         });
-
     }
 
     protected void sendTeleportPacket(Collection<? extends Player> players) {
@@ -153,10 +153,12 @@ public class HologramSingle {
     }
 
     protected WrappedDataWatcher buildDataWatcher(Player player) {
+        MCPlayer mcPlayer = MCPlayer.from(player);
+
         WrappedDataWatcher dataWatcher = new WrappedDataWatcher();
         dataWatcher.setObject(0, (byte) 32);
         dataWatcher.setObject(1, (short) 300);
-        dataWatcher.setObject(2, this.getViewHandler().view(player));
+        dataWatcher.setObject(2, MCAdventure.asLegacyString(this.getViewHandler().view(player), mcPlayer.getLocale()));
         dataWatcher.setObject(3, (byte) 1);
         dataWatcher.setObject(4, (byte) 1);
         dataWatcher.setObject(6, 20.0f);
