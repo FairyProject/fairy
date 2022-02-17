@@ -146,8 +146,8 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
             for (Map.Entry<ServiceDependencyType, List<Class<?>>> allDependency : containerObject.getDependencyEntries()) {
                 final ServiceDependencyType type = allDependency.getKey();
                 search: for (Class<?> dependency : allDependency.getValue()) {
-                    ContainerObject dependencyDetails = CONTAINER_CONTEXT.getObjectDetails(dependency);
-                    if (dependencyDetails == null) {
+                    ContainerObject dependencyObject = CONTAINER_CONTEXT.getObjectDetails(dependency);
+                    if (dependencyObject == null) {
                         switch (type) {
                             case FORCE:
                                 ContainerContext.LOGGER.error("Couldn't find the dependency " + dependency + " for " + containerObject.getType().getSimpleName() + "!");
@@ -161,8 +161,8 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
                         }
                         // Prevent dependency each other
                     } else {
-                        if (dependencyDetails.hasDependencies()
-                                && dependencyDetails.getAllDependencies().contains(containerObject.getType())) {
+                        if (dependencyObject.hasDependencies()
+                                && dependencyObject.getAllDependencies().contains(containerObject.getType())) {
                             ContainerContext.LOGGER.error("Target " + containerObject.getType().getSimpleName() + " and " + dependency + " depend to each other!");
                             removeIterator.remove();
 
@@ -170,7 +170,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
                             break;
                         }
 
-                        dependencyDetails.addChildren(containerObject.getType());
+                        dependencyObject.addChildren(containerObject.getType());
                     }
                 }
             }

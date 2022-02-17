@@ -246,8 +246,6 @@ public class LibraryHandler {
             }
 
             try {
-                System.out.println("Remapping library " + library.getName() + "...");
-
                 this.relocateHandler.relocate(path, remappedFile, library.getRelocations());
                 retVal.add(remappedFile);
             } catch (Throwable throwable) {

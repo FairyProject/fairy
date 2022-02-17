@@ -56,12 +56,6 @@ public class ModuleDownloader {
 
         SESSION.setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL);
         SESSION.setLocalRepositoryManager(REPOSITORY.newLocalRepositoryManager(SESSION, new LocalRepository(LOCAL_REPO ? locateMavenLocal() : MODULE_DIR.toFile())));
-        SESSION.setTransferListener(new AbstractTransferListener() {
-            @Override
-            public void transferStarted(TransferEvent event) {
-                LogManager.getLogger().info("Downloading {}", event.getResource().getResourceName());
-            }
-        });
         SESSION.setReadOnly();
         REPOSITORIES = REPOSITORY.newResolutionRepositories(SESSION, Arrays.asList(
                 new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),

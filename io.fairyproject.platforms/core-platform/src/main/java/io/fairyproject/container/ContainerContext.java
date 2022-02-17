@@ -311,18 +311,18 @@ public class ContainerContext {
 
         // Unregister Child Dependency
         for (Class<?> child : containerObject.getChildren()) {
-            ContainerObject childDetails = this.getObjectDetails(child);
+            ContainerObject childContainerObject = this.getObjectDetails(child);
 
-            builder.add(childDetails);
-            builder.addAll(this.unregisterObject(childDetails));
+            builder.add(childContainerObject);
+            builder.addAll(this.unregisterObject(childContainerObject));
         }
 
         // Remove Children from dependencies
         for (Class<?> dependency : containerObject.getAllDependencies()) {
-            ContainerObject dependDetails = this.getObjectDetails(dependency);
+            ContainerObject dependContainerObject = this.getObjectDetails(dependency);
 
-            if (dependDetails != null) {
-                dependDetails.removeChildren(containerObject.getType());
+            if (dependContainerObject != null) {
+                dependContainerObject.removeChildren(containerObject.getType());
             }
         }
 
