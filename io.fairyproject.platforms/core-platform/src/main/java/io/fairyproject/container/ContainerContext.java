@@ -26,16 +26,21 @@ package io.fairyproject.container;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.Debug;
 import io.fairyproject.container.controller.SubscribeEventContainerController;
 import io.fairyproject.container.object.*;
 import io.fairyproject.container.object.parameter.ContainerParameterDetailsMethod;
 import io.fairyproject.container.exception.ServiceAlreadyExistsException;
+import io.fairyproject.container.scanner.ClassPathScanner;
+import io.fairyproject.container.scanner.DefaultClassPathScanner;
+import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import lombok.Getter;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,29 +61,39 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 public class ContainerContext {
 
-    public static boolean SHOW_LOGS = false;
+    public static boolean SHOW_LOGS = Boolean.getBoolean("fairy.showlog");
+    public static boolean SINGLE_THREADED = Runtime.getRuntime().availableProcessors() < 2 || Boolean.getBoolean("fairy.singlethreaded");
     public static ContainerContext INSTANCE;
+    public static ExecutorService EXECUTOR = Executors.newCachedThreadPool(new ThreadFactoryBuilder()
+                    .setNameFormat("Container Thread - %d")
+                    .setDaemon(true)
+                    .setUncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
+                    .build());
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
 
     /**
      * Logging
      */
-    protected static final Logger LOGGER = LogManager.getLogger(ContainerContext.class);
-    protected static void log(String msg, Object... replacement) {
+    public static final Logger LOGGER = LogManager.getLogger(ContainerContext.class);
+    public static void log(String msg, Object... replacement) {
         if (SHOW_LOGS) {
             LOGGER.info(String.format(msg, replacement));
         }
     }
-    protected static SimpleTiming logTiming(String msg) {
+    public static SimpleTiming logTiming(String msg) {
         return SimpleTiming.create(time -> log("Ended %s - took %d ms", msg, time));
     }
 
+    @Getter
     private ContainerController[] controllers;
 
     /**
@@ -89,6 +104,7 @@ public class ContainerContext {
     /**
      * NOT THREAD SAFE
      */
+    @Getter
     private final List<ContainerObject> sortedObjects = new ArrayList<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -111,12 +127,14 @@ public class ContainerContext {
 
         ComponentRegistry.registerComponentHolders();
         try {
-            this.scanClasses()
+            final ClassPathScanner classPathScanner = this.scanClasses()
                     .name("framework")
                     .url(this.getClass().getProtectionDomain().getCodeSource().getLocation())
                     .classLoader(ContainerContext.class.getClassLoader())
-                    .classPath("io.fairyproject")
-                    .scan();
+                    .classPath("io.fairyproject");
+            classPathScanner.scan();
+
+            classPathScanner.getCompletedFuture().join();
         } catch (Throwable throwable) {
             LOGGER.error("Error while scanning classes for framework", throwable);
             Fairy.getPlatform().shutdown();
@@ -176,6 +194,7 @@ public class ContainerContext {
                                 .classPath(classPaths)
                                 .included(containerObject)
                                 .scan();
+                        scanner.getCompletedFuture().join();
                     } catch (Throwable throwable) {
                         LOGGER.error("An error occurs while handling scanClasses()", throwable);
                         try {
@@ -263,6 +282,18 @@ public class ContainerContext {
         }
 
         return containerObject;
+    }
+
+    public void doWriteLock(Runnable runnable) {
+        this.lock.writeLock().lock();
+        runnable.run();
+        this.lock.writeLock().unlock();
+    }
+
+    public void doReadLock(Runnable runnable) {
+        this.lock.readLock().lock();
+        runnable.run();
+        this.lock.readLock().unlock();
     }
 
     public Collection<ContainerObject> unregisterObject(Class<?> type) {
@@ -378,7 +409,7 @@ public class ContainerContext {
         return containerObject;
     }
 
-    private void attemptBindPlugin(ContainerObject containerObject) {
+    public void attemptBindPlugin(ContainerObject containerObject) {
         if (PluginManager.isInitialized()) {
             Plugin plugin = PluginManager.INSTANCE.getPluginByClass(containerObject.getType());
 
@@ -391,13 +422,21 @@ public class ContainerContext {
     }
 
     public void lifeCycle(LifeCycle lifeCycle, Collection<ContainerObject> containerObjectList) {
+        this.lifeCycleAsynchronously(lifeCycle, containerObjectList).join();
+    }
+
+    public CompletableFuture<?> lifeCycleAsynchronously(LifeCycle lifeCycle, Collection<ContainerObject> containerObjectList) {
+        List<CompletableFuture<?>> futures = new ArrayList<>(containerObjectList.size());
+
         for (ContainerObject containerObject : containerObjectList) {
             try {
-                containerObject.lifeCycle(lifeCycle);
+                futures.add(containerObject.lifeCycle(lifeCycle));
             } catch (Throwable throwable) {
                 LOGGER.error("An error occurs while calling life cycle method", throwable);
             }
         }
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 
     public List<String> findClassPaths(Class<?> plugin) {
@@ -411,332 +450,7 @@ public class ContainerContext {
     }
 
     public ClassPathScanner scanClasses() {
-        return new ClassPathScanner();
-    }
-
-    public class ClassPathScanner {
-
-        private String prefix = "";
-        private String scanName;
-        private final List<String> classPaths = new ArrayList<>();
-        private final List<String> excludedPackages = new ArrayList<>();
-        private final List<URL> urls = new ArrayList<>();
-        private final List<ClassLoader> classLoaders = new ArrayList<>();
-
-        private final List<ContainerObject> included = new ArrayList<>();
-
-        public ClassPathScanner prefix(String prefix) {
-            this.prefix = prefix;
-            return this;
-        }
-
-        public ClassPathScanner name(String name) {
-            this.scanName = name;
-            return this;
-        }
-
-        public ClassPathScanner classPath(String... classPath) {
-            this.classPaths.addAll(Arrays.asList(classPath));
-            return this;
-        }
-
-        public ClassPathScanner classPath(Collection<String> classPath) {
-            this.classPaths.addAll(classPath);
-            return this;
-        }
-
-        public ClassPathScanner url(URL... urls) {
-            this.urls.addAll(Arrays.asList(urls));
-            return this;
-        }
-
-        public ClassPathScanner excludePackage(String... classPath) {
-            this.excludedPackages.addAll(Arrays.asList(classPath));
-            return this;
-        }
-
-        public ClassPathScanner excludePackage(Collection<String> classPath) {
-            this.excludedPackages.addAll(classPath);
-            return this;
-        }
-
-        public ClassPathScanner classLoader(ClassLoader... classLoaders) {
-            this.classLoaders.addAll(Arrays.asList(classLoaders));
-            return this;
-        }
-
-        public ClassPathScanner classLoader(Collection<ClassLoader> classLoaders) {
-            this.classLoaders.addAll(classLoaders);
-            return this;
-        }
-
-        public ClassPathScanner included(ContainerObject... containerObjects) {
-            this.included.addAll(Arrays.asList(containerObjects));
-            return this;
-        }
-
-        public ClassPathScanner included(Collection<ContainerObject> containerObjects) {
-            this.included.addAll(containerObjects);
-            return this;
-        }
-
-        public List<ContainerObject> scan() throws Exception {
-            log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
-
-            // Build the instance for Reflection Lookup
-            ReflectLookup reflectLookup;
-            try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
-                final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-
-                FilterBuilder filterBuilder = new FilterBuilder();
-                for (String classPath : classPaths) {
-                    // Only search package in the main class loader
-                    filterBuilder.includePackage(classPath);
-                }
-
-                for (String classPath : this.excludedPackages) {
-                    filterBuilder.excludePackage(classPath);
-                }
-                configurationBuilder.setUrls(urls);
-
-                final ArrayList<ClassLoader> classLoaders = new ArrayList<>(this.classLoaders);
-                configurationBuilder.addClassLoaders(classLoaders);
-
-                configurationBuilder.filterInputsBy(filterBuilder);
-                reflectLookup = new ReflectLookup(configurationBuilder);
-            }
-
-            // Scanning through the JAR to see every Service ContainerObject can be registered
-            List<ContainerObject> containerObjectList;
-            try (SimpleTiming ignored = logTiming("Scanning ContainerObjects")) {
-                containerObjectList = new NonNullArrayList<>(included);
-
-                for (Class<?> type : reflectLookup.findAnnotatedClasses(Service.class)) {
-                    try {
-                        Service service = type.getDeclaredAnnotation(Service.class);
-                        ConditionUtils.notNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
-
-                        if (getObjectDetails(type) == null) {
-                            ServiceContainerObject containerObject = new ServiceContainerObject(type, service.depends());
-
-                            log("Found " + containerObject + " with type " + type.getSimpleName() + ", Registering it as ContainerObject...");
-
-                            attemptBindPlugin(containerObject);
-                            registerObject(containerObject, false);
-
-                            containerObjectList.add(containerObject);
-                        } else {
-                            new ServiceAlreadyExistsException(type).printStackTrace();
-                        }
-                    } catch (Throwable throwable) {
-                        throw new IllegalStateException("An exception has been thrown while scanning ContainerObject for " + type.getName(), throwable);
-                    }
-                }
-            }
-
-            // Scanning methods that registers ContainerObject
-            try (SimpleTiming ignored = logTiming("Scanning ContainerObject Method")) {
-                for (Method method : reflectLookup.findAnnotatedStaticMethods(Register.class)) {
-                    if (method.getReturnType() == void.class) {
-                        new IllegalArgumentException("The Method " + method + " has annotated @Register but no return type!").printStackTrace();
-                    }
-                    ContainerParameterDetailsMethod detailsMethod = new ContainerParameterDetailsMethod(method, ContainerContext.this);
-                    List<Class<?>> dependencies = new ArrayList<>();
-                    for (Parameter type : detailsMethod.getParameters()) {
-                        ContainerObject details = getObjectDetails(type.getType());
-                        if (details != null) {
-                            dependencies.add(details.getType());
-                        }
-                    }
-                    final Object instance = detailsMethod.invoke(null, ContainerContext.this);
-
-                    Register register = method.getAnnotation(Register.class);
-                    if (register == null) {
-                        continue;
-                    }
-
-                    Class<?> objectType = detailsMethod.returnType();
-                    if (register.as() != Void.class) {
-                        objectType = register.as();
-                    }
-
-                    if (getObjectDetails(objectType) == null) {
-                        ContainerObject containerObject = new RelativeContainerObject(objectType, instance, dependencies.toArray(new Class<?>[0]));
-
-                        log("Found " + objectType + " with type " + instance.getClass().getSimpleName() + ", Registering it as ContainerObject...");
-
-                        attemptBindPlugin(containerObject);
-                        registerObject(containerObject, false);
-
-                        containerObjectList.add(containerObject);
-                    } else {
-                        new ServiceAlreadyExistsException(objectType).printStackTrace();
-                    }
-                }
-            }
-
-            // Load ContainerObjects in Dependency Tree Order
-            try (SimpleTiming ignored = logTiming("Initializing ContainerObject")) {
-                containerObjectList = loadInOrder(containerObjectList);
-            } catch (Throwable throwable) {
-                LOGGER.error("An error occurs while handling loadInOrder()", throwable);
-            }
-
-            // Unregistering ContainerObjects that returns false in shouldInitialize
-            try (SimpleTiming ignored = logTiming("Unregistering Disabled ContainerObject")) {
-                sortedObjects.addAll(containerObjectList);
-
-                for (ContainerObject containerObject : ImmutableList.copyOf(containerObjectList)) {
-                    if (!containerObjectList.contains(containerObject)) {
-                        continue;
-                    }
-                    try {
-                        if (!containerObject.shouldInitialize()) {
-                            log("Unregistering " + containerObject + " due to it cancelled to register");
-
-                            containerObjectList.remove(containerObject);
-                            for (ContainerObject details : unregisterObject(containerObject)) {
-                                log("Unregistering " + containerObject + " due to it dependency unregistered");
-
-                                containerObjectList.remove(details);
-                            }
-                        }
-                    } catch (InvocationTargetException | IllegalAccessException e) {
-                        LOGGER.error(e);
-                        unregisterObject(containerObject);
-                    }
-                }
-            }
-
-            // Call @PreInitialize methods for ContainerObject
-            try (SimpleTiming ignored = logTiming("LifeCycle PRE_INIT")) {
-                lifeCycle(LifeCycle.PRE_INIT, containerObjectList);
-            }
-
-            // Scan Components
-            try (SimpleTiming ignored = logTiming("Scanning Components")) {
-                containerObjectList.addAll(ComponentRegistry.scanComponents(ContainerContext.this, reflectLookup, prefix));
-            }
-
-            // Inject @Autowired fields for ContainerObjects
-            try (SimpleTiming ignored = logTiming("Injecting ContainerObjects")) {
-                for (ContainerObject containerObject : containerObjectList) {
-                    for (ContainerController controller : controllers) {
-                        try {
-                            controller.applyContainerObject(containerObject);
-                        } catch (Throwable throwable) {
-                            LOGGER.warn("An error occurs while apply controller for " + containerObject.getType(), throwable);
-                        }
-                    }
-                }
-            }
-
-            // Inject @Autowired static fields
-            try (SimpleTiming ignored = logTiming("Injecting Static Autowired Fields")) {
-                for (Field field : reflectLookup.findAnnotatedStaticFields(Autowired.class)) {
-                    if (!Modifier.isStatic(field.getModifiers())) {
-                        continue;
-                    }
-
-                    AutowiredContainerController.INSTANCE.applyField(field, null);
-                }
-            }
-
-            // Call onEnable() for Components
-            try (SimpleTiming ignored = logTiming("Call onEnable() for Components")) {
-                containerObjectList.forEach(ContainerObject::onEnable);
-            }
-
-            // Call @PostInitialize
-            try (SimpleTiming ignored = logTiming("LifeCycle POST_INIT")) {
-                lifeCycle(LifeCycle.POST_INIT, containerObjectList);
-            }
-
-            return containerObjectList;
-        }
-
-        private List<ContainerObject> loadInOrder(List<ContainerObject> containerObjectList) {
-            Map<Class<?>, ContainerObject> unloaded = new HashMap<>();
-            for (ContainerObject containerObject : containerObjectList) {
-                unloaded.put(containerObject.getType(), containerObject);
-                if (containerObject instanceof ServiceContainerObject) {
-                    ((ServiceContainerObject) containerObject).setupConstruction(ContainerContext.this);
-                }
-            }
-            // Remove Services without valid dependency
-            Iterator<Map.Entry<Class<?>, ContainerObject>> removeIterator = unloaded.entrySet().iterator();
-            while (removeIterator.hasNext()) {
-                Map.Entry<Class<?>, ContainerObject> entry = removeIterator.next();
-                ContainerObject containerObject = entry.getValue();
-                if (!containerObject.hasDependencies()) {
-                    continue;
-                }
-                for (Map.Entry<ServiceDependencyType, List<Class<?>>> allDependency : containerObject.getDependencyEntries()) {
-                    final ServiceDependencyType type = allDependency.getKey();
-                    search: for (Class<?> dependency : allDependency.getValue()) {
-                        ContainerObject dependencyDetails = ContainerContext.this.getObjectDetails(dependency);
-                        if (dependencyDetails == null) {
-                            switch (type) {
-                                case FORCE:
-                                    LOGGER.error("Couldn't find the dependency " + dependency + " for " + containerObject.getType().getSimpleName() + "!");
-                                    removeIterator.remove();
-                                    break search;
-                                case SUB_DISABLE:
-                                    removeIterator.remove();
-                                    break search;
-                                case SUB:
-                                    break;
-                            }
-                            // Prevent dependency each other
-                        } else {
-                            if (dependencyDetails.hasDependencies()
-                                    && dependencyDetails.getAllDependencies().contains(containerObject.getType())) {
-                                LOGGER.error("Target " + containerObject.getType().getSimpleName() + " and " + dependency + " depend to each other!");
-                                removeIterator.remove();
-
-                                unloaded.remove(dependency);
-                                break;
-                            }
-
-                            dependencyDetails.addChildren(containerObject.getType());
-                        }
-                    }
-                }
-            }
-            // Continually loop until all dependency found and loaded
-            List<ContainerObject> sorted = new NonNullArrayList<>();
-            while (!unloaded.isEmpty()) {
-                Iterator<Map.Entry<Class<?>, ContainerObject>> iterator = unloaded.entrySet().iterator();
-                while (iterator.hasNext()) {
-                    Map.Entry<Class<?>, ContainerObject> entry = iterator.next();
-                    ContainerObject containerObject = entry.getValue();
-                    boolean missingDependencies = false;
-                    for (Map.Entry<ServiceDependencyType, List<Class<?>>> dependencyEntry : containerObject.getDependencyEntries()) {
-                        final ServiceDependencyType type = dependencyEntry.getKey();
-                        for (Class<?> dependency : dependencyEntry.getValue()) {
-                            ContainerObject dependencyDetails = ContainerContext.this.getObjectDetails(dependency);
-                            if (dependencyDetails != null && dependencyDetails.getInstance() != null) {
-                                continue;
-                            }
-                            if (type == ServiceDependencyType.SUB && !unloaded.containsKey(dependency)) {
-                                continue;
-                            }
-                            missingDependencies = true;
-                        }
-                    }
-                    if (!missingDependencies) {
-                        if (containerObject instanceof ServiceContainerObject) {
-                            ((ServiceContainerObject) containerObject).build(ContainerContext.this);
-                        }
-                        containerObject.lifeCycle(LifeCycle.CONSTRUCT);
-                        sorted.add(containerObject);
-                        iterator.remove();
-                    }
-                }
-            }
-            return sorted;
-        }
-
+        return SINGLE_THREADED ? new DefaultClassPathScanner() : new ThreadedClassPathScanner();
     }
 
 }

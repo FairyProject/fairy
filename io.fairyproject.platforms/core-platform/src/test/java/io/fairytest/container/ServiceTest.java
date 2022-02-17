@@ -1,13 +1,14 @@
-package io.fairytest.bean;
+package io.fairytest.container;
 
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.scanner.ClassPathScanner;
 import io.fairyproject.tests.TestingBase;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import io.fairytest.bean.annotated.AnnotatedRegistration;
-import io.fairytest.bean.annotated.BeanInterface;
-import io.fairytest.bean.annotated.BeanInterfaceImpl;
-import io.fairytest.bean.service.ServiceMock;
+import io.fairytest.container.annotated.AnnotatedRegistration;
+import io.fairytest.container.annotated.BeanInterface;
+import io.fairytest.container.annotated.BeanInterfaceImpl;
+import io.fairytest.container.service.ServiceMock;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
@@ -23,15 +24,16 @@ public class ServiceTest extends TestingBase {
     public void lifeCycle() {
         final ContainerContext containerContext = ContainerContext.INSTANCE;
 
-        ThrowingRunnable.unchecked(() -> {
-            final List<ContainerObject> beanDetails = containerContext.scanClasses()
+        ThrowingRunnable.sneaky(() -> {
+            final ClassPathScanner classPathScanner = containerContext.scanClasses()
                     .name("test")
                     .classLoader(ServiceTest.class.getClassLoader())
                     .url(ServiceTest.class.getProtectionDomain().getCodeSource().getLocation())
-                    .classPath("io.fairytest.bean.service")
-                    .scan();
-            assertEquals(1, beanDetails.size());
-            assertEquals(ServiceMock.class, beanDetails.get(0).getInstance().getClass());
+                    .classPath("io.fairytest.container.service");
+            classPathScanner.scan();
+            final List<ContainerObject> containerObjects = classPathScanner.getCompletedFuture().join();
+            assertEquals(1, containerObjects.size());
+            assertEquals(ServiceMock.class, containerObjects.get(0).getInstance().getClass());
         }).run();
 
         final ServiceMock serviceMock = ServiceMock.STATIC_WIRED;
@@ -46,7 +48,7 @@ public class ServiceTest extends TestingBase {
                         Pair.of(LifeCycle.PRE_INITIALIZE, serviceMock.getPreInitialize()),
                         Pair.of(LifeCycle.POST_INITIALIZE, serviceMock.getPostInitialize())
                 )
-                .sorted(Comparator.comparing(Pair::getValue))
+                .sorted(java.util.Map.Entry.comparingByValue())
                 .map(Pair::getKey)
                 .toArray(LifeCycle[]::new);
 
@@ -71,7 +73,7 @@ public class ServiceTest extends TestingBase {
                         Pair.of(LifeCycle.PRE_DESTROY, serviceMock.getPreDestroy()),
                         Pair.of(LifeCycle.POST_DESTROY, serviceMock.getPostDestroy())
                 )
-                .sorted(Comparator.comparing(Pair::getValue))
+                .sorted(java.util.Map.Entry.comparingByValue())
                 .map(Pair::getKey)
                 .toArray(LifeCycle[]::new);
 
@@ -86,12 +88,14 @@ public class ServiceTest extends TestingBase {
         final ContainerContext containerContext = ContainerContext.INSTANCE;
 
         ThrowingRunnable.unchecked(() -> {
-            final List<ContainerObject> beanDetails = containerContext.scanClasses()
+            final ClassPathScanner classPathScanner = containerContext.scanClasses()
                     .name("test")
                     .classLoader(ServiceTest.class.getClassLoader())
                     .url(ServiceTest.class.getProtectionDomain().getCodeSource().getLocation())
-                    .classPath("io.fairytest.bean.annotated")
-                    .scan();
+                    .classPath("io.fairytest.container.annotated");
+            classPathScanner.scan();
+
+            final List<ContainerObject> beanDetails = classPathScanner.getCompletedFuture().join();
             assertEquals(1, beanDetails.size());
             assertEquals(BeanInterface.class, beanDetails.get(0).getType());
             assertEquals(BeanInterfaceImpl.class, beanDetails.get(0).getInstance().getClass());

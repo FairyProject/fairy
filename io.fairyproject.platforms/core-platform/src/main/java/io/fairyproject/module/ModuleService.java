@@ -8,6 +8,7 @@ import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.*;
 import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.scanner.ClassPathScanner;
 import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryRepository;
 import io.fairyproject.module.relocator.JarRelocator;
@@ -236,15 +237,17 @@ public class ModuleService {
             final Collection<String> excludedPackages = module.getExcludedPackages(this);
 
             // Scan classes
-            final List<ContainerObject> details = CONTAINER_CONTEXT.scanClasses()
+            final ClassPathScanner classPathScanner = CONTAINER_CONTEXT.scanClasses()
                     .name(plugin.getName() + "-" + module.getName())
                     .prefix(plugin.getName() + "-")
                     .classLoader(this.getClass().getClassLoader())
                     .excludePackage(excludedPackages)
                     .url(shadedPath.toUri().toURL())
-                    .classPath(module.getClassPath())
-                    .scan();
-            details.forEach(bean -> bean.bindWith(plugin));
+                    .classPath(module.getClassPath());
+            classPathScanner.scan();
+
+            final List<ContainerObject> containerObjects = classPathScanner.getCompletedFuture().join();
+            containerObjects.forEach(bean -> bean.bindWith(plugin));
 
             this.onModuleLoad(module);
             return module;

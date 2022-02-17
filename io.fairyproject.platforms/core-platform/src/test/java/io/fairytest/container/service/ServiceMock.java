@@ -1,4 +1,4 @@
-package io.fairytest.bean.service;
+package io.fairytest.container.service;
 
 import io.fairyproject.container.*;
 import io.fairyproject.jackson.JacksonService;

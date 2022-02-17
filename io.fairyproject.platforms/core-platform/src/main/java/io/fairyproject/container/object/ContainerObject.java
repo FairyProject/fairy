@@ -24,6 +24,7 @@
 
 package io.fairyproject.container.object;
 
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.terminable.Terminable;
@@ -34,6 +35,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public interface ContainerObject extends TerminableConsumer, Terminable {
@@ -47,7 +49,7 @@ public interface ContainerObject extends TerminableConsumer, Terminable {
      */
     boolean shouldInitialize() throws InvocationTargetException, IllegalAccessException;
 
-    void lifeCycle(LifeCycle lifeCycle);
+    CompletableFuture<?> lifeCycle(LifeCycle lifeCycle);
 
     boolean isLifeCycle(LifeCycle lifeCycle);
 
@@ -102,6 +104,10 @@ public interface ContainerObject extends TerminableConsumer, Terminable {
                 .map(Map.Entry::getValue)
                 .flatMap(List::stream)
                 .collect(Collectors.toSet());
+    }
+
+    default CompletableFuture<?> build(ContainerContext context) {
+        return CompletableFuture.completedFuture(null);
     }
 
     default void onEnable() {

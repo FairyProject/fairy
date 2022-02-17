@@ -24,17 +24,15 @@
 
 package io.fairyproject.container.object;
 
+import io.fairyproject.container.*;
 import io.fairyproject.container.object.parameter.ContainerParameterDetailsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.DependencyType;
-import io.fairyproject.container.ServiceDependency;
-import io.fairyproject.container.ServiceDependencyType;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 @Setter
@@ -62,11 +60,22 @@ public class ServiceContainerObject extends RelativeContainerObject {
         }
     }
 
-    public void build(ContainerContext context) {
+    public CompletableFuture<?> build(ContainerContext context) {
         if (this.constructorDetails == null) {
             throw new IllegalArgumentException("The construction for bean details " + this.getType().getName() + " hasn't been called!");
         }
 
+        switch (this.getThreadingMode()) {
+            case ASYNC:
+                return super.build(context).thenAcceptAsync(ignored -> this.buildSync(context), ContainerContext.EXECUTOR);
+            default:
+            case SYNC:
+                this.buildSync(context);
+                return super.build(context);
+        }
+    }
+
+    private void buildSync(ContainerContext context) {
         try {
             this.setInstance(this.constructorDetails.newInstance(context));
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {

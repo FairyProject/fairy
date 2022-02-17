@@ -47,6 +47,10 @@ public class ReflectLookup {
 
     private final Reflections reflections;
 
+    static {
+        Reflections.log = null;
+    }
+
     public ReflectLookup(Collection<ClassLoader> classLoaders, Collection<String> packages) {
         this(ConfigurationBuilder.build(classLoaders, packages));
     }

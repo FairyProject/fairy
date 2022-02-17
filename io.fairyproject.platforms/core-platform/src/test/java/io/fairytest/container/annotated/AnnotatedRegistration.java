@@ -1,4 +1,4 @@
-package io.fairytest.bean.annotated;
+package io.fairytest.container.annotated;
 
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.Register;

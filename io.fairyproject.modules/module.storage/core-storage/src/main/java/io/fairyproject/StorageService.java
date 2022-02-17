@@ -54,9 +54,9 @@ public class StorageService {
                 Library.HIKARI,
                 Library.MYSQL_DRIVER,
                 Library.POSTGRESQL_DRIVER,
-                Library.H2_DRIVER
+                Library.H2_DRIVER,
+                Library.BYTE_BUDDY
         ));
-        Fairy.getLibraryHandler().downloadLibraries(true, Library.BYTE_BUDDY);
         ComponentRegistry.registerComponentHolder(new ComponentHolder() {
             @Override
             public Class<?>[] type() {

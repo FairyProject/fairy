@@ -1,4 +1,4 @@
-package io.fairytest.bean.annotated;
+package io.fairytest.container.annotated;
 
 public class BeanInterfaceImpl implements BeanInterface {
 }
