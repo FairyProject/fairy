@@ -97,6 +97,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
 
         super.enable();
+        ModuleService.INSTANCE.enable();
     }
 
     @Override

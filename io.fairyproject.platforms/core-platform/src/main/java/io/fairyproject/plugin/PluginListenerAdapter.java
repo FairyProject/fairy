@@ -24,7 +24,13 @@
 
 package io.fairyproject.plugin;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface PluginListenerAdapter {
+
+    default void onPluginPreLoaded(ClassLoader classLoader, PluginDescription description, PluginAction action, CompletableFuture<Plugin> completableFuture) {
+
+    }
 
     default void onPluginInitial(Plugin plugin) {
 

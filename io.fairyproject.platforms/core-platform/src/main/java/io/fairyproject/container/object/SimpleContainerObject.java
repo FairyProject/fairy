@@ -173,11 +173,7 @@ public class SimpleContainerObject implements ContainerObject {
         return Collections.emptySet();
     }
 
-    @Override
-    public boolean isClosed() {
-        return this.plugin.isClosed();
-    }
-
+    @Getter
     private boolean closed;
 
     @Override

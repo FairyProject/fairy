@@ -4,6 +4,8 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginDescription;
+import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -25,7 +27,7 @@ public class Module implements Terminable, TerminableConsumer {
 
     private final String name;
     private final String classPath;
-    private final Plugin plugin;
+    private final PluginDescription pluginDescription;
     private final List<Module> dependModules;
     // <module, package>
     private final Multimap<String, String> exclusives;
@@ -40,16 +42,20 @@ public class Module implements Terminable, TerminableConsumer {
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
     private final AtomicInteger refCount;
 
-    public Module(String name, String classPath, Plugin plugin, Path notShadedPath, Path shadedPath) {
+    public Module(String name, String classPath, PluginDescription pluginDescription, Path notShadedPath, Path shadedPath) {
         this.name = name;
         this.classPath = classPath;
-        this.plugin = plugin;
+        this.pluginDescription = pluginDescription;
         this.notShadedPath = notShadedPath;
         this.shadedPath = shadedPath;
         this.dependModules = new ArrayList<>();
         this.exclusives = HashMultimap.create();
         this.excluded = HashMultimap.create();
         this.refCount = new AtomicInteger(0);
+    }
+
+    public Plugin getPlugin() {
+        return PluginManager.INSTANCE.getPlugin(this.pluginDescription.getName());
     }
 
     @Nullable

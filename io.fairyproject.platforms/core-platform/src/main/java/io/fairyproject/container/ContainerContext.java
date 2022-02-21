@@ -37,6 +37,7 @@ import io.fairyproject.container.scanner.DefaultClassPathScanner;
 import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
+import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
@@ -123,6 +124,7 @@ public class ContainerContext {
         ).toArray(new ContainerController[0]);
 
         this.registerObject(new SimpleContainerObject(this, this.getClass()));
+        this.registerObject(new SimpleContainerObject(ModuleService.INSTANCE, ModuleService.class));
         log("ContainerContext has been registered as ContainerObject.");
 
         ComponentRegistry.registerComponentHolders();
@@ -215,7 +217,11 @@ public class ContainerContext {
                         LOGGER.error(throwable);
                     }
 
-                    containerObjectList.forEach(ContainerObject::closeAndReportException);
+                    containerObjectList.forEach(containerObject -> {
+                        log("ContainerObject " + containerObject.getType() + " Disabled, due to " + plugin.getName() + " being disabled.");
+
+                        containerObject.closeAndReportException();
+                    });
 
                     try {
                         lifeCycle(LifeCycle.POST_DESTROY, containerObjectList);
@@ -243,11 +249,10 @@ public class ContainerContext {
         Collections.reverse(detailsList);
 
         lifeCycle(LifeCycle.PRE_DESTROY, detailsList);
-        for (ContainerObject details : detailsList) {
-            log("ContainerObject " + details.getType() + " Disabled, due to framework being disabled.");
+        for (ContainerObject containerObject : detailsList) {
+            log("ContainerObject " + containerObject.getType() + " Disabled, due to framework being disabled.");
 
-            details.onDisable();
-            unregisterObject(details);
+            containerObject.closeAndReportException();
         }
         lifeCycle(LifeCycle.POST_DESTROY, detailsList);
     }
@@ -311,6 +316,7 @@ public class ContainerContext {
 
         // Unregister Child Dependency
         for (Class<?> child : containerObject.getChildren()) {
+            System.out.println("child " + child);
             ContainerObject childContainerObject = this.getObjectDetails(child);
 
             builder.add(childContainerObject);
@@ -322,6 +328,7 @@ public class ContainerContext {
             ContainerObject dependContainerObject = this.getObjectDetails(dependency);
 
             if (dependContainerObject != null) {
+                System.out.println("parent " + dependency);
                 dependContainerObject.removeChildren(containerObject.getType());
             }
         }

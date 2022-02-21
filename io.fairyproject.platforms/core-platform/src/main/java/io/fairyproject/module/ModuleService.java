@@ -13,9 +13,8 @@ import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryRepository;
 import io.fairyproject.module.relocator.JarRelocator;
 import io.fairyproject.module.relocator.Relocation;
-import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginListenerAdapter;
-import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.plugin.*;
+import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.FairyVersion;
 import io.fairyproject.util.PreProcessBatch;
 import io.fairyproject.util.Stacktrace;
@@ -32,14 +31,16 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 
-@Service
 public class ModuleService {
+
+    public static ModuleService INSTANCE;
 
     @Autowired
     private static ContainerContext CONTAINER_CONTEXT;
@@ -47,104 +48,127 @@ public class ModuleService {
     public static final int PLUGIN_LISTENER_PRIORITY = ContainerContext.PLUGIN_LISTENER_PRIORITY + 100;
 
     private static final Logger LOGGER = LogManager.getLogger(ModuleService.class);
-    private static final PreProcessBatch PENDING = PreProcessBatch.create();
 
     public static void init() {
+        ConditionUtils.check(INSTANCE == null, "Already initialized.");
+        INSTANCE = new ModuleService();
+        INSTANCE.load();
+    }
+
+    private final Map<String, Module> moduleByName = new ConcurrentHashMap<>();
+    private final List<ModuleController> controllers = new ArrayList<>();
+
+    private final PreProcessBatch pendingProcessBatch = PreProcessBatch.create();
+
+    public Collection<Module> all() {
+        return this.moduleByName.values();
+    }
+
+    private void load() {
         PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
+
             @Override
-            public void onPluginInitial(Plugin plugin) {
-                PENDING.runOrQueue(plugin.getName(), () -> {
-                    final ModuleService moduleService = Containers.get(ModuleService.class);
+            public void onPluginPreLoaded(ClassLoader classLoader,
+                                          PluginDescription pluginDescription,
+                                          PluginAction action,
+                                          CompletableFuture<Plugin> pluginCompletableFuture) {
+                System.out.println(pluginDescription.getName());
 
-                    // We will get all the paths first for relocation.
-                    ModuleDataList modules = new ModuleDataList();
-                    plugin.getDescription().getModules()
-                            .parallelStream()
-                            .forEachOrdered(pair -> {
-                        String name = pair.getKey();
-                        String version = pair.getValue();
+                // We will get all the paths first for relocation.
+                ModuleDataList modules = new ModuleDataList();
+                pluginDescription.getModules()
+                        .parallelStream()
+                        .forEachOrdered(pair -> {
+                            String name = pair.getKey();
+                            String version = pair.getValue();
 
-                        downloadModules(name, version, modules, false);
-                    });
+                            downloadModules(name, version, modules, false);
+                        });
 
-                    if (Debug.UNIT_TEST) {
-                        // only useful for unit testing
-                        try {
-                            final Class<?> moduleClass = Class.forName("MODULE", true, plugin.getClassLoader());
-                            final Field field = moduleClass.getDeclaredField("ALL");
+                if (Debug.UNIT_TEST) {
+                    // only useful for unit testing
+                    try {
+                        final Class<?> moduleClass = Class.forName("MODULE", true, classLoader);
+                        final Field field = moduleClass.getDeclaredField("ALL");
 
-                            final List<String> all = (List<String>) field.get(null);
-                            for (String tag : all) {
-                                String[] split = tag.split(":");
+                        final List<String> all = (List<String>) field.get(null);
+                        for (String tag : all) {
+                            String[] split = tag.split(":");
 //                                String groupId = split[0]; // TODO
-                                String artifactId = split[1];
-                                String version = split[2];
+                            String artifactId = split[1];
+                            String version = split[2];
 
-                                downloadModules(artifactId, version, modules, false);
-                            }
-                        } catch (ClassNotFoundException ignored) {
-                            ignored.printStackTrace();
-                        } catch (Exception ex) {
-                            throw new IllegalStateException("Failed to load modules for " + plugin.getName(), ex);
+                            downloadModules(artifactId, version, modules, false);
                         }
+                    } catch (ClassNotFoundException ignored) {
+                        ignored.printStackTrace();
+                    } catch (Exception ex) {
+                        throw new IllegalStateException("Failed to load modules for " + pluginDescription.getName(), ex);
                     }
+                }
 
-                    Collections.reverse(modules);
+                Collections.reverse(modules);
 
-                    // Relocation entries from all included modules
-                    final Path[] relocationEntries = modules.stream()
-                            .map(ModuleData::getPath)
-                            .toArray(Path[]::new);
+                // Relocation entries from all included modules
+                final Path[] relocationEntries = modules.stream()
+                        .map(ModuleData::getPath)
+                        .toArray(Path[]::new);
 
-                    modules.parallelStream()
-                            .forEachOrdered(moduleData -> {
-                                try {
-                                    JsonObject jsonObject = readModuleData(moduleData.getPath());
-                                    if (jsonObject == null) {
-                                        return;
-                                    }
-
-                                    loadLibraries(jsonObject);
-
-                                    // Relocation after depended on modules are loaded
-                                    final String fullFileName = moduleData.getPath().getFileName().toString();
-                                    final String fileName = FilenameUtils.getBaseName(fullFileName);
-
-                                    Files.createDirectories(plugin.getDataFolder().resolve("modules"));
-
-                                    if (!Debug.UNIT_TEST) {
-                                        Path shadedPath = plugin.getDataFolder().resolve("modules/" + fileName + "-remapped.jar");
-                                        if (!Files.exists(shadedPath)) {
-                                            remap(moduleData.getPath(), shadedPath, plugin, loadDependModulesData(jsonObject, moduleData.getName(), modules), relocationEntries);
-                                        }
-
-                                        moduleData.setShadedPath(shadedPath);
-                                    } else {
-                                        moduleData.setShadedPath(moduleData.getPath());
-                                    }
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                modules.parallelStream()
+                        .forEachOrdered(moduleData -> {
+                            try {
+                                JsonObject jsonObject = readModuleData(moduleData.getPath());
+                                if (jsonObject == null) {
+                                    return;
                                 }
-                            });
 
+                                loadLibraries(jsonObject);
+
+                                // Relocation after depended on modules are loaded
+                                final String fullFileName = moduleData.getPath().getFileName().toString();
+                                final String fileName = FilenameUtils.getBaseName(fullFileName);
+
+                                Files.createDirectories(action.getDataFolder().resolve("modules"));
+
+                                if (!Debug.UNIT_TEST) {
+                                    Path shadedPath = action.getDataFolder().resolve("modules/" + fileName + "-remapped.jar");
+                                    if (!Files.exists(shadedPath)) {
+                                        remap(moduleData.getPath(), shadedPath, pluginDescription, loadDependModulesData(jsonObject, moduleData.getName(), modules), relocationEntries);
+                                    }
+
+                                    moduleData.setShadedPath(shadedPath);
+                                } else {
+                                    moduleData.setShadedPath(moduleData.getPath());
+                                }
+
+                                Fairy.getPlatform().getClassloader().addJarToClasspath(moduleData.getShadedPath());
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+                pendingProcessBatch.runOrQueue(pluginDescription.getName(), () -> {
                     // Then push all paths
                     modules.forEach(moduleData -> {
-                        final Module module = moduleService.load(moduleData, plugin);
+                        final Module module = load(moduleData, pluginDescription, pluginCompletableFuture);
 
                         if (module == null) {
-                            plugin.closeAndReportException();
                             return;
                         }
 
                         module.addRef(); // add reference
-                        plugin.getLoadedModules().add(module);
+                        pluginCompletableFuture.whenComplete((plugin, throwable) -> {
+                            if (throwable == null) {
+                                plugin.getLoadedModules().add(module);
+                            }
+                        });
                     });
                 });
             }
 
             @Override
             public void onPluginDisable(Plugin plugin) {
-                if (PENDING.remove(plugin.getName())) {
+                if (pendingProcessBatch.remove(plugin.getName())) {
                     return;
                 }
                 final ModuleService moduleService = Containers.get(ModuleService.class);
@@ -160,9 +184,24 @@ public class ModuleService {
                 return PLUGIN_LISTENER_PRIORITY;
             }
         });
+
+        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
+                .type(ModuleController.class)
+                .onEnable(obj -> {
+                    ModuleController controller = (ModuleController) obj;
+                    this.controllers.add(controller);
+
+                    this.moduleByName.forEach((k, v) -> controller.onModuleLoad(v));
+                })
+                .onDisable(this.controllers::remove)
+                .build());
     }
 
-    private static void downloadModules(String name, String version, ModuleDataList paths, boolean canAbstract) {
+    public void enable() {
+        this.pendingProcessBatch.flushQueue();
+    }
+
+    private void downloadModules(String name, String version, ModuleDataList paths, boolean canAbstract) {
         Path path;
         try {
             path = ModuleDownloader.download("io.fairyproject", name, version, null);
@@ -197,30 +236,9 @@ public class ModuleService {
         }
     }
 
-    private final Map<String, Module> moduleByName = new ConcurrentHashMap<>();
-    private final List<ModuleController> controllers = new ArrayList<>();
-
-    public Collection<Module> all() {
-        return this.moduleByName.values();
-    }
-
-    @PreInitialize
-    public void onPreInitialize() {
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(ModuleController.class)
-                .onEnable(obj -> {
-                    ModuleController controller = (ModuleController) obj;
-                    this.controllers.add(controller);
-
-                    this.moduleByName.forEach((k, v) -> controller.onModuleLoad(v));
-                })
-                .onDisable(this.controllers::remove)
-                .build());
-    }
-
     @PostInitialize
     public void onPostInitialize() {
-        PENDING.flushQueue();
+        pendingProcessBatch.flushQueue();
     }
 
     @Nullable
@@ -229,7 +247,7 @@ public class ModuleService {
     }
 
     @Nullable
-    public Module load(ModuleData moduleData, Plugin plugin) {
+    public Module load(ModuleData moduleData, PluginDescription pluginDescription, CompletableFuture<Plugin> pluginCompletableFuture) {
         Module module = null;
         try {
             JsonObject jsonObject = readModuleData(moduleData.getPath());
@@ -237,7 +255,7 @@ public class ModuleService {
                 return null;
             }
             String name = jsonObject.get("name").getAsString();
-            String classPath = !Debug.UNIT_TEST ? plugin.getDescription().getShadedPackage() + ".fairy" : "io.fairyproject";
+            String classPath = !Debug.UNIT_TEST ? pluginDescription.getShadedPackage() + ".fairy" : "io.fairyproject";
 
             final List<Module> dependedModules = this.loadDependModules(jsonObject, name);
             if (dependedModules == null) {
@@ -246,9 +264,7 @@ public class ModuleService {
 
             Path shadedPath = moduleData.getShadedPath();
 
-            Fairy.getPlatform().getClassloader().addJarToClasspath(shadedPath);
-
-            module = new Module(name, classPath, plugin, moduleData.getPath(), shadedPath);
+            module = new Module(name, classPath, pluginDescription, moduleData.getPath(), shadedPath);
             module.setAbstraction(jsonObject.get("abstraction").getAsBoolean());
 
             for (Module dependedModule : dependedModules) {
@@ -256,15 +272,15 @@ public class ModuleService {
                 module.getDependModules().add(dependedModule);
             }
 
-            this.loadExclusives(module, plugin, jsonObject);
+            this.loadExclusives(module, pluginDescription, jsonObject);
 
             this.moduleByName.put(name, module);
             final Collection<String> excludedPackages = module.getExcludedPackages(this);
 
             // Scan classes
             final ClassPathScanner classPathScanner = CONTAINER_CONTEXT.scanClasses()
-                    .name(plugin.getName() + "-" + module.getName())
-                    .prefix(plugin.getName() + "-")
+                    .name(pluginDescription.getName() + "-" + module.getName())
+                    .prefix(pluginDescription.getName() + "-")
                     .classLoader(this.getClass().getClassLoader())
                     .excludePackage(excludedPackages)
                     .url(shadedPath.toUri().toURL())
@@ -272,7 +288,13 @@ public class ModuleService {
             classPathScanner.scan();
 
             final List<ContainerObject> containerObjects = classPathScanner.getCompletedFuture().join();
-            containerObjects.forEach(bean -> bean.bindWith(plugin));
+            pluginCompletableFuture.whenComplete((plugin, throwable) -> {
+                if (throwable != null) {
+                    throwable.printStackTrace();
+                } else {
+                    containerObjects.forEach(bean -> bean.bindWith(plugin));
+                }
+            });
 
             this.onModuleLoad(module);
             return module;
@@ -287,7 +309,7 @@ public class ModuleService {
         return null;
     }
 
-    private static void loadLibraries(JsonObject jsonObject) {
+    private void loadLibraries(JsonObject jsonObject) {
         List<Library> libraries = new ArrayList<>();
 
         for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
@@ -303,7 +325,7 @@ public class ModuleService {
         Fairy.getLibraryHandler().downloadLibraries(true, libraries);
     }
 
-    private static JsonObject readModuleData(Path path) throws IOException {
+    private JsonObject readModuleData(Path path) throws IOException {
         final JarFile jarFile = new JarFile(path.toFile());
         final ZipEntry zipEntry = jarFile.getEntry("module.json");
         if (zipEntry == null) {
@@ -314,7 +336,7 @@ public class ModuleService {
         return new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
     }
 
-    private static List<ModuleData> loadDependModulesData(JsonObject jsonObject, String name, ModuleDataList moduleDataList) {
+    private List<ModuleData> loadDependModulesData(JsonObject jsonObject, String name, ModuleDataList moduleDataList) {
         List<ModuleData> dependedModules = new ArrayList<>();
         final JsonArray depends = jsonObject.getAsJsonArray("depends");
         for (JsonElement element : depends) {
@@ -329,8 +351,8 @@ public class ModuleService {
         return dependedModules;
     }
 
-    private static void remap(Path fromPath, Path finalPath, Plugin plugin, List<ModuleData> dependedModules, Path[] relocationEntries) throws IOException {
-        final Relocation relocation = new Relocation("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
+    private void remap(Path fromPath, Path finalPath, PluginDescription description, List<ModuleData> dependedModules, Path[] relocationEntries) throws IOException {
+        final Relocation relocation = new Relocation("io.fairyproject", description.getShadedPackage() + ".fairy");
         relocation.setOnlyRelocateShaded(true);
 
         final Set<File> entries = dependedModules.stream()
@@ -343,10 +365,10 @@ public class ModuleService {
         new JarRelocator(fromPath.toFile(), finalPath.toFile(), Collections.singletonList(relocation), entries).run();
     }
 
-    private void loadExclusives(Module module, Plugin plugin, JsonObject jsonObject) {
+    private void loadExclusives(Module module, PluginDescription plugin, JsonObject jsonObject) {
         for (Map.Entry<String, JsonElement> entry : jsonObject.getAsJsonObject("exclusive").entrySet()) {
             String exclude = entry.getKey();
-            exclude = exclude.replace("io.fairyproject", plugin.getDescription().getShadedPackage() + ".fairy");
+            exclude = exclude.replace("io.fairyproject", plugin.getShadedPackage() + ".fairy");
 
             module.getExclusives().put(entry.getValue().getAsString(), exclude);
         }

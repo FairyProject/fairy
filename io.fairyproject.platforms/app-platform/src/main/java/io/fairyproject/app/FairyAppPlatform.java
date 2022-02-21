@@ -48,6 +48,13 @@ public class FairyAppPlatform extends FairyPlatform {
         ModuleService.init();
     }
 
+    @Override
+    public void enable() {
+        super.enable();
+
+        ModuleService.INSTANCE.enable();
+    }
+
     public void setMainApplication(Application mainApplication) {
         this.mainApplication = mainApplication;
         ThrowingRunnable.sneaky(() -> {
