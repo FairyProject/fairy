@@ -32,7 +32,7 @@ public class ThreadedClassPathScannerTest extends TestingBase {
 
                     @Override
                     public void removeContainerObject(ContainerObject containerObject) {
-
+                        // Do nothing
                     }
                 }
         });

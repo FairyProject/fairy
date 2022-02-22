@@ -14,6 +14,7 @@ import io.fairyproject.container.object.parameter.ContainerParameterDetailsMetho
 import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.NonNullArrayList;
+import io.fairyproject.util.SimpleTiming;
 import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 import org.reflections.util.ConfigurationBuilder;
@@ -35,26 +36,28 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
     @Getter
     private Throwable exception;
 
-    protected void buildReflectLookup() {
-        final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-        configurationBuilder.setExecutorService(ContainerContext.EXECUTOR);
+    protected void buildReflectLookup() throws Exception {
+        try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
+            final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+            configurationBuilder.setExecutorService(ContainerContext.EXECUTOR);
 
-        FilterBuilder filterBuilder = new FilterBuilder();
-        for (String classPath : classPaths) {
-            // Only search package in the main class loader
-            filterBuilder.includePackage(classPath);
+            FilterBuilder filterBuilder = new FilterBuilder();
+            for (String classPath : classPaths) {
+                // Only search package in the main class loader
+                filterBuilder.includePackage(classPath);
+            }
+
+            for (String classPath : this.excludedPackages) {
+                filterBuilder.excludePackage(classPath);
+            }
+            configurationBuilder.setUrls(urls);
+
+            final ArrayList<ClassLoader> classLoaders = new ArrayList<>(this.classLoaders);
+            configurationBuilder.addClassLoaders(classLoaders);
+
+            configurationBuilder.filterInputsBy(filterBuilder);
+            this.reflectLookup = new ReflectLookup(configurationBuilder);
         }
-
-        for (String classPath : this.excludedPackages) {
-            filterBuilder.excludePackage(classPath);
-        }
-        configurationBuilder.setUrls(urls);
-
-        final ArrayList<ClassLoader> classLoaders = new ArrayList<>(this.classLoaders);
-        configurationBuilder.addClassLoaders(classLoaders);
-
-        configurationBuilder.filterInputsBy(filterBuilder);
-        this.reflectLookup = new ReflectLookup(configurationBuilder);
     }
 
     protected void unregisterDisabledContainers() {
@@ -82,6 +85,21 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
         }
     }
 
+    protected void initializeClasses() throws Exception {
+        // Load ContainerObjects in Dependency Tree Order
+        try (SimpleTiming ignored = logTiming("Initializing ContainerObject")) {
+            containerObjectList = initializeContainers();
+            if (containerObjectList == null) {
+                return;
+            }
+        }
+
+        // Unregistering ContainerObjects that returns false in shouldInitialize
+        try (SimpleTiming ignored = logTiming("Unregistering Disabled ContainerObject")) {
+            this.unregisterDisabledContainers();
+        }
+    }
+
     protected List<ContainerObject> initializeContainers() {
         final Map<Class<?>, ContainerObject> relationship = this.searchDependencyRelationship();
         if (relationship == null) {
@@ -90,50 +108,29 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
 
         // Continually loop until all dependency found and loaded
         List<ContainerObject> sorted = new NonNullArrayList<>();
+        Queue<Class<?>> removeQueue = new ArrayDeque<>();
         while (!relationship.isEmpty()) {
             Iterator<Map.Entry<Class<?>, ContainerObject>> iterator = relationship.entrySet().iterator();
             List<CompletableFuture<?>> futures = new ArrayList<>();
-            Queue<Class<?>> removeQueue = new ArrayDeque<>();
 
             while (iterator.hasNext()) {
                 Map.Entry<Class<?>, ContainerObject> entry = iterator.next();
                 ContainerObject containerObject = entry.getValue();
-                boolean missingDependencies = false;
-                for (Map.Entry<ServiceDependencyType, List<Class<?>>> dependencyEntry : containerObject.getDependencyEntries()) {
-                    final ServiceDependencyType type = dependencyEntry.getKey();
-                    for (Class<?> dependency : dependencyEntry.getValue()) {
-                        ContainerObject dependencyDetails = CONTAINER_CONTEXT.getObjectDetails(dependency);
-                        if (dependencyDetails != null && dependencyDetails.getInstance() != null) {
-                            continue;
-                        }
-                        if (type == ServiceDependencyType.SUB && !relationship.containsKey(dependency)) {
-                            continue;
-                        }
-                        missingDependencies = true;
-                    }
-                }
-                if (!missingDependencies) {
-                    futures.add(containerObject.build(CONTAINER_CONTEXT)
+
+                if (!this.isMissingDependencies(containerObject, relationship)) {
+                    final CompletableFuture<?> future = containerObject.build(CONTAINER_CONTEXT)
                             .thenRun(() -> {
                                 containerObject.lifeCycle(LifeCycle.CONSTRUCT);
                                 sorted.add(containerObject);
                                 removeQueue.add(entry.getKey());
-                            }));
+                            });
+
+                    futures.add(future);
                 }
             }
 
             try {
-                final CompletableFuture<Void> future = CompletableFuture
-                        .allOf(futures.toArray(new CompletableFuture[0]))
-                        .whenComplete((ignored, throwable) -> {
-                            if (throwable != null)
-                                this.handleException(throwable);
-                        });
-                future.get();
-
-                if (future.isCompletedExceptionally()) {
-                    return null;
-                }
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
             } catch (InterruptedException | ExecutionException e) {
                 this.handleException(e);
                 return null;
@@ -141,8 +138,29 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
             for (Class<?> key : removeQueue) {
                 relationship.remove(key);
             }
+            removeQueue.clear();
         }
         return sorted;
+    }
+
+    private boolean isMissingDependencies(ContainerObject containerObject, Map<Class<?>, ContainerObject> relationship) {
+        boolean missingDependencies = false;
+
+        for (Map.Entry<ServiceDependencyType, List<Class<?>>> dependencyEntry : containerObject.getDependencyEntries()) {
+            final ServiceDependencyType type = dependencyEntry.getKey();
+            for (Class<?> dependency : dependencyEntry.getValue()) {
+                ContainerObject dependencyDetails = CONTAINER_CONTEXT.getObjectDetails(dependency);
+                if (dependencyDetails != null && dependencyDetails.getInstance() != null) {
+                    continue;
+                }
+                if (type == ServiceDependencyType.SUB && !relationship.containsKey(dependency)) {
+                    continue;
+                }
+                missingDependencies = true;
+            }
+        }
+
+        return missingDependencies;
     }
 
     @Nullable
@@ -168,6 +186,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
                     ContainerObject dependencyObject = CONTAINER_CONTEXT.getObjectDetails(dependency);
                     if (dependencyObject == null) {
                         switch (type) {
+                            default:
                             case FORCE:
                                 ContainerContext.LOGGER.error("Couldn't find the dependency " + dependency + " for " + containerObject.getType().getSimpleName() + "!");
                                 removeIterator.remove();

@@ -59,6 +59,28 @@ public class AspectJCompiler implements Compiler<AspectJCompileSpec> {
             inpath.addAll(spec.getAspectJCompileOptions().getInpath().getFiles());
         }
 
+        this.addCompileArgs(args, inpath, spec);
+
+        spec.getAspectJCompileOptions().getCompilerArgumentProviders()
+                .forEach(commandLineArgumentProvider -> commandLineArgumentProvider.asArguments().forEach(args::add));
+
+        if (spec.getSourceFiles() != null) {
+            spec.getSourceFiles().forEach(sourceFile ->
+                    args.add(sourceFile.getAbsolutePath())
+            );
+        }
+
+        File argFile = new File(spec.getTempDir(), "ajc.options");
+
+        Files.write(argFile.toPath(), args, StandardCharsets.UTF_8);
+
+        ajc.args("-argfile", argFile.getAbsolutePath());
+
+        ajc.setIgnoreExitValue(true);
+        return ajc.build();
+    }
+
+    private void addCompileArgs(List<String> args, Collection<File> inpath, AspectJCompileSpec spec) {
         if (!inpath.isEmpty()) {
             args.add("-inpath");
             args.add(getAsPath(inpath));
@@ -133,24 +155,6 @@ public class AspectJCompiler implements Compiler<AspectJCompileSpec> {
         }
 
         args.addAll(spec.getAspectJCompileOptions().getCompilerArgs());
-
-        spec.getAspectJCompileOptions().getCompilerArgumentProviders()
-                .forEach(commandLineArgumentProvider -> commandLineArgumentProvider.asArguments().forEach(args::add));
-
-        if (spec.getSourceFiles() != null) {
-            spec.getSourceFiles().forEach(sourceFile ->
-                    args.add(sourceFile.getAbsolutePath())
-            );
-        }
-
-        File argFile = new File(spec.getTempDir(), "ajc.options");
-
-        Files.write(argFile.toPath(), args, StandardCharsets.UTF_8);
-
-        ajc.args("-argfile", argFile.getAbsolutePath());
-
-        ajc.setIgnoreExitValue(true);
-        return ajc.build();
     }
 
     private void executeCompiler(ExecHandle handle) {

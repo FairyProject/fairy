@@ -31,12 +31,12 @@ public class AjcAction implements Action<Task> {
 
     private final ConfigurableFileCollection additionalInpath;
 
+    @Getter(AccessLevel.NONE)
+    private final JavaExecHandleFactory javaExecHandleFactory;
+
     public void options(Action<AspectJCompileOptions> action) {
         action.execute(getOptions());
     }
-
-    @Getter(AccessLevel.NONE)
-    private final JavaExecHandleFactory javaExecHandleFactory;
 
     @Inject
     public AjcAction(ObjectFactory objectFactory, JavaExecHandleFactory javaExecHandleFactory) {

@@ -73,9 +73,10 @@ public class YamlResourceBundle extends ResourceBundle {
             return parseMapNode(key, (Map<String, Object>) value, ancestors);
         }
         if (value instanceof List) {
-            value = ((List<?>) value).stream()
+            List<?> list = (List<?>) value;
+            return Stream.of(Pair.of(key, list.stream()
                     .map(Object::toString)
-                    .collect(Collectors.joining("\n"));
+                    .collect(Collectors.joining("\n"))));
         }
         return Stream.of(Pair.of(key, value));
     }

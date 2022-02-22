@@ -50,17 +50,13 @@ public class Stacktrace {
 
     public Throwable simplifyStacktrace(Throwable throwable) {
         Throwable t = throwable;
-        do {
-            if (t instanceof InvocationTargetException || t instanceof RuntimeException) {
-                if (t.getCause() == null) {
-                    return t;
-                }
-                t = t.getCause();
-                continue;
+        while (t instanceof InvocationTargetException || t instanceof RuntimeException) {
+            if (t.getCause() == null) {
+                break;
             }
-
-            return t;
-        } while (true);
+            t = t.getCause();
+        }
+        return t;
     }
 
 }

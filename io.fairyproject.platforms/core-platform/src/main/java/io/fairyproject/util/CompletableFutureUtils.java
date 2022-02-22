@@ -7,8 +7,8 @@ import java.util.concurrent.CompletableFuture;
 @UtilityClass
 public class CompletableFutureUtils {
 
-    public CompletableFuture<?> failureOf(Throwable throwable) {
-        CompletableFuture<?> future = new CompletableFuture<>();
+    public <T> CompletableFuture<T> failureOf(Throwable throwable) {
+        CompletableFuture<T> future = new CompletableFuture<>();
         future.completeExceptionally(throwable);
 
         return future;

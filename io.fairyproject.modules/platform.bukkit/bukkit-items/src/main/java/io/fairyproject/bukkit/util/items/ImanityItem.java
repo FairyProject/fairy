@@ -74,6 +74,25 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
     private static final AtomicInteger UNNAMED_ITEM_COUNTER = new AtomicInteger(0);
     private static final Logger LOGGER = LogManager.getLogger(ImanityItem.class);
 
+    private Plugin plugin;
+
+    private String id;
+    private boolean submitted;
+    private ItemBuilder itemBuilder;
+    private Component displayName;
+    private Component displayLore;
+
+    private ItemCallback clickCallback;
+    private ItemPlaceCallback placeCallback;
+
+    private final List<ItemBehaviour> behaviours = new ArrayList<>();
+    @Deprecated
+    private final List<PlaceholderEntry> displayNamePlaceholders = new ArrayList<>();
+    @Deprecated
+    private final List<PlaceholderEntry> displayLorePlaceholders = new ArrayList<>();
+
+    private final MetadataMap metadataMap;
+
     public static ImanityItemBuilder builder(String id) {
         final Plugin plugin = ImanityItemBuilder.findPlugin(4);
         return new ImanityItemBuilder(id, plugin);
@@ -105,25 +124,6 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
 
         return NBTEditor.getString(itemStack, "imanity", "item", "id");
     }
-
-    private Plugin plugin;
-
-    private String id;
-    private boolean submitted;
-    private ItemBuilder itemBuilder;
-    private Component displayName;
-    private Component displayLore;
-
-    private ItemCallback clickCallback;
-    private ItemPlaceCallback placeCallback;
-
-    private final List<ItemBehaviour> behaviours = new ArrayList<>();
-    @Deprecated
-    private final List<PlaceholderEntry> displayNamePlaceholders = new ArrayList<>();
-    @Deprecated
-    private final List<PlaceholderEntry> displayLorePlaceholders = new ArrayList<>();
-
-    private final MetadataMap metadataMap;
 
     @Deprecated
     public ImanityItem() {

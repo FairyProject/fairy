@@ -1,6 +1,5 @@
 package io.fairyproject.container.scanner;
 
-import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.util.SimpleTiming;
@@ -16,14 +15,6 @@ public abstract class ClassPathScanner {
 
     public static ContainerContext CONTAINER_CONTEXT = ContainerContext.INSTANCE;
 
-    public static void log(String msg, Object... replacement) {
-        ContainerContext.log(msg, replacement);
-    }
-
-    public static SimpleTiming logTiming(String msg) {
-        return ContainerContext.logTiming(msg);
-    }
-
     protected String prefix = "";
     protected String scanName;
     protected final List<String> classPaths = new ArrayList<>();
@@ -32,6 +23,14 @@ public abstract class ClassPathScanner {
     protected final List<ClassLoader> classLoaders = new ArrayList<>();
 
     protected final List<ContainerObject> included = new ArrayList<>();
+
+    public static void log(String msg, Object... replacement) {
+        ContainerContext.log(msg, replacement);
+    }
+
+    public static SimpleTiming logTiming(String msg) {
+        return ContainerContext.logTiming(msg);
+    }
 
     public ClassPathScanner prefix(String prefix) {
         this.prefix = prefix;

@@ -182,7 +182,7 @@ public class BaseContainerObject implements ContainerObject {
         }
 
         if (instance == null) {
-            throw new NullPointerException("The Instance of ContainerObject for " + this.type.getName() + " is null.");
+            throw new IllegalArgumentException("The Instance of ContainerObject for " + this.type.getName() + " is null.");
         }
 
         if (this.annotatedMethods.containsKey(ShouldInitialize.class)) {

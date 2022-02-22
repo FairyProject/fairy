@@ -8,6 +8,9 @@ import java.util.UUID;
 
 public class PlayerOnlineValue<T> implements TransientValue<T> {
 
+    private final T value;
+    private final UUID ownedPlayerUuid;
+
     public static <T> TransientValue<T> create(T value, UUID ownedPlayerUuid) {
         return new PlayerOnlineValue<>(value, ownedPlayerUuid);
     }
@@ -15,9 +18,6 @@ public class PlayerOnlineValue<T> implements TransientValue<T> {
     public static <T> TransientValue<T> create(T value, MCPlayer ownedPlayer) {
         return new PlayerOnlineValue<>(value, ownedPlayer.getUUID());
     }
-
-    private final T value;
-    private final UUID ownedPlayerUuid;
 
     private PlayerOnlineValue(T value, UUID ownedPlayerUuid) {
         this.value = value;

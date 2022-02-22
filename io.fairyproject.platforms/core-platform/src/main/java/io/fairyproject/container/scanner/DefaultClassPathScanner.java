@@ -5,6 +5,7 @@ import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.util.CompletableFutureUtils;
 import io.fairyproject.util.SimpleTiming;
 
 import java.lang.reflect.Field;
@@ -20,12 +21,19 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
     public void scan() throws Exception {
         log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
 
-        // Build the instance for Reflection Lookup
-        try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
-            this.buildReflectLookup();
-        }
-
         this.containerObjectList.addAll(this.included);
+        this.buildReflectLookup();
+        this.scanClasses();
+        this.initializeClasses();
+
+        this.callInit(LifeCycle.PRE_INIT, "PRE_INIT");
+        this.scanComponentAndInjection();
+        this.callInit(LifeCycle.POST_INIT, "POST_INIT");
+
+        this.success = true;
+    }
+
+    private void scanClasses() throws Exception {
         // Scanning through the JAR to see every Service ContainerObject can be registered
         try (SimpleTiming ignored = logTiming("Scanning @Service")) {
             this.scanServices(reflectLookup.findAnnotatedClasses(Service.class));
@@ -35,26 +43,16 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
         try (SimpleTiming ignored = logTiming("Scanning @Register")) {
             this.scanRegister(reflectLookup.findAnnotatedStaticMethods(Register.class));
         }
+    }
 
-        // Load ContainerObjects in Dependency Tree Order
-        try (SimpleTiming ignored = logTiming("Initializing ContainerObject")) {
-            containerObjectList = initializeContainers();
-            if (containerObjectList == null) {
-                return;
-            }
-        }
-
-        // Unregistering ContainerObjects that returns false in shouldInitialize
-        try (SimpleTiming ignored = logTiming("Unregistering Disabled ContainerObject")) {
-            this.unregisterDisabledContainers();
-        }
-
+    private void callInit(LifeCycle lifeCycle, String displayName) throws Exception {
         // Call @PreInitialize methods for ContainerObject
-        try (SimpleTiming ignored = logTiming("LifeCycle PRE_INIT")) {
-            CONTAINER_CONTEXT.lifeCycle(LifeCycle.PRE_INIT, containerObjectList);
+        try (SimpleTiming ignored = logTiming("LifeCycle " + displayName)) {
+            CONTAINER_CONTEXT.lifeCycle(lifeCycle, containerObjectList);
         }
+    }
 
-        // Scan Components
+    private void scanComponentAndInjection() throws Exception {
         try (SimpleTiming ignored = logTiming("Scanning Components")) {
             containerObjectList.addAll(ComponentRegistry.scanComponents(CONTAINER_CONTEXT, reflectLookup, prefix));
         }
@@ -87,20 +85,13 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
         try (SimpleTiming ignored = logTiming("Call onEnable() for Components")) {
             containerObjectList.forEach(ContainerObject::onEnable);
         }
-
-        // Call @PostInitialize
-        try (SimpleTiming ignored = logTiming("LifeCycle POST_INIT")) {
-            CONTAINER_CONTEXT.lifeCycle(LifeCycle.POST_INIT, containerObjectList);
-        }
-
-        this.success = true;
     }
 
     @Override
     public CompletableFuture<List<ContainerObject>> getCompletedFuture() {
-        if (this.success)
-            return CompletableFuture.completedFuture(this.containerObjectList);
-        else
-            return new CompletableFuture<>(); // TODO
+        if (this.getException() != null) {
+            return CompletableFutureUtils.failureOf(this.getException());
+        }
+        return CompletableFuture.completedFuture(this.containerObjectList);
     }
 }
