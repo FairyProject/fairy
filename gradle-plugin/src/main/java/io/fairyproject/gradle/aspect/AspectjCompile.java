@@ -1,4 +1,4 @@
-package io.fairyproject.gradle.aspectj;
+package io.fairyproject.gradle.aspect;
 
 import lombok.Getter;
 import org.gradle.api.Action;

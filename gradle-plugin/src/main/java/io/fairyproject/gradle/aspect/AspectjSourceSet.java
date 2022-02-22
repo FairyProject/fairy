@@ -1,4 +1,4 @@
-package io.fairyproject.gradle.aspectj;
+package io.fairyproject.gradle.aspect;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;

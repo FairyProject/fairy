@@ -1,4 +1,4 @@
-package io.fairyproject.gradle.aspectj;
+package io.fairyproject.gradle.aspect;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;

@@ -1,8 +1,7 @@
-package io.fairyproject.gradle.aspectj;
+package io.fairyproject.gradle.aspect;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import io.fairyproject.gradle.FairyPlugin;
 import org.gradle.api.Action;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
@@ -19,7 +18,6 @@ import java.util.ArrayList;
 
 /**
  * @author Lars Grefer
- * @see FairyPlugin
  */
 @Getter
 @NonNullApi
