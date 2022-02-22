@@ -6,6 +6,7 @@ import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.util.SimpleTiming;
+import io.fairyproject.util.Stacktrace;
 import lombok.Getter;
 
 import java.lang.reflect.Field;
@@ -20,6 +21,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
 
     @Getter
     private final CompletableFuture<List<ContainerObject>> completedFuture = new CompletableFuture<>();
+
     private Collection<Class<?>> serviceClasses;
 
     @Override
@@ -62,49 +64,59 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
         final CompletableFuture<Void> all = CompletableFuture.allOf(futures);
         all.whenComplete((ignored, ex) -> {
             if (ex != null) {
-                this.completedFuture.completeExceptionally(ex);
+                this.handleException(ex);
             } else {
-                this.initializeContainers();
-                this.unregisterDisabledContainers();
-
-                CONTAINER_CONTEXT.lifeCycle(LifeCycle.PRE_INIT, containerObjectList);
-                containerObjectList.addAll(ComponentRegistry.scanComponents(CONTAINER_CONTEXT, reflectLookup, prefix));
-
-                final Future<Throwable> future = ContainerContext.EXECUTOR.submit(() -> {
-                    try {
-                        for (Field field : reflectLookup.findAnnotatedStaticFields(Autowired.class)) {
-                            if (!Modifier.isStatic(field.getModifiers())) {
-                                continue;
-                            }
-
-                            AutowiredContainerController.INSTANCE.applyField(field, null);
-                        }
-                    } catch (Throwable throwable) {
-                        return throwable;
-                    }
-                    return null;
-                });
-
-                this.applyControllers();
-                try {
-                    final Throwable throwable = future.get();
-                    if (throwable != null) {
-                        completedFuture.completeExceptionally(throwable);
-                        return;
-                    }
-                } catch (InterruptedException | ExecutionException e) {
-                    completedFuture.completeExceptionally(e);
+                final List<ContainerObject> containerObjects = this.initializeContainers();
+                if (containerObjects == null) {
                     return;
                 }
 
-                containerObjectList.forEach(ContainerObject::onEnable);
-                CONTAINER_CONTEXT.lifeCycleAsynchronously(LifeCycle.POST_INIT, containerObjectList)
-                        .whenComplete((o, throwable) -> {
-                            if (throwable != null) {
-                                completedFuture.completeExceptionally(throwable);
-                            } else {
-                                completedFuture.complete(containerObjectList);
+                this.unregisterDisabledContainers();
+
+                CONTAINER_CONTEXT.lifeCycleAsynchronously(LifeCycle.PRE_INIT, containerObjectList)
+                        .whenComplete((i, t) -> {
+                            if (t != null) {
+                                this.handleException(t);
+                                return;
                             }
+                            containerObjectList.addAll(ComponentRegistry.scanComponents(CONTAINER_CONTEXT, reflectLookup, prefix));
+
+                            final Future<Throwable> future = ContainerContext.EXECUTOR.submit(() -> {
+                                try {
+                                    for (Field field : reflectLookup.findAnnotatedStaticFields(Autowired.class)) {
+                                        if (!Modifier.isStatic(field.getModifiers())) {
+                                            continue;
+                                        }
+
+                                        AutowiredContainerController.INSTANCE.applyField(field, null);
+                                    }
+                                } catch (Throwable throwable) {
+                                    return throwable;
+                                }
+                                return null;
+                            });
+
+                            this.applyControllers();
+                            try {
+                                final Throwable throwable = future.get();
+                                if (throwable != null) {
+                                    this.handleException(throwable);
+                                    return;
+                                }
+                            } catch (InterruptedException | ExecutionException e) {
+                                this.handleException(e);
+                                return;
+                            }
+
+                            containerObjectList.forEach(ContainerObject::onEnable);
+                            CONTAINER_CONTEXT.lifeCycleAsynchronously(LifeCycle.POST_INIT, containerObjectList)
+                                    .whenComplete((o, throwable) -> {
+                                        if (throwable != null) {
+                                            this.handleException(throwable);
+                                        } else {
+                                            completedFuture.complete(containerObjectList);
+                                        }
+                                    });
                         });
             }
         });
@@ -125,5 +137,12 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
                         }
                     }
                 });
+    }
+
+    @Override
+    protected boolean handleException(Throwable throwable) {
+        super.handleException(throwable);
+        this.completedFuture.completeExceptionally(Stacktrace.simplifyStacktrace(throwable));
+        return true;
     }
 }

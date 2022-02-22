@@ -24,12 +24,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public abstract class BaseClassPathScanner extends ClassPathScanner {
 
     protected ReflectLookup reflectLookup;
     @Getter
     protected List<ContainerObject> containerObjectList = new NonNullArrayList<>();
+    @Nullable
+    @Getter
+    private Throwable exception;
 
     protected void buildReflectLookup() {
         final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
@@ -118,7 +122,22 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
                 }
             }
 
-            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            try {
+                final CompletableFuture<Void> future = CompletableFuture
+                        .allOf(futures.toArray(new CompletableFuture[0]))
+                        .whenComplete((ignored, throwable) -> {
+                            if (throwable != null)
+                                this.handleException(throwable);
+                        });
+                future.get();
+
+                if (future.isCompletedExceptionally()) {
+                    return null;
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                this.handleException(e);
+                return null;
+            }
             for (Class<?> key : removeQueue) {
                 relationship.remove(key);
             }
@@ -182,7 +201,8 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
     protected void scanRegister(Collection<Method> registerMethods) throws InvocationTargetException, IllegalAccessException {
         for (Method method : registerMethods) {
             if (method.getReturnType() == void.class) {
-                new IllegalArgumentException("The Method " + method + " has annotated @Register but no return type!").printStackTrace();
+                this.handleException(new IllegalArgumentException("The Method " + method + " has annotated @Register but no return type!"));
+                return;
             }
             ContainerParameterDetailsMethod detailsMethod = new ContainerParameterDetailsMethod(method, CONTAINER_CONTEXT);
             List<Class<?>> dependencies = new ArrayList<>();
@@ -214,7 +234,8 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
 
                 containerObjectList.add(containerObject);
             } else {
-                new ServiceAlreadyExistsException(objectType).printStackTrace();
+                this.handleException(new ServiceAlreadyExistsException(objectType));
+                break;
             }
         }
     }
@@ -237,6 +258,11 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
                 new ServiceAlreadyExistsException(type).printStackTrace();
             }
         }
+    }
+
+    protected boolean handleException(Throwable throwable) {
+        this.exception = throwable;
+        return true;
     }
 
 }

@@ -182,7 +182,7 @@ public class BaseContainerObject implements ContainerObject {
         }
 
         if (instance == null) {
-            throw new NullPointerException("The Instance of bean details for " + this.type.getName() + " is null.");
+            throw new NullPointerException("The Instance of ContainerObject for " + this.type.getName() + " is null.");
         }
 
         if (this.annotatedMethods.containsKey(ShouldInitialize.class)) {
@@ -222,7 +222,7 @@ public class BaseContainerObject implements ContainerObject {
 
     private CompletableFuture<?> call(Class<? extends Annotation> annotation) {
         if (instance == null) {
-            throw new NullPointerException("The Instance of bean details for " + this.type.getName() + " is null.");
+            throw new NullPointerException("The Instance of ContainerObject for " + this.type.getName() + " is null.");
         }
 
         switch (this.getThreadingMode()) {

@@ -92,4 +92,6 @@ public abstract class ClassPathScanner {
 
     public abstract CompletableFuture<List<ContainerObject>> getCompletedFuture();
 
+    public abstract Throwable getException();
+
 }

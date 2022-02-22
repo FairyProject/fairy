@@ -1,11 +1,11 @@
 package io.fairyproject.util.exceptionally;
 
-final class SneakyThrowUtil {
+public final class SneakyThrowUtil {
 
     private SneakyThrowUtil() {
     }
 
-    static <T extends Exception, R> R sneakyThrow(Exception t) throws T {
+    public static <T extends Throwable, R> R sneakyThrow(Throwable t) throws T {
         throw (T) t;
     }
 }

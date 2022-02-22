@@ -299,7 +299,7 @@ public class ModuleService {
             this.onModuleLoad(module);
             return module;
         } catch (Exception e) {
-            e.printStackTrace();
+            Stacktrace.simplifyStacktrace(e).printStackTrace();
 
             if (module != null) {
                 this.unregister(module);

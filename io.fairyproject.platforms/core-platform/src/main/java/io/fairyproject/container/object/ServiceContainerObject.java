@@ -26,6 +26,7 @@ package io.fairyproject.container.object;
 
 import io.fairyproject.container.*;
 import io.fairyproject.container.object.parameter.ContainerParameterDetailsConstructor;
+import io.fairyproject.util.CompletableFutureUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -62,7 +63,7 @@ public class ServiceContainerObject extends RelativeContainerObject {
 
     public CompletableFuture<?> build(ContainerContext context) {
         if (this.constructorDetails == null) {
-            throw new IllegalArgumentException("The construction for bean details " + this.getType().getName() + " hasn't been called!");
+            throw new IllegalArgumentException("The construction for ContainerObject " + this.getType().getName() + " hasn't been called!");
         }
 
         switch (this.getThreadingMode()) {
@@ -70,7 +71,11 @@ public class ServiceContainerObject extends RelativeContainerObject {
                 return super.build(context).thenAcceptAsync(ignored -> this.buildSync(context), ContainerContext.EXECUTOR);
             default:
             case SYNC:
-                this.buildSync(context);
+                try {
+                    this.buildSync(context);
+                } catch (Throwable throwable) {
+                    return CompletableFutureUtils.failureOf(throwable);
+                }
                 return super.build(context);
         }
     }

@@ -28,10 +28,14 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.Debug;
+import io.fairyproject.Fairy;
+import io.fairyproject.container.controller.AutowiredContainerController;
+import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.controller.SubscribeEventContainerController;
-import io.fairyproject.container.object.*;
-import io.fairyproject.container.object.parameter.ContainerParameterDetailsMethod;
-import io.fairyproject.container.exception.ServiceAlreadyExistsException;
+import io.fairyproject.container.object.ComponentContainerObject;
+import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.container.object.SimpleContainerObject;
 import io.fairyproject.container.scanner.ClassPathScanner;
 import io.fairyproject.container.scanner.DefaultClassPathScanner;
 import io.fairyproject.container.scanner.ThreadedClassPathScanner;
@@ -39,25 +43,19 @@ import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.util.ConditionUtils;
+import io.fairyproject.plugin.PluginListenerAdapter;
+import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.util.SimpleTiming;
+import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.CompletableFutureUtils;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import io.fairyproject.Fairy;
-import io.fairyproject.container.controller.AutowiredContainerController;
-import io.fairyproject.container.controller.ContainerController;
-import io.fairyproject.plugin.PluginListenerAdapter;
-import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.reflect.ReflectLookup;
-import io.fairyproject.util.NonNullArrayList;
-import io.fairyproject.util.SimpleTiming;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
-import java.lang.reflect.*;
-import java.net.URL;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -137,8 +135,11 @@ public class ContainerContext {
             classPathScanner.scan();
 
             classPathScanner.getCompletedFuture().join();
+            if (classPathScanner.getException() != null) {
+                SneakyThrowUtil.sneakyThrow(classPathScanner.getException());
+            }
         } catch (Throwable throwable) {
-            LOGGER.error("Error while scanning classes for framework", throwable);
+            LOGGER.error("Error while scanning classes for framework", Stacktrace.simplifyStacktrace(throwable));
             Fairy.getPlatform().shutdown();
             return;
         }
@@ -197,14 +198,17 @@ public class ContainerContext {
                                 .included(containerObject)
                                 .scan();
                         scanner.getCompletedFuture().join();
+
+                        if (scanner.getException() != null) {
+                            SneakyThrowUtil.sneakyThrow(scanner.getException());
+                        }
                     } catch (Throwable throwable) {
-                        LOGGER.error("An error occurs while handling scanClasses()", throwable);
+                        LOGGER.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
                         try {
-                            plugin.close();
+                            plugin.closeSilently();
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
-                        return;
                     }
                 }
 
@@ -316,7 +320,6 @@ public class ContainerContext {
 
         // Unregister Child Dependency
         for (Class<?> child : containerObject.getChildren()) {
-            System.out.println("child " + child);
             ContainerObject childContainerObject = this.getObjectDetails(child);
 
             builder.add(childContainerObject);
@@ -328,7 +331,6 @@ public class ContainerContext {
             ContainerObject dependContainerObject = this.getObjectDetails(dependency);
 
             if (dependContainerObject != null) {
-                System.out.println("parent " + dependency);
                 dependContainerObject.removeChildren(containerObject.getType());
             }
         }
@@ -439,7 +441,8 @@ public class ContainerContext {
             try {
                 futures.add(containerObject.lifeCycle(lifeCycle));
             } catch (Throwable throwable) {
-                LOGGER.error("An error occurs while calling life cycle method", throwable);
+                futures.clear();
+                return CompletableFutureUtils.failureOf(throwable);
             }
         }
 
