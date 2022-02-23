@@ -20,18 +20,14 @@ fairy {
 
     fairyIde = true
 
-    platform("bukkit")
-    module("sidebar")
-    module("tablist")
+    platform("app")
 
-    bukkitApi("1.16")
+    module("discord")
+    module("config")
+    module("command")
+    module("storage")
 }
 
 test {
     useJUnitPlatform()
-}
-
-dependencies {
-    compileOnly project.spigot()
-    testImplementation "org.imanity.spigot:1.16.5:1.16.5"
 }

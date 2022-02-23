@@ -88,8 +88,8 @@ public abstract class FairyPlatform {
 
     private void loadBindable() {
         this.bind(AsyncAspect.EXECUTOR);
-        this.bind(CacheableAspect.CLEANER_SERVICE);
-        this.bind(CacheableAspect.UPDATER_SERVICE);
+//        this.bind(CacheableAspect.CLEANER_SERVICE);
+//        this.bind(CacheableAspect.UPDATER_SERVICE);
     }
 
     public void loadDependencies() {
