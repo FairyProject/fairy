@@ -59,3 +59,7 @@ project.afterEvaluate(p -> {
         relocate "net.kyori", relocate + "kyori"
     }
 })
+
+shadowJar {
+    configurations = [project.configurations.runtimeClasspath]
+}

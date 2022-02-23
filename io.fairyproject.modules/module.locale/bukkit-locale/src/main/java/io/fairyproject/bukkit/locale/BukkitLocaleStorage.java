@@ -37,8 +37,8 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-@Service(name = "bukkit:locale-storage")
-@ServiceDependency(value = LocaleService.class, type = ServiceDependencyType.SUB_DISABLE)
+@Service
+@ServiceDependency(value = LocaleService.class)
 public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> {
 
     private Repository<LocaleData, UUID> localeRepository;

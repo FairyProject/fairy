@@ -24,18 +24,47 @@
 
 package io.fairyproject.plugin;
 
+import java.util.concurrent.CompletableFuture;
+
 public interface PluginListenerAdapter {
 
+    /**
+     * The method that will be called on plugin is not loaded but prepare to be loaded
+     *
+     * @param classLoader the ClassLoader
+     * @param description the Description
+     * @param action the Plugin Action
+     * @param completableFuture the Future when plugin is prepared
+     */
+    default void onPluginPreLoaded(ClassLoader classLoader, PluginDescription description, PluginAction action, CompletableFuture<Plugin> completableFuture) {
+        // Can be overwritten
+    }
+
+    /**
+     * The plugin has been loaded
+     *
+     * @param plugin the Plugin
+     */
     default void onPluginInitial(Plugin plugin) {
-
+        // Can be overwritten
     }
 
+    /**
+     * The plugin has been enabled
+     *
+     * @param plugin the Plugin
+     */
     default void onPluginEnable(Plugin plugin) {
-
+        // Can be overwritten
     }
 
+    /**
+     * The plugin has been disabled
+     *
+     * @param plugin the Plugin
+     */
     default void onPluginDisable(Plugin plugin) {
-
+        // Can be overwritten
     }
 
     /**

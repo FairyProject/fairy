@@ -30,6 +30,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.reflect.InvocationTargetException;
 
 @UtilityClass
 public class Stacktrace {
@@ -45,6 +46,17 @@ public class Stacktrace {
         throwable.printStackTrace(new PrintWriter(stack));
 
         return stack.toString();
+    }
+
+    public Throwable simplifyStacktrace(Throwable throwable) {
+        Throwable t = throwable;
+        while (t instanceof InvocationTargetException || t instanceof RuntimeException) {
+            if (t.getCause() == null) {
+                break;
+            }
+            t = t.getCause();
+        }
+        return t;
     }
 
 }

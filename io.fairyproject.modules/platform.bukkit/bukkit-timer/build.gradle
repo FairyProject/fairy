@@ -1,4 +1,4 @@
-version = "0.0.1b5"
+version = "0.0.1b6"
 
 dependencies {
     compileOnly project.spigot()

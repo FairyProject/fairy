@@ -39,6 +39,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
@@ -58,6 +59,7 @@ public class BaseContainerObject implements ContainerObject {
     private LifeCycle lifeCycle;
     private Map<Class<? extends Annotation>, String> disallowAnnotations;
     private Map<Class<? extends Annotation>, Collection<Method>> annotatedMethods;
+    private ThreadingMode.Mode threadingMode;
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     private Plugin plugin;
@@ -86,6 +88,10 @@ public class BaseContainerObject implements ContainerObject {
         this(type);
         this.instance = instance;
         this.loadAnnotations();
+    }
+
+    public ThreadingMode.Mode getThreadingMode() {
+        return this.threadingMode == null ? ThreadingMode.Mode.SYNC : this.threadingMode;
     }
 
     @NotNull
@@ -118,6 +124,11 @@ public class BaseContainerObject implements ContainerObject {
                     this.disallowAnnotations.put(annotation, type.getName());
                 }
             }
+
+            ThreadingMode threadingMode = type.getAnnotation(ThreadingMode.class);
+            if (threadingMode != null) {
+                this.threadingMode = threadingMode.value();
+            }
         }
 
         for (Class<?> type : superClasses) {
@@ -142,12 +153,12 @@ public class BaseContainerObject implements ContainerObject {
                 int parameterCount = method.getParameterCount();
                 if (parameterCount > 0) {
                     if (parameterCount != 1 || !ContainerObject.class.isAssignableFrom(method.getParameterTypes()[0])) {
-                        throw new IllegalArgumentException("The method " + method.toString() + " used annotation " + annotation.getSimpleName() + " but doesn't have matches parameters! you can only use either no parameter or one parameter with ServerData type on annotated " + annotation.getSimpleName() + "!");
+                        throw new IllegalArgumentException("The method " + method + " used annotation " + annotation.getSimpleName() + " but doesn't have matches parameters! you can only use either no parameter or one parameter with ServerData type on annotated " + annotation.getSimpleName() + "!");
                     }
                 }
 
                 if (annotation == ShouldInitialize.class && method.getReturnType() != boolean.class) {
-                    throw new IllegalArgumentException("The method " + method.toString() + " used annotation " + annotation.getSimpleName() + " but doesn't have matches return type! you can only use boolean as return type on annotated " + annotation.getSimpleName() + "!");
+                    throw new IllegalArgumentException("The method " + method + " used annotation " + annotation.getSimpleName() + " but doesn't have matches return type! you can only use boolean as return type on annotated " + annotation.getSimpleName() + "!");
                 }
                 method.setAccessible(true);
 
@@ -171,7 +182,7 @@ public class BaseContainerObject implements ContainerObject {
         }
 
         if (instance == null) {
-            throw new NullPointerException("The Instance of bean details for " + this.type.getName() + " is null.");
+            throw new IllegalArgumentException("The Instance of ContainerObject for " + this.type.getName() + " is null.");
         }
 
         if (this.annotatedMethods.containsKey(ShouldInitialize.class)) {
@@ -194,29 +205,37 @@ public class BaseContainerObject implements ContainerObject {
     }
 
     @Override
-    public void lifeCycle(LifeCycle lifeCycle) {
+    public CompletableFuture<?> lifeCycle(@NotNull LifeCycle lifeCycle) {
         this.lifeCycle = lifeCycle;
         switch (lifeCycle) {
             case PRE_INIT:
-                this.call(PreInitialize.class);
-                break;
+                return this.call(PreInitialize.class);
             case POST_INIT:
-                this.call(PostInitialize.class);
-                break;
+                return this.call(PostInitialize.class);
             case PRE_DESTROY:
-                this.call(PreDestroy.class);
-                break;
+                return this.call(PreDestroy.class);
             case POST_DESTROY:
-                this.call(PostDestroy.class);
-                break;
+                return this.call(PostDestroy.class);
+        }
+        return null;
+    }
+
+    private CompletableFuture<?> call(Class<? extends Annotation> annotation) {
+        if (instance == null) {
+            throw new IllegalArgumentException("The Instance of ContainerObject for " + this.type.getName() + " is null.");
+        }
+
+        switch (this.getThreadingMode()) {
+            case ASYNC:
+                return CompletableFuture.runAsync(() -> this.callSync(annotation), ContainerContext.EXECUTOR);
+            default:
+            case SYNC:
+                this.callSync(annotation);
+                return CompletableFuture.completedFuture(null);
         }
     }
 
-    private void call(Class<? extends Annotation> annotation) {
-        if (instance == null) {
-            throw new NullPointerException("The Instance of bean details for " + this.type.getName() + " is null.");
-        }
-
+    private void callSync(Class<? extends Annotation> annotation) {
         for (Method method : this.annotatedMethods.getOrDefault(annotation, Collections.emptyList())) {
             try {
                 if (method.getParameterCount() == 1) {

@@ -8,18 +8,23 @@ import io.fairyproject.plugin.PluginManager;
 import org.apache.logging.log4j.LogManager;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class BasePluginHolder {
 
     protected final Plugin plugin;
     protected final ClassLoader classLoader;
+    protected final CompletableFuture<Plugin> pluginCompletableFuture = new CompletableFuture<>();
 
     public BasePluginHolder(JsonObject jsonObject) {
         PluginDescription pluginDescription = new PluginDescription(jsonObject);
 
         this.classLoader = this.getClassLoader();
+        PluginManager.INSTANCE.onPluginPreLoaded(this.classLoader, pluginDescription, this.getPluginAction(), this.pluginCompletableFuture);
+
         this.plugin = this.findMainClass(pluginDescription.getMainClass());
         this.plugin.initializePlugin(pluginDescription, this.getPluginAction(), this.classLoader);
+        this.pluginCompletableFuture.complete(this.plugin);
     }
 
     protected abstract ClassLoader getClassLoader();

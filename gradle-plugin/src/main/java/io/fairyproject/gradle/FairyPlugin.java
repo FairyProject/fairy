@@ -4,10 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.fairyproject.gradle.aspectj.AjcAction;
-import io.fairyproject.gradle.aspectj.AspectjCompile;
-import io.fairyproject.gradle.aspectj.DefaultWeavingSourceSet;
-import io.fairyproject.gradle.aspectj.WeavingSourceSet;
 import io.fairyproject.gradle.relocator.Relocation;
 import io.fairyproject.gradle.util.FairyVersion;
 import io.fairyproject.gradle.util.MavenUtil;
@@ -19,14 +15,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.tasks.compile.HasCompileOptions;
-import org.gradle.api.plugins.*;
-import org.gradle.api.plugins.scala.ScalaPlugin;
-import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.SourceSetContainer;
-import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.jvm.tasks.Jar;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,8 +34,6 @@ public class FairyPlugin implements Plugin<Project> {
     public static boolean IS_IN_IDE = false;
 
     private FairyExtension extension;
-    private Configuration aspectJConfiguration;
-    private SourceSetContainer sourceSets;
     private Project project;
 
     @Override
@@ -55,8 +42,7 @@ public class FairyPlugin implements Plugin<Project> {
         this.project = project;
 
         project.getPlugins().apply(JavaBasePlugin.class);
-
-        this.configureAspectJ();
+        project.getPlugins().apply(AspectJPlugin.class);
 
         final Configuration fairyConfiguration = project.getConfigurations().maybeCreate("fairy");
         final Configuration fairyModuleConfiguration = project.getConfigurations().maybeCreate("fairyModule");
@@ -101,6 +87,7 @@ public class FairyPlugin implements Plugin<Project> {
 
                     dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                     dependency.setTargetConfiguration("shadow");
+                    p.getDependencies().add("aspect", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                     p.getDependencies().add("compileOnly", dependency);
                     p.getDependencies().add("testImplementation", dependency);
 
@@ -112,17 +99,16 @@ public class FairyPlugin implements Plugin<Project> {
                             platformType.getDependencyName() + "-bootstrap",
                             this.extension.getFairyVersion().get()
                     ));
+                    final Dependency platformDependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
+                            platformType.getDependencyName() + "-platform",
+                            this.extension.getFairyVersion().get()
+                    ));
                     fairyConfiguration.getDependencies().add(bootstrapDependency);
                     p.getDependencies().add("testImplementation", bootstrapDependency);
 
-                    p.getDependencies().add("compileOnly", String.format(DEPENDENCY_FORMAT,
-                            platformType.getDependencyName() + "-platform",
-                            this.extension.getFairyVersion().get()
-                    ));
-                    p.getDependencies().add("testImplementation", String.format(DEPENDENCY_FORMAT,
-                            platformType.getDependencyName() + "-platform",
-                            this.extension.getFairyVersion().get()
-                    ));
+                    p.getDependencies().add("aspect", platformDependency);
+                    p.getDependencies().add("compileOnly", platformDependency);
+                    p.getDependencies().add("testImplementation", platformDependency);
                     p.getDependencies().add("testImplementation", String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-tests",
                             this.extension.getFairyVersion().get()
@@ -231,82 +217,6 @@ public class FairyPlugin implements Plugin<Project> {
         }
 
         return new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
-    }
-
-    private void configurePlugin(String language) {
-        sourceSets.all(sourceSet -> {
-            WeavingSourceSet weavingSourceSet = new DslObject(sourceSet).getConvention().getByType(WeavingSourceSet.class);
-
-            FileCollection aspectPath = weavingSourceSet.getAspectPath();
-            FileCollection inPath = weavingSourceSet.getInPath();
-
-            project.getTasks().named(sourceSet.getCompileTaskName(language), AbstractCompile.class, compileTask -> {
-                AjcAction ajcAction = enhanceWithWeavingAction(compileTask, aspectPath, inPath, this.aspectJConfiguration);
-                // add main source set if it's test
-                if (compileTask.getName().contains(SourceSet.TEST_SOURCE_SET_NAME)) {
-                    ajcAction.getOptions().getAspectpath().from(sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME));
-                }
-                if (compileTask instanceof HasCompileOptions) {
-                    HasCompileOptions compileTaskWithOptions = (HasCompileOptions) compileTask;
-                    ajcAction.getOptions().getBootclasspath().from(compileTaskWithOptions.getOptions().getBootstrapClasspath());
-                    ajcAction.getOptions().getExtdirs().from(compileTaskWithOptions.getOptions().getExtensionDirs());
-                }
-            });
-        });
-    }
-
-    private AjcAction enhanceWithWeavingAction(AbstractCompile abstractCompile, FileCollection aspectpath, FileCollection inpath, Configuration aspectjConfiguration) {
-        AjcAction action = project.getObjects().newInstance(AjcAction.class);
-
-        action.getOptions().getAspectpath().from(aspectpath);
-        action.getOptions().getInpath().from(inpath);
-        action.getAdditionalInpath().from(abstractCompile.getDestinationDirectory());
-        action.getClasspath().from(aspectjConfiguration);
-
-        action.getOptions().getCompilerArgs().add("-showWeaveInfo");
-        action.getOptions().getCompilerArgs().add("-verbose");
-
-        action.addToTask(abstractCompile);
-
-        return action;
-    }
-
-    private void configureAspectJ() {
-        this.aspectJConfiguration = project.getConfigurations().create("aspectj");
-        this.aspectJConfiguration.defaultDependencies(dependencies -> {
-            dependencies.add(project.getDependencies().create("org.aspectj:aspectjtools:" + extension.getAspectJVersion().get()));
-        });
-
-        project.getTasks().withType(AspectjCompile.class).configureEach(aspectjCompile -> {
-            aspectjCompile.getAspectjClasspath().from(this.aspectJConfiguration);
-        });
-
-        sourceSets = project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
-
-        sourceSets.all(this::configureSourceSetDefaults);
-
-        project.getPlugins().withType(JavaPlugin.class, plugin -> this.configurePlugin("java"));
-        project.getPlugins().withType(GroovyPlugin.class, plugin -> this.configurePlugin("groovy"));
-        project.getPlugins().withType(ScalaPlugin.class, plugin -> this.configurePlugin("scala"));
-        project.getPlugins().withId("org.jetbrains.kotlin.jvm", plugin -> this.configurePlugin("kotlin"));
-    }
-
-    private void configureSourceSetDefaults(SourceSet sourceSet) {
-        project.afterEvaluate(p ->
-                p.getDependencies().add(sourceSet.getImplementationConfigurationName(), "org.aspectj:aspectjrt:" + this.extension.getAspectJVersion().get())
-        );
-
-        DefaultWeavingSourceSet weavingSourceSet = new DefaultWeavingSourceSet(sourceSet);
-        new DslObject(sourceSet).getConvention().add("fairy", weavingSourceSet);
-
-        Configuration aspectpath = project.getConfigurations().create(weavingSourceSet.getAspectConfigurationName());
-        weavingSourceSet.setAspectPath(aspectpath);
-
-        Configuration inpath = project.getConfigurations().create(weavingSourceSet.getInpathConfigurationName());
-        weavingSourceSet.setInPath(inpath);
-
-        project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName()).extendsFrom(aspectpath);
-        project.getConfigurations().getByName(sourceSet.getCompileOnlyConfigurationName()).extendsFrom(inpath);
     }
 
     @RequiredArgsConstructor

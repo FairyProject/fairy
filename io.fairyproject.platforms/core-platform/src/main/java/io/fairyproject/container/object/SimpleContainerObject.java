@@ -35,6 +35,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 @Setter
@@ -74,8 +75,8 @@ public class SimpleContainerObject implements ContainerObject {
     }
 
     @Override
-    public void lifeCycle(LifeCycle lifeCycle) {
-
+    public CompletableFuture<?> lifeCycle(LifeCycle lifeCycle) {
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
@@ -172,11 +173,7 @@ public class SimpleContainerObject implements ContainerObject {
         return Collections.emptySet();
     }
 
-    @Override
-    public boolean isClosed() {
-        return this.plugin.isClosed();
-    }
-
+    @Getter
     private boolean closed;
 
     @Override

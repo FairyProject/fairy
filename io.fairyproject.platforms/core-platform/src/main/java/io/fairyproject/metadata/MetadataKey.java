@@ -121,21 +121,6 @@ public interface MetadataKey<T> extends TypeAware<T> {
     TypeToken<T> getType();
 
     /**
-     * Should remove on non exists
-     * THIS ONLY WORKS WHEN A VALID ENTITY TYPE NOT EXISTS
-     *
-     * @return the option
-     */
-    boolean removeOnNonExists();
-
-    /**
-     * set Remove on non exists
-     * THIS ONLY WORKS WHEN A VALID ENTITY TYPE NOT EXISTS
-     *
-     */
-    void setRemoveOnNonExists(boolean bol);
-
-    /**
      * Attempts to cast the given object to the return type of the key
      *
      * @param object the object to be casted

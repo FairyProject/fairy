@@ -32,13 +32,9 @@ final class MetadataKeyImpl<T> implements MetadataKey<T> {
 
     private final String id;
     private final TypeToken<T> type;
-
-    private boolean removeOnNonExists;
-
     MetadataKeyImpl(String id, TypeToken<T> type) {
         this.id = id.toLowerCase();
         this.type = type;
-        this.removeOnNonExists = true;
     }
 
     @Override
@@ -49,16 +45,6 @@ final class MetadataKeyImpl<T> implements MetadataKey<T> {
     @Override
     public TypeToken<T> getType() {
         return this.type;
-    }
-
-    @Override
-    public boolean removeOnNonExists() {
-        return this.removeOnNonExists;
-    }
-
-    @Override
-    public void setRemoveOnNonExists(boolean bol) {
-        this.removeOnNonExists = bol;
     }
 
     @Override

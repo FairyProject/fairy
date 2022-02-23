@@ -1,7 +1,10 @@
+import io.fairyproject.gradle.AspectJPlugin
+
 //file:noinspection GroovyAssignabilityCheck
 
 // Main script
-apply plugin: "io.freefair.aspectj.post-compile-weaving"
+//apply plugin: "io.freefair.aspectj.post-compile-weaving"
+apply plugin: AspectJPlugin
 if (project.buildFile != null && project.buildFile.exists() && findProperty("deploy.imanityLibraries") == "true") {
     apply plugin: "maven-publish"
 }
@@ -60,7 +63,6 @@ dependencies {
 
     compileOnly JacksonCore
     compileOnly JacksonDataBind
-    compileOnly AspectJRuntime
     compileOnly "javax.persistence:javax.persistence-api:2.2"
 
     if (project.name.contains("-")) {
@@ -74,11 +76,17 @@ dependencies {
             def platformName = names[0]
 
             compileOnly project(":io.fairyproject.platforms:$platformName-platform")
+            aspect project(":io.fairyproject.platforms:$platformName-platform")
+            testImplementation project(":io.fairyproject.tests:$platformName-tests")
         }
     } else {
         compileOnly project(":io.fairyproject.platforms:core-platform")
+        aspect project(":io.fairyproject.platforms:core-platform")
+        testImplementation project(":io.fairyproject.tests:core-tests")
     }
 
+    compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
+    compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
     compileOnly "com.google.guava:guava:" + findProperty("guava.version")
     compileOnly "com.google.code.gson:gson:" + findProperty("gson.version")
     compileOnly "org.yaml:snakeyaml:" + findProperty("yaml.version")
@@ -98,10 +106,12 @@ dependencies {
     testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.0"
 }
+
 sourceSets {
     test.compileClasspath += configurations.compileOnly
     test.runtimeClasspath += configurations.compileOnly
 }
+
 compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
 compileJava.ajc.options.compilerArgs += "-verbose"
 

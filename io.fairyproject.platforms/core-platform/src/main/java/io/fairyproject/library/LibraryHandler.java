@@ -54,8 +54,6 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
-import org.eclipse.aether.transfer.AbstractTransferListener;
-import org.eclipse.aether.transfer.TransferEvent;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 
 import java.io.File;
@@ -65,10 +63,7 @@ import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.stream.Stream;
 
 public class LibraryHandler {
@@ -109,12 +104,6 @@ public class LibraryHandler {
 
         session.setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL);
         session.setLocalRepositoryManager(repository.newLocalRepositoryManager(session, new LocalRepository(file)));
-        session.setTransferListener(new AbstractTransferListener() {
-            @Override
-            public void transferStarted(TransferEvent event) {
-                LOGGER.info("Downloading {}", event.getResource().getResourceName());
-            }
-        });
         session.setReadOnly();
         this.repositories = repository.newResolutionRepositories(session, Arrays.asList(
                 new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build()
@@ -124,10 +113,7 @@ public class LibraryHandler {
         this.downloadLibraries(true,
                 Library.ASM,
                 Library.ASM_TREE,
-                Library.ASM_COMMONS
-        );
-        // APACHE
-        this.downloadLibraries(true,
+                Library.ASM_COMMONS,
                 Library.COMMONS_IO
         );
 
@@ -199,26 +185,29 @@ public class LibraryHandler {
     }
 
     public void downloadLibraries(boolean autoLoad, Library... libraries) {
-        CountDownLatch latch = new CountDownLatch(libraries.length);
+        this.downloadLibraryAsynchronously(autoLoad, libraries).join();
+    }
 
-        for (Library library : libraries) {
-            EXECUTOR.execute(() -> {
+    public CompletableFuture<?> downloadLibraryAsynchronously(boolean autoLoad, Library... libraries) {
+        CompletableFuture<?>[] futures = new CompletableFuture[libraries.length];
+
+        for (int i = 0; i < libraries.length; i++) {
+            CompletableFuture<?> future = futures[i] = new CompletableFuture<>();
+            final Library library = libraries[i];
+
+            EXECUTOR.submit(() -> {
                 try {
                     loadLibrary(library, autoLoad);
                     LOGGER.info("Loaded Library " + library.name() + " v" + library.getVersion());
                 } catch (Throwable throwable) {
                     LOGGER.warn("Unable to load library " + library.getFileName() + ".", throwable);
                 } finally {
-                    latch.countDown();
+                    future.complete(null);
                 }
             });
         }
 
-        try {
-            latch.await();
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
+        return CompletableFuture.allOf(futures);
     }
 
     private List<Path> loadLibrary(Library library, boolean addToUCP) throws Exception {
@@ -257,8 +246,6 @@ public class LibraryHandler {
             }
 
             try {
-                System.out.println("Remapping library " + library.getName() + "...");
-
                 this.relocateHandler.relocate(path, remappedFile, library.getRelocations());
                 retVal.add(remappedFile);
             } catch (Throwable throwable) {

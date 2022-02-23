@@ -27,6 +27,7 @@ package io.fairyproject.plugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -62,6 +63,15 @@ public class PluginManager {
                 .stream()
                 .map(Plugin::getPluginClassLoader)
                 .collect(Collectors.toList());
+    }
+
+    public void onPluginPreLoaded(ClassLoader classLoader,
+                                  PluginDescription description,
+                                  PluginAction action,
+                                  CompletableFuture<Plugin> completableFuture) {
+        synchronized (this.listenerAdapters) {
+            this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginPreLoaded(classLoader, description, action, completableFuture));
+        }
     }
 
     public void onPluginInitial(Plugin plugin) {

@@ -42,9 +42,7 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -102,20 +100,13 @@ public abstract class FairyPlatform {
         LOGGER.info("Loading Dependencies...");
         this.libraryHandler = new LibraryHandler();
 
-        final Collection<Library> platformDependencies = this.getDependencies();
-        if (!platformDependencies.isEmpty()) {
-            this.libraryHandler.downloadLibraries(true, platformDependencies);
-        }
+        List<Library> dependencies = new ArrayList<>(this.getDependencies());
+        dependencies.add(Library.CAFFEINE);
+        dependencies.add(Library.SPRING_CORE);
+        dependencies.add(Library.SPRING_EL);
 
-        Collection<Library> main = Arrays.asList(
-                // Caffeine
-                Library.CAFFEINE,
+        this.libraryHandler.downloadLibraries(true, dependencies);
 
-                // Spring
-                Library.SPRING_CORE,
-                Library.SPRING_EL
-        );
-        this.libraryHandler.downloadLibraries(true, main);
     }
 
     public <T extends AutoCloseable> T bind(T t) {

@@ -6,6 +6,5 @@ apply plugin: ModulePlugin
 shadowJar {
     dependencies {
         exclude project(":io.fairyproject.platforms:core-platform")
-        exclude dependency(AspectJRuntime)
     }
 }
