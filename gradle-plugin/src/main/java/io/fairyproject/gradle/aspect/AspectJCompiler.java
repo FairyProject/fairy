@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -81,80 +82,34 @@ public class AspectJCompiler implements Compiler<AspectJCompileSpec> {
     }
 
     private void addCompileArgs(List<String> args, Collection<File> inpath, AspectJCompileSpec spec) {
-        if (!inpath.isEmpty()) {
-            args.add("-inpath");
-            args.add(getAsPath(inpath));
-        }
+        this.addOptions(args, !inpath.isEmpty(), "-inpath", () -> getAsPath(inpath));
 
-        if (!spec.getAspectJCompileOptions().getAspectpath().isEmpty()) {
-            args.add("-aspectpath");
-            args.add(getAsPath(spec.getAspectJCompileOptions().getAspectpath().getFiles()));
-        }
+        final AspectJCompileOptions aspectJCompileOptions = spec.getAspectJCompileOptions();
+        this.addOptions(args, !aspectJCompileOptions.getAspectpath().isEmpty(), "-aspectpath", () -> getAsPath(aspectJCompileOptions.getAspectpath().getFiles()));
+        this.addOptions(args, aspectJCompileOptions.getOutjar().isPresent(), "-outjar", () -> aspectJCompileOptions.getOutjar().get().getAsFile().getAbsolutePath());
+        this.addOptions(args, aspectJCompileOptions.getOutxml().getOrElse(false), "-outxml", null);
+        this.addOptions(args, aspectJCompileOptions.getOutxmlfile().isPresent(), "-outxmlfile", () -> aspectJCompileOptions.getOutxmlfile().getOrNull());
+        this.addOptions(args, !aspectJCompileOptions.getSourceroots().isEmpty(), "-sourceroots", () -> aspectJCompileOptions.getSourceroots().getAsPath());
+        this.addOptions(args, aspectJCompileOptions.getCrossrefs().getOrElse(false), "-crossrefs", null);
+        this.addOptions(args, !spec.getCompileClasspath().isEmpty(), "-classpath", () -> getAsPath(spec.getCompileClasspath()));
+        this.addOptions(args, !aspectJCompileOptions.getBootclasspath().isEmpty(), "-bootclasspath", () -> getAsPath(aspectJCompileOptions.getBootclasspath().getFiles()));
+        this.addOptions(args, !aspectJCompileOptions.getExtdirs().isEmpty(), "-extdirs", () -> getAsPath(aspectJCompileOptions.getExtdirs().getFiles()));
+        this.addOptions(args, true, "-d", () -> spec.getDestinationDir().getAbsolutePath());
+        this.addOptions(args, spec.getTargetCompatibility() != null, "-target", spec::getTargetCompatibility);
+        this.addOptions(args, spec.getSourceCompatibility() != null, "-source", spec::getSourceCompatibility);
+        this.addOptions(args, aspectJCompileOptions.getEncoding().isPresent(), "-encoding", () -> aspectJCompileOptions.getEncoding().get());
+        this.addOptions(args, aspectJCompileOptions.getVerbose().getOrElse(false), "-verbose", null);
 
-        if (spec.getAspectJCompileOptions().getOutjar().isPresent()) {
-            args.add("-outjar");
-            args.add(spec.getAspectJCompileOptions().getOutjar().get().getAsFile().getAbsolutePath());
-        }
+        args.addAll(aspectJCompileOptions.getCompilerArgs());
+    }
 
-        if (spec.getAspectJCompileOptions().getOutxml().getOrElse(false)) {
-            args.add("-outxml");
+    private void addOptions(List<String> args, boolean condition, String key, Supplier<Object> value) {
+        if (condition) {
+            args.add(key);
+            if (value != null) {
+                args.add(value.get().toString());
+            }
         }
-
-        if (spec.getAspectJCompileOptions().getOutxmlfile().isPresent()) {
-            args.add("-outxmlfile");
-            args.add(spec.getAspectJCompileOptions().getOutxmlfile().get());
-        }
-
-        if (!spec.getAspectJCompileOptions().getSourceroots().isEmpty()) {
-            args.add("-sourceroots");
-            args.add(spec.getAspectJCompileOptions().getSourceroots().getAsPath());
-        }
-
-        if (spec.getAspectJCompileOptions().getCrossrefs().getOrElse(false)) {
-            args.add("-crossrefs");
-        }
-
-        List<File> compileClasspath = spec.getCompileClasspath();
-        if (compileClasspath != null && !compileClasspath.isEmpty()) {
-            args.add("-classpath");
-            args.add(getAsPath(compileClasspath));
-        }
-
-        if (!spec.getAspectJCompileOptions().getBootclasspath().isEmpty()) {
-            args.add("-bootclasspath");
-            args.add(getAsPath(spec.getAspectJCompileOptions().getBootclasspath().getFiles()));
-        }
-
-        if (!spec.getAspectJCompileOptions().getExtdirs().isEmpty()) {
-            args.add("-extdirs");
-            args.add(getAsPath(spec.getAspectJCompileOptions().getExtdirs().getFiles()));
-        }
-
-        if (spec.getDestinationDir() != null) {
-            args.add("-d");
-            args.add(spec.getDestinationDir().getAbsolutePath());
-        }
-
-        if (spec.getTargetCompatibility() != null) {
-            args.add("-target");
-            args.add(spec.getTargetCompatibility());
-        }
-
-        if (spec.getSourceCompatibility() != null) {
-            args.add("-source");
-            args.add(spec.getSourceCompatibility());
-        }
-
-        if (spec.getAspectJCompileOptions().getEncoding().isPresent()) {
-            args.add("-encoding");
-            args.add(spec.getAspectJCompileOptions().getEncoding().get());
-        }
-
-        if (spec.getAspectJCompileOptions().getVerbose().getOrElse(false)) {
-            args.add("-verbose");
-        }
-
-        args.addAll(spec.getAspectJCompileOptions().getCompilerArgs());
     }
 
     private void executeCompiler(ExecHandle handle) {

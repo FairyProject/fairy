@@ -15,8 +15,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class DefaultClassPathScanner extends BaseClassPathScanner {
 
-    private boolean success = false;
-
     @Override
     public void scan() throws Exception {
         log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
@@ -29,8 +27,6 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
         this.callInit(LifeCycle.PRE_INIT, "PRE_INIT");
         this.scanComponentAndInjection();
         this.callInit(LifeCycle.POST_INIT, "POST_INIT");
-
-        this.success = true;
     }
 
     private void scanClasses() throws Exception {
