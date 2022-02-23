@@ -15,6 +15,11 @@ public class ThreadedClassPathScannerTest extends TestingBase {
 
     @Test
     public void applyControllersShouldBeParallel() {
+        if (Runtime.getRuntime().availableProcessors() < 2) {
+            // Skip if it's single core?
+            return;
+        }
+
         final ThreadedClassPathScanner classPathScanner = new ThreadedClassPathScanner();
         List<Thread> threads = new ArrayList<>();
         int objects = 5;
