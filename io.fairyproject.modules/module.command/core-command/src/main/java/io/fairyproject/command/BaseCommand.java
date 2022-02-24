@@ -46,6 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -88,14 +89,32 @@ public abstract class BaseCommand implements ICommand {
         return this.getClass().getDeclaredAnnotation(type);
     }
 
+    /**
+     * Method called when the argument at a specific index fails to match the type
+     * specified by the parameter at said index
+     * @param commandContext Context of the command
+     * @param source Parameter inputted
+     * @param reason Exception message output by the argument parser
+     */
     public void onArgumentFailed(CommandContext commandContext, String source, String reason) {
         commandContext.sendMessage(MessageType.ERROR, reason);
     }
 
+    /**
+     * Method called when the arguments are lesser than the size of the mandatory
+     * parameters.
+     * @param commandContext Context of the command
+     * @param usage Usage of the command sent back to the executor
+     */
     public void onArgumentMissing(CommandContext commandContext, String usage) {
         commandContext.sendMessage(MessageType.WARN, "Usage: " + usage);
     }
 
+    /**
+     * In the context in which none of the sub-commands match, this method will be
+     * called if all arguments match the parameters.
+     * @param commandContext Context of the command
+     */
     public void onHelp(CommandContext commandContext) {
         List<String> messages = new ArrayList<>();
         for (ICommand command : this.subCommands.values()) {
@@ -111,6 +130,12 @@ public abstract class BaseCommand implements ICommand {
         commandContext.sendMessage(MessageType.INFO, messages);
     }
 
+    /**
+     * In the case of an internal exception, an error message will be output back to
+     * the executor.
+     * @param commandContext Context of the command
+     * @param throwable Error message output back to the executor
+     */
     public void onError(CommandContext commandContext, Throwable throwable) {
         commandContext.sendMessage(MessageType.ERROR, "Internal Exception: " + throwable.getClass().getName() + " - " + throwable.getMessage());
     }
@@ -233,25 +258,7 @@ public abstract class BaseCommand implements ICommand {
 
         for (Class<?> innerClasses : this.getClass().getDeclaredClasses()) {
             if (innerClasses.isAnnotationPresent(Command.class)) {
-                if (!BaseCommand.class.isAssignableFrom(innerClasses)) {
-                    throw new IllegalArgumentException("The class " + this.getClass() + " was annotated as @Command but wasn't extending BaseCommand.");
-                }
-
-                BaseCommand subCommand;
-                try {
-                    subCommand = (BaseCommand) innerClasses.getDeclaredConstructor().newInstance();
-                } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-                    throw new IllegalArgumentException("An exception got thrown while creating instance for " + innerClasses + " (Does it has no arg constructor?");
-                }
-
-                subCommand.parentCommand = this;
-                subCommand.init();
-
-                for (String commandName : subCommand.getCommandNames()) {
-                    this.subCommands.put(commandName.toLowerCase(), subCommand);
-                }
-                this.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), maxParameterCount);
-                this.requireInputParameterCount = Math.max(subCommand.getRequireInputParameterCount(), requireInputParameterCount);
+                this.initialiseSubCommand(innerClasses);
             }
         }
 
@@ -264,28 +271,50 @@ public abstract class BaseCommand implements ICommand {
             field.setAccessible(true);
             Arg arg = field.getAnnotation(Arg.class);
             if (arg != null) {
-                if (!ArgProperty.class.isAssignableFrom(field.getType())) {
-                    throw new IllegalArgumentException("Field " + field + " marked @Arg but not using type " + ArgProperty.class);
-                }
+                if (BaseCommand.class.isAssignableFrom(field.getType())) {
+                    this.initialiseSubCommand(field.getType());
+                } else if (ArgProperty.class.isAssignableFrom(field.getType())) {
+                    try {
+                        ArgProperty<?> property = (ArgProperty<?>) field.get(this);
 
-                try {
-                    ArgProperty<?> property = (ArgProperty<?>) field.get(this);
+                        argProperties.add(property);
+                        if (property.getMissingArgument() == null) {
+                            property.onMissingArgument(commandContext -> this.onArgumentMissing(commandContext, this.getUsage(commandContext)));
+                        }
 
-                    argProperties.add(property);
-                    if (property.getMissingArgument() == null) {
-                        property.onMissingArgument(commandContext -> this.onArgumentMissing(commandContext, this.getUsage(commandContext)));
+                        if (property.getUnknownArgument() == null) {
+                            property.onUnknownArgument(this::onArgumentFailed);
+                        }
+                    } catch (IllegalAccessException e) {
+                        throw new IllegalArgumentException("An exception got thrown while registering field arg " + field, e);
                     }
-
-                    if (property.getUnknownArgument() == null) {
-                        property.onUnknownArgument(this::onArgumentFailed);
-                    }
-                } catch (IllegalAccessException e) {
-                    throw new IllegalArgumentException("An exception got thrown while registering field arg " + field, e);
+                } else {
+                    throw new IllegalArgumentException("Field " + field + " marked @Arg but not using type " + ArgProperty.class + " or " + BaseCommand.class);
                 }
             }
         }
 
         this.baseArgs = argProperties.toArray(new ArgProperty[0]);
+    }
+
+    private void initialiseSubCommand(final Class<?> clazz) {
+        BaseCommand subCommand;
+        try {
+            Constructor<?> constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            subCommand = (BaseCommand) constructor.newInstance();
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+            throw new IllegalArgumentException("An exception got thrown while creating instance for " + clazz.getName() + " (Does it has no arg constructor?)", e);
+        }
+
+        subCommand.parentCommand = this;
+        subCommand.init();
+
+        for (String commandName : subCommand.getCommandNames()) {
+            this.subCommands.put(commandName.toLowerCase(), subCommand);
+        }
+        this.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), maxParameterCount);
+        this.requireInputParameterCount = Math.max(subCommand.getRequireInputParameterCount(), requireInputParameterCount);
     }
 
     @Override
