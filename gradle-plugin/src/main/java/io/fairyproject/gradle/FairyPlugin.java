@@ -87,7 +87,7 @@ public class FairyPlugin implements Plugin<Project> {
 
                     dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                     dependency.setTargetConfiguration("shadow");
-                    p.getDependencies().add("aspect", p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
+                    p.getDependencies().add("aspect", dependency);
                     p.getDependencies().add("compileOnly", dependency);
                     p.getDependencies().add("testImplementation", dependency);
 

@@ -25,12 +25,12 @@
 
 plugins {
 //    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0" apply false
-    id "com.github.johnrengelman.shadow" version "7.0.0" apply false
+    id "com.github.johnrengelman.shadow" version "7.1.2" apply false
     id "com.gradle.plugin-publish" version "0.14.0" apply false
 }
 
 // Core versioning
-version = "0.5.2b1"
+version = "0.5.2b2"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"

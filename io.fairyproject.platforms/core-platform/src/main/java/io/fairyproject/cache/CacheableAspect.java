@@ -59,7 +59,7 @@ import java.util.concurrent.*;
  * Provide key, evict and cache managers
  *
  */
-@Aspect
+//@Aspect
 public class CacheableAspect {
 
     public static final Logger LOGGER = LogManager.getLogger(CacheableAspect.class);

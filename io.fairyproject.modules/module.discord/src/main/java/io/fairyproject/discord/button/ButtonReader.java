@@ -15,6 +15,10 @@ public class ButtonReader {
         this.listening.put(id, consumer);
     }
 
+    public void removeAll(String id) {
+        this.listening.removeAll(id);
+    }
+
     public void handle(ButtonClickEvent event) {
         for (BiConsumer<User, ButtonInteraction> consumer : this.listening.get(event.getComponentId())) {
             consumer.accept(event.getUser(), event.getInteraction());

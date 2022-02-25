@@ -29,6 +29,10 @@ import org.intellij.lang.annotations.Language;
 import java.lang.annotation.*;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @deprecated see <a href="URL#https://github.com/FairyProject/fairy/issues/37">here</a>
+ */
+@Deprecated
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

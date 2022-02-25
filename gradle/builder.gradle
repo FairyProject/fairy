@@ -1,6 +1,3 @@
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
-
 apply plugin: "java-library"
 apply plugin: "com.github.johnrengelman.shadow"
 
@@ -15,23 +12,6 @@ test {
     useJUnitPlatform()
 }
 
-abstract class CopyJarToLocal extends DefaultTask {
-
-    @Input
-    String jarFrom
-    @Input
-    String jarTo
-
-    @TaskAction
-    void copy() {
-        new File(jarTo).getParentFile().mkdirs()
-        Files.copy(new File(jarFrom).toPath(), new File(jarTo).toPath(), StandardCopyOption.REPLACE_EXISTING)
-    }
-
-}
-
-
-
 // setup directory per version
 project.afterEvaluate(p -> {
     var directoryProperty = tasks.shadowJar.destinationDirectory
@@ -43,13 +23,16 @@ project.afterEvaluate(p -> {
     tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
     tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
 
-//    println rootProject.file("libs/local/${tasks.shadowJar.archiveFileName}").toPath().toString()
+    task copyJarToLocal(type: Copy) {
+        outputs.cacheIf { true }
 
-    def copyTask = tasks.create("copyJarToLocal", CopyJarToLocal)
-    copyTask.jarFrom = tasks.shadowJar.archiveFile.get().asFile.toPath().toString()
-    copyTask.jarTo = rootProject.file("libs/local/io.fairyproject.${tasks.shadowJar.archiveFileName.get()}").toPath().toString()
+        def file = tasks.shadowJar.archiveFile.get().asFile.toPath()
 
-    tasks.shadowJar.finalizedBy(copyTask)
+        from(file)
+        into(rootProject.file("libs/local"))
+        rename(file.getFileName().toString(), "io.fairyproject.${tasks.shadowJar.archiveFileName.get()}")
+    }
+    tasks.shadowJar.finalizedBy(copyJarToLocal)
 
     shadowJar {
         // XSeries
