@@ -173,9 +173,10 @@ public class MinecraftReflection {
             Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("server.network.PlayerConnection", "PlayerConnection");
             Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.NetworkManager", "NetworkManager");
 
-            MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper(OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer")
-                    .getDeclaredMethod("getHandle"));
-            MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper(entityHumanType.getMethod("getProfile"));
+            Class<?> craftPlayerType = OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer");
+
+            MinecraftReflection.PLAYER_GET_HANDLE = new MethodWrapper(craftPlayerType.getDeclaredMethod("getHandle"));
+            MinecraftReflection.PLAYER_GET_GAME_PROFILE = new MethodWrapper(craftPlayerType.getDeclaredMethod("getProfile"));
             MinecraftReflection.FIELD_PLAYER_CONNECTION = new FieldResolver(entityPlayerType)
                     .resolveByFirstTypeDynamic(playerConnectionType);
 
@@ -259,8 +260,7 @@ public class MinecraftReflection {
     }
 
     public static Object getGameProfile(Player player) {
-        Object entityPlayer = MinecraftReflection.PLAYER_GET_HANDLE.invoke(player);
-        return PLAYER_GET_GAME_PROFILE.invoke(entityPlayer);
+        return PLAYER_GET_GAME_PROFILE.invoke(player);
     }
 
     public static void sendPacket(Player player, Object packet) {
