@@ -1,0 +1,12 @@
+version = "0.0.1b1"
+
+dependencies {
+    compileOnly 'com.github.artemisac.artemis-packet-api:spigot:2.0.0-beta-2'
+    compileOnly 'com.github.retrooper:packetevents:' + findProperty("packetevents.v1.version")
+    compileOnly "io.netty:netty-all:" + findProperty("netty.version")
+    compileOnly project.spigot()
+}
+
+module {
+    depend("platform.mc:module.protocol:mc-protocol")
+}

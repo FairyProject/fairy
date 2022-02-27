@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.schematic.impl;
+package io.fairyproject.mc.schematic.schematic.impl;
 
 import com.google.common.base.Preconditions;
 import com.sk89q.worldedit.EditSession;
@@ -41,7 +41,7 @@ import com.sk89q.worldedit.regions.CuboidRegion;
 import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldedit.world.registry.WorldData;
-import io.fairyproject.bukkit.util.schematic.Schematic;
+import io.fairyproject.mc.schematic.schematic.Schematic;
 import io.fairyproject.mc.util.BlockPosition;
 import org.bukkit.Location;
 

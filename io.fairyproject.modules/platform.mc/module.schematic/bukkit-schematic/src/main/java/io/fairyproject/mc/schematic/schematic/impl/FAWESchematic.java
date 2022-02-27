@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.schematic.impl;
+package io.fairyproject.mc.schematic.schematic.impl;
 
 import com.google.common.base.Preconditions;
 import com.sk89q.worldedit.Vector;

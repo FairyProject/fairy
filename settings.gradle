@@ -51,11 +51,14 @@ void initModules() {
     include "io.fairyproject.modules:platform.mc:module.sidebar"
     include "io.fairyproject.modules:platform.mc:module.tablist"
     include "io.fairyproject.modules:platform.mc:module.bossbar:bukkit-bossbar"
+    include "io.fairyproject.modules:platform.mc:module.schematic:bukkit-schematic"
+    include "io.fairyproject.modules:platform.mc:module.nametag"
+    include "io.fairyproject.modules:platform.mc:module.protocol:mc-protocol"
+    include "io.fairyproject.modules:platform.mc:module.protocol:bukkit-protocol"
 
     include "io.fairyproject.modules:module.discord"
     include "io.fairyproject.modules:module.config"
 
-    include "io.fairyproject.modules:platform.mc:module.nametag"
 
     include "io.fairyproject.modules:module.command:core-command"
     include "io.fairyproject.modules:module.command:bukkit-command"

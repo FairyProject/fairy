@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.schematic;
+package io.fairyproject.mc.schematic.schematic;
 
 public enum SchematicType {
 

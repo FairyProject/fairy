@@ -22,15 +22,15 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.schematic;
+package io.fairyproject.mc.schematic.schematic;
 
+import io.fairyproject.mc.schematic.schematic.impl.FAWESchematic;
+import io.fairyproject.mc.schematic.schematic.impl.WorldEditSchematic;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
 import org.bukkit.World;
 import io.fairyproject.mc.util.BlockPosition;
-import io.fairyproject.bukkit.util.schematic.impl.FAWESchematic;
-import io.fairyproject.bukkit.util.schematic.impl.WorldEditSchematic;
 
 import java.io.File;
 import java.io.IOException;
