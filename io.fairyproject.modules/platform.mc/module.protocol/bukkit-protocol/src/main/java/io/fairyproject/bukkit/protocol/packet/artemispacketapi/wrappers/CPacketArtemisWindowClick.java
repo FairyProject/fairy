@@ -1,14 +1,14 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi.wrappers;
 
+import io.fairyproject.bukkit.protocol.packet.artemispacketapi.ArtemisPacketWrapper;
 import io.fairyproject.mc.protocol.netty.Channel;
 import io.fairyproject.mc.protocol.packet.client.CPacketWindowClick;
-import io.fairyproject.mc.protocol.spigot.packet.packetevents.PacketEventWrapper;
 import cc.ghast.packet.wrapper.packet.play.client.GPacketPlayClientWindowClick;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
-public class CPacketArtemisWindowClick extends PacketEventWrapper<GPacketPlayClientWindowClick> implements CPacketWindowClick {
+public class CPacketArtemisWindowClick extends ArtemisPacketWrapper<GPacketPlayClientWindowClick> implements CPacketWindowClick {
     public CPacketArtemisWindowClick(GPacketPlayClientWindowClick wrapper, Channel channel) {
         super(wrapper, channel);
     }
@@ -29,8 +29,8 @@ public class CPacketArtemisWindowClick extends PacketEventWrapper<GPacketPlayCli
     }
 
     @Override
-    public Optional<Short> getActionNumber() {
-        return Optional.of(wrapper.getActionNumber());
+    public Optional<Integer> getActionNumber() {
+        return Optional.of((int) wrapper.getActionNumber());
     }
 
     @Override

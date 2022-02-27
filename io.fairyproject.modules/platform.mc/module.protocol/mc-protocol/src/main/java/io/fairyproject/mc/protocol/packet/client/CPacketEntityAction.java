@@ -1,6 +1,6 @@
 package io.fairyproject.mc.protocol.packet.client;
 
-import io.fairyproject.mc.protocol.wrapper.mcp.ArtemisPlayerAction;
+import io.fairyproject.mc.mcp.PlayerAction;
 
 public interface CPacketEntityAction extends CPacket {
     /**
@@ -17,7 +17,7 @@ public interface CPacketEntityAction extends CPacket {
      * 8 -> START_FALL_FLYING
      * @return Returns the player action
      */
-    ArtemisPlayerAction getAction();
+    PlayerAction getAction();
 
     @Override
     default String getFancyName() {

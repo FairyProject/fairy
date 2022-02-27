@@ -1,8 +1,8 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers;
 
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventWrapper;
 import io.fairyproject.mc.protocol.netty.Channel;
 import io.fairyproject.mc.protocol.packet.client.CPacketWindowClick;
-import io.fairyproject.mc.protocol.spigot.packet.packetevents.PacketEventWrapper;
 import io.github.retrooper.packetevents.packetwrappers.play.in.windowclick.WrappedPacketInWindowClick;
 import org.bukkit.inventory.ItemStack;
 
@@ -29,8 +29,8 @@ public class CPacketEventsWindowClick extends PacketEventWrapper<WrappedPacketIn
     }
 
     @Override
-    public Optional<Short> getActionNumber() {
-        return wrapper.getActionNumber();
+    public Optional<Integer> getActionNumber() {
+        return Optional.of(wrapper.getActionNumber());
     }
 
     @Override

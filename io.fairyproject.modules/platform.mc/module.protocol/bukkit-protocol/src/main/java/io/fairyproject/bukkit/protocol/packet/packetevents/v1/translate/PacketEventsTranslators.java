@@ -1,14 +1,14 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate;
 
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.netty.PacketEventsChannel;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers.*;
+import io.fairyproject.mc.mcp.Direction;
+import io.fairyproject.mc.mcp.Hand;
+import io.fairyproject.mc.mcp.PlayerAction;
 import io.fairyproject.mc.protocol.packet.Packet;
 import io.fairyproject.mc.protocol.packet.translate.Translator;
-import io.fairyproject.mc.protocol.spigot.packet.packetevents.netty.PacketEventsChannel;
-import io.fairyproject.mc.protocol.spigot.packet.packetevents.wrappers.*;
-import io.fairyproject.mc.protocol.wrapper.mcp.ArtemisDirection;
-import io.fairyproject.mc.protocol.wrapper.mcp.ArtemisHand;
-import io.fairyproject.mc.protocol.wrapper.mcp.ArtemisPlayerAction;
-import io.fairyproject.mc.protocol.wrapper.vector.Vector3F;
-import io.fairyproject.mc.protocol.wrapper.vector.Vector3I;
+import io.fairyproject.mc.util.Vec3f;
+import io.fairyproject.mc.util.Vec3i;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -23,8 +23,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.setcreativeslot.W
 import io.github.retrooper.packetevents.packetwrappers.play.in.spectate.WrappedPacketInSpectate;
 import io.github.retrooper.packetevents.packetwrappers.play.in.tabcomplete.WrappedPacketInTabComplete;
 import io.github.retrooper.packetevents.packetwrappers.play.in.windowclick.WrappedPacketInWindowClick;
-import io.github.retrooper.packetevents.utils.player.Direction;
-import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import io.netty.channel.Channel;
@@ -110,38 +108,38 @@ public class PacketEventsTranslators {
         }
     };
     
-    public static final Translator<Hand, ArtemisHand> HAND = new Translator<Hand, ArtemisHand>() {
+    public static final Translator<io.github.retrooper.packetevents.utils.player.Hand, Hand> HAND = new Translator<io.github.retrooper.packetevents.utils.player.Hand, Hand>() {
         @Override
-        public ArtemisHand transform(Hand from) {
-            return ArtemisHand.values()[from.ordinal()];
+        public Hand transform(io.github.retrooper.packetevents.utils.player.Hand from) {
+            return Hand.values()[from.ordinal()];
         }
     };
 
-    public static final Translator<Direction, ArtemisDirection> DIRECTION = new Translator<Direction, ArtemisDirection>() {
+    public static final Translator<io.github.retrooper.packetevents.utils.player.Direction, Direction> DIRECTION = new Translator<io.github.retrooper.packetevents.utils.player.Direction, Direction>() {
         @Override
-        public ArtemisDirection transform(Direction from) {
-            return ArtemisDirection.getDirection(from.getFaceValue());
+        public Direction transform(io.github.retrooper.packetevents.utils.player.Direction from) {
+            return Direction.getDirection(from.getFaceValue());
         }
     };
 
-    public static final Translator<WrappedPacketInEntityAction.PlayerAction, ArtemisPlayerAction> PLAYER_ACTION = new Translator<WrappedPacketInEntityAction.PlayerAction, ArtemisPlayerAction>() {
+    public static final Translator<WrappedPacketInEntityAction.PlayerAction, PlayerAction> PLAYER_ACTION = new Translator<WrappedPacketInEntityAction.PlayerAction, PlayerAction>() {
         @Override
-        public ArtemisPlayerAction transform(WrappedPacketInEntityAction.PlayerAction from) {
-            return ArtemisPlayerAction.values()[from.ordinal()];
+        public PlayerAction transform(WrappedPacketInEntityAction.PlayerAction from) {
+            return PlayerAction.values()[from.ordinal()];
         }
     };
 
-    public static final Translator<Vector3f, Vector3F> VECTOR_3F = new Translator<Vector3f, Vector3F>() {
+    public static final Translator<Vector3f, Vec3f> VECTOR_3F = new Translator<Vector3f, Vec3f>() {
         @Override
-        public Vector3F transform(Vector3f from) {
-            return new Vector3F(from.getX(), from.getY(), from.getZ());
+        public Vec3f transform(Vector3f from) {
+            return new Vec3f(from.getX(), from.getY(), from.getZ());
         }
     };
 
-    public static final Translator<Vector3i, Vector3I> VECTOR_3I = new Translator<Vector3i, Vector3I>() {
+    public static final Translator<Vector3i, Vec3i> VECTOR_3I = new Translator<Vector3i, Vec3i>() {
         @Override
-        public Vector3I transform(Vector3i from) {
-            return new Vector3I(from.getX(), from.getY(), from.getZ());
+        public Vec3i transform(Vector3i from) {
+            return new Vec3i(from.getX(), from.getY(), from.getZ());
         }
     };
 }

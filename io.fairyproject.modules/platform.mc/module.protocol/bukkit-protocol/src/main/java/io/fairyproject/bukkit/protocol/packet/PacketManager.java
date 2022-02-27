@@ -1,51 +1,39 @@
 package io.fairyproject.bukkit.protocol.packet;
 
-import io.fairyproject.mc.protocol.check.Check;
-import io.fairyproject.mc.protocol.check.type.ByteBufCheck;
-import io.fairyproject.mc.protocol.check.type.PacketCheck;
-import io.fairyproject.mc.protocol.data.PlayerData;
-import io.fairyproject.mc.protocol.packet.LowLevelPacketListener;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventsProvider;
+import io.fairyproject.bukkit.protocol.provider.AbstractPacketProviderFactory;
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.protocol.netty.buffer.FairyByteBuf;
+import io.fairyproject.mc.protocol.packet.BufferListener;
 import io.fairyproject.mc.protocol.packet.Packet;
 import io.fairyproject.mc.protocol.packet.PacketListener;
 import io.fairyproject.mc.protocol.packet.PacketProvider;
-import io.fairyproject.mc.protocol.spigot.AntiCrash;
-import io.fairyproject.mc.protocol.spigot.manager.AbstractManager;
-import io.fairyproject.mc.protocol.wrapper.bytebuf.ArtemisByteBuf;
 import lombok.Getter;
 
-public class PacketManager extends AbstractManager {
+public class PacketManager {
     @Getter
     private PacketProvider provider;
 
-    public PacketManager(AntiCrash parent) {
-        super(parent);
-    }
-
-    @Override
     public void load() {
-        provider = new PacketProviderFactory()
+        provider = new AbstractPacketProviderFactory() {
+                @Override
+                public PacketProvider build() {
+                    this.verify();
+
+                    return new PacketEventsProvider(packetListener, lowLevelPacketListener);
+                }}
                 .setPacketListener(new PacketListener() {
                     @Override
-                    public boolean onPacket(PlayerData data, Packet packet) {
-                        for (Check check : data.getPacketChecks()) {
-                            final PacketCheck packetCheck = (PacketCheck) check;
-
-                            if (packetCheck.handle(packet))
-                                return true;
-                        }
+                    public boolean onPacket(MCPlayer data, Packet packet) {
+                        // TODO: Handle logic
 
                         return false;
                     }
                 })
-                .setLowLevelPacketListener(new LowLevelPacketListener() {
+                .setLowLevelPacketListener(new BufferListener() {
                     @Override
-                    public boolean handle(PlayerData data, ArtemisByteBuf byteBuf) {
-                        for (Check check : data.getPacketChecks()) {
-                            final ByteBufCheck byteBufCheck = (ByteBufCheck) check;
-
-                            if (byteBufCheck.handle(byteBuf))
-                                return true;
-                        }
+                    public boolean handle(MCPlayer data, FairyByteBuf byteBuf) {
+                        // TODO: Handle logic
 
                         return false;
                     }
@@ -55,12 +43,10 @@ public class PacketManager extends AbstractManager {
         provider.load();
     }
 
-    @Override
     public void init() {
         provider.init();
     }
 
-    @Override
     public void end() {
         provider.quit();
     }

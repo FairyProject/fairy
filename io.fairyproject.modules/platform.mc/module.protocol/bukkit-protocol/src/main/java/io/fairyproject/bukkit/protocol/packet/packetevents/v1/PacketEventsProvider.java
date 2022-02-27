@@ -1,10 +1,10 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1;
 
-import io.fairyproject.mc.protocol.data.PlayerData;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.injector.PacketEventsInjector;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate.PacketEventsTranslators;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.*;
-import io.fairyproject.mc.protocol.spigot.Access;
-import io.fairyproject.mc.protocol.spigot.packet.packetevents.injector.PacketEventsInjector;
-import io.fairyproject.mc.protocol.spigot.packet.packetevents.translate.PacketEventsTranslators;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.annotation.PacketHandler;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -12,14 +12,14 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
 import java.util.UUID;
 
-public class PacketEventsProvider extends PacketProvider implements Access {
-    public PacketEventsProvider(PacketListener highListener, LowLevelPacketListener lowListener) {
+public class PacketEventsProvider extends PacketProvider {
+    public PacketEventsProvider(PacketListener highListener, BufferListener lowListener) {
         super(highListener, lowListener, new PacketEventsInjector());
     }
 
     @Override
     public void load() {
-        PacketEvents.create(plugin());
+        PacketEvents.create(FairyBukkitPlatform.PLUGIN);
         PacketEvents.get().getSettings()
                 .compatInjector(false)
                 .checkForUpdates(false)
@@ -35,7 +35,7 @@ public class PacketEventsProvider extends PacketProvider implements Access {
         PacketEvents.get().getEventManager().registerListener(new io.github.retrooper.packetevents.event.PacketListener() {
             @PacketHandler
             private void handle(PacketPlayReceiveEvent packetPlayReceiveEvent) {
-                final PlayerData data = playerDataManager().get(packetPlayReceiveEvent.getPlayer().getUniqueId());
+                final MCPlayer data = MCPlayer.find(packetPlayReceiveEvent.getPlayer().getUniqueId());
 
                 if (data == null) {
                     return;
@@ -65,7 +65,7 @@ public class PacketEventsProvider extends PacketProvider implements Access {
     }
 
     @Override
-    public void inject(PlayerData data) {
-        injectQueue.add(data.getUuid());
+    public void inject(MCPlayer data) {
+        injectQueue.add(data.getUUID());
     }
 }

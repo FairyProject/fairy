@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate;
 
+import io.fairyproject.bukkit.protocol.packet.artemispacketapi.netty.ArtemisChannel;
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.wrappers.*;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v1.netty.PacketEventsChannel;
 import io.fairyproject.mc.mcp.Direction;
 import io.fairyproject.mc.mcp.Hand;
 import io.fairyproject.mc.mcp.PlayerAction;
@@ -16,7 +16,7 @@ import cc.ghast.packet.wrapper.bukkit.BlockPosition;
 import cc.ghast.packet.wrapper.bukkit.Vector3D;
 import cc.ghast.packet.wrapper.mc.PlayerEnums;
 import cc.ghast.packet.wrapper.packet.play.client.*;
-import io.fairyproject.mc.util.Vec3d;
+import io.fairyproject.mc.util.Vec3f;
 import io.fairyproject.mc.util.Vec3i;
 import io.netty.channel.Channel;
 import lombok.experimental.UtilityClass;
@@ -28,10 +28,10 @@ import java.util.function.Function;
 
 @UtilityClass
 public class ArtemisPacketTranslators {
-    public final Translator<Channel, PacketEventsChannel> CHANNEL = new Translator<Channel, PacketEventsChannel>() {
+    public final Translator<Channel, ArtemisChannel> CHANNEL = new Translator<Channel, ArtemisChannel>() {
         @Override
-        public PacketEventsChannel transform(Channel from) {
-            return new PacketEventsChannel(from);
+        public ArtemisChannel transform(Channel from) {
+            return new ArtemisChannel(from);
         }
     };
 
@@ -164,10 +164,11 @@ public class ArtemisPacketTranslators {
         }
     };
 
-    public final Translator<Vector3D, Vec3d> VECTOR_3D = new Translator<Vector3D, Vec3d>() {
+    public final Translator<Vector3D, Vec3f> VECTOR_3D = new Translator<Vector3D, Vec3f>() {
         @Override
-        public Vec3d transform(Vector3D from) {
-            return new Vec3d(from.getX(), from.getY(), from.getZ());
+        public Vec3f transform(Vector3D from) {
+            // Don't question it, I'm (Ghast) brutally incompetent
+            return new Vec3f(from.getX(), from.getY(), from.getZ());
         }
     };
 

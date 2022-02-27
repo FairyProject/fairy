@@ -1,13 +1,13 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi;
 
-import io.fairyproject.mc.protocol.data.PlayerData;
-import io.fairyproject.mc.protocol.packet.LowLevelPacketListener;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslators;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.injector.PacketEventsInjector;
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.protocol.packet.BufferListener;
 import io.fairyproject.mc.protocol.packet.Packet;
 import io.fairyproject.mc.protocol.packet.PacketListener;
 import io.fairyproject.mc.protocol.packet.PacketProvider;
-import io.fairyproject.mc.protocol.spigot.Access;
-import io.fairyproject.mc.protocol.spigot.packet.artemispacketapi.translate.ArtemisPacketTranslators;
-import io.fairyproject.mc.protocol.spigot.packet.packetevents.injector.PacketEventsInjector;
 import ac.artemis.packet.profile.Profile;
 import ac.artemis.packet.spigot.wrappers.GPacket;
 import cc.ghast.packet.PacketAPI;
@@ -16,8 +16,8 @@ import cc.ghast.packet.utils.Pair;
 
 import java.util.UUID;
 
-public class PacketArtemisProvider extends PacketProvider implements Access {
-    public PacketArtemisProvider(PacketListener highListener, LowLevelPacketListener lowListener) {
+public class PacketArtemisProvider extends PacketProvider  {
+    public PacketArtemisProvider(PacketListener highListener, BufferListener lowListener) {
         super(highListener, lowListener, new PacketEventsInjector());
     }
 
@@ -29,13 +29,13 @@ public class PacketArtemisProvider extends PacketProvider implements Access {
     @Override
     public void init() {
         if (PacketManager.INSTANCE.getApi() == null) {
-            PacketManager.INSTANCE.init(plugin());
+            PacketManager.INSTANCE.init(FairyBukkitPlatform.PLUGIN);
         }
 
         PacketAPI.addListener(new ac.artemis.packet.PacketListener() {
             @Override
             public void onPacket(Profile profile, ac.artemis.packet.wrapper.Packet wrapper) {
-                final PlayerData data = playerDataManager().get(profile.getUuid());
+                final MCPlayer data = MCPlayer.find(profile.getUuid());
 
                 if (data == null) {
                     return;
@@ -65,7 +65,7 @@ public class PacketArtemisProvider extends PacketProvider implements Access {
     }
 
     @Override
-    public void inject(PlayerData data) {
-        injectQueue.add(data.getUuid());
+    public void inject(MCPlayer data) {
+        injectQueue.add(data.getUUID());
     }
 }

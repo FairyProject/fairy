@@ -1,12 +1,12 @@
-package io.fairyproject.bukkit.protocol.packet.packetevents.v1.netty;
+package io.fairyproject.bukkit.protocol.packet.artemispacketapi.netty;
 
+import cc.ghast.packet.wrapper.netty.MutableByteBuf;
 import io.fairyproject.mc.protocol.netty.buffer.FairyByteBuf;
-import io.netty.buffer.ByteBuf;
 
-public class PacketEventsBuffer implements FairyByteBuf {
-    private final ByteBuf byteBuf;
+public class ArtemisBuffer implements FairyByteBuf {
+    private final MutableByteBuf byteBuf;
 
-    public PacketEventsBuffer(ByteBuf byteBuf) {
+    public ArtemisBuffer(MutableByteBuf byteBuf) {
         this.byteBuf = byteBuf;
     }
 

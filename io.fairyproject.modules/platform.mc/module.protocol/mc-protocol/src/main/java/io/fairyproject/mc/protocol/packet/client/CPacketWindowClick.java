@@ -9,7 +9,7 @@ public interface CPacketWindowClick extends CPacket {
 
     int getWindowButton();
 
-    Optional<Short> getActionNumber();
+    Optional<Integer> getActionNumber();
 
     int getMode();
 
