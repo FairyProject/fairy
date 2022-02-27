@@ -1,13 +1,13 @@
 package io.fairyproject.bukkit.protocol.packet;
 
-import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventsProvider;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventsV1Provider;
 import io.fairyproject.bukkit.protocol.provider.AbstractPacketProviderFactory;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.netty.buffer.FairyByteBuf;
-import io.fairyproject.mc.protocol.packet.BufferListener;
+import io.fairyproject.mc.protocol.InternalBufferListener;
 import io.fairyproject.mc.protocol.packet.Packet;
-import io.fairyproject.mc.protocol.packet.PacketListener;
-import io.fairyproject.mc.protocol.packet.PacketProvider;
+import io.fairyproject.mc.protocol.InternalPacketListener;
+import io.fairyproject.mc.protocol.PacketProvider;
 import lombok.Getter;
 
 public class PacketManager {
@@ -20,9 +20,9 @@ public class PacketManager {
                 public PacketProvider build() {
                     this.verify();
 
-                    return new PacketEventsProvider(packetListener, lowLevelPacketListener);
+                    return new PacketEventsV1Provider(packetListener, lowLevelPacketListener);
                 }}
-                .setPacketListener(new PacketListener() {
+                .setPacketListener(new InternalPacketListener() {
                     @Override
                     public boolean onPacket(MCPlayer data, Packet packet) {
                         // TODO: Handle logic
@@ -30,7 +30,7 @@ public class PacketManager {
                         return false;
                     }
                 })
-                .setLowLevelPacketListener(new BufferListener() {
+                .setLowLevelPacketListener(new InternalBufferListener() {
                     @Override
                     public boolean handle(MCPlayer data, FairyByteBuf byteBuf) {
                         // TODO: Handle logic

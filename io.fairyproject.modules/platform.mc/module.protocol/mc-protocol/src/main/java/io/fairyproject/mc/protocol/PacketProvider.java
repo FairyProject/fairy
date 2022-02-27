@@ -1,4 +1,4 @@
-package io.fairyproject.mc.protocol.packet;
+package io.fairyproject.mc.protocol;
 
 import io.fairyproject.mc.MCPlayer;
 
@@ -6,12 +6,12 @@ import java.util.HashSet;
 import java.util.UUID;
 
 public abstract class PacketProvider {
-    protected final PacketListener highListener;
-    protected final BufferListener lowListener;
+    protected final InternalPacketListener highListener;
+    protected final InternalBufferListener lowListener;
     protected final PacketInjector injector;
     protected final InjectQueue injectQueue;
 
-    public PacketProvider(PacketListener highListener, BufferListener lowListener, PacketInjector injector) {
+    public PacketProvider(InternalPacketListener highListener, InternalBufferListener lowListener, PacketInjector injector) {
         this.highListener = highListener;
         this.lowListener = lowListener;
         this.injector = injector;

@@ -5,8 +5,9 @@ import io.fairyproject.bukkit.protocol.packet.artemispacketapi.wrappers.*;
 import io.fairyproject.mc.mcp.Direction;
 import io.fairyproject.mc.mcp.Hand;
 import io.fairyproject.mc.mcp.PlayerAction;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.Packet;
-import io.fairyproject.mc.protocol.packet.translate.Translator;
+import io.fairyproject.mc.protocol.translate.Translator;
 import ac.artemis.packet.profile.Profile;
 import ac.artemis.packet.spigot.wrappers.GPacket;
 import cc.ghast.packet.nms.EnumDirection;
@@ -18,7 +19,6 @@ import cc.ghast.packet.wrapper.mc.PlayerEnums;
 import cc.ghast.packet.wrapper.packet.play.client.*;
 import io.fairyproject.mc.util.Vec3f;
 import io.fairyproject.mc.util.Vec3i;
-import io.netty.channel.Channel;
 import lombok.experimental.UtilityClass;
 
 import java.util.HashMap;
@@ -27,9 +27,9 @@ import java.util.function.Function;
 
 @UtilityClass
 public class ArtemisPacketTranslationHelper {
-    public final Translator<Channel, ArtemisChannel> CHANNEL = new Translator<Channel, ArtemisChannel>() {
+    public final Translator<io.netty.channel.Channel, ArtemisChannel> CHANNEL = new Translator<io.netty.channel.Channel, ArtemisChannel>() {
         @Override
-        public ArtemisChannel transform(Channel from) {
+        public ArtemisChannel transform(io.netty.channel.Channel from) {
             return new ArtemisChannel(from);
         }
     };
@@ -39,79 +39,79 @@ public class ArtemisPacketTranslationHelper {
     void initPacket() {
         packetTranslatorMap.put(GPacketPlayClientAbilities.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel channel) {
+            public Packet createPacket(GPacket wrapper, MCPlayer channel) {
                 return new CPacketArtemisAbilities((GPacketPlayClientAbilities) wrapper, channel);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientBlockPlace.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisBlockPlace((GPacketPlayClientBlockPlace) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientChat.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisChat((GPacketPlayClientChat) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientCustomPayload.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisCustomPayload((GPacketPlayClientCustomPayload) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientEntityAction.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisEntityAction((GPacketPlayClientEntityAction) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientFlying.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisFlying((GPacketPlayClientFlying) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientHeldItemSlot.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisHeldItemSlot((GPacketPlayClientHeldItemSlot) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientPosition.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisHeldItemSlot((GPacketPlayClientHeldItemSlot) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientPositionLook.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisPositionRotation((GPacketPlayClientPositionLook) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientLook.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisRotation((GPacketPlayClientLook) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientSetCreativeSlot.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisSetCreativeSlot((GPacketPlayClientSetCreativeSlot) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientSpectate.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisSpectate((GPacketPlayClientSpectate) wrapper, profile);
             }
         });
         packetTranslatorMap.put(GPacketPlayClientWindowClick.class, new TranslatorFunction<GPacket>() {
             @Override
-            public Packet createPacket(GPacket wrapper, io.fairyproject.mc.protocol.netty.Channel profile) {
+            public Packet createPacket(GPacket wrapper, Channel profile) {
                 return new CPacketArtemisWindowClick((GPacketPlayClientWindowClick) wrapper, profile);
             }
         });
@@ -121,10 +121,10 @@ public class ArtemisPacketTranslationHelper {
         @Override
         default Packet apply(Pair<Profile, T> profilePair) {
             final ArtemisProfile profile = (ArtemisProfile) profilePair.getK();
-            return createPacket(profilePair.getV(), CHANNEL.transform((Channel) profile.getChannel()));
+            return createPacket(profilePair.getV(), CHANNEL.transform((io.netty.channel.Channel) profile.getChannel()));
         }
 
-        Packet createPacket(final T wrapper, final io.fairyproject.mc.protocol.netty.Channel channel);
+        Packet createPacket(final T wrapper, final Channel channel);
     }
 
     public final Translator<Pair<Profile, GPacket>, Packet> PACKET = new Translator<Pair<Profile, GPacket>, Packet>() {

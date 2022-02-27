@@ -4,6 +4,9 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.injector.PacketEventsInjector;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.protocol.InternalBufferListener;
+import io.fairyproject.mc.protocol.InternalPacketListener;
+import io.fairyproject.mc.protocol.PacketProvider;
 import io.fairyproject.mc.protocol.packet.*;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.annotation.PacketHandler;
@@ -12,8 +15,8 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
 import java.util.UUID;
 
-public class PacketEventsProvider extends PacketProvider {
-    public PacketEventsProvider(PacketListener highListener, BufferListener lowListener) {
+public class PacketEventsV1Provider extends PacketProvider {
+    public PacketEventsV1Provider(InternalPacketListener highListener, InternalBufferListener lowListener) {
         super(highListener, lowListener, new PacketEventsInjector());
     }
 
@@ -49,7 +52,7 @@ public class PacketEventsProvider extends PacketProvider {
                 final UUID uuid = packetPlayReceiveEvent.getPlayer().getUniqueId();
 
                 if (!injectQueue.isEmpty() && injectQueue.contains(uuid)) {
-                    injector.inject(data, packet.getChannel(), lowListener);
+                    injector.inject(data, packet.getPlayer(), lowListener);
                     injectQueue.remove(uuid);
                 }
 

@@ -5,15 +5,15 @@ import io.fairyproject.bukkit.protocol.packet.packetevents.v1.netty.PacketEvents
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.netty.Channel;
 import io.fairyproject.mc.protocol.netty.buffer.FairyByteBuf;
-import io.fairyproject.mc.protocol.packet.BufferListener;
-import io.fairyproject.mc.protocol.packet.PacketInjector;
+import io.fairyproject.mc.protocol.InternalBufferListener;
+import io.fairyproject.mc.protocol.PacketInjector;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 public class PacketEventsInjector implements PacketInjector {
     @Override
-    public void inject(MCPlayer data, Channel channel, BufferListener packetListener) {
+    public void inject(MCPlayer data, Channel channel, InternalBufferListener packetListener) {
         final boolean instance = channel instanceof PacketEventsChannel;
 
         if (!instance) {

@@ -9,7 +9,7 @@ import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.mcp.Direction;
 import io.fairyproject.mc.mcp.Hand;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketBlockPlace;
 import io.fairyproject.mc.util.Vec3f;
 import io.fairyproject.mc.util.Vec3i;
@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 
 public final class CPacketEventsBlockPlace extends PacketEventWrapper<WrapperPlayClientPlayerBlockPlacement> implements CPacketBlockPlace {
-    public CPacketEventsBlockPlace(WrapperPlayClientPlayerBlockPlacement wrapper, Channel channel) {
+    public CPacketEventsBlockPlace(WrapperPlayClientPlayerBlockPlacement wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

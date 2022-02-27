@@ -1,6 +1,6 @@
 package io.fairyproject.mc.protocol.packet;
 
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 
 public interface Packet {
     /**
@@ -11,9 +11,9 @@ public interface Packet {
     String getFancyName();
 
     /**
-     * Returns the Channel of which the packet is provided from. This is most usually
-     * going to be as the format of a Netty channel.
-     * @return Channel object of the packet
+     * Returns the Player of which the packet is provided from. This is most usually
+     * going to be as the format of a MCPlayer.
+     * @return MCPlayer object of the packet
      */
-    Channel getChannel();
+    MCPlayer getPlayer();
 }

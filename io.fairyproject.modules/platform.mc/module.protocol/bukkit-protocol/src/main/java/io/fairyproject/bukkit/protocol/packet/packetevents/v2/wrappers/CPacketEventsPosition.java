@@ -2,11 +2,11 @@ package io.fairyproject.bukkit.protocol.packet.packetevents.v2.wrappers;
 
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketPosition;
 
 public class CPacketEventsPosition extends PacketEventWrapper<WrapperPlayClientPlayerPosition> implements CPacketPosition {
-    public CPacketEventsPosition(WrapperPlayClientPlayerPosition wrapper, Channel channel) {
+    public CPacketEventsPosition(WrapperPlayClientPlayerPosition wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

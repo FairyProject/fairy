@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventWrapper;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketWindowClick;
 import io.github.retrooper.packetevents.packetwrappers.play.in.windowclick.WrappedPacketInWindowClick;
 import org.bukkit.inventory.ItemStack;
@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 
 public class CPacketEventsWindowClick extends PacketEventWrapper<WrappedPacketInWindowClick> implements CPacketWindowClick {
-    public CPacketEventsWindowClick(WrappedPacketInWindowClick wrapper, Channel channel) {
+    public CPacketEventsWindowClick(WrappedPacketInWindowClick wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

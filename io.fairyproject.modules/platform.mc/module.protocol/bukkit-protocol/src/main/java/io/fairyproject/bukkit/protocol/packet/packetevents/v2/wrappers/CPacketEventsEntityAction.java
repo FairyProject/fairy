@@ -4,11 +4,11 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.mcp.PlayerAction;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketEntityAction;
 
 public class CPacketEventsEntityAction extends PacketEventWrapper<WrapperPlayClientEntityAction> implements CPacketEntityAction {
-    public CPacketEventsEntityAction(WrapperPlayClientEntityAction wrapper, Channel channel) {
+    public CPacketEventsEntityAction(WrapperPlayClientEntityAction wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

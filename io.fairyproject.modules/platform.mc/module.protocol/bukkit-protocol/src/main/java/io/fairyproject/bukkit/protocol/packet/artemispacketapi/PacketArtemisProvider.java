@@ -4,10 +4,10 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslationHelper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.injector.PacketEventsInjector;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.packet.BufferListener;
+import io.fairyproject.mc.protocol.InternalBufferListener;
 import io.fairyproject.mc.protocol.packet.Packet;
-import io.fairyproject.mc.protocol.packet.PacketListener;
-import io.fairyproject.mc.protocol.packet.PacketProvider;
+import io.fairyproject.mc.protocol.InternalPacketListener;
+import io.fairyproject.mc.protocol.PacketProvider;
 import ac.artemis.packet.profile.Profile;
 import ac.artemis.packet.spigot.wrappers.GPacket;
 import cc.ghast.packet.PacketAPI;
@@ -17,7 +17,7 @@ import cc.ghast.packet.utils.Pair;
 import java.util.UUID;
 
 public class PacketArtemisProvider extends PacketProvider  {
-    public PacketArtemisProvider(PacketListener highListener, BufferListener lowListener) {
+    public PacketArtemisProvider(InternalPacketListener highListener, InternalBufferListener lowListener) {
         super(highListener, lowListener, new PacketEventsInjector());
     }
 
@@ -49,7 +49,7 @@ public class PacketArtemisProvider extends PacketProvider  {
                 final UUID uuid = profile.getUuid();
 
                 if (!injectQueue.isEmpty() && injectQueue.contains(uuid)) {
-                    injector.inject(data, packet.getChannel(), lowListener);
+                    injector.inject(data, packet.getPlayer(), lowListener);
                     injectQueue.remove(uuid);
                 }
 

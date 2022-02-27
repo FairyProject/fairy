@@ -1,14 +1,14 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventWrapper;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketAbilities;
 import io.github.retrooper.packetevents.packetwrappers.play.in.abilities.WrappedPacketInAbilities;
 
 import java.util.Optional;
 
 public class CPacketEventsAbilities extends PacketEventWrapper<WrappedPacketInAbilities> implements CPacketAbilities {
-    public CPacketEventsAbilities(WrappedPacketInAbilities wrapper, Channel channel) {
+    public CPacketEventsAbilities(WrappedPacketInAbilities wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

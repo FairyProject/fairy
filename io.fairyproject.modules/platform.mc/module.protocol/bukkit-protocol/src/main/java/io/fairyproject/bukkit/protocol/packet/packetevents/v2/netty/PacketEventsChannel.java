@@ -1,6 +1,6 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v2.netty;
 
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 
 public class PacketEventsChannel implements Channel {
     private final io.netty.channel.Channel channel;

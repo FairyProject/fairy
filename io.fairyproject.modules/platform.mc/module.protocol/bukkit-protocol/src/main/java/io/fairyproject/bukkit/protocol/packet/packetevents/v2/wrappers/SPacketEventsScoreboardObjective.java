@@ -8,14 +8,14 @@ import io.fairyproject.mc.mcp.ObjectiveActionType;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.item.ObjectiveRenderType;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.server.SPacketScoreboardObjective;
 import net.kyori.adventure.text.Component;
 
 import java.util.Optional;
 
 public class SPacketEventsScoreboardObjective extends PacketEventWrapper<WrapperPlayServerScoreboardObjective> implements SPacketScoreboardObjective {
-    public SPacketEventsScoreboardObjective(WrapperPlayServerScoreboardObjective wrapper, Channel channel) {
+    public SPacketEventsScoreboardObjective(WrapperPlayServerScoreboardObjective wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

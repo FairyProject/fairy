@@ -1,14 +1,14 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.ArtemisPacketWrapper;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketAbilities;
 import cc.ghast.packet.wrapper.packet.play.client.GPacketPlayClientAbilities;
 
 import java.util.Optional;
 
 public class CPacketArtemisAbilities extends ArtemisPacketWrapper<GPacketPlayClientAbilities> implements CPacketAbilities {
-    public CPacketArtemisAbilities(GPacketPlayClientAbilities wrapper, Channel channel) {
+    public CPacketArtemisAbilities(GPacketPlayClientAbilities wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

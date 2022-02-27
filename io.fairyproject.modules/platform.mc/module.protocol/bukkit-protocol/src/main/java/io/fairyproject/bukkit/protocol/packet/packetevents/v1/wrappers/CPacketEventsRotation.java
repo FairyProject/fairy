@@ -1,12 +1,12 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventWrapper;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketRotation;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 
 public class CPacketEventsRotation extends PacketEventWrapper<WrappedPacketInFlying> implements CPacketRotation {
-    public CPacketEventsRotation(WrappedPacketInFlying wrapper, Channel channel) {
+    public CPacketEventsRotation(WrappedPacketInFlying wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

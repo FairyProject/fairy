@@ -5,11 +5,12 @@ import io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers.*;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventWrapper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers.CPacketEventsRotation;
 import io.fairyproject.bukkit.reflection.wrapper.ConstructorWrapper;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.mcp.Direction;
 import io.fairyproject.mc.mcp.Hand;
 import io.fairyproject.mc.mcp.PlayerAction;
 import io.fairyproject.mc.protocol.packet.Packet;
-import io.fairyproject.mc.protocol.packet.translate.Translator;
+import io.fairyproject.mc.protocol.translate.Translator;
 import io.fairyproject.mc.util.Vec3f;
 import io.fairyproject.mc.util.Vec3i;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -19,7 +20,6 @@ import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.in.entityaction.WrappedPacketInEntityAction;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import io.netty.channel.Channel;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 
@@ -30,9 +30,9 @@ import java.util.Map;
 
 @UtilityClass
 public class PacketEventsTranslationHelper {
-    public final Translator<Channel, PacketEventsChannel> CHANNEL = new Translator<Channel, PacketEventsChannel>() {
+    public final Translator<io.netty.channel.Channel, PacketEventsChannel> CHANNEL = new Translator<io.netty.channel.Channel, PacketEventsChannel>() {
         @Override
-        public PacketEventsChannel transform(Channel from) {
+        public PacketEventsChannel transform(io.netty.channel.Channel from) {
             return new PacketEventsChannel(from);
         }
     };
@@ -54,7 +54,7 @@ public class PacketEventsTranslationHelper {
 
             Constructor<W> _wrapperConstructor;
             try {
-                _wrapperConstructor = wrapperClass.getDeclaredConstructor(typeClass, io.fairyproject.mc.protocol.netty.Channel.class);
+                _wrapperConstructor = wrapperClass.getDeclaredConstructor(typeClass, MCPlayer.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Failed to create generator", e);
             }
@@ -62,9 +62,9 @@ public class PacketEventsTranslationHelper {
 
         }
 
-        public W build(final NMSPacket event, final io.fairyproject.mc.protocol.netty.Channel channel) {
+        public W build(final NMSPacket event, final MCPlayer player) {
             final T instance = typeConstructor.newInstance(event);
-            return wrapperConstructor.newInstance(instance, channel);
+            return wrapperConstructor.newInstance(instance, player);
         }
 
         static <T, W extends PacketEventWrapper<T>> PacketEventsTranslationHelper.PacketGenerator<T, W> create(Class<W> wrapperClass) {
@@ -97,14 +97,13 @@ public class PacketEventsTranslationHelper {
             val channel = (io.netty.channel.Channel) PacketEvents.get().getPlayerUtils().getChannel(player);
             val packetId = from.getPacketId();
 
-            final PacketEventsChannel changedChannel = CHANNEL.transform(channel);
             final PacketEventsTranslationHelper.PacketGenerator<?, ?> generator = generators.get(packetId);
 
             if (generator == null) {
                 return null;
             }
 
-            return generator.build(from.getNMSPacket(), changedChannel);
+            return generator.build(from.getNMSPacket(), MCPlayer.from(player));
         }
     };
     

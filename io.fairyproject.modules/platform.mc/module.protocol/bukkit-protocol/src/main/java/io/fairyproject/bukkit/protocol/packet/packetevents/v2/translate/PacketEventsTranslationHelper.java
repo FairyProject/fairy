@@ -22,10 +22,10 @@ import io.fairyproject.mc.mcp.Hand;
 import io.fairyproject.mc.mcp.ObjectiveActionType;
 import io.fairyproject.mc.mcp.PlayerAction;
 import io.fairyproject.mc.protocol.item.ObjectiveRenderType;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.Packet;
 import io.fairyproject.mc.protocol.packet.client.CPacket;
-import io.fairyproject.mc.protocol.packet.translate.Translator;
+import io.fairyproject.mc.protocol.translate.Translator;
 import io.fairyproject.mc.util.Vec3f;
 import io.fairyproject.mc.util.Vec3i;
 import lombok.experimental.UtilityClass;
@@ -62,7 +62,7 @@ public class PacketEventsTranslationHelper {
 
             Constructor<W> _wrapperConstructor;
             try {
-                _wrapperConstructor = wrapperClass.getDeclaredConstructor(typeClass, io.fairyproject.mc.protocol.netty.Channel.class);
+                _wrapperConstructor = wrapperClass.getDeclaredConstructor(typeClass, MCPlayer.class);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Failed to create generator", e);
             }
@@ -70,7 +70,7 @@ public class PacketEventsTranslationHelper {
 
         }
 
-        public W build(final PacketEvent event, final Channel channel) {
+        public W build(final PacketEvent event, final MCPlayer channel) {
             final T instance = typeConstructor.newInstance(event);
             return wrapperConstructor.newInstance(instance, channel);
         }
@@ -104,17 +104,15 @@ public class PacketEventsTranslationHelper {
         @Override
         public Packet transform(PacketPlayReceiveEvent from) {
             val player = from.getPlayer();
-            val channel = (io.netty.channel.Channel) PacketEvents.getAPI().getPlayerManager().getChannel(player);
             val packetId = from.getPacketType();
 
-            final PacketEventsChannel changedChannel = CHANNEL.transform(channel);
             final PacketGenerator<?, ?> generator = generators.get(packetId);
 
             if (generator == null) {
                 return null;
             }
 
-            return generator.build(from, changedChannel);
+            return generator.build(from, MCPlayer.from(player));
         }
     };
     

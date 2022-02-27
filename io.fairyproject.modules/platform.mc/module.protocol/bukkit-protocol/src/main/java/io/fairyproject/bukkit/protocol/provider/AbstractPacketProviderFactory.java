@@ -1,20 +1,20 @@
 package io.fairyproject.bukkit.protocol.provider;
 
-import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventsProvider;
-import io.fairyproject.mc.protocol.packet.BufferListener;
-import io.fairyproject.mc.protocol.packet.PacketListener;
-import io.fairyproject.mc.protocol.packet.PacketProvider;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventsV1Provider;
+import io.fairyproject.mc.protocol.InternalBufferListener;
+import io.fairyproject.mc.protocol.InternalPacketListener;
+import io.fairyproject.mc.protocol.PacketProvider;
 
 public abstract class AbstractPacketProviderFactory {
-    protected PacketListener packetListener;
-    protected BufferListener lowLevelPacketListener;
+    protected InternalPacketListener packetListener;
+    protected InternalBufferListener lowLevelPacketListener;
 
-    public AbstractPacketProviderFactory setPacketListener(PacketListener packetListener) {
+    public AbstractPacketProviderFactory setPacketListener(InternalPacketListener packetListener) {
         this.packetListener = packetListener;
         return this;
     }
 
-    public AbstractPacketProviderFactory setLowLevelPacketListener(BufferListener lowLevelPacketListener) {
+    public AbstractPacketProviderFactory setLowLevelPacketListener(InternalBufferListener lowLevelPacketListener) {
         this.lowLevelPacketListener = lowLevelPacketListener;
         return this;
     }
@@ -27,6 +27,6 @@ public abstract class AbstractPacketProviderFactory {
     public PacketProvider build() {
         this.verify();
 
-        return new PacketEventsProvider(packetListener, lowLevelPacketListener);
+        return new PacketEventsV1Provider(packetListener, lowLevelPacketListener);
     }
 }

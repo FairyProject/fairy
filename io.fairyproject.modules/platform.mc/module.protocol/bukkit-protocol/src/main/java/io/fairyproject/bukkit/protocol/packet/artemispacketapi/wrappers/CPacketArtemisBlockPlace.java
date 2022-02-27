@@ -4,7 +4,7 @@ import io.fairyproject.bukkit.protocol.packet.artemispacketapi.ArtemisPacketWrap
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslationHelper;
 import io.fairyproject.mc.mcp.Direction;
 import io.fairyproject.mc.mcp.Hand;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketBlockPlace;
 import cc.ghast.packet.nms.EnumDirection;
 import cc.ghast.packet.wrapper.bukkit.BlockPosition;
@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 
 public final class CPacketArtemisBlockPlace extends ArtemisPacketWrapper<GPacketPlayClientBlockPlace> implements CPacketBlockPlace {
-    public CPacketArtemisBlockPlace(GPacketPlayClientBlockPlace wrapper, Channel channel) {
+    public CPacketArtemisBlockPlace(GPacketPlayClientBlockPlace wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

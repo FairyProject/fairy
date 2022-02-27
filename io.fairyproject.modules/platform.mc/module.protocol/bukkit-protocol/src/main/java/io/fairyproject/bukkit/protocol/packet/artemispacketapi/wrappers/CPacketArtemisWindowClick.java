@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.ArtemisPacketWrapper;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketWindowClick;
 import cc.ghast.packet.wrapper.packet.play.client.GPacketPlayClientWindowClick;
 import org.bukkit.inventory.ItemStack;
@@ -9,7 +9,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Optional;
 
 public class CPacketArtemisWindowClick extends ArtemisPacketWrapper<GPacketPlayClientWindowClick> implements CPacketWindowClick {
-    public CPacketArtemisWindowClick(GPacketPlayClientWindowClick wrapper, Channel channel) {
+    public CPacketArtemisWindowClick(GPacketPlayClientWindowClick wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 

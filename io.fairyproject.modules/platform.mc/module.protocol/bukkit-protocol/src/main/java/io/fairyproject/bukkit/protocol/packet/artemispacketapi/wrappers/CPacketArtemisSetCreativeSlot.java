@@ -1,13 +1,13 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.ArtemisPacketWrapper;
-import io.fairyproject.mc.protocol.netty.Channel;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketSetCreativeSlot;
 import cc.ghast.packet.wrapper.packet.play.client.GPacketPlayClientSetCreativeSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class CPacketArtemisSetCreativeSlot extends ArtemisPacketWrapper<GPacketPlayClientSetCreativeSlot> implements CPacketSetCreativeSlot {
-    public CPacketArtemisSetCreativeSlot(GPacketPlayClientSetCreativeSlot wrapper, Channel channel) {
+    public CPacketArtemisSetCreativeSlot(GPacketPlayClientSetCreativeSlot wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
 
