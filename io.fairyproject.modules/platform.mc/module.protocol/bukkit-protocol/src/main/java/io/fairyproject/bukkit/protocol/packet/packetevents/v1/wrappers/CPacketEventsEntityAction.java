@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventWrapper;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate.PacketEventsTranslators;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.mcp.PlayerAction;
 import io.fairyproject.mc.protocol.netty.Channel;
 import io.fairyproject.mc.protocol.packet.client.CPacketEntityAction;
@@ -15,6 +15,6 @@ public class CPacketEventsEntityAction extends PacketEventWrapper<WrappedPacketI
     @Override
     public PlayerAction getAction() {
         final WrappedPacketInEntityAction.PlayerAction bridge = wrapper.getAction();
-        return bridge == null ? null : PacketEventsTranslators.PLAYER_ACTION.transform(bridge);
+        return bridge == null ? null : PacketEventsTranslationHelper.PLAYER_ACTION.transform(bridge);
     }
 }

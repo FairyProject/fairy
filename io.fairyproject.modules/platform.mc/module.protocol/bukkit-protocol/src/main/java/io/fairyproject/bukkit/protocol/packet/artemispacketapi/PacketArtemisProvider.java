@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslators;
+import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslationHelper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.injector.PacketEventsInjector;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.BufferListener;
@@ -23,7 +23,7 @@ public class PacketArtemisProvider extends PacketProvider  {
 
     @Override
     public void load() {
-
+        // Do nothing
     }
 
     @Override
@@ -41,7 +41,7 @@ public class PacketArtemisProvider extends PacketProvider  {
                     return;
                 }
 
-                final Packet packet = ArtemisPacketTranslators.PACKET.transform(new Pair<>(profile, (GPacket) wrapper));
+                final Packet packet = ArtemisPacketTranslationHelper.PACKET.transform(new Pair<>(profile, (GPacket) wrapper));
 
                 if (packet == null)
                     return;

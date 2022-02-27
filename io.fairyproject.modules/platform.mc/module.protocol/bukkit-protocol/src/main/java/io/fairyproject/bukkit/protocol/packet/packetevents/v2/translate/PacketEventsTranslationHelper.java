@@ -28,6 +28,7 @@ import io.fairyproject.mc.protocol.packet.client.CPacket;
 import io.fairyproject.mc.protocol.packet.translate.Translator;
 import io.fairyproject.mc.util.Vec3f;
 import io.fairyproject.mc.util.Vec3i;
+import lombok.experimental.UtilityClass;
 import lombok.val;
 
 import java.lang.reflect.Constructor;
@@ -35,15 +36,16 @@ import java.lang.reflect.ParameterizedType;
 import java.util.HashMap;
 import java.util.Map;
 
-public class PacketEventsTranslators {
-    public static final Translator<io.netty.channel.Channel, PacketEventsChannel> CHANNEL = new Translator<io.netty.channel.Channel, PacketEventsChannel>() {
+@UtilityClass
+public class PacketEventsTranslationHelper {
+    public final Translator<io.netty.channel.Channel, PacketEventsChannel> CHANNEL = new Translator<io.netty.channel.Channel, PacketEventsChannel>() {
         @Override
         public PacketEventsChannel transform(io.netty.channel.Channel from) {
             return new PacketEventsChannel(from);
         }
     };
 
-    private static final Map<PacketTypeCommon, PacketGenerator<?, ?>> generators = new HashMap<>();
+    private final Map<PacketTypeCommon, PacketGenerator<?, ?>> generators = new HashMap<>();
 
     static class PacketGenerator<T, W extends PacketEventWrapper<T>> {
         private final ConstructorWrapper<T> typeConstructor;
@@ -98,7 +100,7 @@ public class PacketEventsTranslators {
         }
     }
 
-    public static final Translator<PacketPlayReceiveEvent, Packet> PACKET = new Translator<PacketPlayReceiveEvent, Packet>() {
+    public final Translator<PacketPlayReceiveEvent, Packet> PACKET = new Translator<PacketPlayReceiveEvent, Packet>() {
         @Override
         public Packet transform(PacketPlayReceiveEvent from) {
             val player = from.getPlayer();
@@ -116,49 +118,49 @@ public class PacketEventsTranslators {
         }
     };
     
-    public static final Translator<InteractionHand, Hand> HAND = new Translator<InteractionHand, Hand>() {
+    public final Translator<InteractionHand, Hand> HAND = new Translator<InteractionHand, Hand>() {
         @Override
         public Hand transform(InteractionHand from) {
             return Hand.values()[from.ordinal()];
         }
     };
 
-    public static final Translator<BlockFace, Direction> DIRECTION = new Translator<BlockFace, Direction>() {
+    public final Translator<BlockFace, Direction> DIRECTION = new Translator<BlockFace, Direction>() {
         @Override
         public Direction transform(BlockFace from) {
             return Direction.getDirection(from.getFaceValue());
         }
     };
 
-    public static final Translator<WrapperPlayClientEntityAction.Action, PlayerAction> PLAYER_ACTION = new Translator<WrapperPlayClientEntityAction.Action, PlayerAction>() {
+    public final Translator<WrapperPlayClientEntityAction.Action, PlayerAction> PLAYER_ACTION = new Translator<WrapperPlayClientEntityAction.Action, PlayerAction>() {
         @Override
         public PlayerAction transform(WrapperPlayClientEntityAction.Action from) {
             return PlayerAction.values()[from.ordinal()];
         }
     };
 
-    public static final Translator<WrapperPlayServerScoreboardObjective.HealthDisplay, ObjectiveRenderType> SCOREBOARD_DISPLAY_TYPE = new Translator<WrapperPlayServerScoreboardObjective.HealthDisplay, ObjectiveRenderType>() {
+    public final Translator<WrapperPlayServerScoreboardObjective.HealthDisplay, ObjectiveRenderType> SCOREBOARD_DISPLAY_TYPE = new Translator<WrapperPlayServerScoreboardObjective.HealthDisplay, ObjectiveRenderType>() {
         @Override
         public ObjectiveRenderType transform(WrapperPlayServerScoreboardObjective.HealthDisplay from) {
             return from == WrapperPlayServerScoreboardObjective.HealthDisplay.HEARTS ? ObjectiveRenderType.HEARTS : ObjectiveRenderType.INTEGER;
         }
     };
 
-    public static final Translator<WrapperPlayServerScoreboardObjective.ObjectiveMode, ObjectiveActionType> SCOREBOARD_ACTION_TYPE = new Translator<WrapperPlayServerScoreboardObjective.ObjectiveMode, ObjectiveActionType>() {
+    public final Translator<WrapperPlayServerScoreboardObjective.ObjectiveMode, ObjectiveActionType> SCOREBOARD_ACTION_TYPE = new Translator<WrapperPlayServerScoreboardObjective.ObjectiveMode, ObjectiveActionType>() {
         @Override
         public ObjectiveActionType transform(WrapperPlayServerScoreboardObjective.ObjectiveMode from) {
             return ObjectiveActionType.values()[from.ordinal()];
         }
     };
 
-    public static final Translator<Vector3f, Vec3f> VECTOR_3F = new Translator<Vector3f, Vec3f>() {
+    public final Translator<Vector3f, Vec3f> VECTOR_3F = new Translator<Vector3f, Vec3f>() {
         @Override
         public Vec3f transform(Vector3f from) {
             return new Vec3f(from.getX(), from.getY(), from.getZ());
         }
     };
 
-    public static final Translator<Vector3i, Vec3i> VECTOR_3I = new Translator<Vector3i, Vec3i>() {
+    public final Translator<Vector3i, Vec3i> VECTOR_3I = new Translator<Vector3i, Vec3i>() {
         @Override
         public Vec3i transform(Vector3i from) {
             return new Vec3i(from.getX(), from.getY(), from.getZ());

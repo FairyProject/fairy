@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi.wrappers;
 
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.ArtemisPacketWrapper;
-import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslators;
+import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslationHelper;
 import io.fairyproject.mc.mcp.PlayerAction;
 import io.fairyproject.mc.protocol.netty.Channel;
 import io.fairyproject.mc.protocol.packet.client.CPacketEntityAction;
@@ -16,6 +16,6 @@ public class CPacketArtemisEntityAction extends ArtemisPacketWrapper<GPacketPlay
     @Override
     public PlayerAction getAction() {
         final PlayerEnums.PlayerAction bridge = wrapper.getAction();
-        return bridge == null ? null : ArtemisPacketTranslators.PLAYER_ACTION.transform(bridge);
+        return bridge == null ? null : ArtemisPacketTranslationHelper.PLAYER_ACTION.transform(bridge);
     }
 }

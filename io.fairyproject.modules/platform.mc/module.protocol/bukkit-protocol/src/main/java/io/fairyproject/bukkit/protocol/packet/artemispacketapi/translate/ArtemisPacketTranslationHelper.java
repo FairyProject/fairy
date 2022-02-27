@@ -20,14 +20,13 @@ import io.fairyproject.mc.util.Vec3f;
 import io.fairyproject.mc.util.Vec3i;
 import io.netty.channel.Channel;
 import lombok.experimental.UtilityClass;
-import lombok.val;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
 @UtilityClass
-public class ArtemisPacketTranslators {
+public class ArtemisPacketTranslationHelper {
     public final Translator<Channel, ArtemisChannel> CHANNEL = new Translator<Channel, ArtemisChannel>() {
         @Override
         public ArtemisChannel transform(Channel from) {
@@ -131,9 +130,6 @@ public class ArtemisPacketTranslators {
     public final Translator<Pair<Profile, GPacket>, Packet> PACKET = new Translator<Pair<Profile, GPacket>, Packet>() {
         @Override
         public Packet transform(Pair<Profile, GPacket> from) {
-            val player = from.getV().getPlayer();
-            val channel = (Channel) ((ArtemisProfile) from.getK()).getChannel();
-
             final TranslatorFunction<GPacket> translator = packetTranslatorMap.get(from.getV().getClass());
 
             if (translator == null)

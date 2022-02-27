@@ -2,7 +2,7 @@ package io.fairyproject.bukkit.protocol.packet.packetevents.v2.wrappers;
 
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslators;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.mcp.ObjectiveActionType;
 import io.fairyproject.mc.protocol.MCProtocol;
@@ -38,11 +38,11 @@ public class SPacketEventsScoreboardObjective extends PacketEventWrapper<Wrapper
 
     @Override
     public Optional<ObjectiveRenderType> getRenderType() {
-        return wrapper.getDisplay().map(PacketEventsTranslators.SCOREBOARD_DISPLAY_TYPE::transform);
+        return wrapper.getDisplay().map(PacketEventsTranslationHelper.SCOREBOARD_DISPLAY_TYPE::transform);
     }
 
     @Override
     public ObjectiveActionType getMethod() {
-        return PacketEventsTranslators.SCOREBOARD_ACTION_TYPE.transform(wrapper.getMode());
+        return PacketEventsTranslationHelper.SCOREBOARD_ACTION_TYPE.transform(wrapper.getMode());
     }
 }

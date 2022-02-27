@@ -6,7 +6,7 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslators;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.mcp.Direction;
 import io.fairyproject.mc.mcp.Hand;
 import io.fairyproject.mc.protocol.netty.Channel;
@@ -25,19 +25,19 @@ public final class CPacketEventsBlockPlace extends PacketEventWrapper<WrapperPla
     @Override
     public Hand getHand() {
         final InteractionHand bridge = wrapper.getHand();
-        return PacketEventsTranslators.HAND.transform(bridge);
+        return PacketEventsTranslationHelper.HAND.transform(bridge);
     }
 
     @Override
     public Direction getDirection() {
         final BlockFace bridge = wrapper.getFace();
-        return PacketEventsTranslators.DIRECTION.transform(bridge);
+        return PacketEventsTranslationHelper.DIRECTION.transform(bridge);
     }
 
     @Override
     public Vec3i getClickedBlock() {
         final Vector3i bridge = wrapper.getBlockPosition();
-        return PacketEventsTranslators.VECTOR_3I.transform(bridge);
+        return PacketEventsTranslationHelper.VECTOR_3I.transform(bridge);
     }
 
     @Override
@@ -46,7 +46,7 @@ public final class CPacketEventsBlockPlace extends PacketEventWrapper<WrapperPla
         if (optionalBridge == null)
             return Optional.empty();
 
-        final Vec3f translated = PacketEventsTranslators.VECTOR_3F.transform(optionalBridge);
+        final Vec3f translated = PacketEventsTranslationHelper.VECTOR_3F.transform(optionalBridge);
 
         return Optional.of(translated);
     }

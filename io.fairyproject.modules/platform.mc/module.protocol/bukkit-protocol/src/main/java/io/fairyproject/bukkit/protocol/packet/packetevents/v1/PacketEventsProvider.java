@@ -2,7 +2,7 @@ package io.fairyproject.bukkit.protocol.packet.packetevents.v1;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.injector.PacketEventsInjector;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate.PacketEventsTranslators;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.*;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -41,7 +41,7 @@ public class PacketEventsProvider extends PacketProvider {
                     return;
                 }
 
-                final Packet packet = PacketEventsTranslators.PACKET.transform(packetPlayReceiveEvent);
+                final Packet packet = PacketEventsTranslationHelper.PACKET.transform(packetPlayReceiveEvent);
 
                 if (packet == null)
                     return;
