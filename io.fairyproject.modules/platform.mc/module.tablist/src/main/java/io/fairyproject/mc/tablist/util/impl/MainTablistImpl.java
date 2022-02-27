@@ -48,7 +48,7 @@ public class MainTablistImpl implements TablistImpl {
     public void removeSelf(MCPlayer player) {
         final PacketPlay.Out.PlayerInfo playerInfo = PacketPlay.Out.PlayerInfo.builder()
                 .action(io.fairyproject.mc.protocol.item.PlayerInfoAction.REMOVE_PLAYER)
-                .entry(MCPlayer.from(player).asInfoData())
+                .entries(MCPlayer.from(player).asInfoData())
                 .build();
 
         MCPlayer.all().forEach(mcPlayer -> mcPlayer.sendPacket(playerInfo));
@@ -72,7 +72,7 @@ public class MainTablistImpl implements TablistImpl {
 
         final PacketPlay.Out.PlayerInfo packet = PacketPlay.Out.PlayerInfo.builder()
                 .action(io.fairyproject.mc.protocol.item.PlayerInfoAction.ADD_PLAYER)
-                .entry(new PlayerInfoData(1, profile, io.fairyproject.mc.GameMode.SURVIVAL, Component.empty()))
+                .entries(new PlayerInfoData(1, profile, io.fairyproject.mc.GameMode.SURVIVAL, Component.empty()))
                 .build();
         player.sendPacket(packet);
         return new TabEntry(string, profile.getUuid(), Component.empty(), tablist, Skin.GRAY, column, slot, rawSlot, 0);
@@ -96,7 +96,7 @@ public class MainTablistImpl implements TablistImpl {
                             .playerPrefix(MCAdventure.LEGACY.deserialize(newStrings[0]))
                             .playerPrefix(MCAdventure.LEGACY.deserialize(newStrings.length > 1 ? CC.translate(newStrings[1]) : ""))
                             .build()))
-                    .player(LegacyClientUtil.entry(tabEntry.getRawSlot() - 1))
+                    .players(LegacyClientUtil.entry(tabEntry.getRawSlot() - 1))
                     .teamAction(TeamAction.CHANGE)
                     .build();
 
@@ -104,7 +104,7 @@ public class MainTablistImpl implements TablistImpl {
         } else {
             final PacketPlay.Out.PlayerInfo packet = PacketPlay.Out.PlayerInfo.builder()
                     .action(PlayerInfoAction.UPDATE_DISPLAY_NAME)
-                    .entry(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, text))
+                    .entries(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, text))
                     .build();
 
             player.sendPacket(packet);
@@ -120,7 +120,7 @@ public class MainTablistImpl implements TablistImpl {
         final MCVersion version = tablist.getPlayer().getVersion();
         final PacketPlay.Out.PlayerInfo packet = PacketPlay.Out.PlayerInfo.builder()
                 .action(PlayerInfoAction.UPDATE_LATENCY)
-                .entry(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, tabEntry.getText()))
+                .entries(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, tabEntry.getText()))
                 .build();
 
         tablist.getPlayer().sendPacket(packet);
@@ -147,11 +147,11 @@ public class MainTablistImpl implements TablistImpl {
         final PlayerInfoData playerInfoData = new PlayerInfoData(tabEntry.getLatency(), gameProfile, GameMode.SURVIVAL, tabEntry.getText());
         final PacketPlay.Out.PlayerInfo remove = PacketPlay.Out.PlayerInfo.builder()
                 .action(PlayerInfoAction.REMOVE_PLAYER)
-                .entry(playerInfoData)
+                .entries(playerInfoData)
                 .build();
         final PacketPlay.Out.PlayerInfo add = PacketPlay.Out.PlayerInfo.builder()
                 .action(PlayerInfoAction.ADD_PLAYER)
-                .entry(playerInfoData)
+                .entries(playerInfoData)
                 .build();
 
         tablist.getPlayer().sendPacket(remove);

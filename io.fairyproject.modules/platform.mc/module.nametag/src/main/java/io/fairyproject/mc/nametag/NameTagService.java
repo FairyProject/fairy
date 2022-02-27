@@ -24,6 +24,8 @@
 
 package io.fairyproject.mc.nametag;
 
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import com.google.common.primitives.Ints;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ComponentHolder;
@@ -85,8 +87,9 @@ public class NameTagService {
                 if (nameTag != null) {
                     nameTag.removeName(name);
                     list.removeNameTag(name);
+
                     other.sendPacket(PacketPlay.Out.ScoreboardTeam.builder()
-                            .player(nameTag.getName())
+                            .players(nameTag.getName())
                             .players(Collections.singleton(name))
                             .teamAction(TeamAction.LEAVE)
                             .build());
@@ -154,7 +157,7 @@ public class NameTagService {
 
                 list.addNameTag(target.getName(), nametag);
                 player.sendPacket(PacketPlay.Out.ScoreboardTeam.builder()
-                        .player(nametag.getName())
+                        .players(nametag.getName())
                         .players(Collections.singleton(target.getName()))
                         .teamAction(TeamAction.JOIN)
                         .build());
@@ -185,7 +188,7 @@ public class NameTagService {
 
     private void sendPacket(MCPlayer mcPlayer, NameTag info) {
         mcPlayer.sendPacket(PacketPlay.Out.ScoreboardTeam.builder()
-                .player(info.getName())
+                .players(info.getName())
                 .teamAction(TeamAction.ADD)
                 .parameters(Optional.of(PacketPlay.Out.ScoreboardTeam.Parameters.builder()
                         .playerPrefix(info.getPrefix())
