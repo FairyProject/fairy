@@ -1,5 +1,11 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v1.translate;
 
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import io.fairyproject.bukkit.protocol.PacketBuilder;
+import io.fairyproject.bukkit.protocol.PacketFactoryCreator;
+import io.fairyproject.bukkit.protocol.PacketFactoryWrapper;
+import io.fairyproject.bukkit.protocol.PacketMap;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v1.mapping.PacketEventsV1Mapping;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.netty.PacketEventsChannel;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.wrappers.*;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.PacketEventWrapper;
@@ -17,6 +23,7 @@ import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
+import io.github.retrooper.packetevents.packetwrappers.play.in.custompayload.WrappedPacketInCustomPayload;
 import io.github.retrooper.packetevents.packetwrappers.play.in.entityaction.WrappedPacketInEntityAction;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -37,64 +44,13 @@ public class PacketEventsTranslationHelper {
         }
     };
 
-    private final Map<Byte, PacketEventsTranslationHelper.PacketGenerator<?, ?>> generators = new HashMap<>();
-
-    static class PacketGenerator<T, W extends PacketEventWrapper<T>> {
-        private final ConstructorWrapper<T> typeConstructor;
-        private final ConstructorWrapper<W> wrapperConstructor;
-
-        public PacketGenerator(Class<T> typeClass, Class<W> wrapperClass) {
-            Constructor<T> _typeConstructor;
-            try {
-                _typeConstructor = typeClass.getDeclaredConstructor(NMSPacket.class);
-            } catch (NoSuchMethodException e) {
-                throw new IllegalStateException("Failed to create generator", e);
-            }
-            this.typeConstructor = new ConstructorWrapper<>(_typeConstructor);
-
-            Constructor<W> _wrapperConstructor;
-            try {
-                _wrapperConstructor = wrapperClass.getDeclaredConstructor(typeClass, MCPlayer.class);
-            } catch (NoSuchMethodException e) {
-                throw new IllegalStateException("Failed to create generator", e);
-            }
-            this.wrapperConstructor = new ConstructorWrapper<>(_wrapperConstructor);
-
-        }
-
-        public W build(final NMSPacket event, final MCPlayer player) {
-            final T instance = typeConstructor.newInstance(event);
-            return wrapperConstructor.newInstance(instance, player);
-        }
-
-        static <T, W extends PacketEventWrapper<T>> PacketEventsTranslationHelper.PacketGenerator<T, W> create(Class<W> wrapperClass) {
-            final Class<T> typeClass = (Class<T>) (ParameterizedType.class.cast(wrapperClass.getGenericSuperclass())).getActualTypeArguments()[0];
-            return new PacketEventsTranslationHelper.PacketGenerator<>(typeClass, wrapperClass);
-        }
-
-        static  {
-            generators.put(PacketType.Play.Client.CUSTOM_PAYLOAD, create(CPacketEventsCustomPayload.class));
-            generators.put(PacketType.Play.Client.BLOCK_PLACE, create(CPacketEventsBlockPlace.class));
-            generators.put(PacketType.Play.Client.WINDOW_CLICK, create(CPacketEventsWindowClick.class));
-            generators.put(PacketType.Play.Client.SET_CREATIVE_SLOT, create(CPacketEventsSetCreativeSlot.class));
-            generators.put(PacketType.Play.Client.ENTITY_ACTION, create(CPacketEventsEntityAction.class));
-            generators.put(PacketType.Play.Client.ABILITIES, create(CPacketEventsAbilities.class));
-            generators.put(PacketType.Play.Client.HELD_ITEM_SLOT, create(CPacketEventsHeldItemSlot.class));
-            generators.put(PacketType.Play.Client.CHAT, create(CPacketEventsChat.class));
-            generators.put(PacketType.Play.Client.TAB_COMPLETE, create(CPacketEventsTabComplete.class));
-            generators.put(PacketType.Play.Client.SPECTATE, create(CPacketEventsSpectate.class));
-            generators.put(PacketType.Play.Client.FLYING, create(CPacketEventsFlying.class));
-            generators.put(PacketType.Play.Client.POSITION, create(CPacketEventsPosition.class));
-            generators.put(PacketType.Play.Client.POSITION_LOOK, create(CPacketEventsPositionRotation.class));
-            generators.put(PacketType.Play.Client.LOOK, create(CPacketEventsRotation.class));
-        }
-    }
+    private final PacketEventsV1Mapping mappings = new PacketEventsV1Mapping();
 
     public final Translator<PacketPlayReceiveEvent, Packet> PACKET = new Translator<PacketPlayReceiveEvent, Packet>() {
         @Override
         public Packet transform(PacketPlayReceiveEvent from) {
-            val player = from.getPlayer();
-            val channel = (io.netty.channel.Channel) PacketEvents.get().getPlayerUtils().getChannel(player);
+            MCPlayer player = MCPlayer.from(from.getPlayer());
+            mappings.wrap(player, from.getPacketId(), from.getNMSPacket());
             val packetId = from.getPacketId();
 
             final PacketEventsTranslationHelper.PacketGenerator<?, ?> generator = generators.get(packetId);
@@ -103,7 +59,7 @@ public class PacketEventsTranslationHelper {
                 return null;
             }
 
-            return generator.build(from.getNMSPacket(), MCPlayer.from(player));
+            return generator.build(from.getNMSPacket(),player));
         }
     };
     

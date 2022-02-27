@@ -1,14 +1,14 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v2.wrappers;
 
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventV2Wrapper;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketWindowClick;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
-public class CPacketEventsWindowClick extends PacketEventWrapper<WrapperPlayClientClickWindow> implements CPacketWindowClick {
+public class CPacketEventsWindowClick extends PacketEventV2Wrapper<WrapperPlayClientClickWindow> implements CPacketWindowClick {
     public CPacketEventsWindowClick(WrapperPlayClientClickWindow wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }

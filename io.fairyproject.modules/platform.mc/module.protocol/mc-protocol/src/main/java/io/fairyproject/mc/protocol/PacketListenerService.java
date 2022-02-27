@@ -14,7 +14,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 @Service
-public final class PacketService {
+public final class PacketListenerService {
     private final Map<PacketListener, List<InternalListener>> objectListenerCache = new HashMap<>();
     private final Queue<InternalListener> listeners = new PriorityQueue<>((a, b) -> Integer.compare(b.getPriority(), a.getPriority()));
 

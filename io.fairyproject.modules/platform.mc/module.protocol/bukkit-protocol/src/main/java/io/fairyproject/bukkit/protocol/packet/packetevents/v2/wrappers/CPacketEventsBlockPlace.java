@@ -5,7 +5,7 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventV2Wrapper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.mcp.Direction;
 import io.fairyproject.mc.mcp.Hand;
@@ -17,7 +17,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
-public final class CPacketEventsBlockPlace extends PacketEventWrapper<WrapperPlayClientPlayerBlockPlacement> implements CPacketBlockPlace {
+public final class CPacketEventsBlockPlace extends PacketEventV2Wrapper<WrapperPlayClientPlayerBlockPlacement> implements CPacketBlockPlace {
     public CPacketEventsBlockPlace(WrapperPlayClientPlayerBlockPlacement wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }

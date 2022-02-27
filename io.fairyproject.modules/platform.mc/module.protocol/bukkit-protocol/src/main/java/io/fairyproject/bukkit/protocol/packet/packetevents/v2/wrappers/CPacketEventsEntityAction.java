@@ -1,13 +1,13 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v2.wrappers;
 
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventV2Wrapper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.mcp.PlayerAction;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.client.CPacketEntityAction;
 
-public class CPacketEventsEntityAction extends PacketEventWrapper<WrapperPlayClientEntityAction> implements CPacketEntityAction {
+public class CPacketEventsEntityAction extends PacketEventV2Wrapper<WrapperPlayClientEntityAction> implements CPacketEntityAction {
     public CPacketEventsEntityAction(WrapperPlayClientEntityAction wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }

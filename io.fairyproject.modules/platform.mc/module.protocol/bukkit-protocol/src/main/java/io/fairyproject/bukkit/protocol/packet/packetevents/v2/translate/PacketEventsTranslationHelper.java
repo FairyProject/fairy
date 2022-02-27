@@ -1,6 +1,5 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate;
 
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketEvent;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -13,7 +12,7 @@ import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventV2Wrapper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.netty.PacketEventsChannel;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.wrappers.*;
 import io.fairyproject.bukkit.reflection.wrapper.ConstructorWrapper;
@@ -47,7 +46,7 @@ public class PacketEventsTranslationHelper {
 
     private final Map<PacketTypeCommon, PacketGenerator<?, ?>> generators = new HashMap<>();
 
-    static class PacketGenerator<T, W extends PacketEventWrapper<T>> {
+    static class PacketGenerator<T, W extends PacketEventV2Wrapper<T>> {
         private final ConstructorWrapper<T> typeConstructor;
         private final ConstructorWrapper<W> wrapperConstructor;
 
@@ -75,7 +74,7 @@ public class PacketEventsTranslationHelper {
             return wrapperConstructor.newInstance(instance, channel);
         }
 
-        static <T, W extends PacketEventWrapper<T>> PacketGenerator<T, W> create(Class<W> wrapperClass) {
+        static <T, W extends PacketEventV2Wrapper<T>> PacketGenerator<T, W> create(Class<W> wrapperClass) {
             final Class<T> typeClass = (Class<T>) (ParameterizedType.class.cast(wrapperClass.getGenericSuperclass())).getActualTypeArguments()[0];
             return new PacketGenerator<>(typeClass, wrapperClass, CPacket.class.isAssignableFrom(wrapperClass));
         }

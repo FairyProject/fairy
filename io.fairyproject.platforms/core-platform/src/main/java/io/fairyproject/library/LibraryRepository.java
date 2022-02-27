@@ -29,6 +29,8 @@ import lombok.Getter;
 public class LibraryRepository {
 
     public static final LibraryRepository MAVEN_CENTRAL = new LibraryRepository("https://repo1.maven.org/maven2/");
+    public static final LibraryRepository JITPACK = new LibraryRepository("https://jitpack.io/");
+    public static final LibraryRepository IMANITY = new LibraryRepository("https://maven.imanity.dev/repository/imanity-libraries/");
 
     @Getter
     private final String url;

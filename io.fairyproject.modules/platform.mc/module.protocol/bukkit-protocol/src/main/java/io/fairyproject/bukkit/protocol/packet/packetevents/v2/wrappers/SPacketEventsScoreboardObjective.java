@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.packetevents.v2.wrappers;
 
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
-import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventWrapper;
+import io.fairyproject.bukkit.protocol.packet.packetevents.v2.PacketEventV2Wrapper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v2.translate.PacketEventsTranslationHelper;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.mcp.ObjectiveActionType;
@@ -14,7 +14,7 @@ import net.kyori.adventure.text.Component;
 
 import java.util.Optional;
 
-public class SPacketEventsScoreboardObjective extends PacketEventWrapper<WrapperPlayServerScoreboardObjective> implements SPacketScoreboardObjective {
+public class SPacketEventsScoreboardObjective extends PacketEventV2Wrapper<WrapperPlayServerScoreboardObjective> implements SPacketScoreboardObjective {
     public SPacketEventsScoreboardObjective(WrapperPlayServerScoreboardObjective wrapper, MCPlayer channel) {
         super(wrapper, channel);
     }
