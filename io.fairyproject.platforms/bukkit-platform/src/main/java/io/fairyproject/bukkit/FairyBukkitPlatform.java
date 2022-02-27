@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
@@ -87,6 +88,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         ModuleService.init();
         MinecraftReflection.init();
         this.createMCInitializer().apply();
+        PacketEvents.getAPI().load();
     }
 
     @Override
@@ -98,10 +100,14 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
         super.enable();
         ModuleService.INSTANCE.enable();
+        PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(true);
+        PacketEvents.getAPI().init();
     }
 
     @Override
     public void disable() {
+        PacketEvents.getAPI().terminate();
+        
         super.disable();
     }
 

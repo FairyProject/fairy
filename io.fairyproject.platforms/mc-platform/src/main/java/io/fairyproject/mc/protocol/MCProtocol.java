@@ -1,6 +1,7 @@
 package io.fairyproject.mc.protocol;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.fairyproject.mc.MCAdventure;
 import lombok.Getter;
 import io.fairyproject.mc.protocol.netty.NettyInjector;
@@ -9,18 +10,20 @@ import io.fairyproject.mc.protocol.netty.NettyInjector;
 public class MCProtocol {
 
     public static MCProtocol INSTANCE;
-    public static void initialize(NettyInjector injector) {
-        new MCProtocol(injector);
+    public static void initialize(NettyInjector injector, PacketEventsAPI<?> packetEvents) {
+        new MCProtocol(injector, packetEvents);
 
         MCAdventure.initialize();
     }
 
     private final NettyInjector injector;
+    private final PacketEventsAPI<?> packetEvents;
 
-    private MCProtocol(NettyInjector injector) {
+    private MCProtocol(NettyInjector injector, PacketEventsAPI<?> packetEvents) {
         INSTANCE = this;
 
         this.injector = injector;
+        this.packetEvents = packetEvents;
     }
 
     public MCVersion version() {
