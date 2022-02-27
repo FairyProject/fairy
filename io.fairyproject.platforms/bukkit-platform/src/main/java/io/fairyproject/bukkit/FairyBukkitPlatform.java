@@ -107,7 +107,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @Override
     public void disable() {
         PacketEvents.getAPI().terminate();
-        
+
         super.disable();
     }
 

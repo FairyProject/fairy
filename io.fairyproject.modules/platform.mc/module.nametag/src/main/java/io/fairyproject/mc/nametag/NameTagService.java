@@ -24,8 +24,6 @@
 
 package io.fairyproject.mc.nametag;
 
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import com.google.common.primitives.Ints;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ComponentHolder;

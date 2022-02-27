@@ -8,16 +8,16 @@ import io.fairyproject.mc.protocol.netty.NettyInjector;
 
 @Getter
 public class MCProtocol {
-
     public static MCProtocol INSTANCE;
+
+    private final NettyInjector injector;
+    private final PacketEventsAPI<?> packetEvents;
+
     public static void initialize(NettyInjector injector, PacketEventsAPI<?> packetEvents) {
         new MCProtocol(injector, packetEvents);
 
         MCAdventure.initialize();
     }
-
-    private final NettyInjector injector;
-    private final PacketEventsAPI<?> packetEvents;
 
     private MCProtocol(NettyInjector injector, PacketEventsAPI<?> packetEvents) {
         INSTANCE = this;
