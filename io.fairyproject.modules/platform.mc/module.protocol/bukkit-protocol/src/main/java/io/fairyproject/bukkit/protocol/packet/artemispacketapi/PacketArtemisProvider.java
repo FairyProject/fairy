@@ -1,6 +1,7 @@
 package io.fairyproject.bukkit.protocol.packet.artemispacketapi;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.protocol.packet.artemispacketapi.netty.ArtemisChannel;
 import io.fairyproject.bukkit.protocol.packet.artemispacketapi.translate.ArtemisPacketTranslationHelper;
 import io.fairyproject.bukkit.protocol.packet.packetevents.v1.injector.PacketEventsInjector;
 import io.fairyproject.mc.MCPlayer;
@@ -49,7 +50,7 @@ public class PacketArtemisProvider extends PacketProvider  {
                 final UUID uuid = profile.getUuid();
 
                 if (!injectQueue.isEmpty() && injectQueue.contains(uuid)) {
-                    injector.inject(data, packet.getPlayer(), lowListener);
+                    injector.inject(data, new ArtemisChannel(packet.getPlayer().getChannel()), lowListener);
                     injectQueue.remove(uuid);
                 }
 
