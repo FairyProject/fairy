@@ -3,8 +3,6 @@ package io.fairyproject.bukkit.mc;
 import io.fairyproject.bukkit.protocol.BukkitNettyInjector;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
-import io.fairyproject.mc.protocol.mapping.MCProtocolMapping;
-import io.fairyproject.mc.protocol.mapping.MCProtocolMapping1_8;
 import io.fairyproject.mc.protocol.netty.NettyInjector;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -18,11 +16,6 @@ public class BukkitMCInitializer implements MCInitializer {
     @Override
     public NettyInjector createNettyInjector() {
         return new BukkitNettyInjector();
-    }
-
-    @Override
-    public MCProtocolMapping createProtocolMapping() {
-        return new MCProtocolMapping1_8(); // TODO
     }
 
     @Override

@@ -75,7 +75,7 @@ public class Tablist {
                                 .playerPrefix(Component.empty())
                                 .playerSuffix(Component.empty())
                                 .build()))
-                        .player(LegacyClientUtil.entry(i - 1))
+                        .players(LegacyClientUtil.entry(i - 1))
                         .build();
 
                 player.sendPacket(packet);

@@ -6,15 +6,10 @@ import com.github.retrooper.packetevents.protocol.player.TextureProperty;
 import com.github.retrooper.packetevents.protocol.player.UserProfile;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.fairyproject.mc.MCAdventure;
-import io.fairyproject.mc.protocol.MCPacket;
-import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.item.*;
-import io.fairyproject.mc.protocol.netty.FriendlyByteBuf;
 import lombok.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -364,80 +359,5 @@ public class PacketPlay {
                 private int options;
             }
         }
-
-        @Getter @Setter @Builder
-        public static class Title implements MCPacket {
-            private Component component;
-            @Override
-            public void read(FriendlyByteBuf byteBuf) {
-                this.component = byteBuf.readComponent();
-            }
-            @Override
-            public void write(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().below(MCVersion.V1_17)) {
-                    byteBuf.writeVarInt(0);
-                }
-                byteBuf.writeComponent(component);
-            }
-        }
-
-        @Getter @Setter @Builder
-        public static class SubTitle implements MCPacket {
-            private Component component;
-            @Override
-            public void read(FriendlyByteBuf byteBuf) {
-                this.component = byteBuf.readComponent();
-            }
-            @Override
-            public void write(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
-                    byteBuf.writeVarInt(1);
-                }
-                byteBuf.writeComponent(component);
-            }
-        }
-
-        @Getter @Setter @Builder
-        public static class TitleTimes implements MCPacket {
-            private int fadeIn;
-            private int stay;
-            private int fadeOut;
-            @Override
-            public void read(FriendlyByteBuf byteBuf) {
-                this.fadeIn = byteBuf.readInt();
-                this.stay = byteBuf.readInt();
-                this.fadeOut = byteBuf.readInt();
-            }
-            @Override
-            public void write(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
-                    byteBuf.writeVarInt(2);
-                }
-                byteBuf.writeInt(this.fadeIn);
-                byteBuf.writeInt(this.stay);
-                byteBuf.writeInt(this.fadeOut);
-            }
-        }
-
-        @Getter @Setter @Builder
-        public static class TitleClear implements MCPacket {
-            private boolean resetTimes;
-            @Override
-            public void read(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_17)) {
-                    this.resetTimes = byteBuf.readBoolean();
-                }
-            }
-            @Override
-            public void write(FriendlyByteBuf byteBuf) {
-                if (MCProtocol.INSTANCE.version().below(MCVersion.V1_17)) {
-                    byteBuf.writeVarInt(resetTimes ? 4 : 3);
-                } else {
-                    byteBuf.writeBoolean(this.resetTimes);
-                }
-            }
-        }
-
     }
-
 }
