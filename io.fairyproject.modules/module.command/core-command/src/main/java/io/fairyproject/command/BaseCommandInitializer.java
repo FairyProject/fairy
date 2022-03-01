@@ -41,13 +41,7 @@ public class BaseCommandInitializer {
         if (order != null)
             baseCommand.order = order.value();
 
-        PresenceProvider<?> presenceProvider = null;
-        CommandPresence annotation = baseCommand.getClass().getAnnotation(CommandPresence.class);
-        if (annotation != null) {
-            presenceProvider = COMMAND_SERVICE.getPresenceProviderByAnnotation(annotation);
-        }
-        baseCommand.presenceProvider = presenceProvider;
-
+        this.initialisePresence();
         this.initialiseMethods();
 
         for (Class<?> innerClasses : baseCommand.getClass().getDeclaredClasses()) {
@@ -57,6 +51,22 @@ public class BaseCommandInitializer {
         }
 
         baseCommand.baseArgs = this.initialiseFields().toArray(new ArgProperty[0]);
+        this.initialiseUsage();
+
+        baseCommand.sortedCommands.addAll(baseCommand.subCommands.values());
+        baseCommand.sortedCommands.sort(Comparator.comparingInt(ICommand::order));
+    }
+
+    private void initialisePresence() {
+        PresenceProvider<?> presenceProvider = null;
+        CommandPresence annotation = baseCommand.getClass().getAnnotation(CommandPresence.class);
+        if (annotation != null) {
+            presenceProvider = COMMAND_SERVICE.getPresenceProviderByAnnotation(annotation);
+        }
+        baseCommand.presenceProvider = presenceProvider;
+    }
+
+    private void initialiseUsage() {
         Usage usageAnnotation = baseCommand.getClass().getAnnotation(Usage.class);
         baseCommand.displayOnPermission = usageAnnotation != null && usageAnnotation.displayOnPermission();
         if (usageAnnotation != null && usageAnnotation.overwrite()) {
@@ -72,9 +82,6 @@ public class BaseCommandInitializer {
             }
             baseCommand.usage = usage;
         }
-
-        baseCommand.sortedCommands.addAll(baseCommand.subCommands.values());
-        baseCommand.sortedCommands.sort(Comparator.comparingInt(ICommand::order));
     }
 
     private void initialiseMethods() {
