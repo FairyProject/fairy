@@ -15,10 +15,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class PacketPlay {
-
+    @Deprecated
     public static class Out {
-        @Getter @Setter
+        @Getter @Setter @Deprecated
         public static class ScoreboardScore extends WrapperPlayServerUpdateScore {
 
             public ScoreboardScore(String entityName, Action action, String objectiveName, Optional<Integer> value) {
@@ -68,7 +69,7 @@ public class PacketPlay {
             }
         }
 
-        @Getter @Setter
+        @Getter @Setter @Deprecated
         public static class ScoreboardDisplayObjective extends WrapperPlayServerDisplayScoreboard {
             public ScoreboardDisplayObjective(int position, String scoreName) {
                 super(position, scoreName);
@@ -101,7 +102,7 @@ public class PacketPlay {
             }
         }
 
-        @Getter @Setter
+        @Getter @Setter @Deprecated
         public static class ScoreboardObjective extends WrapperPlayServerScoreboardObjective {
             public ScoreboardObjective(String name, ObjectiveMode mode, Optional<String> displayName, Optional<HealthDisplay> display) {
                 super(name, mode, displayName, display);
@@ -156,7 +157,7 @@ public class PacketPlay {
             }
         }
 
-        @Getter @Setter
+        @Getter @Setter @Deprecated
         public static class Tablist extends WrapperPlayServerPlayerListHeaderAndFooter {
 
             public Tablist(Component headerComponent, Component footerComponent) {
@@ -190,7 +191,7 @@ public class PacketPlay {
             }
         }
 
-        @Getter @Setter
+        @Getter @Setter @Deprecated
         public static class PlayerInfo extends WrapperPlayServerPlayerInfo {
 
             public PlayerInfo(@NotNull Action action, List<PlayerData> playerDataList) {
@@ -258,7 +259,7 @@ public class PacketPlay {
             }
         }
 
-        @Getter @Setter
+        @Getter @Setter @Deprecated
         public static class ScoreboardTeam extends WrapperPlayServerTeams {
             public ScoreboardTeam(String teamName, TeamMode teamMode, Optional<ScoreBoardTeamInfo> teamInfo, Collection<String> entities) {
                 super(teamName, teamMode, teamInfo, entities);
