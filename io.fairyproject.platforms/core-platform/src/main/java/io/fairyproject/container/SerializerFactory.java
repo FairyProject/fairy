@@ -24,111 +24,93 @@
 
 package io.fairyproject.container;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import io.fairyproject.jackson.JacksonService;
-import lombok.Getter;
 import io.fairyproject.ObjectSerializer;
+import io.fairyproject.jackson.JacksonService;
+import io.fairyproject.serializer.AvoidDuplicate;
+import io.fairyproject.serializer.SerializerData;
+import lombok.Getter;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.Map;
-import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
-@Service(name = "serializer")
+/**
+ * The serializer factory that stores every {@link io.fairyproject.ObjectSerializer} instances.
+ *
+ * This service is widely used in modules such as storage and config.
+ * It's like a wildcard service, so you only need to register one serializer and use everywhere.
+ */
+@Service
 @ServiceDependency(JacksonService.class)
 @Getter
 public class SerializerFactory {
 
-    private Map<Class<?>, ObjectSerializer<?, ?>> serializers;
+    private static final Logger LOGGER = LogManager.getLogger(SerializerFactory.class);
+
+    private Map<Class<?>, SerializerData> serializers;
 
     @Autowired
     private JacksonService jacksonService;
-    private Queue<ObjectSerializer<?, ?>> serializerQueue;
 
     @PreInitialize
-    public void preInit() {
-        this.serializerQueue = new ConcurrentLinkedQueue<>();
+    public void onPreInitialize() {
         this.serializers = new ConcurrentHashMap<>();
 
-        ComponentRegistry.registerComponentHolder(new ComponentHolder() {
-            @Override
-            public Class<?>[] type() {
-                return new Class[] { ObjectSerializer.class };
-            }
-
-            @Override
-            public Object newInstance(Class<?> type) {
-                ObjectSerializer<?, ?> serializer = (ObjectSerializer<?, ?>) super.newInstance(type);
-
-                if (serializers.containsKey(serializer.inputClass())) {
-                    throw new IllegalArgumentException("The Serializer for " + serializer.inputClass().getName() + " already exists!");
-                }
-
-                if (jacksonService == null) {
-                    serializerQueue.add(serializer);
-                } else {
-                    jacksonService.registerJacksonConfigure(new SerializerJacksonConfigure(serializer));
-                }
-                serializers.put(serializer.inputClass(), serializer);
-                return serializer;
-            }
-        });
+        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
+                        .type(ObjectSerializer.class)
+                        .onEnable(obj -> {
+                            ObjectSerializer<?, ?> serializer = (ObjectSerializer<?, ?>) obj;
+                            this.registerSerializer(serializer);
+                        })
+                        .onDisable(obj -> {
+                            ObjectSerializer<?, ?> serializer = (ObjectSerializer<?, ?>) obj;
+                            this.unregisterSerializer(serializer);
+                        })
+                .build());
     }
 
-    @PostInitialize
-    public void postInit() {
-        ObjectSerializer<?, ?> serializer;
-        while ((serializer = serializerQueue.poll()) != null) {
-            jacksonService.registerJacksonConfigure(new SerializerJacksonConfigure(serializer));
+    /**
+     * Register a serializer and store it.
+     * @param serializer The serializer instance
+     */
+    public void registerSerializer(@NotNull ObjectSerializer<?, ?> serializer) {
+        boolean avoidDuplication = serializer.getClass().isAnnotationPresent(AvoidDuplicate.class);
+        if (serializers.containsKey(serializer.inputClass())) {
+            if (avoidDuplication) {
+                throw new IllegalArgumentException("The Serializer for " + serializer.inputClass().getName() + " already exists!");
+            } else {
+                LOGGER.warn("Serializer with key type " + serializer.inputClass().getName() + " already exists, it is recommended to avoid duplication.");
+            }
+            return;
         }
 
-        serializerQueue = null;
+        SerializerData serializerData = new SerializerData(serializer, avoidDuplication);
+
+        this.serializers.put(serializer.inputClass(), serializerData);
+        this.jacksonService.registerJacksonConfigure(new SerializerJacksonConfigure(serializer));
     }
 
+    /**
+     * Unregister an existing serializer.
+     * @param serializer The serializer instance
+     * @return true if unregister success
+     */
+    public boolean unregisterSerializer(@NotNull ObjectSerializer<?, ?> serializer) {
+        return this.serializers.remove(serializer.inputClass()) != null;
+    }
+
+    /**
+     * Search for the serializer instance by key type.
+     * @param type the type of the serializer you are looking for
+     * @return the serializer instance, null if not found
+     */
     @Nullable
-    public ObjectSerializer<?, ?> findSerializer(Class<?> type) {
-        return this.serializers.getOrDefault(type, null);
-    }
-
-    public static class JacksonSerailizer extends StdSerializer {
-
-        private final ObjectSerializer serializer;
-
-        public JacksonSerailizer(ObjectSerializer serializer) {
-            super(serializer.inputClass());
-
-            this.serializer = serializer;
-        }
-
-        @Override
-        public void serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-           jsonGenerator.writeObject(serializer.serialize(o));
-        }
-    }
-
-    public static class JacksonDeserailizer extends StdDeserializer {
-
-        private final ObjectSerializer serializer;
-
-        public JacksonDeserailizer(ObjectSerializer serializer) {
-            super(serializer.inputClass());
-
-            this.serializer = serializer;
-        }
-
-
-        @Override
-        public Object deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-            return serializer.deserialize(jsonParser.readValueAs(serializer.outputClass()));
-        }
+    public ObjectSerializer<?, ?> findSerializer(@NotNull Class<?> type) {
+        final SerializerData serializerData = this.serializers.getOrDefault(type, null);
+        return serializerData != null ? serializerData.getSerializer() : null;
     }
 
 }
