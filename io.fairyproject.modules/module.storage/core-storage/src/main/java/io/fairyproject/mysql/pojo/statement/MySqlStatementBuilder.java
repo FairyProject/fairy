@@ -93,7 +93,11 @@ public class MySqlStatementBuilder extends StandardSqlStatementBuilder {
 	@Override
 	public Object convertValue(Object value, String columnTypeName) {
 		if ("TINYINT".equalsIgnoreCase(columnTypeName)) {
-			value = (int) value == 1;
+			if (value instanceof Byte) {
+				value = (byte) value == 1;
+			} else {
+				value = (int) value == 1;
+			}
 		}
 
 		return value;
