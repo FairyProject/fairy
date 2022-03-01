@@ -37,7 +37,19 @@ import java.util.function.BiConsumer;
 
 @UtilityClass
 public class FileUtil {
+	private final char UNIX_SEPARATOR = '/';
+	private final char WINDOWS_SEPARATOR = '\\';
+	private final char SYSTEM_SEPARATOR = File.separatorChar;
+	private final char OTHER_SEPARATOR;
+	private final char EXTENSION_SEPARATOR = '.';
 
+	static {
+		if (isSystemWindows()) {
+			OTHER_SEPARATOR = UNIX_SEPARATOR;
+		} else {
+			OTHER_SEPARATOR = WINDOWS_SEPARATOR;
+		}
+	}
 	public File getSelfJar() throws URISyntaxException {
 		return new File(FileUtil.class.getProtectionDomain().getCodeSource().getLocation()
 				.toURI());
@@ -134,6 +146,70 @@ public class FileUtil {
 			} catch (final IOException ignored) {
 			}
 		}
+	}
+
+	public String getName(final String fileName) {
+		if (fileName == null) {
+			return null;
+		}
+		final int index = indexOfLastSeparator(fileName);
+		return fileName.substring(index + 1);
+	}
+
+	public int indexOfLastSeparator(final String fileName) {
+		if (fileName == null) {
+			return -1;
+		}
+		final int lastUnixPos = fileName.lastIndexOf(UNIX_SEPARATOR);
+		final int lastWindowsPos = fileName.lastIndexOf(WINDOWS_SEPARATOR);
+		return Math.max(lastUnixPos, lastWindowsPos);
+	}
+
+	public String getExtension(final String fileName) throws IllegalArgumentException {
+		if (fileName == null) {
+			return null;
+		}
+		final int index = indexOfExtension(fileName);
+		if (index == -1) {
+			return "";
+		}
+		return fileName.substring(index + 1);
+	}
+
+	public int indexOfExtension(final String fileName) throws IllegalArgumentException {
+		if (fileName == null) {
+			return -1;
+		}
+		if (isSystemWindows()) {
+			// Special handling for NTFS ADS: Don't accept colon in the fileName.
+			final int offset = fileName.indexOf(':', getAdsCriticalOffset(fileName));
+			if (offset != -1) {
+				throw new IllegalArgumentException("NTFS ADS separator (':') in file name is forbidden.");
+			}
+		}
+		final int extensionPos = fileName.lastIndexOf(EXTENSION_SEPARATOR);
+		final int lastSeparator = indexOfLastSeparator(fileName);
+		return lastSeparator > extensionPos ? -1 : extensionPos;
+	}
+
+	private int getAdsCriticalOffset(final String fileName) {
+		// Step 1: Remove leading path segments.
+		final int offset1 = fileName.lastIndexOf(SYSTEM_SEPARATOR);
+		final int offset2 = fileName.lastIndexOf(OTHER_SEPARATOR);
+		if (offset1 == -1) {
+			if (offset2 == -1) {
+				return 0;
+			}
+			return offset2 + 1;
+		}
+		if (offset2 == -1) {
+			return offset1 + 1;
+		}
+		return Math.max(offset1, offset2) + 1;
+	}
+
+	boolean isSystemWindows() {
+		return SYSTEM_SEPARATOR == WINDOWS_SEPARATOR;
 	}
 
 }

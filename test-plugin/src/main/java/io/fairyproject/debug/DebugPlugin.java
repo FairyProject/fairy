@@ -2,9 +2,9 @@ package io.fairyproject.debug;
 
 import io.fairyproject.Debug;
 import io.fairyproject.ScheduledAtFixedRate;
-import io.fairyproject.app.Application;
+import io.fairyproject.plugin.Plugin;
 
-public class DebugPlugin extends Application {
+public class DebugPlugin extends Plugin {
 
     @Override
     public void onInitial() {

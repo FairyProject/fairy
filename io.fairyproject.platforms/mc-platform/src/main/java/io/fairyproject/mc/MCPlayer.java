@@ -1,5 +1,7 @@
 package io.fairyproject.mc;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.fairyproject.mc.protocol.MCPacket;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
@@ -218,19 +220,8 @@ public interface MCPlayer extends Audience {
      *
      * @param packet the packet
      */
-    default void sendPacket(MCPacket packet) {
-        final int id = MCProtocol.INSTANCE.getProtocolMapping()
-                .getProtocol(getProtocolId())
-                .fromPacketClass(packet.getClass());
-
-        final ByteBuf buffer = this.getChannel().alloc().buffer();
-        final FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(buffer);
-        friendlyByteBuf.setLocale(Locale.forLanguageTag(this.getGameLocale()));
-
-        friendlyByteBuf.writeVarInt(id);
-        packet.write(friendlyByteBuf);
-
-        sendRawPacket(friendlyByteBuf);
+    default void sendPacket(PacketWrapper<?> packet) {
+        PacketEvents.getAPI().getProtocolManager().sendPacket(this.getChannel(), packet);
     }
 
     /**

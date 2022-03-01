@@ -4,6 +4,7 @@ module {
     abstraction = true
 
     platform("mc")
+
     depend("module.config")
     depend("module.storage:core-storage")
 }

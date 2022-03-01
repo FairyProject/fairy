@@ -1,9 +1,9 @@
 package io.fairyproject.tests.mc;
 
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.MCPacket;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.netty.channel.Channel;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,7 @@ public class MCPlayerMock implements MCPlayer {
     private final String name;
     private final MCVersion version;
     private final Object originalInstance;
-    private final LinkedList<MCPacket> packetQueue = new LinkedList<>();
+    private final LinkedList<PacketWrapper<?>> packetQueue = new LinkedList<>();
 
     @Nullable
     private Component displayName;
@@ -103,13 +103,13 @@ public class MCPlayerMock implements MCPlayer {
     }
 
     @Override
-    public void sendPacket(MCPacket packet) {
+    public void sendPacket(PacketWrapper<?> packet) {
         synchronized (this) {
             this.packetQueue.add(packet);
         }
     }
 
-    public MCPacket nextPacket() {
+    public PacketWrapper<?> nextPacket() {
         synchronized (this) {
             return this.packetQueue.pop();
         }

@@ -52,7 +52,7 @@ public class GameModeArgTransformer extends BukkitArgTransformer<GameMode> {
 		MAP.put("adventure", GameMode.ADVENTURE);
 		MAP.put("2", GameMode.ADVENTURE);
 
-		if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().isOrAbove(MCVersion.V1_8)) {
+		if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8)) {
 			MAP.put("spectator", GameMode.SPECTATOR);
 			MAP.put("3", GameMode.SPECTATOR);
 		}

@@ -60,6 +60,7 @@ public class Sidebar {
                 .displaySlot(ObjectiveDisplaySlot.SIDEBAR)
                 .objectiveName(player.getName())
                 .build());
+
     }
 
     public void setTitle(Component title) {
@@ -163,7 +164,7 @@ public class Sidebar {
     }
 
     private PacketPlay.Out.ScoreboardTeam getOrRegisterTeam(int line) {
-        final PacketPlay.Out.ScoreboardTeam.ScoreboardTeamBuilder builder = PacketPlay.Out.ScoreboardTeam.builder();
+        final PacketPlay.Out.ScoreboardTeam.Factory builder = PacketPlay.Out.ScoreboardTeam.builder();
         builder.name("-sb" + line);
         builder.teamAction(TeamAction.ADD);
 
@@ -182,7 +183,7 @@ public class Sidebar {
                     .build();
 
             builder.teamAction(TeamAction.ADD);
-            builder.player(getEntry(line));
+            builder.players(getEntry(line));
             this.player.sendPacket(score);
 
             return builder.build();
