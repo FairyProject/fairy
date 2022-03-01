@@ -78,8 +78,9 @@ public class SerializerFactoryTest extends TestingBase {
         ObjectSerializer<TestKey, TestKey> b = new ObjectSerializerAvoidDuplicationMock<>(TestKey.class, TestKey.class);
 
         serializerFactory.registerSerializer(a);
-        serializerFactory.unregisterSerializer(a);
+        Assertions.assertTrue(serializerFactory.unregisterSerializer(a));
         serializerFactory.registerSerializer(b);
+        Assertions.assertEquals(b, serializerFactory.findSerializer(TestKey.class));
     }
 
     public static class TestKey { }
