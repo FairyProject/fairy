@@ -2,7 +2,7 @@ dependencies {
     compileOnly "io.netty:netty-all:" + findProperty("netty.version")
 
     // PacketEvents, for packets
-    api 'com.github.retrooper.packetevents:api:' + findProperty("packetevents.version")
+    api 'com.github.terminalsin.packetevents:api:' + findProperty("packetevents.version")
 
     // Adventure, for user-interface
     api "net.kyori:adventure-api:" + findProperty("adventure.version")

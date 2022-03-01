@@ -43,6 +43,7 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,8 +88,9 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         PluginManager.initialize(new BukkitPluginHandler());
         ModuleService.init();
         MinecraftReflection.init();
-        this.createMCInitializer().apply();
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(PLUGIN));
         PacketEvents.getAPI().load();
+        this.createMCInitializer().apply();
     }
 
     @Override

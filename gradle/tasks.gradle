@@ -1,6 +1,7 @@
 import com.google.common.io.Files
 import io.fairyproject.gradle.ExtensionUtil
 import io.fairyproject.gradle.FairyVersion
+import org.gradle.internal.jvm.Jvm
 import org.yaml.snakeyaml.Yaml
 
 abstract class VersionModificationTask extends DefaultTask {
@@ -95,6 +96,12 @@ abstract class RunDebugBukkit extends DefaultTask {
                     "#Tue Jun 22 20:59:57 ICT 2021\n" +
                     "eula=true\n")
 
+        if (Jvm.current().javaVersion.ordinal() > 8)
+        project.tasks.execBukkit.jvmArgs = [
+                "--add-opens", "java.base/java.net=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED"
+        ]
         project.tasks.execBukkit.mainClass.set("-jar")
         project.tasks.execBukkit.args = [
                 file.toPath().toString()
@@ -140,6 +147,7 @@ abstract class RunDebugApp extends DefaultTask {
         project.tasks.execApp.args = [
                 file.toPath().toString()
         ]
+
         project.tasks.execApp.standardInput = System.in
         project.tasks.execApp.workingDir("debug/app")
     }

@@ -1,17 +1,17 @@
-import io.fairyproject.gradle.FairyPlugin
-
 buildscript {
     repositories {
         mavenCentral()
     }
-
-    dependencies {
-        classpath project(":gradle-plugin")
-    }
 }
 
-apply plugin: "java"
-apply plugin: FairyPlugin
+plugins {
+    id 'java'
+    id 'io.fairyproject' version '1.0.1b5'
+}
+
+repositories {
+    mavenLocal()
+}
 
 fairy {
     name = "debugPlugin"
@@ -20,12 +20,7 @@ fairy {
 
     fairyIde = true
 
-    platform("app")
-
-    module("discord")
-    module("config")
-    module("command")
-    module("storage")
+    platform("bukkit")
 }
 
 test {
