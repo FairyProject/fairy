@@ -15,6 +15,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class TestingBase {
 
@@ -43,34 +44,41 @@ public abstract class TestingBase {
         }
         INITIALIZED = true;
 
-        final Plugin plugin = testingHandle.plugin();
-
         Debug.UNIT_TEST = true;
         FairyPlatform fairyPlatform = testingHandle.platform();
         FairyPlatform.INSTANCE = fairyPlatform;
 
         fairyPlatform.load();
+
+        PluginDescription description = PluginDescription.builder()
+                .name("unitTesting")
+                .shadedPackage(testingHandle.scanPath())
+                .build();
+        PluginAction pluginAction = new PluginAction() {
+            @Override
+            public void close() {
+                throw new IllegalStateException("close() shouldn't be called in unit testing.");
+            }
+
+            @Override
+            public boolean isClosed() {
+                return false;
+            }
+
+            @Override
+            public Path getDataFolder() {
+                return new File(".").toPath();
+            }
+        };
+
+        CompletableFuture<Plugin> completableFuture = new CompletableFuture<>();
+        PluginManager.INSTANCE.onPluginPreLoaded(testingHandle.getClass().getClassLoader(), description, pluginAction, completableFuture);
+
+        final Plugin plugin = testingHandle.plugin();
+        completableFuture.complete(plugin);
+
         if (testingHandle.shouldInitialize()) {
-            PluginDescription description = PluginDescription.builder()
-                    .name("unitTesting")
-                    .shadedPackage(testingHandle.scanPath())
-                    .build();
-            plugin.initializePlugin(description, new PluginAction() {
-                @Override
-                public void close() {
-                    throw new IllegalStateException("close() shouldn't be called in unit testing.");
-                }
-
-                @Override
-                public boolean isClosed() {
-                    return false;
-                }
-
-                @Override
-                public Path getDataFolder() {
-                    return new File(".").toPath();
-                }
-            }, plugin.getClass().getClassLoader());
+            plugin.initializePlugin(description, pluginAction, plugin.getClass().getClassLoader());
         }
         PluginManager.INSTANCE.addPlugin(plugin);
         PluginManager.INSTANCE.onPluginInitial(plugin);
