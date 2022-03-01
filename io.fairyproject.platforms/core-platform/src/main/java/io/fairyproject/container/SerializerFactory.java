@@ -103,6 +103,15 @@ public class SerializerFactory {
     }
 
     /**
+     * Unregister an existing serializer.
+     * @param type The serializer key type
+     * @return true if unregister success
+     */
+    public boolean unregisterSerializer(@NotNull Class<?> type) {
+        return this.serializers.remove(type) != null;
+    }
+
+    /**
      * Search for the serializer instance by key type.
      * @param type the type of the serializer you are looking for
      * @return the serializer instance, null if not found
