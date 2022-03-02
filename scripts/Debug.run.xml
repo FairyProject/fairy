@@ -1,0 +1,22 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Debug" type="JarApplication">
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="io.fairyproject.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="JAR_PATH" value="$PROJECT_DIR$/debug/bukkit/spigots/1.17.1-409.jar" />
+    <option name="VM_PARAMETERS" value="-Xmx4G -Dlog4j.skipJansi=true --add-opens java.base/java.net=ALL-UNNAMED --add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.base/java.lang.reflect=ALL-UNNAMED" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/debug/bukkit" />
+    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+    <option name="ALTERNATIVE_JRE_PATH" value="openjdk-17" />
+    <envs>
+      <env name="FAIRY_IDE" value="true" />
+    </envs>
+    <method v="2">
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="clean" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks="compileDebugBukkit" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>

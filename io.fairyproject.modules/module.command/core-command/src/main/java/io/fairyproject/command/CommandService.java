@@ -29,6 +29,8 @@ import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.parameter.ArgTransformer;
+import io.fairyproject.event.Subscribe;
+import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -100,8 +102,8 @@ public class CommandService {
                 .build());
     }
 
-    @PostInitialize
-    public void init() {
+    @Subscribe
+    public void init(final PostServiceInitialEvent event) {
         INSTANCE = this;
         this.batch.flushQueue();
     }

@@ -15,15 +15,7 @@ import java.util.Map;
 @Getter
 public class FairyExtension {
 
-    private static String LATEST = "0.5b1";
-
-    static {
-        try {
-            LATEST = MavenUtil.getLatest("core-platform");
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-    }
+    private static String LATEST = "0.5.2b3";
 
     // Fairy
     private final Property<String> fairyVersion;

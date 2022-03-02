@@ -88,7 +88,6 @@ subprojects {
     }
 
     apply from: "${rootDir}/gradle/builder.gradle"
-    apply from: "${rootDir}/gradle/publish.gradle"
     if (project.name == "gradle-plugin") {
         return
     }
@@ -106,6 +105,7 @@ subprojects {
             version = project(":").version
         }
     }
+    apply from: "${rootDir}/gradle/publish.gradle"
 }
 
 static boolean isNotJavaProject(Project project) {

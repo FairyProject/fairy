@@ -1,6 +1,9 @@
 package io.fairyproject.bootstrap.util;
 
+import io.fairyproject.Debug;
 import lombok.experimental.UtilityClass;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -14,6 +17,7 @@ import java.nio.file.Paths;
 
 @UtilityClass
 public class DownloadUtil {
+    private static final Logger LOGGER = LogManager.getLogger(DownloadUtil.class);
 
     private final String URL = "https://maven.imanity.dev/service/rest/v1/search/assets/download?sort=version&repository=imanity-libraries&maven.groupId=io.fairyproject&maven.artifactId=<module>";
 
@@ -23,10 +27,6 @@ public class DownloadUtil {
             // Running in IDE
             final File projectFolder = Paths.get("").toAbsolutePath().getParent().getParent().toFile(); // double parent
             final File localRepoFolder = new File(projectFolder, "libs/local");
-
-            if (!localRepoFolder.exists()) {
-                throw new IllegalStateException("Couldn't found local repo setup at " + localRepoFolder.toPath() + "!");
-            }
 
             File file = new File(localRepoFolder, "io/fairyproject/" + core + "-platform/latest/" + core + "-platform-latest.jar");
             if (!file.exists()) {
@@ -40,6 +40,8 @@ public class DownloadUtil {
         connection.setDoInput(true);
         connection.setRequestMethod("GET");
         connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
 
         final int responseCode = connection.getResponseCode();
         if (responseCode >= 200 && responseCode < 300) {

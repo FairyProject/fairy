@@ -37,5 +37,15 @@ publishing {
     }
 }
 
-publish.dependsOn build
-shadowJar.finalizedBy(publishAllPublicationsToDevRepository)
+publish.dependsOn shadowJar
+
+try {
+    /* -------------------------------------------------------
+     * Last edit: 03/03/2022
+     * Fixes modules not properly being published with
+     * the module.json
+     * ------------------------------------------------------- */
+    project.getTasks().getByName("module").finalizedBy(publishAllPublicationsToDevRepository)
+} catch (UnknownTaskException ignored) {
+    shadowJar.finalizedBy(publishAllPublicationsToDevRepository)
+}
