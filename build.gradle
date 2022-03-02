@@ -83,11 +83,16 @@ subprojects {
         return
     }
 
-    if (project.name == "gradle-plugin" || project.name == "test-plugin") {
+    if (project.name == "test-plugin") {
         return
     }
 
     apply from: "${rootDir}/gradle/builder.gradle"
+    apply from: "${rootDir}/gradle/publish.gradle"
+    if (project.name == "gradle-plugin") {
+        return
+    }
+
     apply from: "${rootDir}/gradle/extensions.gradle"
     if (project.name.contains("bootstrap")) {
         apply from: "${rootDir}/gradle/bootstrap.gradle"

@@ -1,0 +1,41 @@
+apply plugin: "maven-publish"
+
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            from project.shadow.component(publication)
+            pom {
+                name = "Fairy " + project.name
+                description = "Fairy is a compat & open-sourced Java Framework with useful features"
+            }
+        }
+
+        latest(MavenPublication) { publication ->
+            from project.shadow.component(publication)
+            pom {
+                name = "Fairy " + project.name
+                version = "latest"
+                description = "Fairy is a compat & open-sourced Java Framework with useful features"
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            name "Dev"
+            url "$rootDir/libs/local"
+        }
+
+        maven {
+            name "Production"
+            url "https://maven.imanity.dev/repository/imanity-libraries/"
+            credentials {
+                username findProperty("imanityLibrariesUsername").toString()
+                password findProperty("imanityLibrariesPassword").toString()
+            }
+        }
+    }
+}
+
+publish.dependsOn build
+shadowJar.finalizedBy(publishAllPublicationsToDevRepository)

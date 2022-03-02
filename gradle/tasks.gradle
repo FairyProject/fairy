@@ -96,8 +96,12 @@ abstract class RunDebugBukkit extends DefaultTask {
                     "#Tue Jun 22 20:59:57 ICT 2021\n" +
                     "eula=true\n")
 
+        project.tasks.execBukkit.jvmArgs += [
+                "-Dfairy.project-ide=true"
+        ];
+
         if (Jvm.current().javaVersion.ordinal() > 8)
-        project.tasks.execBukkit.jvmArgs = [
+        project.tasks.execBukkit.jvmArgs += [
                 "--add-opens", "java.base/java.net=ALL-UNNAMED",
                 "--add-opens", "java.base/java.lang=ALL-UNNAMED",
                 "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED"
@@ -143,6 +147,17 @@ abstract class RunDebugApp extends DefaultTask {
         project.file("debug/app").mkdirs()
         Files.copy(jar, file)
 
+        project.tasks.execApp.jvmArgs += [
+                "-Dfairy.project-ide=true"
+        ];
+
+        if (Jvm.current().javaVersion.ordinal() > 8)
+            project.tasks.execApp.jvmArgs += [
+                    "--add-opens", "java.base/java.net=ALL-UNNAMED",
+                    "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                    "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED"
+            ]
+
         project.tasks.execApp.mainClass.set("-jar")
         project.tasks.execApp.args = [
                 file.toPath().toString()
@@ -170,6 +185,11 @@ project.afterEvaluate {
         task runDebugApp(type: RunDebugApp) {
             group = "debug"
 
+            subprojects.each {
+                def task = it.tasks.findByName("shadowJar")
+                if (task != null)
+                    dependsOn(task)
+            }
             if (project.childProjects["test-plugin"] != null) {
                 dependsOn(":test-plugin:build")
             }
@@ -180,6 +200,11 @@ project.afterEvaluate {
         task runDebugBukkit(type: RunDebugBukkit) {
             group = "debug"
 
+            subprojects.each {
+                def task = it.tasks.findByName("shadowJar")
+                if (task != null)
+                    dependsOn(task)
+            }
             if (project.childProjects["test-plugin"] != null) {
                 dependsOn(":test-plugin:build")
             }
