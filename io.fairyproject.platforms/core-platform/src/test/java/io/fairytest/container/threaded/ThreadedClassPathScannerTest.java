@@ -22,7 +22,7 @@ public class ThreadedClassPathScannerTest extends TestingBase {
 
         final ThreadedClassPathScanner classPathScanner = new ThreadedClassPathScanner();
         List<Thread> threads = new ArrayList<>();
-        int objects = 5;
+        int objects = 20;
 
         for (int i = 0; i < objects; i++) {
             classPathScanner.getContainerObjectList().add(new ContainerObjectMock());
