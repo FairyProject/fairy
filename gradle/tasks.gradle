@@ -122,6 +122,9 @@ abstract class RunDebugBukkit extends DefaultTask {
             project.file("debug/bukkit/plugins").mkdirs()
             Files.copy(jar, project.file("debug/bukkit/plugins/debugPlugin.jar"))
         }
+
+        def platform = project.file("libs/local/io.fairyproject.bukkit-platform.jar")
+        Files.copy(platform, project.file("debug/bukkit/plugins/fairy.jar"))
     }
 }
 
