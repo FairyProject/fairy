@@ -26,10 +26,12 @@ public class PreProcessBatch {
     }
 
     public boolean remove(String name) {
-        if (this.runnableQueue != null) {
-            return this.runnableQueue.remove(name) != null;
+        synchronized (this) {
+            if (this.runnableQueue != null) {
+                return this.runnableQueue.remove(name) != null;
+            }
+            return false;
         }
-        return false;
     }
 
     public void flushQueue() {
@@ -41,11 +43,11 @@ public class PreProcessBatch {
         for (Runnable runnable : runnableQueue.values()) {
             runnable.run();
         }
-        runnableQueue.clear();
+        this.runnableQueue = null;
     }
 
     public int size() {
-        return runnableQueue.size();
+        return runnableQueue == null ? 0 : runnableQueue.size();
     }
 
 }
