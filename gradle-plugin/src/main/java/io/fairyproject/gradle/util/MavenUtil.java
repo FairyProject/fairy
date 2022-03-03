@@ -49,7 +49,7 @@ public class MavenUtil {
             }
         }
 
-        return FairyPlugin.VERSION == null ? "0.5.2b3" : FairyPlugin.VERSION;
+        return "0.5.2b3";
     }
 
     public void addExistingModule(FairyExtension extension, String from, @Nullable String version) throws IOException {
