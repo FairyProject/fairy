@@ -31,10 +31,10 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.FairyThreadFactory;
+import io.fairyproject.util.FileUtil;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.URLClassLoaderAccess;
 import lombok.Getter;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
@@ -236,8 +236,8 @@ public class LibraryHandler {
         List<Path> retVal = new ArrayList<>();
         for (Path path : normalFile) {
             final String name = path.getFileName().toString();
-            final String fileName = FilenameUtils.getName(name);
-            final String extension = FilenameUtils.getExtension(name);
+            final String fileName = FileUtil.getName(name);
+            final String extension = FileUtil.getExtension(name);
             Path remappedFile = this.libFolder.resolve(fileName + "-remapped." + extension);
 
             if (Files.exists(remappedFile)) {

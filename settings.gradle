@@ -22,6 +22,14 @@
  * SOFTWARE.
  */
 
+pluginManagement {
+    repositories {
+        mavenLocal()
+        gradlePluginPortal()
+    }
+}
+
+
 rootProject.name = "fairy-parent"
 
 void initPlatforms() {

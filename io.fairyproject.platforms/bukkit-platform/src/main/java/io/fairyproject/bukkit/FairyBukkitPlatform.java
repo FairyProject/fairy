@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit;
 
+import com.github.retrooper.packetevents.PacketEvents;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
@@ -42,6 +43,7 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -86,6 +88,8 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         PluginManager.initialize(new BukkitPluginHandler());
         ModuleService.init();
         MinecraftReflection.init();
+        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(PLUGIN));
+        PacketEvents.getAPI().load();
         this.createMCInitializer().apply();
     }
 
@@ -98,10 +102,14 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
         super.enable();
         ModuleService.INSTANCE.enable();
+        PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(true);
+        PacketEvents.getAPI().init();
     }
 
     @Override
     public void disable() {
+        PacketEvents.getAPI().terminate();
+
         super.disable();
     }
 

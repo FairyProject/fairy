@@ -1,11 +1,12 @@
 package io.fairyproject.bukkit.mc;
 
+import com.github.retrooper.packetevents.PacketEventsAPI;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.protocol.BukkitNettyInjector;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
-import io.fairyproject.mc.protocol.mapping.MCProtocolMapping;
-import io.fairyproject.mc.protocol.mapping.MCProtocolMapping1_8;
 import io.fairyproject.mc.protocol.netty.NettyInjector;
+import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -21,8 +22,8 @@ public class BukkitMCInitializer implements MCInitializer {
     }
 
     @Override
-    public MCProtocolMapping createProtocolMapping() {
-        return new MCProtocolMapping1_8(); // TODO
+    public PacketEventsAPI<?> createPacketEvents() {
+        return SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
     }
 
     @Override

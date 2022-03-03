@@ -55,7 +55,7 @@ public class FairyExtension {
         this.fairyPlatforms = objectFactory.listProperty(PlatformType.class).convention(Collections.singleton(PlatformType.BUKKIT));
 
         // Libraries
-        this.aspectJVersion = objectFactory.property(String.class).convention("1.8.7");
+        this.aspectJVersion = objectFactory.property(String.class).convention("1.9.7");
 
         // Plugin
         this.classifier = objectFactory.property(String.class).convention("all");

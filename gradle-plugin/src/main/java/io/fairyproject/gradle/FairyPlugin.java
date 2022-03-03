@@ -131,9 +131,10 @@ public class FairyPlugin implements Plugin<Project> {
                 }
 
                 try {
-                    new ModuleReader(project, extension, fairyModuleConfiguration, copy, new HashSet<>()).load(moduleEntry.getKey(), dependency, new ArrayList<>());
+                    new ModuleReader(project, extension, fairyModuleConfiguration, copy, new HashSet<>())
+                            .load(moduleEntry.getKey(), dependency, new ArrayList<>());
                 } catch (IOException e) {
-                    throw new IllegalArgumentException("An error occurs while reading dependency");
+                    throw new IllegalArgumentException("An error occurs while reading dependency", e);
                 }
             }
 

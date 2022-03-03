@@ -18,12 +18,12 @@ public class MCAdventure {
 
     public void initialize() {
         final GsonComponentSerializer.Builder builder = GsonComponentSerializer.builder();
-        if (!MCProtocol.INSTANCE.getProtocolMapping().getVersion().isHexColorSupport()) {
+        if (!MCProtocol.INSTANCE.version().isHexColorSupport()) {
             builder.downsampleColors();
         }
 
         final LegacyComponentSerializer.Builder legacyBuilder = LegacyComponentSerializer.builder();
-        if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().isHexColorSupport()) {
+        if (MCProtocol.INSTANCE.version().isHexColorSupport()) {
             legacyBuilder.hexColors();
         }
 
@@ -44,7 +44,7 @@ public class MCAdventure {
     }
 
     public String asItemString(Component component, Locale locale) {
-        if (MCProtocol.INSTANCE.getProtocolMapping().getVersion().isOrAbove(MCVersion.V1_13)) {
+        if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_13)) {
             return asJsonString(component, locale);
         } else {
             return asLegacyString(component, locale);

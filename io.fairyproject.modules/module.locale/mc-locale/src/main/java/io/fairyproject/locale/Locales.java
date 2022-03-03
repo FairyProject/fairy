@@ -28,7 +28,6 @@ import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerHolder;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.Template;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -68,10 +67,6 @@ public class Locales {
 
     public Component translate(String key) {
         return Component.translatable(key);
-    }
-
-    public Template template(String placeholder, String localeKey) {
-        return Template.template(placeholder, Component.translatable(localeKey));
     }
 
 }

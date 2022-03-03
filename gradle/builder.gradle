@@ -37,6 +37,8 @@ project.afterEvaluate(p -> {
     shadowJar {
         // XSeries
         exclude("com/cryptomorin/xseries/messages/*")
+
+        relocate("com.github.retrooper.packetevents", "io.fairyproject.protocol.packetevents")
         relocate("com.cryptomorin.xseries", "io.fairyproject.bukkit.xseries")
 
         relocate "net.kyori", relocate + "kyori"
