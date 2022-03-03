@@ -36,13 +36,16 @@ public class PreProcessBatch {
         Map<String, Runnable> runnableQueue;
         synchronized (this) {
             runnableQueue = this.runnableQueue;
-            this.runnableQueue.clear();
         }
 
         for (Runnable runnable : runnableQueue.values()) {
             runnable.run();
         }
         runnableQueue.clear();
+    }
+
+    public int size() {
+        return runnableQueue.size();
     }
 
 }

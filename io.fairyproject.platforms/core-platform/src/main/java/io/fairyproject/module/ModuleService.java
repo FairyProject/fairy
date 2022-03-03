@@ -81,6 +81,8 @@ public class ModuleService {
     }
 
     public void enable() {
+        ContainerContext.log("[>>ModuleService>>] Initializing module service... Flushing %d tasks",
+                this.pendingProcessBatch.size());
         this.pendingProcessBatch.flushQueue();
     }
 
@@ -93,6 +95,7 @@ public class ModuleService {
             return;
         }
 
+        ContainerContext.log("[>>Downloader>>] Downloading %s:%s...", name, version);
         paths.add(new ModuleData(name, FairyVersion.parse(version), path));
 
         // We will read dependencies first.
@@ -135,6 +138,7 @@ public class ModuleService {
         try {
             JsonObject jsonObject = readModuleData(moduleData.getPath());
             if (jsonObject == null) {
+                ContainerContext.warn("Failed to read module data @ %s (%s)", moduleData.getName(), moduleData.getPath().toString());
                 return null;
             }
             String name = jsonObject.get("name").getAsString();
@@ -162,6 +166,11 @@ public class ModuleService {
 
             this.moduleByName.put(name, module);
             final Collection<String> excludedPackages = module.getExcludedPackages(this);
+
+            ContainerContext.log("Excluding packages from %s in %s", module.getName(), module.getClassPath());
+            for (String excludedPackage : excludedPackages) {
+                ContainerContext.log("     --> %s", excludedPackage);
+            }
 
             // Scan classes
             final ClassPathScanner classPathScanner = CONTAINER_CONTEXT.scanClasses()

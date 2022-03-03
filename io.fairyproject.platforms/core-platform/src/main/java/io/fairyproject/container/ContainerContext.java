@@ -88,12 +88,25 @@ public class ContainerContext {
             LOGGER.info(String.format(msg, replacement));
         }
     }
+    public static void warn(String msg, Object... replacement) {
+        if (SHOW_LOGS) {
+            LOGGER.warn(String.format(msg, replacement));
+        }
+    }
+    public static void fatal(String msg, Throwable e, Object... replacement) {
+        if (SHOW_LOGS) {
+            LOGGER.fatal(String.format(msg, replacement), e);
+        }
+    }
     public static SimpleTiming logTiming(String msg) {
         return SimpleTiming.create(time -> log("Ended %s - took %d ms", msg, time));
     }
 
     @Getter
-    private ContainerController[] controllers;
+    private final ContainerController[] controllers = Arrays.asList(
+            new AutowiredContainerController(),
+            new SubscribeEventContainerController()
+        ).toArray(new ContainerController[0]);
 
     /**
      * Lookup Storages
@@ -112,14 +125,6 @@ public class ContainerContext {
      */
     public void init() {
         INSTANCE = this;
-
-        // TODO: annotated registration?
-        this.controllers = Arrays.asList(
-
-                new AutowiredContainerController(),
-                new SubscribeEventContainerController()
-
-        ).toArray(new ContainerController[0]);
 
         this.registerObject(new SimpleContainerObject(this, this.getClass()));
         this.registerObject(new SimpleContainerObject(ModuleService.INSTANCE, ModuleService.class));

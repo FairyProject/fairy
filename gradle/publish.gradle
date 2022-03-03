@@ -39,7 +39,6 @@ publishing {
 
 publish.dependsOn shadowJar
 
-
 /* -------------------------------------------------------
  * Last edit: 03/03/2022
  * Fixes modules not properly being published with
