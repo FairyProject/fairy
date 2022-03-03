@@ -98,12 +98,12 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         AUDIENCES = BukkitAudiences.create(PLUGIN);
 
         SpigotUtil.init();
+        PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(false);
+        PacketEvents.getAPI().init();
         ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
 
         super.enable();
         ModuleService.INSTANCE.enable();
-        PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(true);
-        PacketEvents.getAPI().init();
     }
 
     @Override

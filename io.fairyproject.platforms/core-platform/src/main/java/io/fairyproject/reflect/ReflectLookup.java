@@ -56,10 +56,12 @@ public class ReflectLookup {
     }
 
     public ReflectLookup(ConfigurationBuilder configurationBuilder) {
-        configurationBuilder.addScanners(new TypeAnnotationsScanner(),
+        configurationBuilder.addScanners(
+                new TypeAnnotationsScanner(),
                 new FieldAnnotationsScanner(),
                 new MethodAnnotationsScanner(),
-                new SubTypesScanner(false));
+                new SubTypesScanner(false)
+        );
 
         this.reflections = new Reflections(configurationBuilder);
 

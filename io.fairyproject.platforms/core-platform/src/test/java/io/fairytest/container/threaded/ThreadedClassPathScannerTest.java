@@ -6,6 +6,7 @@ import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.tests.TestingBase;
 import io.fairytest.container.ContainerObjectMock;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.List;
 public class ThreadedClassPathScannerTest extends TestingBase {
 
     @Test
+    @Disabled // Test is random and does not necessarily create multiple threads
     public void applyControllersShouldBeParallel() {
         if (Runtime.getRuntime().availableProcessors() < 2) {
             // Skip if it's single core?

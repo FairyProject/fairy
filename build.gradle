@@ -88,24 +88,24 @@ subprojects {
     }
 
     apply from: "${rootDir}/gradle/builder.gradle"
-    apply from: "${rootDir}/gradle/publish.gradle"
-    if (project.name == "gradle-plugin") {
-        return
-    }
 
-    apply from: "${rootDir}/gradle/extensions.gradle"
-    if (project.name.contains("bootstrap")) {
-        apply from: "${rootDir}/gradle/bootstrap.gradle"
-    } else {
-        apply from: "${rootDir}/gradle/basic.gradle"
-        if (project.name.endsWith("-platform")) {
-            apply from: "${rootDir}/gradle/platform.gradle"
-        } else if (!project.name.endsWith("-tests")) {
-            apply from: "${rootDir}/gradle/module.gradle"
+    if (project.name != "gradle-plugin") {
+        apply from: "${rootDir}/gradle/extensions.gradle"
+        if (project.name.contains("bootstrap")) {
+            apply from: "${rootDir}/gradle/bootstrap.gradle"
         } else {
-            version = project(":").version
+            apply from: "${rootDir}/gradle/basic.gradle"
+            if (project.name.endsWith("-platform")) {
+                apply from: "${rootDir}/gradle/platform.gradle"
+            } else if (!project.name.endsWith("-tests")) {
+                apply from: "${rootDir}/gradle/module.gradle"
+            } else {
+                version = project(":").version
+            }
         }
     }
+
+    apply from: "${rootDir}/gradle/publish.gradle"
 }
 
 static boolean isNotJavaProject(Project project) {

@@ -3,6 +3,8 @@ package io.fairyproject.module;
 import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
 import lombok.experimental.UtilityClass;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -38,6 +40,7 @@ public class ModuleDownloader {
 
     public static final boolean LOCAL_REPO = Boolean.getBoolean("fairy.local-repo");
     public static final Path MODULE_DIR = new File(FairyPlatform.INSTANCE.getDataFolder(), "modules").toPath().toAbsolutePath();
+    private static final Logger LOGGER = LogManager.getLogger(ModuleDownloader.class);
 
     private static final RepositorySystem REPOSITORY;
     private static final DefaultRepositorySystemSession SESSION;
@@ -52,7 +55,9 @@ public class ModuleDownloader {
         SESSION = MavenRepositorySystemUtils.newSession();
 
         SESSION.setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL);
+
         if (Debug.IN_FAIRY_IDE) {
+            LOGGER.info("[IDE-Dev] Loading local library repository...");
             SESSION.setLocalRepositoryManager(REPOSITORY.newLocalRepositoryManager(SESSION, new LocalRepository(locateLocalRepo())));
         } else {
             SESSION.setLocalRepositoryManager(REPOSITORY.newLocalRepositoryManager(SESSION, new LocalRepository(LOCAL_REPO ? locateMavenLocal() : MODULE_DIR.toFile())));
@@ -104,7 +109,8 @@ public class ModuleDownloader {
                     null
             );
 
-            result = REPOSITORY.resolveDependencies(SESSION, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(dependency), repositories), null));
+            final CollectRequest request = new CollectRequest((Dependency) null, Collections.singletonList(dependency), repositories);
+            result = REPOSITORY.resolveDependencies(SESSION, new DependencyRequest(request, null));
         } catch (DependencyResolutionException ex) {
             Debug.logExceptionAndPause(new IllegalStateException("Error resolving libraries!", ex));
             return null;
