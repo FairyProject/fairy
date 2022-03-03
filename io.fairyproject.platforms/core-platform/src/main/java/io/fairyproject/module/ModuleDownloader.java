@@ -87,21 +87,6 @@ public class ModuleDownloader {
     public static Path download(String groupId, String artifactId, String version, @Nullable String customRepository) throws IOException {
         Files.createDirectories(MODULE_DIR);
 
-        if (Debug.IN_FAIRY_IDE) {
-            final File projectFolder = (Debug.UNIT_TEST ? Paths.get("").toAbsolutePath().getParent() : Paths.get("").toAbsolutePath().getParent().getParent()).toFile(); // double parent
-            final File localRepoFolder = new File(projectFolder, "libs/local");
-
-            if (!localRepoFolder.exists()) {
-                Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local repo setup at " + localRepoFolder + "!"));
-            }
-
-            File file = new File(localRepoFolder, "io/fairyproject/" + artifactId + "/latest/" + artifactId + "-latest.jar");
-            if (!file.exists()) {
-                Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local module at local repo setup at " + file + "!"));
-            }
-            return file.toPath();
-        }
-
         DependencyResult result;
         try {
             List<RemoteRepository> repositories = ModuleDownloader.REPOSITORIES;
