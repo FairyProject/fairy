@@ -8,6 +8,7 @@ import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import io.fairyproject.util.thread.BlockingThreadAwaitQueue;
 import lombok.Getter;
 
 import java.lang.reflect.Field;
@@ -26,21 +27,30 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     private final CompletableFuture<List<ContainerObject>> completedFuture = new CompletableFuture<>();
 
     private Collection<Class<?>> serviceClasses;
+    private BlockingThreadAwaitQueue main;
 
     @Override
     public void scan() throws Exception {
         log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
 
         this.containerObjectList.addAll(this.included);
+        this.main = BlockingThreadAwaitQueue.create(this::handleException);
 
         // Build the instance for Reflection Lookup
         this.buildReflectLookup();
         this.scanClasses()
-                .thenRun(ThrowingRunnable.sneaky(this::initializeClasses))
-                .thenCompose(this.directlyCompose(() -> this.callInit(LifeCycle.PRE_INIT)))
+                .thenRunAsync(ThrowingRunnable.sneaky(this::initializeClasses), this.main)
+                .thenComposeAsync(this.directlyCompose(() -> this.callInit(LifeCycle.PRE_INIT)), this.main)
                 .thenCompose(this.directlyCompose(this::scanComponentAndInjection))
-                .thenCompose(this.directlyCompose(() -> this.callInit(LifeCycle.POST_INIT)))
+                .thenComposeAsync(this.directlyCompose(() -> this.callInit(LifeCycle.POST_INIT)), this.main)
                 .whenComplete(this.whenComplete(() -> this.completedFuture.complete(this.containerObjectList)));
+    }
+
+    @Override
+    public void scanBlocking() throws Exception {
+        this.scan();
+
+        this.main.await(() -> this.getCompletedFuture().isDone());
     }
 
     private CompletableFuture<?> applyAutowiredStaticFields() {

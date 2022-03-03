@@ -3,6 +3,7 @@ package io.fairyproject.container.scanner;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.util.SimpleTiming;
+import io.fairyproject.util.thread.BlockingThreadAwaitQueue;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -85,6 +86,10 @@ public abstract class ClassPathScanner {
     public ClassPathScanner included(Collection<ContainerObject> containerObjects) {
         this.included.addAll(containerObjects);
         return this;
+    }
+
+    public void scanBlocking() throws Exception {
+        this.scan();
     }
 
     public abstract void scan() throws Exception;
