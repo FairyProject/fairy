@@ -10,6 +10,8 @@ import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -22,6 +24,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class ModulePluginListenerAdapter implements PluginListenerAdapter {
 
+    private static final Logger LOGGER = LogManager.getLogger(ModulePluginListenerAdapter.class);
     private final ModuleService moduleService;
 
     @Override
@@ -57,7 +60,10 @@ public class ModulePluginListenerAdapter implements PluginListenerAdapter {
             module.addRef(); // add reference
             pluginCompletableFuture.whenComplete((plugin, throwable) -> {
                 if (throwable == null) {
+                    LOGGER.info("Loaded module " + module.getName() + " into plugin " + plugin.getName());
                     plugin.getLoadedModules().add(module);
+                } else {
+                    LOGGER.warn("Failed to load module " + module.getName() + " into plugin " + plugin.getName(), throwable);
                 }
             });
         });
