@@ -137,9 +137,8 @@ public class ContainerContext {
                     .url(this.getClass().getProtectionDomain().getCodeSource().getLocation())
                     .classLoader(ContainerContext.class.getClassLoader())
                     .classPath("io.fairyproject");
-            classPathScanner.scan();
+            classPathScanner.scanBlocking();
 
-            classPathScanner.getCompletedFuture().join();
             if (classPathScanner.getException() != null) {
                 SneakyThrowUtil.sneakyThrow(classPathScanner.getException());
             }
@@ -201,8 +200,7 @@ public class ContainerContext {
                         scanner
                                 .classPath(classPaths)
                                 .included(containerObject)
-                                .scan();
-                        scanner.getCompletedFuture().join();
+                                .scanBlocking();
 
                         if (scanner.getException() != null) {
                             SneakyThrowUtil.sneakyThrow(scanner.getException());

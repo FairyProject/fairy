@@ -180,7 +180,7 @@ public class ModuleService {
                     .excludePackage(excludedPackages)
                     .url(shadedPath.toUri().toURL())
                     .classPath(module.getClassPath());
-            classPathScanner.scan();
+            classPathScanner.scanBlocking();
 
             final List<ContainerObject> containerObjects = classPathScanner.getCompletedFuture().join();
             pluginCompletableFuture.whenComplete((plugin, throwable) -> {
