@@ -138,10 +138,13 @@ public class ModuleService {
                 return null;
             }
             String name = jsonObject.get("name").getAsString();
-            String classPath = !Debug.UNIT_TEST ? pluginDescription.getShadedPackage() + ".fairy" : "io.fairyproject";
+            String classPath = !Debug.UNIT_TEST
+                    ? pluginDescription.getShadedPackage() + ".fairy"
+                    : "io.fairyproject";
 
             final List<Module> dependedModules = this.loadDependModules(jsonObject, name);
             if (dependedModules == null) {
+                LOGGER.warn("Failed to load depended modules from " + name + " in " + pluginDescription.getName());
                 return null;
             }
 
