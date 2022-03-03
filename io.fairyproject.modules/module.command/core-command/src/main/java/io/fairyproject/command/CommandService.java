@@ -107,7 +107,7 @@ public class CommandService {
         LOGGER.info("Initialized command service...");
     }
 
-    @PreInitialize
+    @PostInitialize
     public void init() {
         INSTANCE = this;
         LOGGER.info("Injecting fairy commands...");
