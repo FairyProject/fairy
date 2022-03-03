@@ -285,7 +285,7 @@ public class PacketPlay {
                                 e.getPlayerSuffix(),
                                 e.getNametagVisibility(),
                                 e.getCollisionRule(),
-                                e.getColor() == null ? null : e.getColor().getColor() == null ? null : NamedTextColor.ofExact(e.getColor().getColor()),
+                                null,
                                 OptionData.fromValue((byte) e.getOptions())
                         ))
                 );
@@ -330,32 +330,28 @@ public class PacketPlay {
                 public ScoreboardTeam build() {
                     final String name = this.name;
                     final TeamMode mode = TeamMode.values()[teamAction.ordinal()];
-                    final Optional<ScoreBoardTeamInfo> info = parameters.map(e -> new ScoreBoardTeamInfo(
+                    /*final Optional<ScoreBoardTeamInfo> info = parameters.map(e -> new ScoreBoardTeamInfo(
                             e.getDisplayName(),
                             e.getPlayerPrefix(),
                             e.getPlayerSuffix(),
                             e.getNametagVisibility(),
                             e.getCollisionRule(),
-                            e.getColor() == null ? null : e.getColor().getColor() == null ? null : NamedTextColor.ofExact(e.getColor().getColor()),
+                            e.getColor() == null ? null : e.getColor().getColor() == null ? null
+                                    : NamedTextColor.ofExact(e.getColor().getColor()),
                             OptionData.fromValue((byte) e.getOptions())
-                    ));
+                    ));*/
 
-                    return new ScoreboardTeam(name, mode, info, players);
+                    return new ScoreboardTeam(name, mode, null, players);
                 }
             }
 
             @Builder @NoArgsConstructor @AllArgsConstructor @Getter @Setter
             public static class Parameters {
                 private Component displayName = Component.empty();
-                @Builder.Default
                 private Component playerPrefix = Component.empty();
-                @Builder.Default
                 private Component playerSuffix = Component.empty();
-                @Builder.Default
                 private NameTagVisibility nametagVisibility = NameTagVisibility.ALWAYS;
-                @Builder.Default
                 private CollisionRule collisionRule = CollisionRule.ALWAYS;
-                @Builder.Default
                 private ChatFormatting color = ChatFormatting.BLACK;
                 private int options;
             }

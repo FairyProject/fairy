@@ -6,8 +6,10 @@ dependencies {
 
     // Adventure, for user-interface
     api "net.kyori:adventure-api:" + findProperty("adventure.version")
-    api "net.kyori:adventure-text-minimessage:4.2.0-SNAPSHOT"
+    api "net.kyori:adventure-platform-facet:4.1.0"
+    api "net.kyori:adventure-text-minimessage:" + findProperty("adventure.version")
     api "net.kyori:adventure-text-serializer-gson:" + findProperty("adventure.version")
+    api "net.kyori:adventure-text-serializer-gson-legacy-impl:" + findProperty("adventure.version")
     api "net.kyori:adventure-text-serializer-plain:" + findProperty("adventure.version")
     api "net.kyori:adventure-text-serializer-legacy:" + findProperty("adventure.version")
 }

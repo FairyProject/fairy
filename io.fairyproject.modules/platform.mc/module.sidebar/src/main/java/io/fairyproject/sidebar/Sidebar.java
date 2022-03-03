@@ -24,14 +24,20 @@
 
 package io.fairyproject.sidebar;
 
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisplayScoreboard;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateScore;
 import io.fairyproject.Fairy;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.MCVersion;
 import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.item.*;
-import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
+import net.kyori.adventure.text.format.NamedTextColor;
 
 import java.util.List;
 import java.util.Optional;
@@ -49,17 +55,22 @@ public class Sidebar {
         this.player = player;
         this.teams = new Component[16];
 
-        player.sendPacket(PacketPlay.Out.ScoreboardObjective.builder()
-                .objectiveName(player.getName())
-                .displayName(Component.text("Objective"))
-                .renderType(ObjectiveRenderType.INTEGER)
-                .method(0)
-                .build());
+        final WrapperPlayServerScoreboardObjective objective = new WrapperPlayServerScoreboardObjective(
+                player.getName(),
+                WrapperPlayServerScoreboardObjective.ObjectiveMode.CREATE,
+                Optional.of(MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_7)
+                        ? MCAdventure.asLegacyString(Component.empty(), player.getLocale())
+                        : MCAdventure.asJsonString(Component.empty(), player.getLocale())),
+                Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
+        );
+        player.sendPacket(objective);
 
-        player.sendPacket(PacketPlay.Out.ScoreboardDisplayObjective.builder()
-                .displaySlot(ObjectiveDisplaySlot.SIDEBAR)
-                .objectiveName(player.getName())
-                .build());
+        final WrapperPlayServerDisplayScoreboard scoreboard = new WrapperPlayServerDisplayScoreboard(
+                ObjectiveDisplaySlot.SIDEBAR.getSerializeId(),
+                player.getName()
+        );
+
+        player.sendPacket(scoreboard);
 
     }
 
@@ -69,12 +80,17 @@ public class Sidebar {
         }
 
         this.title = title;
-        player.sendPacket(PacketPlay.Out.ScoreboardObjective.builder()
-                .objectiveName(player.getName())
-                .displayName(title)
-                .renderType(ObjectiveRenderType.INTEGER)
-                .method(2)
-                .build());
+
+        player.sendPacket(new WrapperPlayServerScoreboardObjective(
+                player.getName(),
+                WrapperPlayServerScoreboardObjective.ObjectiveMode.UPDATE,
+                Optional.of(
+                        MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_7)
+                        ? MCAdventure.asLegacyString(title, player.getLocale())
+                        : MCAdventure.asJsonString(title, player.getLocale())
+                ),
+                Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
+        ));
     }
 
     public void setLines(List<Component> lines) {
@@ -103,8 +119,7 @@ public class Sidebar {
         }
 
         final String value = MCAdventure.asLegacyString(component, this.player.getLocale());
-        final PacketPlay.Out.ScoreboardTeam packet = getOrRegisterTeam(line);
-        PacketPlay.Out.ScoreboardTeam.Parameters.ParametersBuilder builder = PacketPlay.Out.ScoreboardTeam.Parameters.builder();
+        final WrapperPlayServerTeams packet = getOrRegisterTeam(line);
         String prefix;
         String suffix;
 
@@ -130,25 +145,31 @@ public class Sidebar {
             }
         }
 
-        builder.playerPrefix(MCAdventure.LEGACY.deserialize(prefix));
-        builder.playerSuffix(MCAdventure.LEGACY.deserialize(suffix));
-
+        final WrapperPlayServerTeams.ScoreBoardTeamInfo info = new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+                Component.empty(),
+                MCAdventure.LEGACY.deserialize(prefix),
+                MCAdventure.LEGACY.deserialize(suffix),
+                WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                WrapperPlayServerTeams.CollisionRule.ALWAYS,
+                NamedTextColor.BLACK,
+                WrapperPlayServerTeams.OptionData.fromValue((byte) 0)
+        );
         teams[line] = component;
 
-        packet.setParameters(Optional.of(builder.build()));
+        packet.setTeamInfo(Optional.of(info));
         this.player.sendPacket(packet);
     }
 
     public void clear(int line) {
         if (line > 0 && line < 16 && teams[line] != null) {
-            final PacketPlay.Out.ScoreboardScore packetA = PacketPlay.Out.ScoreboardScore.builder()
-                    .owner(this.getEntry(line))
-                    .objectiveName(player.getName())
-                    .score(line)
-                    .action(ScoreAction.REMOVE)
-                    .build();
-            final PacketPlay.Out.ScoreboardTeam packetB = getOrRegisterTeam(line);
-            packetB.setTeamAction(TeamAction.REMOVE);
+            final WrapperPlayServerUpdateScore packetA = new WrapperPlayServerUpdateScore(
+                    this.getEntry(line),
+                    WrapperPlayServerUpdateScore.Action.REMOVE_ITEM,
+                    player.getName(),
+                    Optional.of(line)
+            );
+            final WrapperPlayServerTeams packetB = getOrRegisterTeam(line);
+            packetB.setTeamMode(WrapperPlayServerTeams.TeamMode.REMOVE);
 
             teams[line] = null;
 
@@ -163,31 +184,32 @@ public class Sidebar {
         }
     }
 
-    private PacketPlay.Out.ScoreboardTeam getOrRegisterTeam(int line) {
-        final PacketPlay.Out.ScoreboardTeam.Factory builder = PacketPlay.Out.ScoreboardTeam.builder();
-        builder.name("-sb" + line);
-        builder.teamAction(TeamAction.ADD);
-
+    private WrapperPlayServerTeams getOrRegisterTeam(int line) {
         if (teams[line] != null) {
-            builder.teamAction(TeamAction.CHANGE);
-
-            return builder.build();
+            return new WrapperPlayServerTeams(
+                    "-sb" + line,
+                    WrapperPlayServerTeams.TeamMode.CREATE,
+                    Optional.empty()
+            );
         } else {
             teams[line] = null;
 
-            final PacketPlay.Out.ScoreboardScore score = PacketPlay.Out.ScoreboardScore.builder()
-                    .owner(this.getEntry(line))
-                    .objectiveName(player.getName())
-                    .score(line)
-                    .action(ScoreAction.CHANGE)
-                    .build();
-
-            builder.teamAction(TeamAction.ADD);
-            builder.players(getEntry(line));
+            final WrapperPlayServerUpdateScore score = new WrapperPlayServerUpdateScore(
+                    this.getEntry(line),
+                    WrapperPlayServerUpdateScore.Action.CREATE_OR_UPDATE_ITEM,
+                    player.getName(),
+                    Optional.of(line)
+            );
             this.player.sendPacket(score);
 
-            return builder.build();
+            return new WrapperPlayServerTeams(
+                    "-sb" + line,
+                    WrapperPlayServerTeams.TeamMode.CREATE,
+                    Optional.empty(),
+                    getEntry(line)
+            );
         }
+
     }
 
     private String getEntry(Integer line) {
