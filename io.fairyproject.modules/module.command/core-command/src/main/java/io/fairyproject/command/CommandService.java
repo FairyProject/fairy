@@ -102,8 +102,8 @@ public class CommandService {
                 .build());
     }
 
-    @Subscribe
-    public void init(final PostServiceInitialEvent event) {
+    @PreInitialize
+    public void init() {
         INSTANCE = this;
         this.batch.flushQueue();
     }
