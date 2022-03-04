@@ -129,7 +129,6 @@ public class ModulePluginListenerAdapter implements PluginListenerAdapter {
                 this.moduleService.downloadModules(artifactId, version, modules, false);
             }
         } catch (ClassNotFoundException ignored) {
-            ignored.printStackTrace();
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to load modules for " + pluginDescription.getName(), ex);
         }

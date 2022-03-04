@@ -91,13 +91,13 @@ public class ContainerTest extends TestingBase {
     public void annotatedBeanRegistration() {
         final ContainerContext containerContext = ContainerContext.INSTANCE;
 
-        ThrowingRunnable.unchecked(() -> {
+        ThrowingRunnable.sneaky(() -> {
             final ClassPathScanner classPathScanner = containerContext.scanClasses()
                     .name("test")
                     .classLoader(ContainerTest.class.getClassLoader())
                     .url(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation())
                     .classPath("io.fairytest.container.annotated");
-            classPathScanner.scan();
+            classPathScanner.scanBlocking();
 
             final List<ContainerObject> beanDetails = classPathScanner.getCompletedFuture().join();
             assertEquals(1, beanDetails.size());
