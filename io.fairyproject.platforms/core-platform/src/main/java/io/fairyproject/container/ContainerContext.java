@@ -79,6 +79,24 @@ public class ContainerContext {
                     .build());
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
 
+    @Getter
+    private final ContainerController[] controllers = Arrays.asList(
+            new AutowiredContainerController(),
+            new SubscribeEventContainerController()
+    ).toArray(new ContainerController[0]);
+
+    /**
+     * Lookup Storages
+     */
+    private final Map<Class<?>, ContainerObject> containerByType = new ConcurrentHashMap<>();
+
+    /**
+     * NOT THREAD SAFE
+     */
+    @Getter
+    private final List<ContainerObject> sortedObjects = new ArrayList<>();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
     /**
      * Logging
      */
@@ -101,24 +119,6 @@ public class ContainerContext {
     public static SimpleTiming logTiming(String msg) {
         return SimpleTiming.create(time -> log("Ended %s - took %d ms", msg, time));
     }
-
-    @Getter
-    private final ContainerController[] controllers = Arrays.asList(
-            new AutowiredContainerController(),
-            new SubscribeEventContainerController()
-        ).toArray(new ContainerController[0]);
-
-    /**
-     * Lookup Storages
-     */
-    private final Map<Class<?>, ContainerObject> containerByType = new ConcurrentHashMap<>();
-
-    /**
-     * NOT THREAD SAFE
-     */
-    @Getter
-    private final List<ContainerObject> sortedObjects = new ArrayList<>();
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
      * Initializing Method for ContainerContext

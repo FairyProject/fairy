@@ -4,9 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.gradle.FairyExtension;
-import io.fairyproject.gradle.FairyPlugin;
 import lombok.experimental.UtilityClass;
-import org.jetbrains.annotations.Debug;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;

@@ -2,7 +2,6 @@ package io.fairyproject.mc.protocol;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.fairyproject.mc.MCAdventure;
 import lombok.Getter;
 
 @Getter

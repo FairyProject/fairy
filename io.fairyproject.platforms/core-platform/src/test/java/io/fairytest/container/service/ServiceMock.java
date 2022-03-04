@@ -5,6 +5,7 @@ import io.fairyproject.jackson.JacksonService;
 import lombok.Getter;
 
 @Service
+@Getter
 public class ServiceMock {
 
     @Autowired
@@ -15,15 +16,17 @@ public class ServiceMock {
 
     public ContainerContext containerContext;
 
-    @Getter
     private final long constructMs;
-    @Getter
-    private long preInitializeMs = -1, postInitializeMs = -1, preDestroyMs = -1, postDestroyMs = -1;
+    private long preInitializeMs = -1;
+    private long postInitializeMs = -1;
+    private long preDestroyMs = -1;
+    private long postDestroyMs = -1;
 
-    @Getter
     private final Thread constructThread;
-    @Getter
-    private Thread preInitializeThread, postInitializeThread, preDestroyThread, postDestroyThread;
+    private Thread preInitializeThread;
+    private Thread postInitializeThread;
+    private Thread preDestroyThread;
+    private Thread postDestroyThread;
 
     @ContainerConstruct
     public ServiceMock(ContainerContext containerContext) {

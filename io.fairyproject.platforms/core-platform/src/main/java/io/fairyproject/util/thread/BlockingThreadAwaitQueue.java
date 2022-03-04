@@ -20,6 +20,8 @@ public class BlockingThreadAwaitQueue implements Executor {
     private final Object lock = new Object();
     private final Consumer<Throwable> exceptionHandler;
 
+    private boolean workingState = true;
+
     private BlockingThreadAwaitQueue(Consumer<Throwable> exceptionHandler) {
         this.exceptionHandler = exceptionHandler;
     }
@@ -27,8 +29,6 @@ public class BlockingThreadAwaitQueue implements Executor {
     public static BlockingThreadAwaitQueue create(Consumer<Throwable> exceptionHandler) {
         return new BlockingThreadAwaitQueue(exceptionHandler);
     }
-
-    private boolean workingState = true;
 
     @Override
     public void execute(@NotNull Runnable runnable) {

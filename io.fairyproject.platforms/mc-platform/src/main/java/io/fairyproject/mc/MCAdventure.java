@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.flattener.ComponentFlattener;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.gson.LegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;

@@ -24,13 +24,11 @@
 
 package io.fairyproject.command;
 
-import io.fairyproject.container.*;
 import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.parameter.ArgTransformer;
-import io.fairyproject.event.Subscribe;
-import io.fairyproject.event.impl.PostServiceInitialEvent;
+import io.fairyproject.container.*;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -45,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * TODO:
  * Better command
  */
-@Service(name = "command")
+@Service
 @Getter
 public class CommandService {
 

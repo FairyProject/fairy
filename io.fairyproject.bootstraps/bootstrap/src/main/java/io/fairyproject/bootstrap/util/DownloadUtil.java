@@ -1,9 +1,6 @@
 package io.fairyproject.bootstrap.util;
 
-import io.fairyproject.Debug;
 import lombok.experimental.UtilityClass;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,7 +14,6 @@ import java.nio.file.Paths;
 
 @UtilityClass
 public class DownloadUtil {
-    private static final Logger LOGGER = LogManager.getLogger(DownloadUtil.class);
 
     private final String URL = "https://maven.imanity.dev/service/rest/v1/search/assets/download?sort=version&repository=imanity-libraries&maven.groupId=io.fairyproject&maven.artifactId=<module>";
 
