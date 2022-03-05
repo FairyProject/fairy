@@ -206,7 +206,7 @@ public class Sidebar {
         if (teams[line] != null) {
             return new WrapperPlayServerTeams(
                     "-sb" + line,
-                    WrapperPlayServerTeams.TeamMode.CREATE,
+                    WrapperPlayServerTeams.TeamMode.UPDATE,
                     Optional.empty()
             );
         } else {
