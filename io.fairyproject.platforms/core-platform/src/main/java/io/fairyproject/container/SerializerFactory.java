@@ -118,7 +118,7 @@ public class SerializerFactory {
      */
     @Nullable
     public ObjectSerializer<?, ?> findSerializer(@NotNull Class<?> type) {
-        final SerializerData serializerData = this.serializers.getOrDefault(type, null);
+        final SerializerData serializerData = this.serializers.get(type);
         return serializerData != null ? serializerData.getSerializer() : null;
     }
 
