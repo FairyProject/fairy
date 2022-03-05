@@ -24,6 +24,7 @@
 
 package io.fairyproject.sidebar;
 
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisplayScoreboard;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
@@ -118,44 +119,61 @@ public class Sidebar {
             return;
         }
 
-        final String value = MCAdventure.asLegacyString(component, this.player.getLocale());
+        final Object channel = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getChannel(player.getName());
+        final ClientVersion version = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getClientVersion(channel);
         final WrapperPlayServerTeams packet = getOrRegisterTeam(line);
-        String prefix;
-        String suffix;
 
-        if (value.length() <= 16) {
-            prefix = value;
-            suffix = "";
+        WrapperPlayServerTeams.ScoreBoardTeamInfo info;
+
+        if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            info = new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+                    Component.empty(),
+                    component,
+                    Component.empty(),
+                    WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                    WrapperPlayServerTeams.CollisionRule.ALWAYS,
+                    null,
+                    WrapperPlayServerTeams.OptionData.fromValue((byte) 0)
+            );
         } else {
-            prefix = value.substring(0, 16);
-            String lastColor = CC.getLastColors(prefix);
+            final String value = MCAdventure.asLegacyString(component, this.player.getLocale());
+            String prefix;
+            String suffix;
 
-            if (lastColor.isEmpty() || lastColor.equals(" "))
-                lastColor = CC.CODE + "f";
+            if (value.length() <= 16) {
+                prefix = value;
+                suffix = "";
+            } else {
+                prefix = value.substring(0, 16);
+                String lastColor = CC.getLastColors(prefix);
 
-            if (prefix.endsWith(CC.CODE + "")) {
-                prefix = prefix.substring(0, 15);
-                suffix = lastColor + value.substring(15);
+                if (lastColor.isEmpty() || lastColor.equals(" "))
+                    lastColor = CC.CODE + "f";
 
-            } else
-                suffix = lastColor + value.substring(16);
+                if (prefix.endsWith(CC.CODE + "")) {
+                    prefix = prefix.substring(0, 15);
+                    suffix = lastColor + value.substring(15);
 
-            if (suffix.length() > 16) {
-                suffix = suffix.substring(0, 16);
+                } else
+                    suffix = lastColor + value.substring(16);
+
+                if (suffix.length() > 16) {
+                    suffix = suffix.substring(0, 16);
+                }
             }
+
+            info = new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+                    Component.empty(),
+                    MCAdventure.LEGACY.deserialize(prefix),
+                    MCAdventure.LEGACY.deserialize(suffix),
+                    WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                    WrapperPlayServerTeams.CollisionRule.ALWAYS,
+                    null,
+                    WrapperPlayServerTeams.OptionData.fromValue((byte) 0)
+            );
         }
 
-        final WrapperPlayServerTeams.ScoreBoardTeamInfo info = new WrapperPlayServerTeams.ScoreBoardTeamInfo(
-                Component.empty(),
-                MCAdventure.LEGACY.deserialize(prefix),
-                MCAdventure.LEGACY.deserialize(suffix),
-                WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
-                WrapperPlayServerTeams.CollisionRule.ALWAYS,
-                NamedTextColor.BLACK,
-                WrapperPlayServerTeams.OptionData.fromValue((byte) 0)
-        );
         teams[line] = component;
-
         packet.setTeamInfo(Optional.of(info));
         this.player.sendPacket(packet);
     }
