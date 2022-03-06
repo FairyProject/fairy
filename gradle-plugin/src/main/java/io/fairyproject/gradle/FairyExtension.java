@@ -17,6 +17,14 @@ public class FairyExtension {
 
     private static String LATEST = "0.5.2b3";
 
+    static {
+        try {
+            LATEST = MavenUtil.getLatest("core-platform");
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+        }
+    }
+
     // Fairy
     private final Property<String> fairyVersion;
     private final ListProperty<PlatformType> fairyPlatforms;
