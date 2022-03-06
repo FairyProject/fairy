@@ -3,14 +3,17 @@ package io.fairyproject.bukkit.mc;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.protocol.BukkitNettyInjector;
+import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
 import io.fairyproject.mc.protocol.netty.NettyInjector;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -41,6 +44,11 @@ public class BukkitMCInitializer implements MCInitializer {
                 }
                 return new BukkitMCEntity((org.bukkit.entity.Entity) entity);
             }
+
+            @Override
+            public int newEntityId() {
+                return MinecraftReflection.getNewEntityId();
+            }
         };
     }
 
@@ -53,6 +61,22 @@ public class BukkitMCInitializer implements MCInitializer {
                     throw new UnsupportedOperationException();
                 }
                 return new BukkitMCWorld((org.bukkit.World) world);
+            }
+
+            @Override
+            public MCWorld getByName(String name) {
+                final World world = Bukkit.getWorld(name);
+                if (world == null) {
+                    return null;
+                }
+                return this.from(world);
+            }
+
+            @Override
+            public List<MCWorld> all() {
+                return Bukkit.getWorlds().stream()
+                        .map(this::from)
+                        .collect(Collectors.toList());
             }
         };
     }

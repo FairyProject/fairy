@@ -22,22 +22,21 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.hologram.api;
+package io.fairyproject.mc.hologram.api;
 
+import io.fairyproject.mc.MCPlayer;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
-import java.util.function.Supplier;
 
 @RequiredArgsConstructor
-public class SupplierViewHandler implements ViewHandler {
+public class LanguageViewHandler implements ViewHandler {
 
-    private final Supplier<Component> supplier;
+    private final String key;
 
     @Override
-    public Component view(@Nullable Player player) {
-        return supplier.get();
+    public Component view(@Nullable MCPlayer player) {
+        return Component.translatable(this.key);
     }
 }

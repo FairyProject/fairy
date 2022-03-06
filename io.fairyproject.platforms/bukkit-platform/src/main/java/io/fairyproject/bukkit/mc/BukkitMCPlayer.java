@@ -25,7 +25,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @SuppressWarnings("unchecked")
-public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
+public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCPlayer {
 
     private static final AttributeKey<Object> ATTRIBUTE_KEY;
     private static final Function<Player, Integer> PING;
@@ -79,6 +79,7 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
     private int protocolId;
 
     public BukkitMCPlayer(Player player) {
+        super(player);
         this.player = player;
         this.audience = FairyBukkitPlatform.AUDIENCES.player(player);
         this.channel = MinecraftReflection.getChannel(player);
@@ -130,6 +131,11 @@ public class BukkitMCPlayer extends AudienceProxy implements MCPlayer {
     @Override
     public UUID getUUID() {
         return this.player.getUniqueId();
+    }
+
+    @Override
+    public int getId() {
+        return this.player.getEntityId();
     }
 
     @Override

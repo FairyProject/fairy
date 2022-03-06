@@ -51,6 +51,11 @@ public class BukkitMCServer implements MCServer {
     }
 
     @Override
+    public boolean isMainThread() {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
     public MCEntity getEntity(UUID entityUuid) {
         return MCEntity.from(UUID_TO_ENTITY.apply(entityUuid));
     }

@@ -1,7 +1,9 @@
 package io.fairyproject.bukkit.mc;
 
+import io.fairyproject.bukkit.util.BukkitPos;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.util.Pos;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Entity;
 
@@ -18,13 +20,23 @@ public class BukkitMCEntity implements MCEntity {
     }
 
     @Override
-    public UUID getUuid() {
+    public UUID getUUID() {
         return this.entity.getUniqueId();
     }
 
     @Override
     public int getId() {
         return this.entity.getEntityId();
+    }
+
+    @Override
+    public boolean teleport(Pos pos) {
+        return this.entity.teleport(BukkitPos.toBukkitLocation(pos));
+    }
+
+    @Override
+    public Pos pos() {
+        return BukkitPos.toMCPos(this.entity.getLocation());
     }
 
     @Override

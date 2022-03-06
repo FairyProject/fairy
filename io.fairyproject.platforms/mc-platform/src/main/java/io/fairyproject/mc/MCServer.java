@@ -10,6 +10,8 @@ public interface MCServer {
 
     MCEntity getEntity(UUID entityUuid);
 
+    boolean isMainThread();
+
     class Companion {
 
         public static MCServer CURRENT;

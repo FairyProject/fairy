@@ -22,15 +22,21 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.hologram.api;
+package io.fairyproject.mc.hologram.api;
 
+import io.fairyproject.mc.MCPlayer;
+import lombok.AllArgsConstructor;
 import net.kyori.adventure.text.Component;
-import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 
-public interface ViewHandler {
+@AllArgsConstructor
+public class TextViewHandler implements ViewHandler {
 
-    Component view(@Nullable Player player);
+    private final String text;
 
+    @Override
+    public Component view(@Nullable MCPlayer player) {
+        return Component.text(text);
+    }
 }

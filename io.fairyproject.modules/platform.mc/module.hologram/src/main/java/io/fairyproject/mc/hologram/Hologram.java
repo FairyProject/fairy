@@ -22,25 +22,24 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.hologram;
+package io.fairyproject.mc.hologram;
 
-import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.bukkit.hologram.api.TextViewHandler;
-import io.fairyproject.bukkit.hologram.api.ViewHandler;
-import io.fairyproject.bukkit.hologram.player.PlayerViewHolograms;
+import com.github.retrooper.packetevents.util.Vector3f;
+import io.fairyproject.mc.hologram.api.TextViewHandler;
+import io.fairyproject.mc.hologram.api.ViewHandler;
+import io.fairyproject.mc.MCEntity;
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.util.Pos;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -49,38 +48,38 @@ public class Hologram {
     private static final float Y_PER_LINE = 0.25F;
     private static int NEW_ID = 0;
 
-    private HologramHandler hologramHandler;
+    private HologramFactory hologramFactory;
 
     private int id;
-    private Location location;
+    private Pos position;
     private boolean spawned;
 
-    private Entity attachedTo;
+    private MCEntity attachedTo;
     private InteractListener interactListener;
 
-    private List<HologramSingle> lines = new ArrayList<>();
-    private List<Player> renderedPlayers = Collections.synchronizedList(new ArrayList<>());
+    private List<SingleHologram> lines = new ArrayList<>();
+    private List<MCPlayer> renderedPlayers = Collections.synchronizedList(new ArrayList<>());
 
-    public Hologram(Location location, HologramHandler hologramHandler) {
+    public Hologram(Pos position, HologramFactory hologramFactory) {
         this.id = NEW_ID++;
-        this.location = location;
-        this.hologramHandler = hologramHandler;
+        this.position = position;
+        this.hologramFactory = hologramFactory;
     }
 
     public double getX() {
-        return this.location.getX();
+        return this.position.getX();
     }
 
     public double getY() {
-        return this.location.getY();
+        return this.position.getY();
     }
 
     public double getZ() {
-        return this.location.getZ();
+        return this.position.getZ();
     }
 
-    public World getWorld() {
-        return this.location.getWorld();
+    public MCWorld getWorld() {
+        return this.position.getMCWorld();
     }
 
     public void addText(String text) {
@@ -103,16 +102,16 @@ public class Hologram {
     public void setView(int index, ViewHandler viewHandler) {
         this.validateMainThread();
         if (index >= this.lines.size()) {
-            HologramSingle single = new HologramSingle(this, viewHandler, -Y_PER_LINE * index, index);
+            SingleHologram single = new SingleHologram(this, viewHandler, -Y_PER_LINE * index, index);
             this.lines.add(index, single);
-            this.hologramHandler.registerEntityId(single.getHorseId(), this);
-            this.hologramHandler.registerEntityId(single.getArmorStandId(), this);
+            this.hologramFactory.registerEntityId(single.getHorseId(), this);
+            this.hologramFactory.registerEntityId(single.getArmorStandId(), this);
 
             if (this.isSpawned()) {
                 single.send(this.renderedPlayers);
             }
         } else {
-            HologramSingle single = this.lines.get(index);
+            SingleHologram single = this.lines.get(index);
             if (single.getIndex() != index) {
                 this.lines.add(index, single);
             }
@@ -126,36 +125,33 @@ public class Hologram {
     public void removeView(int index) {
         this.validateMainThread();
         if (lines.size() > index) {
-            HologramSingle single = this.lines.get(index);
+            SingleHologram single = this.lines.get(index);
             single.sendRemove(this.renderedPlayers);
             this.lines.remove(index);
 
-            this.hologramHandler.unregisterEntityId(single.getHorseId());
-            this.hologramHandler.unregisterEntityId(single.getArmorStandId());
+            this.hologramFactory.unregisterEntityId(single.getHorseId());
+            this.hologramFactory.unregisterEntityId(single.getArmorStandId());
         }
     }
 
-    public void setLocation(Location location) {
-        this.move(location);
+    public void setPosition(Pos position) {
+        this.move(position);
     }
 
-    private void move(@NonNull Location location) {
+    private void move(@NonNull Pos location) {
         this.validateMainThread();
-        if (this.location.equals(location)) {
+        if (this.position.equals(location)) {
             return;
         }
 
-        if (!this.location.getWorld().equals(location.getWorld())) {
+        if (!this.position.getWorld().equals(location.getWorld())) {
             throw new IllegalArgumentException("cannot move to different world");
         }
 
-        this.location = location;
-
+        this.position = location;
         if (this.isSpawned()) {
-
-            List<Player> players = this.location.getWorld().getPlayers();
+            List<MCPlayer> players = this.position.getMCWorld().players();
             this.lines.forEach(hologram -> hologram.sendTeleportPacket(players));
-
         }
     }
 
@@ -163,15 +159,18 @@ public class Hologram {
         return attachedTo != null;
     }
 
-    public void spawnPlayer(Player player) {
+    public void spawnPlayer(MCPlayer player) {
         this.validateMainThread();
         this.lines.forEach(hologram -> hologram.send(Collections.singleton(player)));
         this.renderedPlayers.add(player);
     }
 
-    protected List<Player> getNearbyPlayers() {
+    protected List<MCPlayer> getNearbyPlayers() {
         this.validateMainThread();
-        return Imanity.IMPLEMENTATION.getPlayerRadius(this.location, HologramHandler.DISTANCE_TO_RENDER);
+        return this.position.getMCWorld().players()
+                .stream()
+                .filter(player -> player.pos().distanceTo(this.position) < HologramFactory.DISTANCE_TO_RENDER)
+                .collect(Collectors.toList());
     }
 
     public void spawn() {
@@ -179,12 +178,12 @@ public class Hologram {
         this.validateDespawned();
 
         this.getNearbyPlayers()
-                .forEach(this.hologramHandler::update);
+                .forEach(this.hologramFactory::update);
 
         this.spawned = true;
     }
 
-    public void removePlayer(Player player) {
+    public void removePlayer(MCPlayer player) {
         this.validateMainThread();
         this.lines.forEach(hologram -> hologram.sendRemove(Collections.singleton(player)));
         this.renderedPlayers.remove(player);
@@ -194,25 +193,25 @@ public class Hologram {
         this.validateMainThread();
         this.validateSpawned();
 
-        for (Player player : new ArrayList<>(this.renderedPlayers)) {
-            PlayerViewHolograms holograms = this.hologramHandler.getRenderedHolograms(player);
+        for (MCPlayer player : new ArrayList<>(this.renderedPlayers)) {
+            HologramRenderer holograms = this.hologramFactory.renderer(player);
             holograms.removeHologram(player, this);
         }
         this.renderedPlayers.clear();
-        this.hologramHandler.removeHologram(this);
+        this.hologramFactory.remove(this);
 
-        for (HologramSingle line : this.lines) {
-            this.hologramHandler.unregisterEntityId(line.getHorseId());
-            this.hologramHandler.unregisterEntityId(line.getArmorStandId());
+        for (SingleHologram line : this.lines) {
+            this.hologramFactory.unregisterEntityId(line.getHorseId());
+            this.hologramFactory.unregisterEntityId(line.getArmorStandId());
         }
 
         this.spawned = false;
         return true;
     }
 
-    public double distaneTo(Player player) {
-        return Math.sqrt(Math.pow(this.getLocation().getX() - player.getLocation().getX(), 2)
-                + Math.pow(this.getLocation().getZ() - player.getLocation().getZ(), 2));
+    public double distanceTo(MCPlayer player) {
+        return Math.sqrt(Math.pow(this.getPosition().getX() - player.pos().getX(), 2)
+                + Math.pow(this.getPosition().getZ() - player.pos().getZ(), 2));
     }
 
     private void validateSpawned() {
@@ -226,22 +225,22 @@ public class Hologram {
     }
 
     private void validateMainThread() {
-        if (!Bukkit.isPrimaryThread()) {
+        if (MCServer.current().isMainThread()) {
             throw new IllegalStateException("Hologram doesn't support async");
         }
     }
 
     public interface InteractListener {
 
-        default void attack(Player player) {
+        default void attack(MCPlayer player) {
 
         }
 
-        default void interact(Player player) {
+        default void interact(MCPlayer player) {
 
         }
 
-        default void interactAt(Player player, Vector vector) {
+        default void interactAt(MCPlayer player, Vector3f vector) {
 
         }
 

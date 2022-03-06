@@ -22,45 +22,40 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.hologram.player;
+package io.fairyproject.mc.hologram;
 
+import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
-import org.bukkit.entity.Player;
-import io.fairyproject.bukkit.hologram.Hologram;
-import io.fairyproject.bukkit.hologram.HologramHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
-public class PlayerViewHolograms {
+public class HologramRenderer {
 
     private String worldName;
     private final List<Integer> holograms = new ArrayList<>();
 
-    public PlayerViewHolograms(Player player) {
-        this.worldName = player.getWorld().getName();
+    public HologramRenderer(MCPlayer player) {
+        this.worldName = player.getWorld().name();
     }
 
-    public void removeFarHolograms(Player player, HologramHandler hologramHandler) {
-
-        String newWorldName = player.getWorld().getName();
+    public void removeFarHolograms(MCPlayer player, HologramFactory hologramFactory) {
+        String newWorldName = player.getWorld().name();
         if (!this.worldName.equals(newWorldName)) {
-
-            this.reset(player, hologramHandler);
+            this.reset(player, hologramFactory);
             this.worldName = newWorldName;
-
             return;
         }
 
         this.holograms.removeIf(id -> {
-            Hologram hologram = hologramHandler.getHologram(id);
+            Hologram hologram = hologramFactory.get(id);
 
             if (hologram == null) {
                 return true;
             }
 
-            if (hologram.distaneTo(player) > HologramHandler.DISTANCE_TO_RENDER) {
+            if (hologram.distanceTo(player) > HologramFactory.DISTANCE_TO_RENDER) {
                 hologram.removePlayer(player);
                 return true;
             }
@@ -69,14 +64,14 @@ public class PlayerViewHolograms {
         });
     }
 
-    public void removeHologram(Player player, Hologram hologram) {
+    public void removeHologram(MCPlayer player, Hologram hologram) {
         hologram.removePlayer(player);
         this.holograms.remove((Integer) hologram.getId());
     }
 
-    public void reset(Player player, HologramHandler hologramHandler) {
+    public void reset(MCPlayer player, HologramFactory hologramFactory) {
         this.holograms.forEach(id -> {
-            Hologram hologram = hologramHandler.getHologram(id);
+            Hologram hologram = hologramFactory.get(id);
             if (hologram == null) {
                 return;
             }
@@ -86,11 +81,11 @@ public class PlayerViewHolograms {
         this.holograms.clear();
     }
 
-    public void addNearHolograms(Player player, HologramHandler hologramHandler) {
-        hologramHandler.getHolograms()
+    public void addNearHolograms(MCPlayer player, HologramFactory hologramFactory) {
+        hologramFactory.all()
                 .stream()
                 .filter(hologram -> !this.holograms.contains(hologram.getId()))
-                .filter(hologram -> hologram.distaneTo(player) <= HologramHandler.DISTANCE_TO_RENDER)
+                .filter(hologram -> hologram.distanceTo(player) <= HologramFactory.DISTANCE_TO_RENDER)
                 .forEach(hologram -> {
                     hologram.spawnPlayer(player);
                     this.holograms.add(hologram.getId());
