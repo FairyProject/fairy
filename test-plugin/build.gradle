@@ -1,12 +1,15 @@
 buildscript {
     repositories {
         mavenCentral()
+        maven {
+            url file("$rootDir/libs/local")
+        }
     }
 }
 
 plugins {
-    id 'java'
-    id 'io.fairyproject' version '1.0.1b5'
+    id "java"
+    id "io.fairyproject" version "1.0.1b5"
 }
 
 repositories {

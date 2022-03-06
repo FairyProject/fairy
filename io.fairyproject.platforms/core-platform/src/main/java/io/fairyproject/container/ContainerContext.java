@@ -79,21 +79,11 @@ public class ContainerContext {
                     .build());
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
 
-    /**
-     * Logging
-     */
-    public static final Logger LOGGER = LogManager.getLogger(ContainerContext.class);
-    public static void log(String msg, Object... replacement) {
-        if (SHOW_LOGS) {
-            LOGGER.info(String.format(msg, replacement));
-        }
-    }
-    public static SimpleTiming logTiming(String msg) {
-        return SimpleTiming.create(time -> log("Ended %s - took %d ms", msg, time));
-    }
-
     @Getter
-    private ContainerController[] controllers;
+    private final ContainerController[] controllers = Arrays.asList(
+            new AutowiredContainerController(),
+            new SubscribeEventContainerController()
+    ).toArray(new ContainerController[0]);
 
     /**
      * Lookup Storages
@@ -108,18 +98,33 @@ public class ContainerContext {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
+     * Logging
+     */
+    public static final Logger LOGGER = LogManager.getLogger(ContainerContext.class);
+    public static void log(String msg, Object... replacement) {
+        if (SHOW_LOGS) {
+            LOGGER.info(String.format(msg, replacement));
+        }
+    }
+    public static void warn(String msg, Object... replacement) {
+        if (SHOW_LOGS) {
+            LOGGER.warn(String.format(msg, replacement));
+        }
+    }
+    public static void fatal(String msg, Throwable e, Object... replacement) {
+        if (SHOW_LOGS) {
+            LOGGER.fatal(String.format(msg, replacement), e);
+        }
+    }
+    public static SimpleTiming logTiming(String msg) {
+        return SimpleTiming.create(time -> log("Ended %s - took %d ms", msg, time));
+    }
+
+    /**
      * Initializing Method for ContainerContext
      */
     public void init() {
         INSTANCE = this;
-
-        // TODO: annotated registration?
-        this.controllers = Arrays.asList(
-
-                new AutowiredContainerController(),
-                new SubscribeEventContainerController()
-
-        ).toArray(new ContainerController[0]);
 
         this.registerObject(new SimpleContainerObject(this, this.getClass()));
         this.registerObject(new SimpleContainerObject(ModuleService.INSTANCE, ModuleService.class));
@@ -132,9 +137,8 @@ public class ContainerContext {
                     .url(this.getClass().getProtectionDomain().getCodeSource().getLocation())
                     .classLoader(ContainerContext.class.getClassLoader())
                     .classPath("io.fairyproject");
-            classPathScanner.scan();
+            classPathScanner.scanBlocking();
 
-            classPathScanner.getCompletedFuture().join();
             if (classPathScanner.getException() != null) {
                 SneakyThrowUtil.sneakyThrow(classPathScanner.getException());
             }
@@ -196,8 +200,7 @@ public class ContainerContext {
                         scanner
                                 .classPath(classPaths)
                                 .included(containerObject)
-                                .scan();
-                        scanner.getCompletedFuture().join();
+                                .scanBlocking();
 
                         if (scanner.getException() != null) {
                             SneakyThrowUtil.sneakyThrow(scanner.getException());

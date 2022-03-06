@@ -4,24 +4,25 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.TransientValue;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class PlayerOnlineValue<T> implements TransientValue<T> {
 
     private final T value;
-    private final UUID ownedPlayerUuid;
+    private final MCPlayer ownedPlayer;
 
     public static <T> TransientValue<T> create(T value, UUID ownedPlayerUuid) {
-        return new PlayerOnlineValue<>(value, ownedPlayerUuid);
+        return PlayerOnlineValue.create(value, Objects.requireNonNull(MCPlayer.find(ownedPlayerUuid)));
     }
 
     public static <T> TransientValue<T> create(T value, MCPlayer ownedPlayer) {
-        return new PlayerOnlineValue<>(value, ownedPlayer.getUUID());
+        return new PlayerOnlineValue<>(value, ownedPlayer);
     }
 
-    private PlayerOnlineValue(T value, UUID ownedPlayerUuid) {
+    private PlayerOnlineValue(T value, MCPlayer ownedPlayer) {
         this.value = value;
-        this.ownedPlayerUuid = ownedPlayerUuid;
+        this.ownedPlayer = ownedPlayer;
     }
 
     @Nullable
@@ -32,7 +33,6 @@ public class PlayerOnlineValue<T> implements TransientValue<T> {
 
     @Override
     public boolean shouldExpire() {
-        final MCPlayer mcPlayer = MCPlayer.find(this.ownedPlayerUuid);
-        return mcPlayer == null || !mcPlayer.isOnline();
+        return ownedPlayer == null || !ownedPlayer.isOnline();
     }
 }

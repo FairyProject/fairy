@@ -57,6 +57,9 @@ public class ModuleTask extends DefaultTask {
                 while (entries.hasMoreElements()) {
                     final JarEntry jarEntry = entries.nextElement();
 
+                    if (jarEntry.getName().equalsIgnoreCase("module.json"))
+                        continue;
+
                     // Write file no matter what
                     out.putNextEntry(new JarEntry(jarEntry.getName()));
 

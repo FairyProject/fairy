@@ -34,7 +34,7 @@ public class ExclusiveController implements ModuleController {
                             .classLoader(this.getClass().getClassLoader())
                             .classPath(excludedPackages)
                             .url(m.getShadedPath().toUri().toURL());
-                    classPathScanner.scan();
+                    classPathScanner.scanBlocking();
 
                     final List<ContainerObject> beanDetails = classPathScanner.getCompletedFuture().join();
                     beanDetails.forEach(details -> details.bindWith(m.getPlugin()));
