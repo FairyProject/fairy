@@ -28,7 +28,7 @@ public class BukkitTestingMCInitializer extends BukkitMCInitializer {
             @Override
             public MCPlayer create(Object obj) {
                 final Player player = (Player) obj;
-                return new MCPlayerMock(player.getUniqueId(), player.getName(), MCVersion.V1_8, player); // version customize?
+                return new BukkitMCPlayerMock(player.getUniqueId(), player.getName(), MCVersion.V1_8, player); // version customize?
             }
 
             @Override

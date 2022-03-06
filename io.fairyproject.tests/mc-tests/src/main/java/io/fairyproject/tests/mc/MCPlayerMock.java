@@ -4,7 +4,9 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.util.Pos;
 import io.netty.channel.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -15,7 +17,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class MCPlayerMock implements MCPlayer {
+public abstract class MCPlayerMock implements MCPlayer {
 
     private final UUID uuid;
     private final String name;
@@ -37,6 +39,11 @@ public class MCPlayerMock implements MCPlayer {
     @Override
     public UUID getUUID() {
         return this.uuid;
+    }
+
+    @Override
+    public int getId() {
+        return 0;
     }
 
     @Override
