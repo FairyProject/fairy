@@ -30,15 +30,14 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSc
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateScore;
 import io.fairyproject.Fairy;
-import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.MCVersion;
-import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.item.*;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.protocol.item.ObjectiveDisplaySlot;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
-import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.Component;
 
 import java.util.List;
 import java.util.Optional;

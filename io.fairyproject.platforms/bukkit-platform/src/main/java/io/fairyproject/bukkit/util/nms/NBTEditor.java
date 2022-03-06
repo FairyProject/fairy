@@ -1407,11 +1407,11 @@ public final class NBTEditor {
                     for ( String key : getKeys( notCompound ) ) {
                         getMethod( "set" ).invoke( compound, key, getMethod( "get" ).invoke( notCompound, key ) );
                     }
-            } else {
+            } //else {
                 // Did someone make an error?
                 // NBTEditor.set( something, null );
                 // Not sure what to do here
-            }
+            //}
         }
     }
 
