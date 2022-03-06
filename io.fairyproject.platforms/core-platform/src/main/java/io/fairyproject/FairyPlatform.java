@@ -97,7 +97,7 @@ public abstract class FairyPlatform {
             return;
         }
 
-        LOGGER.info("Loading Dependencies...");
+        LOGGER.info("Loading Fairy Dependencies...");
         this.libraryHandler = new LibraryHandler();
 
         List<Library> dependencies = new ArrayList<>(this.getDependencies());

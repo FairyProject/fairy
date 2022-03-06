@@ -32,6 +32,8 @@ public class MavenUtil {
         connection.setDoInput(true);
         connection.setRequestMethod("GET");
         connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
 
         final int responseCode = connection.getResponseCode();
         if (responseCode >= 200 && responseCode < 300) {
@@ -45,7 +47,7 @@ public class MavenUtil {
             }
         }
 
-        return "0.5b1";
+        return "0.5.2b3";
     }
 
     public void addExistingModule(FairyExtension extension, String from, @Nullable String version) throws IOException {

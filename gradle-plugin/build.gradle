@@ -59,5 +59,9 @@ dependencies {
     compileOnly "org.aspectj:aspectjrt:1.9.7"
     compileOnly "org.aspectj:aspectjweaver:1.9.7"
 
-    testImplementation "junit:junit:4.13"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:5.7.0"
+}
+
+test {
+    useJUnitPlatform()
 }

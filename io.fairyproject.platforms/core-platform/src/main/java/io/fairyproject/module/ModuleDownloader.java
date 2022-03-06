@@ -4,6 +4,7 @@ import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
 import lombok.experimental.UtilityClass;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
 import org.eclipse.aether.DefaultRepositorySystemSession;
 import org.eclipse.aether.RepositorySystem;
@@ -22,8 +23,6 @@ import org.eclipse.aether.resolution.DependencyResolutionException;
 import org.eclipse.aether.resolution.DependencyResult;
 import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
 import org.eclipse.aether.spi.connector.transport.TransporterFactory;
-import org.eclipse.aether.transfer.AbstractTransferListener;
-import org.eclipse.aether.transfer.TransferEvent;
 import org.eclipse.aether.transport.http.HttpTransporterFactory;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,6 +40,7 @@ public class ModuleDownloader {
 
     public static final boolean LOCAL_REPO = Boolean.getBoolean("fairy.local-repo");
     public static final Path MODULE_DIR = new File(FairyPlatform.INSTANCE.getDataFolder(), "modules").toPath().toAbsolutePath();
+    private static final Logger LOGGER = LogManager.getLogger(ModuleDownloader.class);
 
     private static final RepositorySystem REPOSITORY;
     private static final DefaultRepositorySystemSession SESSION;
@@ -55,7 +55,13 @@ public class ModuleDownloader {
         SESSION = MavenRepositorySystemUtils.newSession();
 
         SESSION.setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL);
-        SESSION.setLocalRepositoryManager(REPOSITORY.newLocalRepositoryManager(SESSION, new LocalRepository(LOCAL_REPO ? locateMavenLocal() : MODULE_DIR.toFile())));
+
+        if (Debug.IN_FAIRY_IDE) {
+            LOGGER.info("[IDE-Dev] Loading local library repository...");
+            SESSION.setLocalRepositoryManager(REPOSITORY.newLocalRepositoryManager(SESSION, new LocalRepository(locateLocalRepo())));
+        } else {
+            SESSION.setLocalRepositoryManager(REPOSITORY.newLocalRepositoryManager(SESSION, new LocalRepository(LOCAL_REPO ? locateMavenLocal() : MODULE_DIR.toFile())));
+        }
         SESSION.setReadOnly();
         REPOSITORIES = REPOSITORY.newResolutionRepositories(SESSION, Arrays.asList(
                 new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
@@ -72,24 +78,14 @@ public class ModuleDownloader {
         }
     }
 
+    private File locateLocalRepo() {
+        final File projectFolder = (Debug.UNIT_TEST ? Paths.get("").toAbsolutePath().getParent() : Paths.get("").toAbsolutePath().getParent().getParent()).toFile(); // double parent
+        return new File(projectFolder, "libs/local");
+    }
+
     @SuppressWarnings("Duplicates")
     public static Path download(String groupId, String artifactId, String version, @Nullable String customRepository) throws IOException {
         Files.createDirectories(MODULE_DIR);
-
-        if (Debug.IN_FAIRY_IDE) {
-            final File projectFolder = (Debug.UNIT_TEST ? Paths.get("").toAbsolutePath().getParent() : Paths.get("").toAbsolutePath().getParent().getParent()).toFile(); // double parent
-            final File localRepoFolder = new File(projectFolder, "libs/local");
-
-            if (!localRepoFolder.exists()) {
-                Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local repo setup at " + localRepoFolder + "!"));
-            }
-
-            File file = new File(localRepoFolder, groupId + "." + artifactId + ".jar");
-            if (!file.exists()) {
-                Debug.logExceptionAndPause(new IllegalStateException("Couldn't found local module at local repo setup at " + file + "!"));
-            }
-            return file.toPath();
-        }
 
         DependencyResult result;
         try {
@@ -113,7 +109,8 @@ public class ModuleDownloader {
                     null
             );
 
-            result = REPOSITORY.resolveDependencies(SESSION, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(dependency), repositories), null));
+            final CollectRequest request = new CollectRequest((Dependency) null, Collections.singletonList(dependency), repositories);
+            result = REPOSITORY.resolveDependencies(SESSION, new DependencyRequest(request, null));
         } catch (DependencyResolutionException ex) {
             Debug.logExceptionAndPause(new IllegalStateException("Error resolving libraries!", ex));
             return null;

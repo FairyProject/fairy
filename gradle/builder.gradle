@@ -8,6 +8,9 @@ ext {
     archieveName = project.name
 }
 
+tasks.jar.archiveClassifier.set("sources")
+tasks.shadowJar.archiveClassifier.set(null)
+
 test {
     useJUnitPlatform()
 }
@@ -22,17 +25,6 @@ project.afterEvaluate(p -> {
 
     tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
     tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
-
-    task copyJarToLocal(type: Copy) {
-        outputs.cacheIf { true }
-
-        def file = tasks.shadowJar.archiveFile.get().asFile.toPath()
-
-        from(file)
-        into(rootProject.file("libs/local"))
-        rename(file.getFileName().toString(), "io.fairyproject.${tasks.shadowJar.archiveFileName.get()}")
-    }
-    tasks.shadowJar.finalizedBy(copyJarToLocal)
 
     shadowJar {
         // XSeries

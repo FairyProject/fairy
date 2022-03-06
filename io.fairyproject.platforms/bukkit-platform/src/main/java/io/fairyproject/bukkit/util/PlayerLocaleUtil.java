@@ -14,10 +14,10 @@ public final class PlayerLocaleUtil {
         Function<Player, String> function;
         try {
             // modern bukkit
-            final Method modernMethod = Player.class.getMethod("getLocale");
+            final Method modernMethod = Player.class.getDeclaredMethod("getLocale");
             function = player -> {
                 try {
-                    return (String) modernMethod.invoke(player.spigot());
+                    return (String) modernMethod.invoke(player);
                 } catch (ReflectiveOperationException e) {
                     throw new RuntimeException(e);
                 }

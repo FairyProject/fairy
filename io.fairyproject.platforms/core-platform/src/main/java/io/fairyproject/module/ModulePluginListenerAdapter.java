@@ -3,6 +3,7 @@ package io.fairyproject.module;
 import com.google.gson.JsonObject;
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.Containers;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
@@ -10,6 +11,8 @@ import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -22,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 public class ModulePluginListenerAdapter implements PluginListenerAdapter {
 
+    private static final Logger LOGGER = LogManager.getLogger(ModulePluginListenerAdapter.class);
     private final ModuleService moduleService;
 
     @Override
@@ -51,13 +55,18 @@ public class ModulePluginListenerAdapter implements PluginListenerAdapter {
             final Module module = this.moduleService.load(moduleData, pluginDescription, pluginCompletableFuture);
 
             if (module == null) {
+                ContainerContext.warn("[>>Adapter>>] [Critical] Failed to find module data @ %s (%s)",
+                        moduleData.getName(), moduleData.getPath().toString());
                 return;
             }
 
             module.addRef(); // add reference
             pluginCompletableFuture.whenComplete((plugin, throwable) -> {
                 if (throwable == null) {
+                    LOGGER.info("Loaded module " + module.getName() + " into plugin " + plugin.getName());
                     plugin.getLoadedModules().add(module);
+                } else {
+                    LOGGER.warn("Failed to load module " + module.getName() + " into plugin " + plugin.getName(), throwable);
                 }
             });
         });
@@ -69,11 +78,12 @@ public class ModulePluginListenerAdapter implements PluginListenerAdapter {
                 .map(ModuleService.ModuleData::getPath)
                 .toArray(Path[]::new);
 
-        modules.parallelStream()
-                .forEachOrdered(moduleData -> {
+        modules.forEach(moduleData -> {
                     try {
                         JsonObject jsonObject = this.moduleService.readModuleData(moduleData.getPath());
                         if (jsonObject == null) {
+                            ContainerContext.warn("[>>Adapter>>] [Critical] Failed to find module data @ %s (%s)",
+                                    moduleData.getName(), moduleData.getPath().toString());
                             return;
                         }
 
@@ -96,6 +106,7 @@ public class ModulePluginListenerAdapter implements PluginListenerAdapter {
                             moduleData.setShadedPath(moduleData.getPath());
                         }
 
+                        ContainerContext.log("[>>Remapper>>] Successfully loaded %s (from: %s)", moduleData.getName(), moduleData.getShadedPath().toString());
                         Fairy.getPlatform().getClassloader().addJarToClasspath(moduleData.getShadedPath());
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -118,7 +129,6 @@ public class ModulePluginListenerAdapter implements PluginListenerAdapter {
                 this.moduleService.downloadModules(artifactId, version, modules, false);
             }
         } catch (ClassNotFoundException ignored) {
-            ignored.printStackTrace();
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to load modules for " + pluginDescription.getName(), ex);
         }
@@ -126,8 +136,7 @@ public class ModulePluginListenerAdapter implements PluginListenerAdapter {
 
     private void downloadModules(PluginDescription pluginDescription, ModuleService.ModuleDataList modules) {
         pluginDescription.getModules()
-                .parallelStream()
-                .forEachOrdered(pair -> {
+                .forEach(pair -> {
                     String name = pair.getKey();
                     String version = pair.getValue();
 

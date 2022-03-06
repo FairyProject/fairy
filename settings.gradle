@@ -89,7 +89,9 @@ void includeDebug() {
     if (debugPlugin.exists()) {
         apply from: debugPlugin
     } else {
-        debugPlugin.setText("// Uncomment to enable the debug plugin module\n//include(\"test-plugin\")\n")
+        debugPlugin.setText("// Uncomment to enable the debug plugin module\n" +
+                "// Make sure you have at least compile the project once before uncommenting\n" +
+                "//include(\"test-plugin\")\n")
     }
 }
 
