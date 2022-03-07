@@ -53,4 +53,9 @@ public class BukkitCommandContext extends CommandContext {
     public boolean isPlayer() {
         return this.getSender() instanceof Player;
     }
+
+    @Override
+    public boolean hasPermission(String permission) {
+        return this.sender.hasPermission(permission);
+    }
 }
