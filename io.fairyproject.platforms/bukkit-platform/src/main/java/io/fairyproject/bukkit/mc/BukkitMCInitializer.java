@@ -6,8 +6,8 @@ import io.fairyproject.bukkit.protocol.BukkitNettyInjector;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
-import io.fairyproject.mc.protocol.netty.NettyInjector;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -20,13 +20,15 @@ import java.util.stream.Collectors;
 public class BukkitMCInitializer implements MCInitializer {
 
     @Override
-    public NettyInjector createNettyInjector() {
-        return new BukkitNettyInjector();
+    public PacketEventsAPI<?> createPacketEvents() {
+        return SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
     }
 
     @Override
-    public PacketEventsAPI<?> createPacketEvents() {
-        return SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
+    public MCAdventure.AdventureHook createAdventure() {
+        return MCAdventure.AdventureHook.builder()
+                .serializer(NBTLegacyHoverEventSerializer.get())
+                .build();
     }
 
     @Override

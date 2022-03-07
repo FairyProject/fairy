@@ -87,6 +87,10 @@ public abstract class ClassPathScanner {
         return this;
     }
 
+    public void scanBlocking() throws Exception {
+        this.scan();
+    }
+
     public abstract void scan() throws Exception;
 
     public abstract CompletableFuture<List<ContainerObject>> getCompletedFuture();

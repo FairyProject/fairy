@@ -10,7 +10,7 @@ public class Debug {
     public boolean UNIT_TEST = false;
 
     // the boolean to determine if you are in Fairy Project IDE
-    public boolean IN_FAIRY_IDE = false;
+    public boolean IN_FAIRY_IDE = Boolean.getBoolean("fairy.project-ide");
 
     // the boolean to determine if you are in the project IDE that develops based on Fairy
     public boolean IN_DEV_IDE = false;

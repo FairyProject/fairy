@@ -9,7 +9,8 @@ import io.fairyproject.mc.protocol.netty.NettyInjector;
 public interface MCInitializer {
 
     default void apply() {
-        MCProtocol.initialize(this.createNettyInjector(), this.createPacketEvents());
+        MCProtocol.initialize(this.createPacketEvents());
+        MCAdventure.initialize(this.createAdventure());
         MCServer.Companion.CURRENT = this.createMCServer();
         MCEntity.Companion.BRIDGE = this.createEntityBridge();
         MCWorld.Companion.BRIDGE = this.createWorldBridge();
@@ -19,8 +20,8 @@ public interface MCInitializer {
         ComponentRegistry.registerComponentHolder(new PacketListenerComponentHolder());
     }
 
-    NettyInjector createNettyInjector();
     PacketEventsAPI<?> createPacketEvents();
+    MCAdventure.AdventureHook createAdventure();
     MCServer createMCServer();
     MCEntity.Bridge createEntityBridge();
     MCWorld.Bridge createWorldBridge();

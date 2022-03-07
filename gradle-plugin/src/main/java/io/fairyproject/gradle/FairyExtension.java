@@ -15,7 +15,7 @@ import java.util.Map;
 @Getter
 public class FairyExtension {
 
-    private static String LATEST = "0.5b1";
+    private static String LATEST = "0.5.2b3";
 
     static {
         try {

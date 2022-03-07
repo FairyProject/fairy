@@ -12,25 +12,25 @@ import io.fairytest.container.service.ServiceMock;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ServiceTest extends TestingBase {
+public class ContainerTest extends TestingBase {
 
     @Test
-    public void lifeCycle() {
+    public void syncLifeCycle() {
         final ContainerContext containerContext = ContainerContext.INSTANCE;
+        final Thread mainThread = Thread.currentThread();
 
         ThrowingRunnable.sneaky(() -> {
             final ClassPathScanner classPathScanner = containerContext.scanClasses()
                     .name("test")
-                    .classLoader(ServiceTest.class.getClassLoader())
-                    .url(ServiceTest.class.getProtectionDomain().getCodeSource().getLocation())
+                    .classLoader(ContainerTest.class.getClassLoader())
+                    .url(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation())
                     .classPath("io.fairytest.container.service");
-            classPathScanner.scan();
+            classPathScanner.scanBlocking();
             final List<ContainerObject> containerObjects = classPathScanner.getCompletedFuture().join();
             assertEquals(1, containerObjects.size());
             assertEquals(ServiceMock.class, containerObjects.get(0).getInstance().getClass());
@@ -39,21 +39,18 @@ public class ServiceTest extends TestingBase {
         final ServiceMock serviceMock = ServiceMock.STATIC_WIRED;
         assertNotNull(serviceMock);
 
-        assertNotEquals(serviceMock.getConstruct(), -1);
-        assertNotEquals(serviceMock.getPreInitialize(), -1);
-        assertNotEquals(serviceMock.getPostInitialize(), -1);
+        assertNotEquals(-1, serviceMock.getConstructMs());
+        assertNotEquals(-1, serviceMock.getPreInitializeMs());
+        assertNotEquals(-1, serviceMock.getPostInitializeMs());
 
         LifeCycle[] lifeCycleOrder = Stream.of(
-                        Pair.of(LifeCycle.CONSTRUCT, serviceMock.getConstruct()),
-                        Pair.of(LifeCycle.PRE_INITIALIZE, serviceMock.getPreInitialize()),
-                        Pair.of(LifeCycle.POST_INITIALIZE, serviceMock.getPostInitialize())
+                        Pair.of(LifeCycle.CONSTRUCT, serviceMock.getConstructMs()),
+                        Pair.of(LifeCycle.PRE_INITIALIZE, serviceMock.getPreInitializeMs()),
+                        Pair.of(LifeCycle.POST_INITIALIZE, serviceMock.getPostInitializeMs())
                 )
                 .sorted(java.util.Map.Entry.comparingByValue())
                 .map(Pair::getKey)
                 .toArray(LifeCycle[]::new);
-
-        System.out.println(serviceMock.getPreInitialize());
-        System.out.println(serviceMock.getPostInitialize());
 
         assertArrayEquals(new LifeCycle[]{
                 LifeCycle.CONSTRUCT,
@@ -61,17 +58,21 @@ public class ServiceTest extends TestingBase {
                 LifeCycle.POST_INITIALIZE
         }, lifeCycleOrder);
 
-        assertEquals(-1, serviceMock.getPreDestroy());
-        assertEquals(-1, serviceMock.getPostDestroy());
+        assertEquals(mainThread, serviceMock.getConstructThread());
+        assertEquals(mainThread, serviceMock.getPreInitializeThread());
+        assertEquals(mainThread, serviceMock.getPostInitializeThread());
+
+        assertEquals(-1, serviceMock.getPreDestroyMs());
+        assertEquals(-1, serviceMock.getPostDestroyMs());
 
         containerContext.disableObjectUnchecked(ServiceMock.class);
 
-        assertNotEquals(serviceMock.getPreDestroy(), -1);
-        assertNotEquals(serviceMock.getPostDestroy(), -1);
+        assertNotEquals(-1, serviceMock.getPreDestroyMs());
+        assertNotEquals(-1, serviceMock.getPostDestroyMs());
 
         lifeCycleOrder = Stream.of(
-                        Pair.of(LifeCycle.PRE_DESTROY, serviceMock.getPreDestroy()),
-                        Pair.of(LifeCycle.POST_DESTROY, serviceMock.getPostDestroy())
+                        Pair.of(LifeCycle.PRE_DESTROY, serviceMock.getPreDestroyMs()),
+                        Pair.of(LifeCycle.POST_DESTROY, serviceMock.getPostDestroyMs())
                 )
                 .sorted(java.util.Map.Entry.comparingByValue())
                 .map(Pair::getKey)
@@ -81,19 +82,22 @@ public class ServiceTest extends TestingBase {
                 LifeCycle.PRE_DESTROY,
                 LifeCycle.POST_DESTROY
         });
+
+        assertEquals(mainThread, serviceMock.getPreDestroyThread());
+        assertEquals(mainThread, serviceMock.getPostDestroyThread());
     }
 
     @Test
     public void annotatedBeanRegistration() {
         final ContainerContext containerContext = ContainerContext.INSTANCE;
 
-        ThrowingRunnable.unchecked(() -> {
+        ThrowingRunnable.sneaky(() -> {
             final ClassPathScanner classPathScanner = containerContext.scanClasses()
                     .name("test")
-                    .classLoader(ServiceTest.class.getClassLoader())
-                    .url(ServiceTest.class.getProtectionDomain().getCodeSource().getLocation())
+                    .classLoader(ContainerTest.class.getClassLoader())
+                    .url(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation())
                     .classPath("io.fairytest.container.annotated");
-            classPathScanner.scan();
+            classPathScanner.scanBlocking();
 
             final List<ContainerObject> beanDetails = classPathScanner.getCompletedFuture().join();
             assertEquals(1, beanDetails.size());

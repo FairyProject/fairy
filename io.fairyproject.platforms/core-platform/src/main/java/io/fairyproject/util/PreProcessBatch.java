@@ -26,23 +26,28 @@ public class PreProcessBatch {
     }
 
     public boolean remove(String name) {
-        if (this.runnableQueue != null) {
-            return this.runnableQueue.remove(name) != null;
+        synchronized (this) {
+            if (this.runnableQueue != null) {
+                return this.runnableQueue.remove(name) != null;
+            }
+            return false;
         }
-        return false;
     }
 
     public void flushQueue() {
         Map<String, Runnable> runnableQueue;
         synchronized (this) {
             runnableQueue = this.runnableQueue;
-            this.runnableQueue = null;
         }
 
         for (Runnable runnable : runnableQueue.values()) {
             runnable.run();
         }
-        runnableQueue.clear();
+        this.runnableQueue = null;
+    }
+
+    public int size() {
+        return runnableQueue == null ? 0 : runnableQueue.size();
     }
 
 }

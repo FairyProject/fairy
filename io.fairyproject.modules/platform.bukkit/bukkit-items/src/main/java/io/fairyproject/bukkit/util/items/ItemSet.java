@@ -90,7 +90,7 @@ public class ItemSet {
     }
 
     public ItemStack[] toItems(Player player) {
-        ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 36)];
+        ItemStack[] itemStacks = new ItemStack[Math.min(this.getSlotCount(), 36)];
         for (int i = 0; i < itemStacks.length; i++) {
             final Slot slot = this.getSlot(i);
             if (slot != null) {
@@ -160,14 +160,14 @@ public class ItemSet {
 
         public ItemSetBuilder set(int slot, ItemStack... item) {
             for (int i = 0; i < item.length; i++) {
-                this.itemSet.setSlot(slot + i, item);
+                this.itemSet.setSlot(slot + i, item[i]);
             }
             return this;
         }
 
         public ItemSetBuilder set(int slot, ImanityItem... item) {
             for (int i = 0; i < item.length; i++) {
-                this.itemSet.setSlot(slot + i, item);
+                this.itemSet.setSlot(slot + i, item[i]);
             }
             return this;
         }

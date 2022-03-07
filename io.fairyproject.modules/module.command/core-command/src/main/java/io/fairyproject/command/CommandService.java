@@ -24,14 +24,16 @@
 
 package io.fairyproject.command;
 
-import io.fairyproject.container.*;
 import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.parameter.ArgTransformer;
+import io.fairyproject.container.*;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -41,7 +43,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * TODO:
  * Better command
  */
-@Service(name = "command")
+@Service
 @Getter
 public class CommandService {
 
@@ -55,6 +57,8 @@ public class CommandService {
     private Map<String, BaseCommand> commands;
 
     private PreProcessBatch batch;
+
+    private static final Logger LOGGER = LogManager.getLogger(CommandService.class);
 
     @PreInitialize
     public void preInit() {
@@ -98,12 +102,15 @@ public class CommandService {
                 .onEnable(instance -> this.registerParameterHolder((ArgTransformer<?>) instance))
                 .onDisable(instance -> this.unregisterParameterHolder((ArgTransformer<?>) instance))
                 .build());
+        LOGGER.info("Initialized command service...");
     }
 
     @PostInitialize
     public void init() {
         INSTANCE = this;
+        LOGGER.info("Injecting fairy commands...");
         this.batch.flushQueue();
+        LOGGER.info("Injected!");
     }
 
     public void registerDefaultPresenceProvider(PresenceProvider<?> presenceProvider) {
