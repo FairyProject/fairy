@@ -1,6 +1,6 @@
-package io.fairytest.aspect;
+package io.fairytest;
 
-import io.fairyproject.util.FairyVersion;
+import io.fairyproject.shared.FairyVersion;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -41,10 +41,25 @@ public class FairyVersionTest {
     }
 
     @Test
+    public void checkTag() {
+        FairyVersion lowerVersion = FairyVersion.parse("5.0.0b1-SNAPSHOT");
+        FairyVersion newerVersion = FairyVersion.parse("5.0.0b1");
+
+        Assertions.assertTrue(newerVersion.isAbove(lowerVersion));
+    }
+
+    @Test
     public void checkToString() {
         FairyVersion version = FairyVersion.parse("5.0.0b1");
 
         Assertions.assertEquals(version.toString(), "5.0.0b1");
+    }
+
+    @Test
+    public void checkToStringWithTag() {
+        FairyVersion version = FairyVersion.parse("5.0.0b1-SNAPSHOT");
+
+        Assertions.assertEquals(version.toString(), "5.0.0b1-SNAPSHOT");
     }
 
     @Test

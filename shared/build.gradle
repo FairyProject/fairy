@@ -1,0 +1,19 @@
+apply plugin: "java"
+
+dependencies {
+    compileOnly "org.projectlombok:lombok:1.18.22"
+    annotationProcessor "org.projectlombok:lombok:1.18.22"
+    testAnnotationProcessor "org.projectlombok:lombok:1.18.22"
+    compileOnly "org.jetbrains:annotations:19.0.0"
+    annotationProcessor "org.jetbrains:annotations:19.0.0"
+
+    testImplementation "junit:junit:4.13"
+    testImplementation "org.junit.platform:junit-platform-runner:1.0.3"
+    testImplementation "org.junit.platform:junit-platform-suite-api:1.0.3"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.0"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.0"
+}
+
+test {
+    useJUnitPlatform()
+}

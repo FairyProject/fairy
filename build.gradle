@@ -31,6 +31,7 @@ plugins {
 
 // Core versioning
 version = "0.5.2b3"
+description = "Fairy is a compat & open-sourced Java Framework with useful features"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"
@@ -83,7 +84,7 @@ subprojects {
         return
     }
 
-    if (project.name == "test-plugin") {
+    if (project.name == "test-plugin" || project.name == "shared") {
         return
     }
 
