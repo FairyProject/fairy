@@ -30,8 +30,7 @@ plugins {
 }
 
 // Core versioning
-version = "0.5.2b3"
-description = "Fairy is a compat & open-sourced Java Framework with useful features"
+version = "0.5.3b1"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"

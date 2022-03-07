@@ -24,12 +24,38 @@
 
 package io.fairyproject;
 
+/**
+ * The serializer that serializes type from I to O.
+ * You can register through annotating {@link io.fairyproject.container.Component} or {@link io.fairyproject.container.SerializerFactory#registerSerializer(ObjectSerializer)}
+ * @param <I> the input type
+ * @param <O> the output type
+ */
 public interface ObjectSerializer<I, O> {
 
+    /**
+     * Serialize an instance from input type to output type.
+     * @param input the input instance
+     * @return the output instance
+     */
     O serialize(I input);
+
+    /**
+     * Deserialize an instance from output type to input type.
+     * @param output the output instance
+     * @return the input instance
+     */
     I deserialize(O output);
 
+    /**
+     * The input type
+     * @return type
+     */
     Class<I> inputClass();
+
+    /**
+     * The output type
+     * @return type
+     */
     Class<O> outputClass();
 
 }
