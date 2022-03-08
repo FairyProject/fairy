@@ -54,7 +54,6 @@ project.afterEvaluate {
      * the module.json
      * ------------------------------------------------------- */
     def moduleTask = project.tasks.findByName("module")
-    def moduleTask = project.tasks.findByName("module");
     if (moduleTask != null) {
         moduleTask.finalizedBy(publishAllPublicationsToDevRepository)
     } else {
