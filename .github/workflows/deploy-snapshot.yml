@@ -28,4 +28,4 @@ jobs:
         run: chmod +x gradlew
 
       - name: Deploy with Gradle
-        run: ./gradlew publishSnapshotPublicationsToProductionRepository -PimanityLibrariesUsername=${{ secrets.MAVEN_USER }} -PimanityLibrariesPassword=${{ secrets.MAVEN_PASSWORD }}
+        run: ./gradlew publishSnapshotProduction -PimanityLibrariesUsername=${{ secrets.MAVEN_USER }} -PimanityLibrariesPassword=${{ secrets.MAVEN_PASSWORD }}
