@@ -1,60 +1,62 @@
 apply plugin: "maven-publish"
 
-publishing {
-    publications {
-        production(MavenPublication) { publication ->
-            from project.shadow.component(publication)
-            pom {
-                name = "Fairy " + project.name
+project.afterEvaluate {
+    publishing {
+        publications {
+            production(MavenPublication) { publication ->
+                from project.shadow.component(publication)
+                pom {
+                    name = "Fairy " + project.name
+                }
+            }
+
+            snapshot(MavenPublication) { publication ->
+                from project.shadow.component(publication)
+                pom {
+                    name = "Fairy " + project.name
+                    version = project.version + "-SNAPSHOT"
+                }
+            }
+
+            latest(MavenPublication) { publication ->
+                from project.shadow.component(publication)
+                pom {
+                    name = "Fairy " + project.name
+                    version = "latest"
+                }
             }
         }
 
-        snapshot(MavenPublication) { publication ->
-            from project.shadow.component(publication)
-            pom {
-                name = "Fairy " + project.name
-                version = project.version + "-SNAPSHOT"
+        repositories {
+            maven {
+                name "Dev"
+                url "$rootDir/libs/local"
             }
-        }
 
-        latest(MavenPublication) { publication ->
-            from project.shadow.component(publication)
-            pom {
-                name = "Fairy " + project.name
-                version = "latest"
+            maven {
+                name "Production"
+                url "https://maven.imanity.dev/repository/imanity-libraries/"
+                credentials {
+                    username findProperty("imanityLibrariesUsername").toString()
+                    password findProperty("imanityLibrariesPassword").toString()
+                }
             }
         }
     }
 
-    repositories {
-        maven {
-            name "Dev"
-            url "$rootDir/libs/local"
-        }
+    tasks.withType(AbstractPublishToMaven).forEach(t -> {
+        t.dependsOn(shadowJar)
+    })
 
-        maven {
-            name "Production"
-            url "https://maven.imanity.dev/repository/imanity-libraries/"
-            credentials {
-                username findProperty("imanityLibrariesUsername").toString()
-                password findProperty("imanityLibrariesPassword").toString()
-            }
-        }
+    /* -------------------------------------------------------
+     * Last edit: 03/03/2022
+     * Fixes modules not properly being published with
+     * the module.json
+     * ------------------------------------------------------- */
+    def moduleTask = project.tasks.findByName("module");
+    if (moduleTask != null) {
+        moduleTask.finalizedBy(publishAllPublicationsToDevRepository)
+    } else {
+        shadowJar.finalizedBy(publishAllPublicationsToDevRepository)
     }
-}
-
-tasks.withType(AbstractPublishToMaven).forEach(t -> {
-    t.dependsOn(shadowJar)
-})
-
-/* -------------------------------------------------------
- * Last edit: 03/03/2022
- * Fixes modules not properly being published with
- * the module.json
- * ------------------------------------------------------- */
-def moduleTask = project.tasks.findByName("module");
-if (moduleTask != null) {
-    moduleTask.finalizedBy(publishAllPublicationsToDevRepository)
-} else {
-    shadowJar.finalizedBy(publishAllPublicationsToDevRepository)
 }
