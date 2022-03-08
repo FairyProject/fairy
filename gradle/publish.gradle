@@ -53,10 +53,17 @@ project.afterEvaluate {
      * Fixes modules not properly being published with
      * the module.json
      * ------------------------------------------------------- */
-    def moduleTask = project.tasks.findByName("module");
+    def moduleTask = project.tasks.findByName("module")
     if (moduleTask != null) {
         moduleTask.finalizedBy(publishAllPublicationsToDevRepository)
     } else {
         shadowJar.finalizedBy(publishAllPublicationsToDevRepository)
     }
+    def publishSnapshotDev = project.tasks.findByName("publishSnapshotDev")
+    if (publishSnapshotDev != null)
+        publishSnapshotDev.finalizedBy(publishSnapshotPublicationToDevRepository)
+
+    def publishSnapshotProduction = project.tasks.findByName("publishSnapshotProduction")
+    if (publishSnapshotProduction != null)
+        publishSnapshotProduction.finalizedBy(publishSnapshotPublicationToProductionRepository)
 }

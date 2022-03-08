@@ -48,6 +48,9 @@ public class ModuleTask extends DefaultTask {
     @Input
     private Set<String> modules;
 
+    @Input
+    private boolean snapshot;
+
     @TaskAction
     public void run() throws IOException {
         final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -99,7 +102,7 @@ public class ModuleTask extends DefaultTask {
             JsonArray array = new JsonArray();
             for (String depend : modules) {
                 Project dependProject = getProject().project(ModulePlugin.MODULE_PREFIX + depend);
-                array.add(dependProject.getExtensions().getByType(ModuleExtension.class).getName().get() + ":" + dependProject.getVersion());
+                array.add(dependProject.getExtensions().getByType(ModuleExtension.class).getName().get() + ":" + dependProject.getVersion() + (this.snapshot ? "-SNAPSHOT" : ""));
             }
 
             jsonObject.add("depends", array);
