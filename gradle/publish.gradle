@@ -2,11 +2,18 @@ apply plugin: "maven-publish"
 
 publishing {
     publications {
-        shadow(MavenPublication) { publication ->
+        production(MavenPublication) { publication ->
             from project.shadow.component(publication)
             pom {
                 name = "Fairy " + project.name
-                description = "Fairy is a compat & open-sourced Java Framework with useful features"
+            }
+        }
+
+        snapshot(MavenPublication) { publication ->
+            from project.shadow.component(publication)
+            pom {
+                name = "Fairy " + project.name
+                version = project.version + "-SNAPSHOT"
             }
         }
 
@@ -15,7 +22,6 @@ publishing {
             pom {
                 name = "Fairy " + project.name
                 version = "latest"
-                description = "Fairy is a compat & open-sourced Java Framework with useful features"
             }
         }
     }
@@ -37,7 +43,9 @@ publishing {
     }
 }
 
-publish.dependsOn shadowJar
+tasks.withType(AbstractPublishToMaven).forEach(t -> {
+    t.dependsOn(shadowJar)
+})
 
 /* -------------------------------------------------------
  * Last edit: 03/03/2022

@@ -30,7 +30,7 @@ plugins {
 }
 
 // Core versioning
-version = "0.5.2b4"
+version = "0.5.3b1"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"
@@ -83,7 +83,7 @@ subprojects {
         return
     }
 
-    if (project.name == "test-plugin") {
+    if (project.name == "test-plugin" || project.name == "shared") {
         return
     }
 

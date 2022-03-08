@@ -54,6 +54,8 @@ dependencies {
     implementation 'org.ow2.asm:asm:9.2'
     implementation 'org.ow2.asm:asm-commons:9.2'
 
+    implementation project(":shared")
+
     // AspectJ weaver
     compileOnly "org.aspectj:aspectjtools:1.9.7"
     compileOnly "org.aspectj:aspectjrt:1.9.7"

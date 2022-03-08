@@ -101,5 +101,6 @@ initPlatforms()
 initTests()
 
 include "gradle-plugin"
+include "shared"
 includeDebug()
 
