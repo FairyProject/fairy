@@ -26,20 +26,23 @@ package io.fairyproject.container;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import io.fairyproject.jackson.JacksonConfigure;
-import lombok.AllArgsConstructor;
 import io.fairyproject.ObjectSerializer;
+import io.fairyproject.jackson.JacksonConfigure;
+import io.fairyproject.jackson.JacksonObjectDeserializer;
+import io.fairyproject.jackson.JacksonObjectSerializer;
+import lombok.RequiredArgsConstructor;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class SerializerJacksonConfigure implements JacksonConfigure {
 
     private final ObjectSerializer<?, ?> serializer;
 
+    @SuppressWarnings("unchecked")
     @Override
     public void configure(ObjectMapper objectMapper) {
         final SimpleModule module = new SimpleModule();
-        module.addSerializer(new SerializerFactory.JacksonSerailizer(serializer));
-        module.addDeserializer(serializer.inputClass(), new SerializerFactory.JacksonDeserailizer(serializer));
+        module.addSerializer(new JacksonObjectSerializer(serializer));
+        module.addDeserializer(serializer.inputClass(), new JacksonObjectDeserializer(serializer));
 
         objectMapper.registerModule(module);
     }
