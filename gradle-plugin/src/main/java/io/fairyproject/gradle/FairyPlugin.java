@@ -7,6 +7,7 @@ import com.google.gson.JsonObject;
 import io.fairyproject.gradle.relocator.Relocation;
 import io.fairyproject.gradle.util.MavenUtil;
 import io.fairyproject.shared.FairyVersion;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -31,13 +33,25 @@ public class FairyPlugin implements Plugin<Project> {
 
     private static final String REPOSITORY = "https://maven.imanity.dev/repository/imanity-libraries/";
     private static final String DEPENDENCY_FORMAT = "io.fairyproject:%s:%s";
+    public static Queue<Runnable> QUEUE = new ConcurrentLinkedQueue<>();
+    public static FairyPlugin INSTANCE;
+
     public static boolean IS_IN_IDE = false;
 
     private FairyExtension extension;
+    @Getter
     private Project project;
+
+    public void checkIdeIdentityState() {
+        IS_IN_IDE = extension.getFairyIde().getOrElse(false);
+        if (IS_IN_IDE) {
+            IDEDependencyLookup.init(project.getRootProject());
+        }
+    }
 
     @Override
     public void apply(@NotNull Project project) {
+        INSTANCE = this;
         this.extension = project.getExtensions().create("fairy", FairyExtension.class);
         this.project = project;
 
@@ -49,9 +63,10 @@ public class FairyPlugin implements Plugin<Project> {
         final FairyTask fairyTask = project.getTasks().create("fairyBuild", FairyTask.class);
         final FairyTestTask fairyTestTask = project.getTasks().create("fairyTest", FairyTestTask.class);
         project.afterEvaluate(p -> {
-            IS_IN_IDE = extension.getFairyIde().getOrElse(false);
-            if (IS_IN_IDE) {
-                IDEDependencyLookup.init(project.getRootProject());
+            this.checkIdeIdentityState();
+            Runnable runnable;
+            while ((runnable = QUEUE.poll()) != null) {
+                runnable.run();
             }
 
             p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyConfiguration);

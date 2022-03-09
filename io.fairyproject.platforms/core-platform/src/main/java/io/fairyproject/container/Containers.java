@@ -24,6 +24,9 @@
 
 package io.fairyproject.container;
 
+import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import io.fairyproject.util.terminable.Terminable;
 import lombok.experimental.UtilityClass;
 import io.fairyproject.container.controller.AutowiredContainerController;
 
@@ -40,12 +43,21 @@ public class Containers {
         return type.cast(CONTAINER_CONTEXT.getContainerObject(type));
     }
 
-    public void inject(Object instance) {
-        try {
-            AutowiredContainerController.INSTANCE.applyObject(instance);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+    public void bindWith(Object containerInstance, Terminable terminable) {
+        bindWith(containerInstance.getClass(), terminable);
+    }
+
+    public void bindWith(Class<?> containerClass, Terminable terminable) {
+        final ContainerObject containerObject = CONTAINER_CONTEXT.getObjectDetails(containerClass);
+        if (containerObject == null) {
+            throw new IllegalArgumentException("Cannot bind terminable to a class that isn't registered as ContainerObject.");
         }
+
+        terminable.bindWith(containerObject);
+    }
+
+    public void inject(Object instance) {
+        ThrowingRunnable.sneaky(() -> AutowiredContainerController.INSTANCE.applyObject(instance)).run();
     }
 
 }

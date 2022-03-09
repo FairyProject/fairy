@@ -96,7 +96,7 @@ public class ModuleService {
         }
 
         ContainerContext.log("[>>Downloader>>] Downloading %s:%s...", name, version);
-        paths.add(new ModuleData(name, FairyVersion.parse(version), path));
+        paths.add(new ModuleData(name, Debug.IN_FAIRY_IDE ? FairyVersion.parse("1.0.0b1") : FairyVersion.parse(version), path));
 
         // We will read dependencies first.
         try {
