@@ -68,7 +68,6 @@ enum FieldMapper {
     ) {
         FieldFilter filter = mappingInfo.getProperties().getFilter();
         for (Field field : filter.filterDeclaredFieldsOf(inst.getClass())) {
-            System.out.println(field);
             if (field.getAnnotation(Transient.class) != null) {
                 continue;
             }
