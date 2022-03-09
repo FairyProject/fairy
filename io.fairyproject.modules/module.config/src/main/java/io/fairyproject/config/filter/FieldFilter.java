@@ -24,7 +24,12 @@
 
 package io.fairyproject.config.filter;
 
+import com.google.common.collect.ImmutableList;
+import io.fairyproject.config.annotation.NestedConfig;
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -36,14 +41,31 @@ import static java.util.stream.Collectors.toList;
 public interface FieldFilter extends Predicate<Field> {
 
     @Override
-    default FieldFilter and(Predicate<? super Field> other) {
+    default FieldFilter and(@NotNull Predicate<? super Field> other) {
         Objects.requireNonNull(other);
         return (t) -> test(t) && other.test(t);
     }
 
     default List<? extends Field> filterDeclaredFieldsOf(Class<?> cls) {
-        Field[] fields = cls.getDeclaredFields();
-        return Arrays.stream(fields)
+        // Allow checking for nested classes
+        final NestedConfig annotation = cls.getAnnotation(NestedConfig.class);
+        final List<Class<?>> accepted;
+        if (annotation == null) {
+            accepted = ImmutableList.of();
+        } else {
+            accepted = ImmutableList.copyOf(annotation.value());
+        }
+
+        List<Field> fields = new ArrayList<>();
+        Class<?> current = cls;
+        do {
+            if (current == cls || accepted.contains(current)) {
+                fields.addAll(Arrays.asList(current.getDeclaredFields()));
+            }
+            current = current.getSuperclass();
+        } while (current != Object.class && current != null);
+
+        return fields.stream()
                 .filter(this)
                 .collect(toList());
     }
