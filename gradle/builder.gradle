@@ -8,23 +8,25 @@ ext {
     archieveName = project.name
 }
 
-tasks.jar.archiveClassifier.set("sources")
-tasks.shadowJar.archiveClassifier.set(null)
-
 test {
     useJUnitPlatform()
 }
 
 // setup directory per version
 project.afterEvaluate(p -> {
-    var directoryProperty = tasks.shadowJar.destinationDirectory
-    var jarProperty = tasks.jar.destinationDirectory
-    var directory = directoryProperty.get().dir(p.version.toString())
-    directoryProperty.set(directory)
-    jarProperty.set(directory)
+    if (project.name != "gradle-plugin") {
+        tasks.jar.archiveClassifier.set("sources")
+        tasks.shadowJar.archiveClassifier.set(null)
 
-    tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
-    tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
+        var directoryProperty = tasks.shadowJar.destinationDirectory
+        var jarProperty = tasks.jar.destinationDirectory
+        var directory = directoryProperty.get().dir(p.version.toString())
+        directoryProperty.set(directory)
+        jarProperty.set(directory)
+
+        tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
+        tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
+    }
 
     shadowJar {
         // XSeries
