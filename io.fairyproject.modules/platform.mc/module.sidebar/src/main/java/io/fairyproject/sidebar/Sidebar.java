@@ -85,7 +85,7 @@ public class Sidebar {
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.UPDATE,
                 Optional.of(
-                        MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_7)
+                        MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_12)
                         ? MCAdventure.asLegacyString(title, player.getLocale())
                         : MCAdventure.asJsonString(title, player.getLocale())
                 ),
