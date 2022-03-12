@@ -38,6 +38,8 @@ import org.apache.logging.log4j.Logger;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * TODO:
@@ -175,19 +177,23 @@ public class CommandService {
         }
 
         ArgTransformer<?> holder = this.parameters.getOrDefault(type, null);
-        if (holder == null) {
-            return null;
+        if (holder != null) {
+            return holder.transform(event, source);
         }
 
         if (type.isEnum()) {
             try {
                 return Enum.valueOf(type, source);
             } catch (IllegalArgumentException ignored) {
-                throw new ArgTransformException("Unmatched enum");
+                throw new ArgTransformException("Unmatched type: " + Stream.of(type.getEnumConstants())
+                        .map(obj -> (Enum<?>) obj)
+                        .map(Enum::name)
+                        .collect(Collectors.joining(", "))
+                );
             }
         }
 
-        return holder.transform(event, source);
+        return null;
     }
 
     public ArgCompletionHolder getTabCompletionHolder(String name) {
@@ -195,11 +201,24 @@ public class CommandService {
     }
 
     public List<String> tabCompleteParameters(CommandContext commandContext, String parameter, Class<?> transformTo) {
-        if (!this.parameters.containsKey(transformTo)) {
+        final ArgTransformer<?> argTransformer = this.parameters.getOrDefault(transformTo, null);
+        if (argTransformer == null) {
+            if (transformTo.isEnum()) {
+                List<String> strings = new ArrayList<>();
+
+                for (Object constant : transformTo.getEnumConstants()) {
+                    final String name = ((Enum<?>) constant).name();
+                    if (name.toLowerCase().startsWith(parameter.toLowerCase())) {
+                        strings.add(name);
+                    }
+                }
+
+                return strings;
+            }
             return Collections.emptyList();
         }
 
-        return this.parameters.get(transformTo).tabComplete(commandContext, parameter);
+        return argTransformer.tabComplete(commandContext, parameter);
     }
 
     // Should without the prefix like / or !
