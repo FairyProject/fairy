@@ -236,7 +236,7 @@ public class CommandMeta implements ICommand {
             String passedParameter = (i < arguments.length ? arguments[i] : parameter.getDefaultValue()).trim();
             if (i >= arguments.length &&
                     (parameter.getDefaultValue() == null || parameter.getDefaultValue().isEmpty())) {
-                commandContext.sendMessage(MessageType.INFO, this.getUsage());
+                commandContext.sendMessage(MessageType.INFO, this.getUsage(commandContext));
                 return;
             }
             if (parameter.isWildcard() && !passedParameter.trim().equals(parameter.getDefaultValue().trim())) {
@@ -250,7 +250,7 @@ public class CommandMeta implements ICommand {
                 return;
             }
             if (result == null) {
-                commandContext.sendMessage(MessageType.INFO, this.getUsage());
+                commandContext.sendMessage(MessageType.INFO, this.getUsage(commandContext));
                 return;
             }
             transformedParameters.add(result);

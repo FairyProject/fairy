@@ -15,7 +15,9 @@ import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.NonNullArrayList;
 import io.fairyproject.util.SimpleTiming;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.reflections.util.ConfigurationBuilder;
 import org.reflections.util.FilterBuilder;
@@ -25,7 +27,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public abstract class BaseClassPathScanner extends ClassPathScanner {
 
@@ -88,10 +89,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
     protected void initializeClasses() throws Exception {
         // Load ContainerObjects in Dependency Tree Order
         try (SimpleTiming ignored = logTiming("Initializing ContainerObject")) {
-            containerObjectList = initializeContainers();
-            if (containerObjectList == null) {
-                return;
-            }
+            initializeContainers();
         }
 
         // Unregistering ContainerObjects that returns false in shouldInitialize
@@ -100,11 +98,8 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
         }
     }
 
-    protected List<ContainerObject> initializeContainers() {
+    protected void initializeContainers() {
         final Map<Class<?>, ContainerObject> relationship = this.searchDependencyRelationship();
-        if (relationship == null) {
-            return null;
-        }
 
         // Continually loop until all dependency found and loaded
         List<ContainerObject> sorted = new NonNullArrayList<>();
@@ -129,18 +124,19 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
                 }
             }
 
+            final CompletableFuture<Void> all = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
             try {
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).get();
-            } catch (InterruptedException | ExecutionException e) {
-                this.handleException(e);
-                return null;
+                all.get();
+            } catch (Throwable throwable) {
+                SneakyThrowUtil.sneakyThrow(throwable);
             }
+
             for (Class<?> key : removeQueue) {
                 relationship.remove(key);
             }
             removeQueue.clear();
         }
-        return sorted;
+        this.containerObjectList = sorted;
     }
 
     private boolean isMissingDependencies(ContainerObject containerObject, Map<Class<?>, ContainerObject> relationship) {
@@ -163,9 +159,10 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
         return missingDependencies;
     }
 
-    @Nullable
+    @NotNull
     protected Map<Class<?>, ContainerObject> searchDependencyRelationship() {
         Map<Class<?>, ContainerObject> toLoad = new HashMap<>();
+
         for (ContainerObject containerObject : containerObjectList) {
             toLoad.put(containerObject.getType(), containerObject);
             if (containerObject instanceof ServiceContainerObject) {
