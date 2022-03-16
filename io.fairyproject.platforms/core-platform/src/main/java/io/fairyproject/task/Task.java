@@ -47,7 +47,7 @@ public class Task {
                 Fairy.getTaskScheduler().runSync(() -> {
                     MAIN = Thread.currentThread();
                     run.run();
-                });
+                }, run);
             } else {
                 run.run();
             }
@@ -70,7 +70,7 @@ public class Task {
         return run -> Fairy.getTaskScheduler().runScheduled(() -> {
             MAIN = Thread.currentThread();
             run.run();
-        }, ticks);
+        }, run, ticks);
     }
 
     public Executor asyncLater(long ticks) {

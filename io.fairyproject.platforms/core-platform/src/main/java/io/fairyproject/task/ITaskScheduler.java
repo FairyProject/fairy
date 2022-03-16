@@ -44,4 +44,20 @@ public interface ITaskScheduler {
 
     Terminable runRepeated(TaskRunnable runnable, long delay, long time);
 
+    default Terminable runSync(Runnable runnable, Object identifier) {
+        return this.runSync(runnable);
+    }
+
+    default Terminable runScheduled(Runnable runnable, Object identifier, long time) {
+        return this.runScheduled(runnable, time);
+    }
+
+    default Terminable runRepeated(TaskRunnable runnable, Object identifier, long time) {
+        return this.runRepeated(runnable, time);
+    }
+
+    default Terminable runRepeated(TaskRunnable runnable, Object identifier, long delay, long time) {
+        return this.runRepeated(runnable, delay, time);
+    }
+
 }
