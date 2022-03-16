@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.gradle.FairyExtension;
+import io.fairyproject.gradle.FairyPlugin;
+import io.fairyproject.gradle.IDEDependencyLookup;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,6 +22,11 @@ public class MavenUtil {
     private final String ITEM_URL = "https://maven.imanity.dev/service/rest/v1/search?repository=imanity-libraries&group=io.fairyproject&name=<module>";
 
     public String getLatest(String module) throws IOException {
+        if (FairyPlugin.IS_IN_IDE) {
+            final String identityPath = IDEDependencyLookup.getIdentityPath(module);
+
+            return (String) FairyPlugin.INSTANCE.getProject().project(identityPath).getVersion();
+        }
         return getLatest("io.fairyproject", module);
     }
 
@@ -58,6 +65,9 @@ public class MavenUtil {
     }
 
     public boolean isExistingModule(String from) throws IOException {
+        if (FairyPlugin.IS_IN_IDE) {
+            return IDEDependencyLookup.getIdentityPath(from) != null;
+        }
         final java.net.URL url = new URL(ITEM_URL.replace("<module>", from));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
