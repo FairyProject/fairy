@@ -25,11 +25,10 @@
 package io.fairyproject;
 
 import io.fairyproject.aspect.AsyncAspect;
-import io.fairyproject.cache.CacheableAspect;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.SimpleContainerObject;
-import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryHandler;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
@@ -42,7 +41,6 @@ import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -53,6 +51,7 @@ public abstract class FairyPlatform {
 
     public static FairyPlatform INSTANCE;
     private final AtomicBoolean loadedDependencies = new AtomicBoolean();
+    private final Plugin mainPlugin;
 
     private ITaskScheduler taskScheduler;
     private CompositeTerminable compositeTerminable;
@@ -60,9 +59,11 @@ public abstract class FairyPlatform {
     private LibraryHandler libraryHandler;
     private ContainerContext containerContext;
 
-    public void load() {
-        this.loadDependencies();
+    public FairyPlatform(Plugin mainPlugin) {
+        this.mainPlugin = mainPlugin;
+    }
 
+    public void load() {
         this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();
     }
@@ -92,23 +93,6 @@ public abstract class FairyPlatform {
 //        this.bind(CacheableAspect.UPDATER_SERVICE);
     }
 
-    public void loadDependencies() {
-        if (!this.loadedDependencies.compareAndSet(false, true)) {
-            return;
-        }
-
-        LOGGER.info("Loading Fairy Dependencies...");
-        this.libraryHandler = new LibraryHandler();
-
-        List<Library> dependencies = new ArrayList<>(this.getDependencies());
-        dependencies.add(Library.CAFFEINE);
-        dependencies.add(Library.SPRING_CORE);
-        dependencies.add(Library.SPRING_EL);
-
-        this.libraryHandler.downloadLibraries(true, dependencies);
-
-    }
-
     public <T extends AutoCloseable> T bind(T t) {
         return this.compositeTerminable.bind(t);
     }
@@ -130,13 +114,6 @@ public abstract class FairyPlatform {
      * @return Fairy Folder
      */
     public abstract File getDataFolder();
-
-    /**
-     * get Dependencies based on platforms
-     *
-     * @return Dependencies Set
-     */
-    public abstract Collection<Library> getDependencies();
 
     /**
      * on Post Services Initial

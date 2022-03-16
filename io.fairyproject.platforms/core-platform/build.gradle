@@ -23,20 +23,12 @@
  */
 
 dependencies {
-
     api("org.reflections:reflections:0.9.10") {
         exclude group: "com.google.guava", module: "guava"
         exclude group: "com.google.code.findbugs", module: "annotations"
     }
-    compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
-    compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
-
-    implementation "org.apache.maven:maven-resolver-provider:3.8.4"
-    implementation "org.apache.maven.resolver:maven-resolver-connector-basic:1.7.3"
-    implementation "org.apache.maven.resolver:maven-resolver-transport-http:1.7.3"
     api "javax.persistence:javax.persistence-api:2.2"
     compileOnly "org.mongodb:mongo-java-driver:3.12.7"
-    compileOnly "org.springframework:spring-expression:5.3.2"
     api project(":shared")
     api aspectjRuntime
     implementation JacksonCore
@@ -45,6 +37,5 @@ dependencies {
     implementation JacksonJsr310
 
     testImplementation project(":io.fairyproject.tests:core-tests")
-    testImplementation "org.springframework:spring-expression:5.3.2"
     testImplementation "javax.el:javax.el-api:3.0.1-b04"
 }

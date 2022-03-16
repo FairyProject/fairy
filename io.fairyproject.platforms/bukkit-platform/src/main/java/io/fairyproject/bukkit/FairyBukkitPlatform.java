@@ -36,9 +36,7 @@ import io.fairyproject.bukkit.mc.BukkitMCInitializer;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.ComponentRegistry;
-import io.fairyproject.library.Library;
 import io.fairyproject.mc.MCInitializer;
-import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -52,9 +50,6 @@ import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
@@ -74,7 +69,8 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         return this.compositeTerminable.bind(terminable);
     }
 
-    public FairyBukkitPlatform(File dataFolder) {
+    public FairyBukkitPlatform(io.fairyproject.plugin.Plugin plugin, File dataFolder) {
+        super(plugin);
         FairyPlatform.INSTANCE = this;
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
@@ -86,7 +82,6 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         super.load();
 
         PluginManager.initialize(new BukkitPluginHandler());
-        ModuleService.init();
         MinecraftReflection.init();
         PacketEvents.setAPI(SpigotPacketEventsBuilder.build(PLUGIN));
         PacketEvents.getAPI().load();
@@ -103,7 +98,6 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
 
         super.enable();
-        ModuleService.INSTANCE.enable();
     }
 
     @Override
@@ -157,13 +151,4 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         return new BukkitTaskScheduler();
     }
 
-    @Override
-    public Collection<Library> getDependencies() {
-        Set<Library> libraries = new HashSet<>();
-        if (SpigotUtil.SPIGOT_TYPE != SpigotUtil.SpigotType.IMANITY) {
-            libraries.add(Library.FAST_UTIL);
-        }
-//        libraries.add(Library.ADVENTURE_API);
-        return libraries;
-    }
 }

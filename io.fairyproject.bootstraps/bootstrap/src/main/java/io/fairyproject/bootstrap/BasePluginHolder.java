@@ -5,6 +5,7 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
+import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 
 import java.lang.reflect.InvocationTargetException;
@@ -12,6 +13,7 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class BasePluginHolder {
 
+    @Getter
     protected final Plugin plugin;
     protected final ClassLoader classLoader;
     protected final CompletableFuture<Plugin> pluginCompletableFuture = new CompletableFuture<>();

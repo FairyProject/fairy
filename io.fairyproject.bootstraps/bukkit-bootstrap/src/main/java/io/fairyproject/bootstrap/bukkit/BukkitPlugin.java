@@ -21,13 +21,6 @@ public final class BukkitPlugin extends JavaPlugin {
     public void onLoad() {
         INSTANCE = this;
 
-        this.bootstrap = new BukkitBootstrap();
-        if (!this.bootstrap.load()) {
-            this.getLogger().warning("Failed to boot fairy! check stacktrace for the reason of failure!");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
-
         JsonObject jsonObject;
         try {
             jsonObject = new Gson().fromJson(new InputStreamReader(this.getResource(FAIRY_JSON_PATH)), JsonObject.class);
@@ -36,6 +29,13 @@ public final class BukkitPlugin extends JavaPlugin {
         }
 
         this.pluginHolder = new BukkitPluginHolder(jsonObject);
+
+        this.bootstrap = new BukkitBootstrap(this.pluginHolder.getPlugin());
+        if (!this.bootstrap.load()) {
+            this.getLogger().warning("Failed to boot fairy! check stacktrace for the reason of failure!");
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
         this.pluginHolder.onLoad();
 
         this.successfulBoot = true;

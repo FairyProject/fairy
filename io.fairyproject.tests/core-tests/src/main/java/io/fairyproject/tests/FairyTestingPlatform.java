@@ -3,7 +3,6 @@ package io.fairyproject.tests;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.library.Library;
-import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
@@ -30,18 +29,11 @@ public class FairyTestingPlatform extends FairyPlatform {
     @Override
     public void load() {
         super.load();
-        ModuleService.init();
     }
 
     @Override
     public void enable() {
         super.enable();
-        ModuleService.INSTANCE.enable();
-    }
-
-    @Override
-    public void loadDependencies() {
-        // We do not need dependencies here
     }
 
     @Override
@@ -52,11 +44,6 @@ public class FairyTestingPlatform extends FairyPlatform {
     @Override
     public File getDataFolder() {
         return new File(".");
-    }
-
-    @Override
-    public Collection<Library> getDependencies() {
-        return Collections.emptySet();
     }
 
     @Override

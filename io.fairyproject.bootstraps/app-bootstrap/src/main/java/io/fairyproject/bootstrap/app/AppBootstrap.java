@@ -1,8 +1,10 @@
 package io.fairyproject.bootstrap.app;
 
+import io.fairyproject.FairyPlatform;
+import io.fairyproject.app.FairyAppPlatform;
 import io.fairyproject.bootstrap.BaseBootstrap;
-import io.fairyproject.bootstrap.BasePlatformBridge;
 import io.fairyproject.bootstrap.type.PlatformType;
+import io.fairyproject.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -12,6 +14,10 @@ public class AppBootstrap extends BaseBootstrap {
 
     public static AppBootstrap INSTANCE;
     public static boolean FAIRY_READY = false;
+
+    public AppBootstrap(Plugin plugin) {
+        super(plugin);
+    }
 
     @Override
     protected void onFailure(@Nullable Throwable throwable) {
@@ -27,8 +33,8 @@ public class AppBootstrap extends BaseBootstrap {
     }
 
     @Override
-    protected BasePlatformBridge createPlatformBridge() {
-        return new AppPlatformBridge();
+    protected FairyPlatform createPlatform() {
+        return new FairyAppPlatform();
     }
 
     @Override

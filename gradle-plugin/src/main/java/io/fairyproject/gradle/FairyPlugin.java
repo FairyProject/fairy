@@ -102,8 +102,9 @@ public class FairyPlugin implements Plugin<Project> {
 
                     dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                     dependency.setTargetConfiguration("shadow");
+                    fairyConfiguration.getDependencies().add(dependency);
+
                     p.getDependencies().add("aspect", dependency);
-                    p.getDependencies().add("compileOnly", dependency);
                     p.getDependencies().add("testImplementation", dependency);
 
                     dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-tests")));
@@ -121,8 +122,8 @@ public class FairyPlugin implements Plugin<Project> {
                     fairyConfiguration.getDependencies().add(bootstrapDependency);
                     p.getDependencies().add("testImplementation", bootstrapDependency);
 
+                    fairyConfiguration.getDependencies().add(platformDependency);
                     p.getDependencies().add("aspect", platformDependency);
-                    p.getDependencies().add("compileOnly", platformDependency);
                     p.getDependencies().add("testImplementation", platformDependency);
                     p.getDependencies().add("testImplementation", String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-tests",
@@ -207,6 +208,9 @@ public class FairyPlugin implements Plugin<Project> {
             for (File file : fairyConfiguration) {
                 list.add(file.isDirectory() ? file : project.zipTree(file));
             }
+            for (File file : fairyModuleConfiguration) {
+                list.add(file.isDirectory() ? file : project.zipTree(file));
+            }
 
             jar.from(list);
 
@@ -216,7 +220,6 @@ public class FairyPlugin implements Plugin<Project> {
             }
 
             fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());
-            fairyTask.setRelocateEntries(fairyModuleConfiguration.getFiles());
             fairyTask.setClassifier(extension.getClassifier().getOrNull());
             fairyTask.setRelocations(relocations);
             fairyTask.setExtension(extension);

@@ -41,7 +41,6 @@ import io.fairyproject.container.scanner.DefaultClassPathScanner;
 import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
-import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
@@ -127,7 +126,6 @@ public class ContainerContext {
         INSTANCE = this;
 
         this.registerObject(new SimpleContainerObject(this, this.getClass()));
-        this.registerObject(new SimpleContainerObject(ModuleService.INSTANCE, ModuleService.class));
         log("ContainerContext has been registered as ContainerObject.");
 
         ComponentRegistry.registerComponentHolders();
@@ -152,11 +150,6 @@ public class ContainerContext {
             log("Find PluginManager, attempt to register Plugin Listeners");
 
             PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
-
-                @Override
-                public void onPluginInitial(Plugin plugin) {
-
-                }
 
                 @Override
                 public void onPluginEnable(Plugin plugin) {

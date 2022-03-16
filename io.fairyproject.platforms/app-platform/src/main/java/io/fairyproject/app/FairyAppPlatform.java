@@ -3,7 +3,6 @@ package io.fairyproject.app;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.library.Library;
-import io.fairyproject.module.ModuleService;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
@@ -45,14 +44,11 @@ public class FairyAppPlatform extends FairyPlatform {
         super.load();
 
         PluginManager.initialize(new AppPluginHandler());
-        ModuleService.init();
     }
 
     @Override
     public void enable() {
         super.enable();
-
-        ModuleService.INSTANCE.enable();
     }
 
     public void setMainApplication(Application mainApplication) {
@@ -92,16 +88,6 @@ public class FairyAppPlatform extends FairyPlatform {
     @Override
     public File getDataFolder() {
         return new File("fairy");
-    }
-
-    @Override
-    public Collection<Library> getDependencies() {
-        return Arrays.asList(
-                Library.builder().gradle("commons-io:commons-io:2.7").build(),
-                Library.builder().gradle("com.google.code.gson:gson:2.8.6").build(),
-                Library.builder().gradle("com.google.guava:guava:30.0-jre").build(),
-                Library.builder().gradle("org.yaml:snakeyaml:1.20").build()
-        );
     }
 
     @Override

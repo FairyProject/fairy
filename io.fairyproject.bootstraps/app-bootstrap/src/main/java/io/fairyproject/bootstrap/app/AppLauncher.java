@@ -23,15 +23,6 @@ public class AppLauncher {
     public static void main(String[] args) {
         initConsole();
 
-        AppBootstrap bootstrap = new AppBootstrap();
-        AppBootstrap.INSTANCE = bootstrap;
-        if (!bootstrap.load()) {
-            System.err.println("Failed to boot fairy! check stacktrace for the reason of failure!");
-            System.exit(-1);
-            return;
-        }
-        AppBootstrap.FAIRY_READY = true;
-
         JsonObject jsonObject;
         try {
             jsonObject = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(getResource(FAIRY_JSON_PATH))), JsonObject.class);
@@ -40,6 +31,15 @@ public class AppLauncher {
         }
 
         ApplicationHolder pluginHolder = new ApplicationHolder(jsonObject);
+        AppBootstrap bootstrap = new AppBootstrap(pluginHolder.getPlugin());
+        AppBootstrap.INSTANCE = bootstrap;
+        if (!bootstrap.load()) {
+            System.err.println("Failed to boot fairy! check stacktrace for the reason of failure!");
+            System.exit(-1);
+            return;
+        }
+        AppBootstrap.FAIRY_READY = true;
+
         pluginHolder.onLoad();
 
         bootstrap.enable();

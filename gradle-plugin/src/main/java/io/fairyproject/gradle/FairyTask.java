@@ -1,6 +1,8 @@
 package io.fairyproject.gradle;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimap;
 import com.google.common.io.ByteStreams;
 import io.fairyproject.gradle.file.*;
 import io.fairyproject.gradle.relocator.JarRelocator;
@@ -16,6 +18,7 @@ import org.objectweb.asm.tree.ClassNode;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -40,9 +43,6 @@ public class FairyTask extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     private File inJar;
 
-    @Input
-    private Set<File> relocateEntries;
-
     @Optional
     @Input
     private String classifier;
@@ -55,6 +55,9 @@ public class FairyTask extends DefaultTask {
 
     @Input
     private Map<String, String> dependModules;
+
+    @Input
+    private Multimap<String, String> exclusions;
 
     @TaskAction
     public void run() throws IOException {
@@ -71,22 +74,11 @@ public class FairyTask extends DefaultTask {
         String name = fileName + (classifier == null ? "" : "-" + classifier) + inJar.getName().substring(index);
         File outJar = new File(inJar.getParentFile(), name);
 
-        File tempOutJar;
+        File tempOutJar = File.createTempFile(name, ".jar");
+        String mainClass = null;
 
-        final Boolean libraryMode = extension.getLibraryMode().get();
-        if (!libraryMode) {
-            tempOutJar = File.createTempFile(name, ".jar");
-
-            JarRelocator jarRelocator = new JarRelocator(inJar, tempOutJar, this.relocations, this.relocateEntries);
-            jarRelocator.run();
-        } else {
-            tempOutJar = inJar;
-        }
-
-        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(outJar))) {
-            String mainClass = null;
-
-            try (JarFile jarFile = new JarFile(tempOutJar)) {
+        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(tempOutJar))) {
+            try (JarFile jarFile = new JarFile(inJar)) {
                 final Enumeration<JarEntry> entries = jarFile.entries();
                 while (entries.hasMoreElements()) {
                     final JarEntry jarEntry = entries.nextElement();
@@ -128,9 +120,19 @@ public class FairyTask extends DefaultTask {
                     out.write(bytes);
                 }
             }
+        }
 
+        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(outJar))) {
+            final Boolean libraryMode = extension.getLibraryMode().get();
             if (mainClass == null && !libraryMode) {
                 System.out.println("No main class found! Is there something wrong?");
+            }
+
+            if (!libraryMode) {
+                JarRelocator jarRelocator = new JarRelocator(tempOutJar, outJar, this.relocations, ImmutableSet.of());
+                jarRelocator.run();
+            } else {
+                Files.write(outJar.toPath(), Files.readAllBytes(tempOutJar.toPath()));
             }
 
             for (PlatformType platformType : this.extension.getFairyPlatforms().get()) {
