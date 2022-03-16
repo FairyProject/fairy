@@ -30,6 +30,10 @@ public class BaseCommandInitializer {
         if (command != null) {
             baseCommand.names = command.value();
             baseCommand.permission = command.permissionNode();
+
+            if (baseCommand.names.length == 0) {
+                throw new IllegalArgumentException("Command names cannot be empty");
+            }
         } else {
             throw new IllegalArgumentException("Command annotation wasn't found in class " + baseCommand.getClass());
         }
@@ -53,6 +57,8 @@ public class BaseCommandInitializer {
         baseCommand.baseArgs = this.initialiseFields().toArray(new ArgProperty[0]);
         this.initialiseUsage();
 
+        if (baseCommand.noArgCommand != null)
+            baseCommand.sortedCommands.add(baseCommand.noArgCommand);
         baseCommand.sortedCommands.addAll(baseCommand.subCommands.values());
         baseCommand.sortedCommands.sort(Comparator.comparingInt(ICommand::order));
     }
@@ -101,12 +107,32 @@ public class BaseCommandInitializer {
         if (command != null) {
             try {
                 final CommandMeta commandMeta = new CommandMeta(command, method, baseCommand);
-                for (String name : command.value()) {
-                    baseCommand.subCommands.put(name.toLowerCase(), commandMeta);
+                final String[] names = command.value();
+                boolean register = false;
+                if (names.length == 0) {
+                    BaseCommand.LOGGER.error("Command names cannot be empty, but empty on method " + method);
+                } else {
+                    for (String name : names) {
+                        if (name.equals("#")) {
+                            if (baseCommand.noArgCommand != null) {
+                                BaseCommand.LOGGER.error("Duplicate no arg sub command");
+                            } else {
+                                baseCommand.noArgCommand = commandMeta;
+                                register = true;
+                            }
+                        } else if (baseCommand.subCommands.containsKey(name.toLowerCase())) {
+                            BaseCommand.LOGGER.error("Duplicate sub command name " + name);
+                        } else {
+                            baseCommand.subCommands.put(name.toLowerCase(), commandMeta);
+                            register = true;
+                        }
+                    }
                 }
 
-                baseCommand.maxParameterCount = Math.max(commandMeta.getMaxParameterCount(), baseCommand.maxParameterCount);
-                baseCommand.requireInputParameterCount = Math.max(commandMeta.getRequireInputParameterCount(), baseCommand.requireInputParameterCount);
+                if (register) {
+                    baseCommand.maxParameterCount = Math.max(commandMeta.getMaxParameterCount(), baseCommand.maxParameterCount);
+                    baseCommand.requireInputParameterCount = Math.max(commandMeta.getRequireInputParameterCount(), baseCommand.requireInputParameterCount);
+                }
             } catch (IllegalAccessException e) {
                 BaseCommand.LOGGER.error("an error got thrown while registering @Command method", e);
             }
