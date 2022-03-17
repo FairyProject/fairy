@@ -31,10 +31,11 @@ import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.hologram.api.ViewHandler;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.ProtocolLibHelper;
-import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.MCVersion;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Location;
@@ -92,7 +93,7 @@ public class HologramSingle {
 
     protected void sendSpawnPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
-            if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
 
                 packetContainer.getIntegers()
@@ -116,8 +117,7 @@ public class HologramSingle {
 
     protected void sendTeleportPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
-
-            if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
 
                 packetContainer.getIntegers()
@@ -171,7 +171,7 @@ public class HologramSingle {
 
     protected void sendDestroyPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
-            if (MinecraftVersion.get().newerThan(MinecraftReflection.Version.v1_7_R4) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
 
                 packetContainer.getIntegerArrays()

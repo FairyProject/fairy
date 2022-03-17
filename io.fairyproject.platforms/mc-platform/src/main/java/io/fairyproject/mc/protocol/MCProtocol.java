@@ -6,6 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class MCProtocol {
+    public static MCVersion OVERWRITTEN_VERSION;
     public static MCProtocol INSTANCE;
 
     private final PacketEventsAPI<?> packetEvents;
@@ -22,6 +23,9 @@ public class MCProtocol {
     }
 
     public MCVersion version() {
+        if (OVERWRITTEN_VERSION != null) {
+            return OVERWRITTEN_VERSION;
+        }
         return MCVersion.getVersionFromRaw(
                 PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion()
         );
