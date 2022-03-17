@@ -20,14 +20,11 @@ public class ModulePlugin implements Plugin<Project> {
     public void apply(Project project) {
         final ModuleExtension extension = project.getExtensions().create("module", ModuleExtension.class);
         final ModuleTask task = project.getTasks().create("module", ModuleTask.class);
-        final PublishSnapshotTask publishSnapshotDevTask = project.getTasks().create("publishSnapshotDev", PublishSnapshotTask.class);
-        final PublishSnapshotTask publishSnapshotProductionTask = project.getTasks().create("publishSnapshotProduction", PublishSnapshotTask.class);
+        final PublishSnapshotTask publishSnapshotDevTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotDev");
+        final PublishSnapshotTask publishSnapshotProductionTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotProduction");
 
         final Configuration configuration = project.getConfigurations().maybeCreate("module");
         project.afterEvaluate(p -> {
-            publishSnapshotDevTask.setGroup("fairy");
-            publishSnapshotProductionTask.setGroup("fairy");
-
             publishSnapshotDevTask.setModuleTask(task);
             publishSnapshotProductionTask.setModuleTask(task);
 

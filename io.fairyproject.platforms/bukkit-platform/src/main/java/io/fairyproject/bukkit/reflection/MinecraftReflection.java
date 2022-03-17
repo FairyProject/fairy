@@ -29,7 +29,7 @@ import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.annotation.ProviderTestImpl;
 import io.fairyproject.bukkit.impl.test.ImplementationFactory;
 import io.fairyproject.bukkit.reflection.annotation.ProtocolImpl;
-import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
+import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
@@ -44,7 +44,6 @@ import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.EquivalentConverter;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
@@ -57,7 +56,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -120,12 +118,6 @@ public class MinecraftReflection {
     }
 
     public static void init() {
-        try {
-            Version.runSanityCheck();
-        } catch (Exception e) {
-            throw new RuntimeException("Sanity check which should always succeed just failed! Am I crazy?!", e);
-        }
-
         if (Debug.UNIT_TEST) {
             return;
         }
@@ -229,21 +221,21 @@ public class MinecraftReflection {
      * @return the current NMS/OBC version (format <code>&lt;version&gt;.</code>
      */
     public static String getVersion() {
-        return MinecraftVersion.get().packageName() + ".";
+        return OBCVersion.get().packageName() + ".";
     }
 
     /**
      * @return the current NMS version package
      */
     public static String getNMSPackage() {
-        return MinecraftVersion.get().getNmsPackage();
+        return OBCVersion.get().getNmsPackage();
     }
 
     /**
      * @return the current OBC package
      */
     public static String getOBCPackage() {
-        return MinecraftVersion.get().getObcPackage();
+        return OBCVersion.get().getObcPackage();
     }
 
     public static <T> T getChannel(Player player) {
@@ -326,135 +318,6 @@ public class MinecraftReflection {
 
         Object nmsPlayer = PLAYER_GET_HANDLE.invoke(player);
         return PING_FIELD.get(nmsPlayer);
-    }
-
-    public enum Version {
-        UNKNOWN(-1) {
-            @Override
-            public boolean matchesPackageName(String packageName) {
-                return false;
-            }
-        },
-
-        v1_7_R1(10701),
-        v1_7_R2(10702),
-        v1_7_R3(10703),
-        v1_7_R4(10704),
-
-        v1_8_R1(10801),
-        v1_8_R2(10802),
-        v1_8_R3(10803),
-        //Does this even exists?
-        v1_8_R4(10804),
-
-        v1_9_R1(10901),
-        v1_9_R2(10902),
-
-        v1_10_R1(11001),
-
-        v1_11_R1(11101),
-
-        v1_12_R1(11201),
-
-        v1_13_R1(11301),
-        v1_13_R2(11302),
-
-        v1_14_R1(11401),
-
-        v1_15_R1(11501),
-
-        v1_16_R1(11601),
-        v1_16_R2(11602),
-        v1_16_R3(11603),
-
-        v1_17_R1(11701),
-
-        v1_18_R1(11801),
-
-        /// (Potentially) Upcoming versions
-        v1_19_R1(11901),
-
-        v1_20_R1(12001);
-
-        private final MinecraftVersion version;
-
-        Version(int version, String nmsFormat, String obcFormat, boolean nmsVersionPrefix) {
-            this.version = new MinecraftVersion(name(), version, nmsFormat, obcFormat, nmsVersionPrefix);
-        }
-
-        Version(int version) {
-            MinecraftVersion v = null;
-            try {
-                if (version >= 11701) { // 1.17+ new class package name format
-                    v = new MinecraftVersion(name(), version, "net.minecraft", "org.bukkit.craftbukkit.%s", false);
-                } else {
-                    v = new MinecraftVersion(name(), version);
-                }
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-            }
-            this.version = v;
-        }
-
-        /**
-         * @return the version-number
-         */
-        public int version() {
-            return version.version();
-        }
-
-        /**
-         * @param version the version to check
-         * @return <code>true</code> if this version is older than the specified version
-         */
-        @Deprecated
-        public boolean olderThan(Version version) {
-            return version() < version.version();
-        }
-
-        /**
-         * @param version the version to check
-         * @return <code>true</code> if this version is newer than the specified version
-         */
-        @Deprecated
-        public boolean newerThan(Version version) {
-            return version() >= version.version();
-        }
-
-        /**
-         * @param oldVersion The older version to check
-         * @param newVersion The newer version to check
-         * @return <code>true</code> if this version is newer than the oldVersion and older that the newVersion
-         */
-        @Deprecated
-        public boolean inRange(Version oldVersion, Version newVersion) {
-            return newerThan(oldVersion) && olderThan(newVersion);
-        }
-
-        public boolean matchesPackageName(String packageName) {
-            return packageName.toLowerCase().contains(name().toLowerCase());
-        }
-
-        /**
-         * @return the minecraft version
-         */
-        public MinecraftVersion minecraft() {
-            return version;
-        }
-
-        static void runSanityCheck() {
-            assert v1_14_R1.newerThan(v1_13_R2);
-            assert v1_13_R2.olderThan(v1_14_R1);
-
-            assert v1_13_R2.newerThan(v1_8_R1);
-
-            assert v1_13_R2.newerThan(v1_8_R1) && v1_13_R2.olderThan(v1_14_R1);
-        }
-
-        @Override
-        public String toString() {
-            return name() + " (" + version() + ")";
-        }
     }
 
     @Deprecated

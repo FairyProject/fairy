@@ -1,8 +1,9 @@
 package io.fairyproject.tests.bukkit;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
+import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.mc.MCInitializer;
+import io.fairyproject.mc.protocol.MCProtocol;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -12,7 +13,8 @@ public abstract class FairyBukkitTestingPlatform extends FairyBukkitPlatform {
 
     public FairyBukkitTestingPlatform() {
         super(new File("build/tmp/fairy"));
-        MinecraftVersion.forceSet(this.version());
+        OBCVersion.forceSet(this.version());
+        MCProtocol.OVERWRITTEN_VERSION = this.version().toMCVersion();
     }
 
     @Override
@@ -20,7 +22,7 @@ public abstract class FairyBukkitTestingPlatform extends FairyBukkitPlatform {
         return new BukkitTestingMCInitializer();
     }
 
-    public abstract MinecraftVersion version();
+    public abstract OBCVersion version();
 
     public static void patchBukkitPlugin(JavaPlugin plugin) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
         final Class<?> type = Class.forName("io.fairyproject.bootstrap.bukkit.BukkitPlugin");

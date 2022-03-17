@@ -24,9 +24,8 @@
 
 package io.fairyproject.bukkit.reflection.annotation;
 
-import io.fairyproject.bukkit.reflection.minecraft.MinecraftVersion;
+import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.ClassResolver;
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.wrapper.ClassWrapper;
@@ -70,8 +69,8 @@ public class ReflectionAnnotations {
 				String[] names = nameList.toArray(new String[nameList.size()]);
 				for (int i = 0; i < names.length; i++) {// Replace NMS & OBC
 					names[i] = names[i]
-							.replace("{nms}", "net.minecraft.server." + MinecraftVersion.get().packageName())
-							.replace("{obc}", "org.bukkit.craftbukkit." + MinecraftVersion.get().packageName());
+							.replace("{nms}", "net.minecraft.server." + OBCVersion.get().packageName())
+							.replace("{obc}", "org.bukkit.craftbukkit." + OBCVersion.get().packageName());
 				}
 				try {
 					if (ClassWrapper.class.isAssignableFrom(field.getType())) {
@@ -161,7 +160,7 @@ public class ReflectionAnnotations {
 
 		try {
 			String[] names = (String[]) clazz.getMethod("value").invoke(annotation);
-			MinecraftReflection.Version[] versions = (MinecraftReflection.Version[]) clazz.getMethod("versions").invoke(annotation);
+			OBCVersion[] versions = (OBCVersion[]) clazz.getMethod("versions").invoke(annotation);
 
 			if (versions.length == 0) {// No versions specified -> directly use the names
 				for (String name : names) {
@@ -172,12 +171,12 @@ public class ReflectionAnnotations {
 					throw new RuntimeException("versions array cannot have more elements than the names (" + clazz + ")");
 				}
 				for (int i = 0; i < versions.length; i++) {
-					if (MinecraftVersion.get().equal(versions[i])) {// Wohoo, perfect match!
+					if (OBCVersion.get() == versions[i]) {// Wohoo, perfect match!
 						list.add(names[i]);
 					} else {
-						if (names[i].startsWith(">") && MinecraftVersion.get().versionEnum().newerThan(versions[i])) {// Match if the current version is newer
+						if (names[i].startsWith(">") && OBCVersion.get().above(versions[i])) {// Match if the current version is newer
 							list.add(names[i].substring(1));
-						} else if (names[i].startsWith("<") && MinecraftVersion.get().versionEnum().olderThan(versions[i])) {// Match if the current version is older
+						} else if (names[i].startsWith("<") && OBCVersion.get().below(versions[i])) {// Match if the current version is older
 							list.add(names[i].substring(1));
 						}
 					}
