@@ -21,9 +21,9 @@ public class OBCVersionTest {
         Assertions.assertTrue(OBCVersion.v1_8_R3.below(OBCVersion.v1_13_R2));
     }
 
-    @Test
-    public void sanityCheck() {
-        // TODO: automatically fetch any new OBC version tag from somewhere??
-    }
+//    @Test
+//    public void sanityCheck() {
+//        // TODO: automatically fetch any new OBC version tag from somewhere??
+//    }
 
 }

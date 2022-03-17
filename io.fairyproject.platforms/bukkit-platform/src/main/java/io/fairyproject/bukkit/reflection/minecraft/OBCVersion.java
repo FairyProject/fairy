@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.reflection.minecraft;
 
 import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import org.bukkit.Bukkit;
 
 public enum OBCVersion {
@@ -79,12 +80,19 @@ public enum OBCVersion {
 
     private static OBCVersion VERSION;
 
+    private final String packageName;
+    private final String nmsPackage;
+    private final String obcPackage;
+    private final boolean nmsVersionPrefix;
+
+    private MCVersion mcVersion;
+
     public static OBCVersion get() {
         if (VERSION == null) {
             try {
                 VERSION = OBCVersion.getVersion();
             } catch (Exception e) {
-                throw new RuntimeException("Failed to get version", e);
+                SneakyThrowUtil.sneakyThrow(e);
             }
             if (VERSION != null) {
                 System.out.println("[Fairy] Version is " + VERSION);
@@ -96,13 +104,6 @@ public enum OBCVersion {
     public static void forceSet(OBCVersion version) {
         VERSION = version;
     }
-
-    private final String packageName;
-    private final String nmsPackage;
-    private final String obcPackage;
-    private final boolean nmsVersionPrefix;
-
-    private MCVersion mcVersion;
 
     OBCVersion(boolean nmsVersionPrefix) {
         this.packageName = this.name();
