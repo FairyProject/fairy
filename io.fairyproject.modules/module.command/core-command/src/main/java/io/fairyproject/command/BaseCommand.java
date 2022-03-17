@@ -51,6 +51,7 @@ public abstract class BaseCommand implements ICommand {
 
     protected final HashMultimap<String, ICommand> subCommands = HashMultimap.create();
     protected final List<ICommand> sortedCommands = new ArrayList<>();
+    protected ICommand noArgCommand;
     protected Map<String, ArgCompletionHolder> tabCompletion;
 
     @Getter
@@ -344,15 +345,20 @@ public abstract class BaseCommand implements ICommand {
     }
 
     private PossibleSearches findPossibleSubCommands(CommandContext commandContext, String[] args) {
-        for (int i = args.length; i >= 0; i--) {
-            String subcommand = StringUtils.join(args, " ", 0, i).toLowerCase();
-            Set<ICommand> commands = subCommands.get(subcommand);
+        if (args.length == 0) {
+            if (this.noArgCommand != null) {
+                return new PossibleSearches(Collections.singleton(this.noArgCommand), args, "");
+            }
+        } else {
+            for (int i = args.length; i >= 0; i--) {
+                String subcommand = StringUtils.join(args, " ", 0, i).toLowerCase();
+                Set<ICommand> commands = subCommands.get(subcommand);
 
-            if (!commands.isEmpty()) {
-                return new PossibleSearches(commands, CoreCommandUtil.arrayFromRange(args, i, args.length - 1), subcommand);
+                if (!commands.isEmpty()) {
+                    return new PossibleSearches(commands, CoreCommandUtil.arrayFromRange(args, i, args.length - 1), subcommand);
+                }
             }
         }
-
         return null;
     }
 
