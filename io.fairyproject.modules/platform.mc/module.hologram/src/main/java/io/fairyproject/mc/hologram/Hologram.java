@@ -232,16 +232,31 @@ public class Hologram {
 
     public interface InteractListener {
 
+        /**
+         * The method that will be called when the hologram being attack by a player
+         *
+         * @param player the Player
+         */
         default void attack(MCPlayer player) {
-
+            // Can be overwritten
         }
 
+        /**
+         * The method that will be called when the hologram being right-clicked by a player
+         *
+         * @param player the Player
+         */
         default void interact(MCPlayer player) {
-
+            // Can be overwritten
         }
 
+        /**
+         * The method that will be called when the hologram being right-clicked by a player with a pos
+         *
+         * @param player the Player
+         */
         default void interactAt(MCPlayer player, Vector3f vector) {
-
+            // Can be overwritten
         }
 
     }

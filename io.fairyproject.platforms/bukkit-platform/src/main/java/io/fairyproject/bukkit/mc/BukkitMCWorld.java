@@ -7,7 +7,6 @@ import io.fairyproject.mc.MCWorld;
 import io.fairyproject.metadata.MetadataMap;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.World;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.stream.Collectors;

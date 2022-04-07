@@ -91,6 +91,8 @@ public class HologramListener implements PacketListener {
                 final Vector3f vector = packet.getTarget().orElse(null);
                 hologram.getInteractListener().interactAt(player, vector);
                 break;
+            default:
+                throw new UnsupportedOperationException(action.name());
         }
     }
 

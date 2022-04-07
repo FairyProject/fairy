@@ -1,9 +1,9 @@
 package io.fairyproject.bukkit.events;
 
+import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.BukkitPos;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
@@ -27,10 +27,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-@Service(name = "bukkit:event-transformer")
+@Service
 public class BukkitEventTransformer {
 
     public static final EventPriority PRIORITY_REGISTRATION = EventPriority.MONITOR;
