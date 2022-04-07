@@ -1,5 +1,6 @@
 package io.fairyproject.mc;
 
+import io.fairyproject.mc.util.Pos;
 import lombok.experimental.UtilityClass;
 
 import java.util.UUID;
@@ -12,11 +13,15 @@ public interface MCEntity {
 
     MCWorld getWorld();
 
-    UUID getUuid();
+    UUID getUUID();
+
+    Pos pos();
 
     int getId();
 
-    <T> T as(Class<T> playerClass);
+    boolean teleport(Pos pos);
+
+    <T> T as(Class<T> entityClass);
 
     @UtilityClass
     class Companion {
@@ -26,6 +31,8 @@ public interface MCEntity {
     interface Bridge {
 
         MCEntity from(Object entity);
+
+        int newEntityId();
 
     }
 

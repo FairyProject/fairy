@@ -2,11 +2,9 @@ package io.fairyproject.mc;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import io.fairyproject.mc.protocol.MCPacket;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.item.PlayerInfoData;
-import io.fairyproject.mc.protocol.netty.FriendlyByteBuf;
 import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
@@ -27,7 +25,7 @@ import java.util.function.Function;
 /**
  * A proxy player class for cross-platform purposes
  */
-public interface MCPlayer extends Audience {
+public interface MCPlayer extends MCEntity, Audience {
 
     MetadataKey<MCPlayer> METADATA = MetadataKey.create("proxy:player", MCPlayer.class);
 

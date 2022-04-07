@@ -15,7 +15,7 @@ import java.util.LinkedList;
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class MCPlayerMock implements MCPlayer {
+public abstract class MCPlayerMock implements MCPlayer {
 
     private final UUID uuid;
     private final String name;
@@ -37,6 +37,11 @@ public class MCPlayerMock implements MCPlayer {
     @Override
     public UUID getUUID() {
         return this.uuid;
+    }
+
+    @Override
+    public int getId() {
+        return 0;
     }
 
     @Override
