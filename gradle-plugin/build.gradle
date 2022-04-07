@@ -2,7 +2,7 @@ repositories {
     gradlePluginPortal()
 }
 
-version = "1.0.1b5"
+version = "1.0.1b7"
 
 apply plugin: "java-gradle-plugin"
 apply plugin: "maven-publish"
@@ -39,6 +39,10 @@ pluginBundle {
     }
 }
 
+repositories {
+    maven { url "https://maven.imanity.dev/repository/imanity-libraries/" }
+}
+
 dependencies {
     compileOnly gradleApi()
     compileOnly 'org.codehaus.groovy:groovy-all:3.0.9'
@@ -54,10 +58,26 @@ dependencies {
     implementation 'org.ow2.asm:asm:9.2'
     implementation 'org.ow2.asm:asm-commons:9.2'
 
+    compileOnly project(":shared")
+
     // AspectJ weaver
     compileOnly "org.aspectj:aspectjtools:1.9.7"
     compileOnly "org.aspectj:aspectjrt:1.9.7"
     compileOnly "org.aspectj:aspectjweaver:1.9.7"
 
-    testImplementation "junit:junit:4.13"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:5.7.0"
+}
+
+// Yeah this is hacky... but to prevent gradle from generating a problematic maven pom we have to shade it
+def config = configurations.maybeCreate("shared")
+config.dependencies.add(project.dependencies.create(project(":shared")))
+List<Object> list = new ArrayList<>();
+for (File file : config) {
+    list.add(file.isDirectory() ? file : project.zipTree(file));
+}
+
+jar.from(list)
+
+test {
+    useJUnitPlatform()
 }

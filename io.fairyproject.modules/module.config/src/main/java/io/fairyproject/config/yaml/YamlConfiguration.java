@@ -28,6 +28,7 @@ import io.fairyproject.config.Comments;
 import io.fairyproject.config.Configuration;
 import io.fairyproject.config.ConfigurationSource;
 import io.fairyproject.config.ConfigurationStoreException;
+import org.apache.logging.log4j.LogManager;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.constructor.BaseConstructor;
@@ -42,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 
 public abstract class YamlConfiguration extends Configuration<YamlConfiguration> {
+
     private final YamlSource source;
 
     protected YamlConfiguration(Path path, YamlProperties properties) {

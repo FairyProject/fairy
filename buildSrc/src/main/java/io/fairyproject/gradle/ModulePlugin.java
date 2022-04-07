@@ -20,8 +20,14 @@ public class ModulePlugin implements Plugin<Project> {
     public void apply(Project project) {
         final ModuleExtension extension = project.getExtensions().create("module", ModuleExtension.class);
         final ModuleTask task = project.getTasks().create("module", ModuleTask.class);
+        final PublishSnapshotTask publishSnapshotDevTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotDev");
+        final PublishSnapshotTask publishSnapshotProductionTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotProduction");
+
         final Configuration configuration = project.getConfigurations().maybeCreate("module");
         project.afterEvaluate(p -> {
+            publishSnapshotDevTask.setModuleTask(task);
+            publishSnapshotProductionTask.setModuleTask(task);
+
             p.getConfigurations().getByName("compileClasspath").extendsFrom(configuration);
 
             Set<String> loaded = new HashSet<>();

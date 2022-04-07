@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.gradle.FairyExtension;
+import io.fairyproject.gradle.FairyPlugin;
+import io.fairyproject.gradle.IDEDependencyLookup;
+import io.fairyproject.shared.FairyVersion;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,7 +23,16 @@ public class MavenUtil {
     private final String ITEM_URL = "https://maven.imanity.dev/service/rest/v1/search?repository=imanity-libraries&group=io.fairyproject&name=<module>";
 
     public String getLatest(String module) throws IOException {
-        return getLatest("io.fairyproject", module);
+        if (FairyPlugin.IS_IN_IDE) {
+            final String identityPath = IDEDependencyLookup.getIdentityPath(module);
+
+            return (String) FairyPlugin.INSTANCE.getProject().project(identityPath).getVersion();
+        }
+        String latest = getLatest("io.fairyproject", module);
+        if (FairyVersion.SNAPSHOT_INDIVIDUAL_PATTERN.matcher(latest).find()) {
+            latest = latest.split("-")[0] + "-SNAPSHOT";
+        }
+        return latest;
     }
 
     public String getLatest(String group, String artifact) throws IOException {
@@ -32,6 +44,8 @@ public class MavenUtil {
         connection.setDoInput(true);
         connection.setRequestMethod("GET");
         connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+        connection.setConnectTimeout(10000);
+        connection.setReadTimeout(10000);
 
         final int responseCode = connection.getResponseCode();
         if (responseCode >= 200 && responseCode < 300) {
@@ -45,7 +59,7 @@ public class MavenUtil {
             }
         }
 
-        return "0.5b1";
+        return "0.5.2b3";
     }
 
     public void addExistingModule(FairyExtension extension, String from, @Nullable String version) throws IOException {
@@ -56,6 +70,9 @@ public class MavenUtil {
     }
 
     public boolean isExistingModule(String from) throws IOException {
+        if (FairyPlugin.IS_IN_IDE) {
+            return IDEDependencyLookup.getIdentityPath(from) != null;
+        }
         final java.net.URL url = new URL(ITEM_URL.replace("<module>", from));
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);

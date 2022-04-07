@@ -24,24 +24,28 @@
 
 package io.fairyproject.command;
 
-import io.fairyproject.container.*;
 import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.parameter.ArgTransformer;
+import io.fairyproject.container.*;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * TODO:
  * Better command
  */
-@Service(name = "command")
+@Service
 @Getter
 public class CommandService {
 
@@ -55,6 +59,8 @@ public class CommandService {
     private Map<String, BaseCommand> commands;
 
     private PreProcessBatch batch;
+
+    private static final Logger LOGGER = LogManager.getLogger(CommandService.class);
 
     @PreInitialize
     public void preInit() {
@@ -98,12 +104,15 @@ public class CommandService {
                 .onEnable(instance -> this.registerParameterHolder((ArgTransformer<?>) instance))
                 .onDisable(instance -> this.unregisterParameterHolder((ArgTransformer<?>) instance))
                 .build());
+        LOGGER.info("Initialized command service...");
     }
 
     @PostInitialize
     public void init() {
         INSTANCE = this;
+        LOGGER.info("Injecting fairy commands...");
         this.batch.flushQueue();
+        LOGGER.info("Injected!");
     }
 
     public void registerDefaultPresenceProvider(PresenceProvider<?> presenceProvider) {
@@ -168,19 +177,23 @@ public class CommandService {
         }
 
         ArgTransformer<?> holder = this.parameters.getOrDefault(type, null);
-        if (holder == null) {
-            return null;
+        if (holder != null) {
+            return holder.transform(event, source);
         }
 
         if (type.isEnum()) {
             try {
                 return Enum.valueOf(type, source);
             } catch (IllegalArgumentException ignored) {
-                throw new ArgTransformException("Unmatched enum");
+                throw new ArgTransformException("Unmatched type: " + Stream.of(type.getEnumConstants())
+                        .map(obj -> (Enum<?>) obj)
+                        .map(Enum::name)
+                        .collect(Collectors.joining(", "))
+                );
             }
         }
 
-        return holder.transform(event, source);
+        return null;
     }
 
     public ArgCompletionHolder getTabCompletionHolder(String name) {
@@ -188,11 +201,24 @@ public class CommandService {
     }
 
     public List<String> tabCompleteParameters(CommandContext commandContext, String parameter, Class<?> transformTo) {
-        if (!this.parameters.containsKey(transformTo)) {
+        final ArgTransformer<?> argTransformer = this.parameters.getOrDefault(transformTo, null);
+        if (argTransformer == null) {
+            if (transformTo.isEnum()) {
+                List<String> strings = new ArrayList<>();
+
+                for (Object constant : transformTo.getEnumConstants()) {
+                    final String name = ((Enum<?>) constant).name();
+                    if (name.toLowerCase().startsWith(parameter.toLowerCase())) {
+                        strings.add(name);
+                    }
+                }
+
+                return strings;
+            }
             return Collections.emptyList();
         }
 
-        return this.parameters.get(transformTo).tabComplete(commandContext, parameter);
+        return argTransformer.tabComplete(commandContext, parameter);
     }
 
     // Should without the prefix like / or !

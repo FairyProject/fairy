@@ -16,8 +16,8 @@ import io.fairyproject.module.relocator.Relocation;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.shared.FairyVersion;
 import io.fairyproject.util.ConditionUtils;
-import io.fairyproject.util.FairyVersion;
 import io.fairyproject.util.PreProcessBatch;
 import io.fairyproject.util.Stacktrace;
 import lombok.Getter;
@@ -81,6 +81,8 @@ public class ModuleService {
     }
 
     public void enable() {
+        ContainerContext.log("[>>ModuleService>>] Initializing module service... Flushing %d tasks",
+                this.pendingProcessBatch.size());
         this.pendingProcessBatch.flushQueue();
     }
 
@@ -93,7 +95,8 @@ public class ModuleService {
             return;
         }
 
-        paths.add(new ModuleData(name, FairyVersion.parse(version), path));
+        ContainerContext.log("[>>Downloader>>] Downloading %s:%s...", name, version);
+        paths.add(new ModuleData(name, Debug.IN_FAIRY_IDE ? FairyVersion.parse("1.0.0b1") : FairyVersion.parse(version), path));
 
         // We will read dependencies first.
         try {
@@ -135,13 +138,17 @@ public class ModuleService {
         try {
             JsonObject jsonObject = readModuleData(moduleData.getPath());
             if (jsonObject == null) {
+                ContainerContext.warn("Failed to read module data @ %s (%s)", moduleData.getName(), moduleData.getPath().toString());
                 return null;
             }
             String name = jsonObject.get("name").getAsString();
-            String classPath = !Debug.UNIT_TEST ? pluginDescription.getShadedPackage() + ".fairy" : "io.fairyproject";
+            String classPath = !Debug.UNIT_TEST
+                    ? pluginDescription.getShadedPackage() + ".fairy"
+                    : "io.fairyproject";
 
             final List<Module> dependedModules = this.loadDependModules(jsonObject, name);
             if (dependedModules == null) {
+                LOGGER.warn("Failed to load depended modules from " + name + " in " + pluginDescription.getName());
                 return null;
             }
 
@@ -160,6 +167,11 @@ public class ModuleService {
             this.moduleByName.put(name, module);
             final Collection<String> excludedPackages = module.getExcludedPackages(this);
 
+            ContainerContext.log("Excluding packages from %s in %s", module.getName(), module.getClassPath());
+            for (String excludedPackage : excludedPackages) {
+                ContainerContext.log("     --> %s", excludedPackage);
+            }
+
             // Scan classes
             final ClassPathScanner classPathScanner = CONTAINER_CONTEXT.scanClasses()
                     .name(pluginDescription.getName() + "-" + module.getName())
@@ -168,7 +180,7 @@ public class ModuleService {
                     .excludePackage(excludedPackages)
                     .url(shadedPath.toUri().toURL())
                     .classPath(module.getClassPath());
-            classPathScanner.scan();
+            classPathScanner.scanBlocking();
 
             final List<ContainerObject> containerObjects = classPathScanner.getCompletedFuture().join();
             pluginCompletableFuture.whenComplete((plugin, throwable) -> {

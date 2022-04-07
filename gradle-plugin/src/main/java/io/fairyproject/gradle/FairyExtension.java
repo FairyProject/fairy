@@ -15,7 +15,7 @@ import java.util.Map;
 @Getter
 public class FairyExtension {
 
-    private static String LATEST = "0.5b1";
+    private static String LATEST = "0.5.2b3";
 
     static {
         try {
@@ -85,39 +85,47 @@ public class FairyExtension {
     }
 
     public void module(String name) {
-        try {
-            String module = null;
-            for (PlatformType platformType : this.fairyPlatforms.get()) {
-                module = platformType.searchModuleName(name);
-                if (module != null) {
-                    break;
+        FairyPlugin.INSTANCE.checkIdeIdentityState();
+
+        FairyPlugin.QUEUE.add(() -> {
+            try {
+                String module = null;
+                for (PlatformType platformType : this.fairyPlatforms.get()) {
+                    module = platformType.searchModuleName(name);
+                    if (module != null) {
+                        break;
+                    }
                 }
+                if (module == null) {
+                    throw new IllegalArgumentException("Couldn't find module " + name);
+                }
+                MavenUtil.addExistingModule(this, module, null);
+            } catch (Exception ex) {
+                SneakyThrow.sneaky(ex);
             }
-            if (module == null) {
-                throw new IllegalArgumentException("Couldn't find module " + name);
-            }
-            MavenUtil.addExistingModule(this, module, null);
-        } catch (Exception ex) {
-            SneakyThrow.sneaky(ex);
-        }
+        });
     }
 
     public void module(String name, String version) {
-        try {
-            String module = null;
-            for (PlatformType platformType : this.fairyPlatforms.get()) {
-                module = platformType.searchModuleName(name);
-                if (module != null) {
-                    break;
+        FairyPlugin.INSTANCE.checkIdeIdentityState();
+
+        FairyPlugin.QUEUE.add(() -> {
+            try {
+                String module = null;
+                for (PlatformType platformType : this.fairyPlatforms.get()) {
+                    module = platformType.searchModuleName(name);
+                    if (module != null) {
+                        break;
+                    }
                 }
+                if (module == null) {
+                    throw new IllegalArgumentException("Couldn't find module " + name);
+                }
+                MavenUtil.addExistingModule(this, module, version);
+            } catch (Exception ex) {
+                SneakyThrow.sneaky(ex);
             }
-            if (module == null) {
-                throw new IllegalArgumentException("Couldn't find module " + name);
-            }
-            MavenUtil.addExistingModule(this, module, version);
-        } catch (Exception ex) {
-            SneakyThrow.sneaky(ex);
-        }
+        });
     }
 
     public void platform(String platformName) {

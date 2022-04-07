@@ -1,4 +1,4 @@
-package io.fairyproject.util;
+package io.fairyproject.shared;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,18 +9,26 @@ import org.jetbrains.annotations.NotNull;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * The version object for fairy versioning
+ *
+ * Note: have tag will be considered as lower version then no tags
+ * Example: 0.5.0b1 > 0.5.0b1-SNAPSHOT
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FairyVersion implements Comparable<FairyVersion> {
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("(?<major>[0-9*]+)\\.(?<minor>[0-9*]+)\\.(?<revision>[0-9*]+)b(?<build>[0-9*]+)");
+    public static final Pattern VERSION_PATTERN = Pattern.compile("(?<major>[0-9*]+)\\.(?<minor>[0-9*]+)\\.(?<revision>[0-9*]+)b(?<build>[0-9*]+)(?:-(?<tag>[A-z0-9.-]*))?");
+    public static final Pattern SNAPSHOT_INDIVIDUAL_PATTERN = Pattern.compile("(?<major>[0-9*]+)\\.(?<minor>[0-9*]+)\\.(?<revision>[0-9*]+)b(?<build>[0-9*]+)-(?<snapshotDate>[0-9*]{8})\\.(?<snapshotId>[0-9*]{6})-(?<snapshotBuild>[0-9*])");
 
     private int major;
     private int minor;
     private int revision;
     private int build;
+    private String tag;
 
     public static FairyVersion parse(String version) {
         final Matcher matcher = VERSION_PATTERN.matcher(version);
@@ -32,6 +40,7 @@ public class FairyVersion implements Comparable<FairyVersion> {
                 .minor(Integer.parseInt(matcher.group("minor")))
                 .revision(Integer.parseInt(matcher.group("revision")))
                 .build(Integer.parseInt(matcher.group("build")))
+                .tag(matcher.group("tag"))
                 .build();
     }
 
@@ -69,7 +78,7 @@ public class FairyVersion implements Comparable<FairyVersion> {
 
     @Override
     public String toString() {
-        return this.major + "." + minor + "." + revision + "b" + build;
+        return this.major + "." + minor + "." + revision + "b" + build + (this.tag != null ? "-" + this.tag : "");
     }
 
     @Override
@@ -90,6 +99,10 @@ public class FairyVersion implements Comparable<FairyVersion> {
             return this.revision - version.revision;
         }
 
-        return this.build - version.revision;
+        if (this.build != version.build) {
+            return this.build - version.revision;
+        }
+
+        return this.tag != null ? version.tag == null ? -1 : 0 : 1;
     }
 }

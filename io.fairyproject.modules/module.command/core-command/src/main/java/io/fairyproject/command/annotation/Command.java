@@ -29,12 +29,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+/**
+ * The annotation to apply command names and permission to a command
+ * This should be used on top of a main command and a method for sub command
+ */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.TYPE, ElementType.METHOD})
+@Target({ElementType.TYPE, ElementType.METHOD, ElementType.FIELD})
 public @interface Command {
 
+    /**
+     * The name of the command
+     *
+     * @return an array of command names, # for no arg sub command
+     */
     String[] value();
 
+    /**
+     * The permission of the command
+     *
+     * @return the permission, empty if no permission required
+     */
     String permissionNode() default "";
 
 }

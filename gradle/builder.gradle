@@ -14,25 +14,19 @@ test {
 
 // setup directory per version
 project.afterEvaluate(p -> {
-    var directoryProperty = tasks.shadowJar.destinationDirectory
-    var jarProperty = tasks.jar.destinationDirectory
-    var directory = directoryProperty.get().dir(p.version.toString())
-    directoryProperty.set(directory)
-    jarProperty.set(directory)
+    if (project.name != "gradle-plugin") {
+        tasks.jar.archiveClassifier.set("sources")
+        tasks.shadowJar.archiveClassifier.set(null)
 
-    tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
-    tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
+        var directoryProperty = tasks.shadowJar.destinationDirectory
+        var jarProperty = tasks.jar.destinationDirectory
+        var directory = directoryProperty.get().dir(p.version.toString())
+        directoryProperty.set(directory)
+        jarProperty.set(directory)
 
-    task copyJarToLocal(type: Copy) {
-        outputs.cacheIf { true }
-
-        def file = tasks.shadowJar.archiveFile.get().asFile.toPath()
-
-        from(file)
-        into(rootProject.file("libs/local"))
-        rename(file.getFileName().toString(), "io.fairyproject.${tasks.shadowJar.archiveFileName.get()}")
+        tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
+        tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
     }
-    tasks.shadowJar.finalizedBy(copyJarToLocal)
 
     shadowJar {
         // XSeries

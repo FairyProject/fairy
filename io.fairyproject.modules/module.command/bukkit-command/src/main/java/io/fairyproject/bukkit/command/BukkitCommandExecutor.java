@@ -24,7 +24,7 @@ public class BukkitCommandExecutor extends Command {
         this.command = command;
 
         if (name.length > 1) {
-            this.setAliases(Arrays.asList(Arrays.copyOfRange(name, 1, name.length - 1)));
+            this.setAliases(Arrays.asList(Arrays.copyOfRange(name, 1, name.length)));
         }
 
         final JavaPlugin javaPlugin = JavaPluginUtil.getProvidingPlugin(command.getClass());

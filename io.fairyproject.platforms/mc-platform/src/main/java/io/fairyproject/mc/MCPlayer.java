@@ -239,7 +239,7 @@ public interface MCPlayer extends MCEntity, Audience {
      */
     default void sendRawPacket(ByteBuf packet, boolean currentThread) {
         Runnable runnable = () -> {
-            this.getChannel().pipeline().context(MCProtocol.INSTANCE.getInjector().getEncoderName()).writeAndFlush(packet);
+            PacketEvents.getAPI().getProtocolManager().sendPacket(this.getChannel(), packet);
         };
 
         if (currentThread) {

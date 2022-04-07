@@ -103,6 +103,13 @@ public class ItemBuilder implements Listener, Cloneable {
 		return this;
 	}
 
+	public ItemBuilder unbreakable(final boolean unbreakable) {
+		final ItemMeta meta = itemStack.getItemMeta();
+		meta.setUnbreakable(unbreakable);
+		itemStack.setItemMeta(meta);
+		return this;
+	}
+
 	public ItemBuilder durability(final int durability) {
 		itemStack.setDurability((short) - (durability - itemStack.getType().getMaxDurability()));
 		return this;

@@ -25,17 +25,13 @@
 package io.fairyproject.command;
 
 import com.google.common.collect.HashMultimap;
-import io.fairyproject.container.Autowired;
-import io.fairyproject.command.annotation.Arg;
 import io.fairyproject.command.annotation.Command;
-import io.fairyproject.command.annotation.CommandPresence;
-import io.fairyproject.command.annotation.CompletionHolder;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.argument.ArgProperty;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.util.CoreCommandUtil;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.reflect.Reflect;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -45,37 +41,45 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
-import java.lang.invoke.MethodHandle;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public abstract class BaseCommand implements ICommand {
 
     @Autowired
     private static CommandService COMMAND_SERVICE;
-    private static final Logger LOGGER = LogManager.getLogger(BaseCommand.class);
+    protected static final Logger LOGGER = LogManager.getLogger(BaseCommand.class);
 
-    private final HashMultimap<String, ICommand> subCommands = HashMultimap.create();
-    private Map<String, ArgCompletionHolder> tabCompletion;
+    protected final HashMultimap<String, ICommand> subCommands = HashMultimap.create();
+    protected final List<ICommand> sortedCommands = new ArrayList<>();
+    protected ICommand noArgCommand;
+    protected Map<String, ArgCompletionHolder> tabCompletion;
 
     @Getter
-    private MetadataMap metadata;
-    private PresenceProvider<?> presenceProvider;
+    protected MetadataMap metadata;
+    protected PresenceProvider<?> presenceProvider;
 
     @Nullable
-    private BaseCommand parentCommand;
+    protected BaseCommand parentCommand;
     @Getter
-    private ArgProperty<?>[] baseArgs;
-    private String[] names;
-    private String permission;
+    protected ArgProperty<?>[] baseArgs;
+    protected String[] names;
+    protected String permission;
 
     @Getter
-    private int maxParameterCount;
+    protected int maxParameterCount;
     @Getter
-    private int requireInputParameterCount;
+    protected int requireInputParameterCount;
+
+    @Getter
+    protected boolean displayOnPermission;
+    protected String usage;
+
+    protected int order;
+
+    @Override
+    public int order() {
+        return this.order;
+    }
 
     public String getDescription() {
         return "";
@@ -117,14 +121,9 @@ public abstract class BaseCommand implements ICommand {
      */
     public void onHelp(CommandContext commandContext) {
         List<String> messages = new ArrayList<>();
-        for (ICommand command : this.subCommands.values()) {
-            switch (command.getSubCommandType()) {
-                case CLASS_LEVEL:
-                    messages.add(command.getUsage(commandContext) + " ...");
-                    break;
-                case METHOD_LEVEL:
-                    messages.add(command.getUsage(commandContext));
-                    break;
+        for (ICommand command : this.sortedCommands) {
+            if (!command.isDisplayOnPermission() || command.canAccess(commandContext)) {
+                messages.add(command.getUsage(commandContext));
             }
         }
         commandContext.sendMessage(MessageType.INFO, messages);
@@ -150,171 +149,11 @@ public abstract class BaseCommand implements ICommand {
     }
 
     public void init() {
-        Command command = this.getClass().getAnnotation(Command.class);
-        if (command != null) {
-            this.names = command.value();
-            this.permission = command.permissionNode();
-        } else {
-            throw new IllegalArgumentException("Command annotation wasn't found in class " + this.getClass());
-        }
-
-        this.metadata = MetadataMap.create();
-        this.tabCompletion = new HashMap<>();
-
-        PresenceProvider<?> presenceProvider = null;
-        CommandPresence annotation = this.getClass().getAnnotation(CommandPresence.class);
-        if (annotation != null) {
-            presenceProvider = COMMAND_SERVICE.getPresenceProviderByAnnotation(annotation);
-        }
-        this.presenceProvider = presenceProvider;
-
-        Set<Method> methods = new HashSet<>();
-        methods.addAll(Arrays.asList(this.getClass().getMethods()));
-        methods.addAll(Arrays.asList(this.getClass().getDeclaredMethods()));
-
-        for (Method method : methods) {
-            command = method.getAnnotation(Command.class);
-
-            if (command != null) {
-                try {
-                    final CommandMeta commandMeta = new CommandMeta(command, method, this);
-                    for (String name : command.value()) {
-                        this.subCommands.put(name.toLowerCase(), commandMeta);
-                    }
-
-                    this.maxParameterCount = Math.max(commandMeta.getMaxParameterCount(), maxParameterCount);
-                    this.requireInputParameterCount = Math.max(commandMeta.getRequireInputParameterCount(), requireInputParameterCount);
-                } catch (IllegalAccessException e) {
-                    LOGGER.error("an error got thrown while registering @Command method", e);
-                }
-            }
-
-            CompletionHolder completion = method.getAnnotation(CompletionHolder.class);
-            if (completion != null) {
-                boolean hasParameter = false;
-                if (method.getParameterCount() > 0) {
-                    hasParameter = true;
-                    if (method.getParameterCount() != 1 || !CommandContext.class.isAssignableFrom(method.getParameterTypes()[0])) {
-                        LOGGER.error("The parameter of @TabCompletion method should be CommandContext.", new UnsupportedOperationException());
-                        continue;
-                    }
-                }
-
-                try {
-                    final MethodHandle methodHandle = Reflect.lookup().unreflect(method);
-                    ArgCompletionHolder completionHolder;
-                    if (String[].class.isAssignableFrom(method.getReturnType())) {
-                        boolean finalHasParameter = hasParameter;
-                        completionHolder = new ArgCompletionHolder() {
-                            @Override
-                            public Collection<String> apply(CommandContext commandContext) {
-                                try {
-                                    if (finalHasParameter) {
-                                        return Arrays.asList((String[]) methodHandle.invoke(BaseCommand.this, commandContext));
-                                    } else {
-                                        return Arrays.asList((String[]) methodHandle.invoke(BaseCommand.this));
-                                    }
-                                } catch (Throwable e) {
-                                    throw new IllegalArgumentException(e);
-                                }
-                            }
-
-                            @Override
-                            public String name() {
-                                return completion.value();
-                            }
-                        };
-                    } else if (List.class.isAssignableFrom(method.getReturnType())) {
-                        boolean finalHasParameter = hasParameter;
-                        completionHolder = new ArgCompletionHolder() {
-                            @Override
-                            public Collection<String> apply(CommandContext commandContext) {
-                                try {
-                                    if (finalHasParameter) {
-                                        return (List<String>) methodHandle.invoke(BaseCommand.this, commandContext);
-                                    } else {
-                                        return (List<String>) methodHandle.invoke(BaseCommand.this);
-                                    }
-                                } catch (Throwable e) {
-                                    throw new IllegalArgumentException(e);
-                                }
-                            }
-
-                            @Override
-                            public String name() {
-                                return completion.value();
-                            }
-                        };
-                    } else {
-                        LOGGER.error("The return type of @TabCompletion method should be String[] or List<String>", new UnsupportedOperationException());
-                        continue;
-                    }
-                    this.tabCompletion.put(completion.value(), completionHolder);
-                } catch (IllegalAccessException e) {
-                    LOGGER.error("an error got thrown while registering @TabCompletion method", e);
-                }
-            }
-        }
-
-        for (Class<?> innerClasses : this.getClass().getDeclaredClasses()) {
-            if (innerClasses.isAnnotationPresent(Command.class)) {
-                this.initialiseSubCommand(innerClasses);
-            }
-        }
-
-        Set<Field> fields = new HashSet<>();
-        fields.addAll(Arrays.asList(this.getClass().getFields()));
-        fields.addAll(Arrays.asList(this.getClass().getDeclaredFields()));
-
-        List<ArgProperty<?>> argProperties = new ArrayList<>();
-        for (Field field : fields) {
-            field.setAccessible(true);
-            Arg arg = field.getAnnotation(Arg.class);
-            if (arg != null) {
-                if (BaseCommand.class.isAssignableFrom(field.getType())) {
-                    this.initialiseSubCommand(field.getType());
-                } else if (ArgProperty.class.isAssignableFrom(field.getType())) {
-                    try {
-                        ArgProperty<?> property = (ArgProperty<?>) field.get(this);
-
-                        argProperties.add(property);
-                        if (property.getMissingArgument() == null) {
-                            property.onMissingArgument(commandContext -> this.onArgumentMissing(commandContext, this.getUsage(commandContext)));
-                        }
-
-                        if (property.getUnknownArgument() == null) {
-                            property.onUnknownArgument(this::onArgumentFailed);
-                        }
-                    } catch (IllegalAccessException e) {
-                        throw new IllegalArgumentException("An exception got thrown while registering field arg " + field, e);
-                    }
-                } else {
-                    throw new IllegalArgumentException("Field " + field + " marked @Arg but not using type " + ArgProperty.class + " or " + BaseCommand.class);
-                }
-            }
-        }
-
-        this.baseArgs = argProperties.toArray(new ArgProperty[0]);
+        this.init(this.getClass().getAnnotation(Command.class));
     }
 
-    private void initialiseSubCommand(final Class<?> clazz) {
-        BaseCommand subCommand;
-        try {
-            Constructor<?> constructor = clazz.getDeclaredConstructor();
-            constructor.setAccessible(true);
-            subCommand = (BaseCommand) constructor.newInstance();
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-            throw new IllegalArgumentException("An exception got thrown while creating instance for " + clazz.getName() + " (Does it has no arg constructor?)", e);
-        }
-
-        subCommand.parentCommand = this;
-        subCommand.init();
-
-        for (String commandName : subCommand.getCommandNames()) {
-            this.subCommands.put(commandName.toLowerCase(), subCommand);
-        }
-        this.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), maxParameterCount);
-        this.requireInputParameterCount = Math.max(subCommand.getRequireInputParameterCount(), requireInputParameterCount);
+    public void init(Command command) {
+        new BaseCommandInitializer(this).init(command);
     }
 
     @Override
@@ -380,13 +219,6 @@ public abstract class BaseCommand implements ICommand {
 
         commandContext.setArgs(CoreCommandUtil.arrayFromRange(args, this.baseArgs.length, args.length - 1));
         return true;
-    }
-
-    public String getCommandPrefix() {
-        if (this.parentCommand != null) {
-            return this.parentCommand.getCommandPrefix() + this.getCommandNames()[0] + " ";
-        }
-        return "/" + this.getCommandNames()[0] + " ";
     }
 
     @Override
@@ -513,15 +345,23 @@ public abstract class BaseCommand implements ICommand {
     }
 
     private PossibleSearches findPossibleSubCommands(CommandContext commandContext, String[] args) {
-        for (int i = args.length; i >= 0; i--) {
-            String subcommand = StringUtils.join(args, " ", 0, i).toLowerCase();
-            Set<ICommand> commands = subCommands.get(subcommand);
+        if (args.length == 0) {
+            if (this.noArgCommand != null) {
+                return new PossibleSearches(Collections.singleton(this.noArgCommand), args, "");
+            }
+        } else {
+            for (int i = args.length; i >= 0; i--) {
+                String subcommand = StringUtils.join(args, " ", 0, i).toLowerCase();
+                Set<ICommand> commands = subCommands.get(subcommand);
 
-            if (!commands.isEmpty()) {
-                return new PossibleSearches(commands, CoreCommandUtil.arrayFromRange(args, i, args.length - 1), subcommand);
+                if (!commands.isEmpty()) {
+                    return new PossibleSearches(commands, CoreCommandUtil.arrayFromRange(args, i, args.length - 1), subcommand);
+                }
             }
         }
-
+        if (this.noArgCommand != null) {
+            return new PossibleSearches(Collections.singleton(this.noArgCommand), args, "");
+        }
         return null;
     }
 
@@ -539,11 +379,8 @@ public abstract class BaseCommand implements ICommand {
 
     @Override
     public String getUsage(CommandContext commandContext) {
-        StringJoiner stringJoiner = new StringJoiner(" ");
-        for (ArgProperty<?> arg : this.baseArgs) {
-            stringJoiner.add("<" + arg.getKey() + ">");
-        }
-        return (this.parentCommand != null ? this.parentCommand.getUsage(commandContext) + " " : commandContext.getCommandPrefix()) + this.getCommandNames()[0] + " " + stringJoiner;
+        String baseCommand = (this.parentCommand != null ? this.parentCommand.getUsage(commandContext) : commandContext.getCommandPrefix()) + this.getCommandNames()[0];
+        return this.usage.replaceAll("<baseCommand>", baseCommand);
     }
 
     @Override

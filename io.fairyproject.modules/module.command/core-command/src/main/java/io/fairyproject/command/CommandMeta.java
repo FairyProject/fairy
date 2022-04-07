@@ -54,6 +54,8 @@ public class CommandMeta implements ICommand {
     private final Class<?> contextClass;
     private final Method method;
     private final PresenceProvider presenceProvider;
+    private final boolean displayOnPermission;
+    private final int order;
 
     private int requireInputParameterCount;
     private int maxParameterCount;
@@ -120,9 +122,10 @@ public class CommandMeta implements ICommand {
             }
         }
 
-        Usage usage = method.getAnnotation(Usage.class);
-        if (usage != null) {
-            this.usage = usage.value();
+        Usage usageAnnotation = method.getAnnotation(Usage.class);
+        this.displayOnPermission = usageAnnotation != null && usageAnnotation.displayOnPermission();
+        if (usageAnnotation != null && usageAnnotation.overwrite()) {
+            this.usage = usageAnnotation.value();
         } else {
             StringBuilder stringBuilder = new StringBuilder();
             for (int i = 0; i < this.arguments.size(); i++) {
@@ -131,7 +134,11 @@ public class CommandMeta implements ICommand {
                     stringBuilder.append(" ");
                 }
             }
-            this.usage = "<baseCommand> " + stringBuilder;
+            String usage = "<baseCommand> " + stringBuilder;
+            if (usageAnnotation != null) {
+                usage += " - " + usageAnnotation.value();
+            }
+            this.usage = usage;
         }
 
         PresenceProvider<?> presenceProviderMethod = null;
@@ -154,6 +161,17 @@ public class CommandMeta implements ICommand {
         this.names = annotation.value();
         this.permission = annotation.permissionNode();
         this.presenceProvider = presenceProviderMethod;
+
+        Order order = method.getAnnotation(Order.class);
+        if (order != null)
+            this.order = order.value();
+        else
+            this.order = 0;
+    }
+
+    @Override
+    public int order() {
+        return this.order;
     }
 
     public int getParameterCount() {
@@ -179,7 +197,12 @@ public class CommandMeta implements ICommand {
 
     public String getUsage(CommandContext commandContext, String aliasUsed) {
         List<RV> replaceValues = new ArrayList<>();
-        replaceValues.add(RV.o("<baseCommand>", this.baseCommand.getUsage(commandContext) + " " + aliasUsed.toLowerCase()));
+        final String baseCommandUsage = this.baseCommand.getUsage(commandContext);
+        if (aliasUsed.equals("#")) {
+            replaceValues.add(RV.o("<baseCommand>", baseCommandUsage.substring(0, baseCommandUsage.length() - 1)));
+        } else {
+            replaceValues.add(RV.o("<baseCommand>", baseCommandUsage + aliasUsed.toLowerCase()));
+        }
 
         for (int i = 0; i < this.arguments.size(); i++) {
             final ArgMeta argMeta = this.arguments.get(i);
@@ -218,7 +241,7 @@ public class CommandMeta implements ICommand {
             String passedParameter = (i < arguments.length ? arguments[i] : parameter.getDefaultValue()).trim();
             if (i >= arguments.length &&
                     (parameter.getDefaultValue() == null || parameter.getDefaultValue().isEmpty())) {
-                commandContext.sendMessage(MessageType.INFO, this.getUsage());
+                commandContext.sendMessage(MessageType.INFO, this.getUsage(commandContext));
                 return;
             }
             if (parameter.isWildcard() && !passedParameter.trim().equals(parameter.getDefaultValue().trim())) {
@@ -232,7 +255,7 @@ public class CommandMeta implements ICommand {
                 return;
             }
             if (result == null) {
-                commandContext.sendMessage(MessageType.INFO, this.getUsage());
+                commandContext.sendMessage(MessageType.INFO, this.getUsage(commandContext));
                 return;
             }
             transformedParameters.add(result);

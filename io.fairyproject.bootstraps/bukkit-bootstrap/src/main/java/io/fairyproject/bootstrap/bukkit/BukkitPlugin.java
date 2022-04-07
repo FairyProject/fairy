@@ -27,7 +27,6 @@ public final class BukkitPlugin extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        this.successfulBoot = true;
 
         JsonObject jsonObject;
         try {
@@ -38,6 +37,8 @@ public final class BukkitPlugin extends JavaPlugin {
 
         this.pluginHolder = new BukkitPluginHolder(jsonObject);
         this.pluginHolder.onLoad();
+
+        this.successfulBoot = true;
     }
 
     @Override

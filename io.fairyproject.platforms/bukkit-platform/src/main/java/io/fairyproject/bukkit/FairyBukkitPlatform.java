@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit;
 
 import com.github.retrooper.packetevents.PacketEvents;
+import io.fairyproject.Debug;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
@@ -88,8 +89,10 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         PluginManager.initialize(new BukkitPluginHandler());
         ModuleService.init();
         MinecraftReflection.init();
-        PacketEvents.setAPI(SpigotPacketEventsBuilder.build(PLUGIN));
-        PacketEvents.getAPI().load();
+        if (!Debug.UNIT_TEST) {
+            PacketEvents.setAPI(SpigotPacketEventsBuilder.build(PLUGIN));
+            PacketEvents.getAPI().load();
+        }
         this.createMCInitializer().apply();
     }
 
@@ -98,17 +101,21 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         AUDIENCES = BukkitAudiences.create(PLUGIN);
 
         SpigotUtil.init();
+        if (!Debug.UNIT_TEST) {
+            PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(false);
+            PacketEvents.getAPI().init();
+        }
         ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
 
         super.enable();
         ModuleService.INSTANCE.enable();
-        PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(true);
-        PacketEvents.getAPI().init();
     }
 
     @Override
     public void disable() {
-        PacketEvents.getAPI().terminate();
+        if (!Debug.UNIT_TEST) {
+            PacketEvents.getAPI().terminate();
+        }
 
         super.disable();
     }
