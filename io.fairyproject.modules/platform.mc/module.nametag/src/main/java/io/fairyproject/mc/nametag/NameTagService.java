@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.nametag;
 
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import com.google.common.primitives.Ints;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ComponentHolder;
@@ -31,15 +32,14 @@ import io.fairyproject.container.ComponentRegistry;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
 import io.fairyproject.event.Subscribe;
-import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
-import io.fairyproject.mc.protocol.item.TeamAction;
-import io.fairyproject.mc.protocol.packet.PacketPlay;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.Utility;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -86,11 +86,13 @@ public class NameTagService {
                     nameTag.removeName(name);
                     list.removeNameTag(name);
 
-                    other.sendPacket(PacketPlay.Out.ScoreboardTeam.builder()
-                            .players(nameTag.getName())
-                            .players(Collections.singleton(name))
-                            .teamAction(TeamAction.LEAVE)
-                            .build());
+                    WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
+                            nameTag.getName(),
+                            WrapperPlayServerTeams.TeamMode.REMOVE_ENTITIES,
+                            Optional.empty(),
+                            name
+                    );
+                    other.sendPacket(packet);
                 }
             });
         }));
@@ -154,11 +156,13 @@ public class NameTagService {
                 NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
 
                 list.addNameTag(target.getName(), nametag);
-                player.sendPacket(PacketPlay.Out.ScoreboardTeam.builder()
-                        .players(nametag.getName())
-                        .players(Collections.singleton(target.getName()))
-                        .teamAction(TeamAction.JOIN)
-                        .build());
+                WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
+                        nametag.getName(),
+                        WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
+                        Optional.empty(),
+                        target.getName()
+                );
+                player.sendPacket(packet);
                 break;
             }
         }
@@ -185,14 +189,20 @@ public class NameTagService {
     }
 
     private void sendPacket(MCPlayer mcPlayer, NameTag info) {
-        mcPlayer.sendPacket(PacketPlay.Out.ScoreboardTeam.builder()
-                .players(info.getName())
-                .teamAction(TeamAction.ADD)
-                .parameters(Optional.of(PacketPlay.Out.ScoreboardTeam.Parameters.builder()
-                        .playerPrefix(info.getPrefix())
-                        .playerSuffix(info.getSuffix())
-                        .build()))
-                .build());
+        WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
+                info.getName(),
+                WrapperPlayServerTeams.TeamMode.CREATE,
+                Optional.of(new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+                        Component.empty(),
+                        info.getPrefix(),
+                        info.getSuffix(),
+                        WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                        WrapperPlayServerTeams.CollisionRule.ALWAYS,
+                        NamedTextColor.WHITE,
+                        WrapperPlayServerTeams.OptionData.NONE
+                ))
+        );
+        mcPlayer.sendPacket(packet);
     }
 
     private String toKey(Component prefix, Component suffix) {

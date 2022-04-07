@@ -359,6 +359,9 @@ public abstract class BaseCommand implements ICommand {
                 }
             }
         }
+        if (this.noArgCommand != null) {
+            return new PossibleSearches(Collections.singleton(this.noArgCommand), args, "");
+        }
         return null;
     }
 
