@@ -116,7 +116,9 @@ public class VisualUtil {
         private final Object BLOCK_REGISTRY;
 
         static {
-            MethodWrapper<?> blockGetById, fromLegacyData, fromId;
+            MethodWrapper<?> blockGetById;
+            MethodWrapper<?> fromLegacyData;
+            MethodWrapper<?> fromId;
             Object blockRegistry;
 
             try {
