@@ -2,7 +2,6 @@ package io.fairyproject.bukkit.mc;
 
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
