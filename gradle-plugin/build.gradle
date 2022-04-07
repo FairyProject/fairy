@@ -2,7 +2,7 @@ repositories {
     gradlePluginPortal()
 }
 
-version = "1.0.1b6"
+version = "1.0.1b7"
 
 apply plugin: "java-gradle-plugin"
 apply plugin: "maven-publish"
