@@ -24,17 +24,18 @@
 
 package io.fairyproject.bukkit.visual;
 
+import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.bukkit.visual.type.VisualType;
 import io.fairyproject.mc.util.BlockPosition;
 
 public class VisualBlock {
     private final VisualType visualType;
-    private final VisualBlockData blockData;
+    private final XMaterial material;
     private final BlockPosition location;
 
-    public VisualBlock(VisualType visualType, VisualBlockData blockData, BlockPosition location) {
+    public VisualBlock(VisualType visualType, XMaterial material, BlockPosition location) {
         this.visualType = visualType;
-        this.blockData = blockData;
+        this.material = material;
         this.location = location;
     }
 
@@ -42,8 +43,8 @@ public class VisualBlock {
         return this.visualType;
     }
 
-    public VisualBlockData getBlockData() {
-        return this.blockData;
+    public XMaterial getMaterial() {
+        return this.material;
     }
 
     public BlockPosition getLocation() {
