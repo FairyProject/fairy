@@ -11,7 +11,8 @@ public class PublishSnapshotTask extends DefaultTask {
 
     @TaskAction
     public void modifyVersion() {
-        this.moduleTask.setSnapshot(true);
+        if (moduleTask != null)
+            this.moduleTask.setSnapshot(true);
     }
 
 }

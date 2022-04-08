@@ -63,7 +63,7 @@ public class Tablist {
 
             TabEntry tabEntry = SERVICE.getImplementation().createFakePlayer(
                     this,
-                    "0" + (i > 9 ? i : "0" + i) + "|Tab",
+                    String.format("%03d", i) + "|Tab",
                     tabColumn,
                     tabColumn.getNumb(player, i),
                     i

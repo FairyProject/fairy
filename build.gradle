@@ -1,3 +1,5 @@
+import io.fairyproject.gradle.PublishSnapshotTask
+
 /*
  * MIT License
  *
@@ -30,7 +32,7 @@ plugins {
 }
 
 // Core versioning
-version = "0.5.3b1"
+version = "0.5.3b2"
 
 allprojects {
     apply from: "${rootDir}/gradle/tasks.gradle"
@@ -88,6 +90,8 @@ subprojects {
     }
 
     apply from: "${rootDir}/gradle/builder.gradle"
+    tasks.create("publishSnapshotDev", PublishSnapshotTask.class).group("fairy")
+    tasks.create("publishSnapshotProduction", PublishSnapshotTask.class).group("fairy")
 
     if (project.name != "gradle-plugin") {
         apply from: "${rootDir}/gradle/extensions.gradle"

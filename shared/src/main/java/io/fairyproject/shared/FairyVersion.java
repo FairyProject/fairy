@@ -21,7 +21,8 @@ import java.util.regex.Pattern;
 @AllArgsConstructor
 public class FairyVersion implements Comparable<FairyVersion> {
 
-    private static final Pattern VERSION_PATTERN = Pattern.compile("(?<major>[0-9*]+)\\.(?<minor>[0-9*]+)\\.(?<revision>[0-9*]+)b(?<build>[0-9*]+)(?:-(?<tag>[A-z0-9.-]*))?");
+    public static final Pattern VERSION_PATTERN = Pattern.compile("(?<major>[0-9*]+)\\.(?<minor>[0-9*]+)\\.(?<revision>[0-9*]+)b(?<build>[0-9*]+)(?:-(?<tag>[A-z0-9.-]*))?");
+    public static final Pattern SNAPSHOT_INDIVIDUAL_PATTERN = Pattern.compile("(?<major>[0-9*]+)\\.(?<minor>[0-9*]+)\\.(?<revision>[0-9*]+)b(?<build>[0-9*]+)-(?<snapshotDate>[0-9*]{8})\\.(?<snapshotId>[0-9*]{6})-(?<snapshotBuild>[0-9*])");
 
     private int major;
     private int minor;

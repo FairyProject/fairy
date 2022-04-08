@@ -197,7 +197,12 @@ public class CommandMeta implements ICommand {
 
     public String getUsage(CommandContext commandContext, String aliasUsed) {
         List<RV> replaceValues = new ArrayList<>();
-        replaceValues.add(RV.o("<baseCommand>", this.baseCommand.getUsage(commandContext) + aliasUsed.toLowerCase()));
+        final String baseCommandUsage = this.baseCommand.getUsage(commandContext);
+        if (aliasUsed.equals("#")) {
+            replaceValues.add(RV.o("<baseCommand>", baseCommandUsage.substring(0, baseCommandUsage.length() - 1)));
+        } else {
+            replaceValues.add(RV.o("<baseCommand>", baseCommandUsage + aliasUsed.toLowerCase()));
+        }
 
         for (int i = 0; i < this.arguments.size(); i++) {
             final ArgMeta argMeta = this.arguments.get(i);

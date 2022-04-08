@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.reflection.annotation;
 
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.wrapper.ClassWrapper;
 
 import java.lang.annotation.ElementType;
@@ -51,7 +51,7 @@ public @interface Class {
 	 *
 	 * @return Array of versions for the class names
 	 */
-	MinecraftReflection.Version[] versions() default {};
+	OBCVersion[] versions() default {};
 
 	/**
 	 * Whether to ignore any reflection exceptions thrown. Defaults to <code>true</code>

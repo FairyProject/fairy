@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.fairyproject.gradle.FairyExtension;
 import io.fairyproject.gradle.FairyPlugin;
 import io.fairyproject.gradle.IDEDependencyLookup;
+import io.fairyproject.shared.FairyVersion;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +28,11 @@ public class MavenUtil {
 
             return (String) FairyPlugin.INSTANCE.getProject().project(identityPath).getVersion();
         }
-        return getLatest("io.fairyproject", module);
+        String latest = getLatest("io.fairyproject", module);
+        if (FairyVersion.SNAPSHOT_INDIVIDUAL_PATTERN.matcher(latest).find()) {
+            latest = latest.split("-")[0] + "-SNAPSHOT";
+        }
+        return latest;
     }
 
     public String getLatest(String group, String artifact) throws IOException {
