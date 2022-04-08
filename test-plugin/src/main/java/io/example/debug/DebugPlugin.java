@@ -1,4 +1,4 @@
-package io.fairyproject.debug;
+package io.example.debug;
 
 import io.fairyproject.Debug;
 import io.fairyproject.plugin.Plugin;

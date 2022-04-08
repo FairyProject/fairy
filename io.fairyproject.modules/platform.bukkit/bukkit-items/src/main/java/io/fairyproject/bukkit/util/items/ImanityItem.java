@@ -42,7 +42,6 @@ import io.fairyproject.mc.PlaceholderEntry;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.metadata.MetadataMapProxy;
-import io.fairyproject.module.ModuleService;
 import io.fairyproject.util.StringUtil;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
@@ -65,9 +64,6 @@ import java.util.function.Function;
 @JsonSerialize(using = ImanityItem.Serializer.class)
 @JsonDeserialize(using = ImanityItem.Deserializer.class)
 public final class ImanityItem implements Terminable, MetadataMapProxy {
-
-    @Autowired
-    private static ModuleService MODULE_SERVICE;
 
     private static final Map<String, ImanityItem> NAME_TO_ITEMS = new ConcurrentHashMap<>();
     private static final Map<Plugin, List<ImanityItem>> PLUGIN_TO_ITEMS = new ConcurrentHashMap<>();

@@ -7,22 +7,23 @@ import com.google.common.io.ByteStreams;
 import io.fairyproject.gradle.file.*;
 import io.fairyproject.gradle.relocator.JarRelocator;
 import io.fairyproject.gradle.relocator.Relocation;
+import io.fairyproject.gradle.util.ParallelThreadingUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Optional;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -59,6 +60,12 @@ public class FairyTask extends DefaultTask {
     @Input
     private Multimap<String, String> exclusions;
 
+    @Internal
+    private String mainClass;
+
+    @Internal
+    private transient final ReentrantLock lock = new ReentrantLock();
+
     @TaskAction
     public void run() throws IOException {
         int index = inJar.getName().lastIndexOf('.');
@@ -75,61 +82,27 @@ public class FairyTask extends DefaultTask {
         File outJar = new File(inJar.getParentFile(), name);
 
         File tempOutJar = File.createTempFile(name, ".jar");
-        String mainClass = null;
 
         try (JarOutputStream out = new JarOutputStream(new FileOutputStream(tempOutJar))) {
             try (JarFile jarFile = new JarFile(inJar)) {
-                final Enumeration<JarEntry> entries = jarFile.entries();
-                while (entries.hasMoreElements()) {
-                    final JarEntry jarEntry = entries.nextElement();
-
-                    // Write file no matter what
-                    out.putNextEntry(new JarEntry(jarEntry.getName()));
-                    byte[] bytes = null;
-
-                    if (jarEntry.getName().endsWith(".class")) {
-                        // Read class through ASM
-                        ClassReader classReader = new ClassReader(ByteStreams.toByteArray(jarFile.getInputStream(jarEntry)));
-                        ClassNode classNode = new ClassNode();
-
-                        classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-
-                        // is Main Plugin class
-                        if (classNode.superName != null && (classNode.superName.equals(PLUGIN_CLASS_PATH) || classNode.superName.equals(APPLICATION_CLASS_PATH))) {
-                            if (mainClass != null) {
-                                throw new IllegalStateException("Multiple main class found! (Current: " + mainClass + ", Another: " + classNode.name + ")");
-                            }
-                            mainClass = classNode.name.replace('/', '.');
-                        }
-
-                        for (ClassModifier modifier : MODIFIERS) {
-                            byte[] modified = modifier.modify(classNode, classReader);
-                            if (modified != null) {
-                                bytes = modified;
-                                classReader = new ClassReader(modified);
-                                classNode = new ClassNode();
-
-                                classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-                            }
-                        }
+                ParallelThreadingUtil.invokeAll(jarFile.entries(), t -> {
+                    try {
+                        this.readFile(t, jarFile, out);
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-
-                    if (bytes == null) {
-                        bytes = ByteStreams.toByteArray(jarFile.getInputStream(jarEntry));
-                    }
-                    out.write(bytes);
-                }
+                });
             }
         }
 
-        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(outJar))) {
-            final Boolean libraryMode = extension.getLibraryMode().get();
-            if (mainClass == null && !libraryMode) {
-                System.out.println("No main class found! Is there something wrong?");
-            }
+        final Boolean libraryMode = extension.getLibraryMode().get();
+        if (mainClass == null && !libraryMode) {
+            System.out.println("No main class found! Is there something wrong?");
+        }
 
+        try (JarOutputStream out = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(outJar)))) {
             if (!libraryMode) {
-                JarRelocator jarRelocator = new JarRelocator(tempOutJar, outJar, this.relocations, ImmutableSet.of());
+                JarRelocator jarRelocator = new JarRelocator(tempOutJar, out, this.relocations, ImmutableSet.of());
                 jarRelocator.run();
             } else {
                 Files.write(outJar.toPath(), Files.readAllBytes(tempOutJar.toPath()));
@@ -153,6 +126,71 @@ public class FairyTask extends DefaultTask {
                 out.write(pair.getRight());
             }
         }
+    }
+
+    private void readFile(JarEntry jarEntry, JarFile jarFile, JarOutputStream out) throws IOException {
+        if (shouldExclude(jarEntry)) {
+            return;
+        }
+        byte[] bytes = null;
+
+        if (jarEntry.getName().endsWith(".class")) {
+            // Read class through ASM
+            ClassReader classReader = new ClassReader(ByteStreams.toByteArray(jarFile.getInputStream(jarEntry)));
+            ClassNode classNode = new ClassNode();
+
+            classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+
+            // is Main Plugin class
+            if (classNode.superName != null && (classNode.superName.equals(PLUGIN_CLASS_PATH) || classNode.superName.equals(APPLICATION_CLASS_PATH))) {
+                if (mainClass != null) {
+                    throw new IllegalStateException("Multiple main class found! (Current: " + mainClass + ", Another: " + classNode.name + ")");
+                }
+                mainClass = classNode.name.replace('/', '.');
+            }
+
+            for (ClassModifier modifier : MODIFIERS) {
+                byte[] modified = modifier.modify(classNode, classReader);
+                if (modified != null) {
+                    bytes = modified;
+                    classReader = new ClassReader(modified);
+                    classNode = new ClassNode();
+
+                    classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                }
+            }
+        }
+
+        if (bytes == null) {
+            bytes = ByteStreams.toByteArray(jarFile.getInputStream(jarEntry));
+        }
+        this.lock.lock();
+        try {
+            out.putNextEntry(new JarEntry(jarEntry.getName()));
+            out.write(bytes);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    public boolean shouldExclude(JarEntry jarEntry) {
+        if (jarEntry.getName().equals("module.json")) {
+            return true;
+        }
+
+        if (jarEntry.getName().equals("plugin.yml")) {
+            return true;
+        }
+
+        for (Map.Entry<String, String> entry : this.exclusions.entries()) {
+            if (jarEntry.getName().startsWith(entry.getKey())) {
+                if (!this.dependModules.containsKey(entry.getValue())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
 }

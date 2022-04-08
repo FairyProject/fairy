@@ -3,6 +3,7 @@ package io.fairyproject.tests;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.library.Library;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
@@ -14,7 +15,8 @@ import java.util.Collections;
 public class FairyTestingPlatform extends FairyPlatform {
 
     private final Thread thread;
-    public FairyTestingPlatform() {
+    public FairyTestingPlatform(Plugin plugin) {
+        super(plugin);
         this.thread = Thread.currentThread();
         if (!PluginManager.isInitialized()) {
             PluginManager.initialize(type -> {

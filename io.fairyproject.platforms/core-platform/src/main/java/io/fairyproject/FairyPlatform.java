@@ -64,6 +64,7 @@ public abstract class FairyPlatform {
     }
 
     public void load() {
+        this.libraryHandler = new LibraryHandler();
         this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();
     }

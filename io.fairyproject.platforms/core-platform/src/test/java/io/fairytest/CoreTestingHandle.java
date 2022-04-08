@@ -17,8 +17,8 @@ public class CoreTestingHandle implements TestingHandle {
     }
 
     @Override
-    public FairyPlatform platform() {
-        return new FairyTestingPlatform();
+    public FairyPlatform platform(Plugin plugin) {
+        return new FairyTestingPlatform(plugin);
     }
 
     @Override

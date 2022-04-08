@@ -5,9 +5,6 @@ import io.fairyproject.bootstrap.type.PlatformType;
 import io.fairyproject.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 public abstract class BaseBootstrap {
 
     protected final Plugin plugin;
@@ -26,11 +23,6 @@ public abstract class BaseBootstrap {
         }
 
         try {
-            final Path directory = this.getBootstrapDirectory();
-            if (!Files.exists(directory)) {
-                Files.createDirectories(directory);
-            }
-
             this.fairyPlatform = this.createPlatform();
             this.fairyPlatform.load();
         } catch (Throwable throwable) {
@@ -59,7 +51,5 @@ public abstract class BaseBootstrap {
     protected abstract PlatformType getPlatformType();
 
     protected abstract FairyPlatform createPlatform();
-
-    protected abstract Path getBootstrapDirectory();
 
 }

@@ -45,7 +45,8 @@ public abstract class TestingBase {
         INITIALIZED = true;
 
         Debug.UNIT_TEST = true;
-        FairyPlatform fairyPlatform = testingHandle.platform();
+        final Plugin plugin = testingHandle.plugin();
+        FairyPlatform fairyPlatform = testingHandle.platform(plugin);
         FairyPlatform.INSTANCE = fairyPlatform;
 
         fairyPlatform.load();
@@ -73,8 +74,6 @@ public abstract class TestingBase {
 
         CompletableFuture<Plugin> completableFuture = new CompletableFuture<>();
         PluginManager.INSTANCE.onPluginPreLoaded(testingHandle.getClass().getClassLoader(), description, pluginAction, completableFuture);
-
-        final Plugin plugin = testingHandle.plugin();
         completableFuture.complete(plugin);
 
         if (testingHandle.shouldInitialize()) {

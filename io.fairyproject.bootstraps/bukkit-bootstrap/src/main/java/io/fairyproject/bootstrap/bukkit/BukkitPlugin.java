@@ -3,8 +3,10 @@ package io.fairyproject.bootstrap.bukkit;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 public final class BukkitPlugin extends JavaPlugin {
@@ -15,7 +17,7 @@ public final class BukkitPlugin extends JavaPlugin {
     private BukkitBootstrap bootstrap;
     private BukkitPluginHolder pluginHolder;
 
-    private boolean successfulBoot;
+    private boolean loaded;
 
     @Override
     public void onLoad() {
@@ -23,7 +25,14 @@ public final class BukkitPlugin extends JavaPlugin {
 
         JsonObject jsonObject;
         try {
-            jsonObject = new Gson().fromJson(new InputStreamReader(this.getResource(FAIRY_JSON_PATH)), JsonObject.class);
+            final InputStream resource = this.getResource(FAIRY_JSON_PATH);
+            if (resource == null) {
+                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Unable to find fairy.json in jar resource.");
+                Bukkit.getPluginManager().disablePlugin(this);
+                return;
+            }
+
+            jsonObject = new Gson().fromJson(new InputStreamReader(resource), JsonObject.class);
         } catch (Throwable throwable) {
             throw new IllegalArgumentException("Unable to load " + FAIRY_JSON_PATH, throwable);
         }
@@ -38,12 +47,12 @@ public final class BukkitPlugin extends JavaPlugin {
         }
         this.pluginHolder.onLoad();
 
-        this.successfulBoot = true;
+        this.loaded = true;
     }
 
     @Override
     public void onEnable() {
-        if (!this.successfulBoot) {
+        if (!this.loaded) {
             return;
         }
         this.bootstrap.enable();
@@ -52,7 +61,7 @@ public final class BukkitPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        if (!this.successfulBoot) {
+        if (!this.loaded) {
             return;
         }
         this.bootstrap.disable();

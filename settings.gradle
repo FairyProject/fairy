@@ -26,6 +26,9 @@ pluginManagement {
     repositories {
         mavenLocal()
         gradlePluginPortal()
+        maven {
+            url file("$rootDir/libs/local")
+        }
     }
 }
 

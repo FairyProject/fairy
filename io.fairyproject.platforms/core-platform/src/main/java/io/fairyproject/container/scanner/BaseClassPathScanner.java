@@ -1,6 +1,7 @@
 package io.fairyproject.container.scanner;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListenableFuture;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.Register;
 import io.fairyproject.container.Service;
@@ -11,54 +12,70 @@ import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.RelativeContainerObject;
 import io.fairyproject.container.object.ServiceContainerObject;
 import io.fairyproject.container.object.parameter.ContainerParameterDetailsMethod;
-import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.NonNullArrayList;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
+import io.fairyproject.util.terminable.Terminable;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.reflections.util.ConfigurationBuilder;
-import org.reflections.util.FilterBuilder;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
-public abstract class BaseClassPathScanner extends ClassPathScanner {
+public abstract class BaseClassPathScanner extends ClassPathScanner implements Terminable {
 
-    protected ReflectLookup reflectLookup;
+    protected ScanResult scanResult;
     @Getter
     protected List<ContainerObject> containerObjectList = new NonNullArrayList<>();
     @Nullable
     @Getter
     private Throwable exception;
 
-    protected void buildReflectLookup() throws Exception {
-        try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
-            final ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-            configurationBuilder.setExecutorService(ContainerContext.EXECUTOR);
+    protected CompletableFuture<ScanResult> buildClassScanner() {
+        final ClassGraph classGraph = new ClassGraph()
+                .enableClassInfo()
+                .enableAnnotationInfo()
+                .enableMethodInfo()
+                .enableFieldInfo()
+                .ignoreClassVisibility()
+                .ignoreMethodVisibility()
+                .ignoreFieldVisibility()
+                .verbose(false);
 
-            FilterBuilder filterBuilder = new FilterBuilder();
-            for (String classPath : classPaths) {
-                // Only search package in the main class loader
-                filterBuilder.includePackage(classPath);
-            }
-
-            for (String classPath : this.excludedPackages) {
-                filterBuilder.excludePackage(classPath);
-            }
-            configurationBuilder.setUrls(urls);
-
-            final ArrayList<ClassLoader> classLoaders = new ArrayList<>(this.classLoaders);
-            configurationBuilder.addClassLoaders(classLoaders);
-
-            configurationBuilder.filterInputsBy(filterBuilder);
-            this.reflectLookup = new ReflectLookup(configurationBuilder);
+        for (String classPath : classPaths) {
+            // Only search package in the main class loader
+            classGraph.acceptPackages(classPath);
         }
+
+        for (String classPath : this.excludedPackages) {
+            classGraph.rejectPackages(classPath);
+        }
+
+        classGraph.overrideClasspath(urls);
+        classGraph.overrideClassLoaders(classLoaders.toArray(new ClassLoader[0]));
+
+        CompletableFuture<ScanResult> future = new CompletableFuture<>();
+        final ListenableFuture<ScanResult> scanResultFuture = (ListenableFuture<ScanResult>) classGraph.scanAsync(ContainerContext.EXECUTOR, 4);
+        scanResultFuture.addListener(() -> {
+            try {
+                final ScanResult scanResult = scanResultFuture.get();
+                future.complete(scanResult);
+            } catch (ExecutionException | InterruptedException e) {
+                future.completeExceptionally(e);
+            }
+        }, Runnable::run);
+        return future.thenApply(result -> {
+            this.scanResult = result;
+            return this.scanResult;
+        });
     }
 
     protected void unregisterDisabledContainers() {
@@ -281,4 +298,13 @@ public abstract class BaseClassPathScanner extends ClassPathScanner {
         return true;
     }
 
+    @Override
+    public void close() throws Exception {
+        this.scanResult.close();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.scanResult == null;
+    }
 }

@@ -3,6 +3,7 @@ package io.fairyproject.app;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.library.Library;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
@@ -32,7 +33,8 @@ public class FairyAppPlatform extends FairyPlatform {
     private final Object shutdownLock = new Object();
     private boolean shuttingDown;
 
-    public FairyAppPlatform() {
+    public FairyAppPlatform(Plugin plugin) {
+        super(plugin);
         FairyPlatform.INSTANCE = this;
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
         this.mainThread = Thread.currentThread();

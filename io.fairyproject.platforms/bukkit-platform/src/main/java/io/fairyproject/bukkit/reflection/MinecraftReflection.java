@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.reflection;
 
 import io.fairyproject.Debug;
+import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.annotation.ProviderTestImpl;
 import io.fairyproject.bukkit.impl.test.ImplementationFactory;
@@ -41,9 +42,10 @@ import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.PacketWrapper;
 import io.fairyproject.mc.protocol.MCVersion;
-import io.fairyproject.reflect.ReflectLookup;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.EquivalentConverter;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
@@ -54,7 +56,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -183,11 +184,15 @@ public class MinecraftReflection {
     }
 
     private static void initProtocolCheck() {
-        ReflectLookup reflectLookup = new ReflectLookup(Collections.singletonList(MinecraftReflection.class.getClassLoader()), Collections.singletonList("io.fairyproject"));
+        ScanResult scanResult = new ClassGraph()
+                .enableAllInfo()
+                .overrideClassLoaders(MinecraftReflection.class.getClassLoader())
+                .acceptPackages(Fairy.getFairyPackage())
+                .scan();
 
         Class<?> lastSuccess = null;
         lookup:
-        for (Class<?> type : reflectLookup.findAnnotatedClasses(ProtocolImpl.class)) {
+        for (Class<?> type : scanResult.getClassesWithAnnotation(ProtocolImpl.class).loadClasses()) {
             if (!ProtocolCheck.class.isAssignableFrom(type)) {
                 throw new IllegalArgumentException("The type " + type.getName() + " does not implement to ProtocolCheck!");
             }

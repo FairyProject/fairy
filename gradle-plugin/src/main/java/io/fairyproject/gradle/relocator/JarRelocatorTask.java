@@ -17,6 +17,8 @@
 package io.fairyproject.gradle.relocator;
 
 import com.google.common.io.ByteStreams;
+import io.fairyproject.gradle.util.ParallelThreadingUtil;
+import org.gradle.jvm.tasks.Jar;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
@@ -26,6 +28,9 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.jar.*;
 import java.util.regex.Pattern;
 
@@ -56,8 +61,10 @@ final class JarRelocatorTask {
     private final JarFile jarIn;
     private final Set<File> relocateEntries;
 
-    private final Set<String> classes = new HashSet<>();
-    private final Set<String> resources = new HashSet<>();
+    private final ReentrantLock lock = new ReentrantLock();
+
+    private final Set<String> classes = ConcurrentHashMap.newKeySet();
+    private final Set<String> resources = ConcurrentHashMap.newKeySet();
 
     JarRelocatorTask(RelocatingRemapper remapper, JarOutputStream jarOut, JarFile jarIn, Set<File> relocateEntries) {
         this.remapper = remapper;
@@ -78,96 +85,131 @@ final class JarRelocatorTask {
         this.remapper.setTask(this);
 
         // Cache existing classes
-        for (Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {
-            JarEntry entry = entries.nextElement();
+        ParallelThreadingUtil.invokeAll(this.jarIn.entries(), entry -> {
             if (!entry.getName().endsWith(".class")) {
-                continue;
+                return;
             }
-            ClassReader classReader = new ClassReader(ByteStreams.toByteArray(jarIn.getInputStream(entry)));
-            ClassNode classNode = new ClassNode();
+            try {
+                ClassReader classReader = new ClassReader(ByteStreams.toByteArray(jarIn.getInputStream(entry)));
+                ClassNode classNode = new ClassNode();
 
-            classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-            classes.add(classNode.name);
-        }
+                classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                classes.add(classNode.name);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
 
         // Cache targeted entries classes
         for (File file : this.relocateEntries) {
             try (JarFile in = new JarFile(file)) {
-                for (Enumeration<JarEntry> entries = in.entries(); entries.hasMoreElements(); ) {
-                    JarEntry entry = entries.nextElement();
+                ParallelThreadingUtil.invokeAll(in.entries(), entry -> {
                     if (!entry.getName().endsWith(".class")) {
-                        continue;
+                        return;
                     }
-                    ClassReader classReader = new ClassReader(ByteStreams.toByteArray(in.getInputStream(entry)));
-                    ClassNode classNode = new ClassNode();
+                    try {
+                        ClassReader classReader = new ClassReader(ByteStreams.toByteArray(jarIn.getInputStream(entry)));
+                        ClassNode classNode = new ClassNode();
 
-                    classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
-                    classes.add(classNode.name);
-                }
+                        classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
+                        classes.add(classNode.name);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                });
             }
         }
 
-        for (Enumeration<JarEntry> entries = this.jarIn.entries(); entries.hasMoreElements(); ) {
-            JarEntry entry = entries.nextElement();
+        ParallelThreadingUtil.<JarEntry>newTask()
+                .collection(this.jarIn.entries())
+                .syncConsumer(entry -> {
+                    // The 'INDEX.LIST' file is an optional file, containing information about the packages
+                    // defined in a jar. Instead of relocating the entries in it, we delete it, since it is
+                    // optional anyway.
+                    //
+                    // We don't process directory entries, and instead opt to recreate them when adding
+                    // classes/resources.
+                    String name = entry.getName();
+                    if (name.equals("META-INF/INDEX.LIST") || entry.isDirectory()) {
+                        return false;
+                    }
 
-            // The 'INDEX.LIST' file is an optional file, containing information about the packages
-            // defined in a jar. Instead of relocating the entries in it, we delete it, since it is
-            // optional anyway.
-            //
-            // We don't process directory entries, and instead opt to recreate them when adding
-            // classes/resources.
-            String name = entry.getName();
-            if (name.equals("META-INF/INDEX.LIST") || entry.isDirectory()) {
-                continue;
-            }
+                    // Signatures will become invalid after remapping, so we delete them to avoid making the output useless
+                    if (SIGNATURE_FILE_PATTERN.matcher(name).matches()) {
+                        return false;
+                    }
 
-            // Signatures will become invalid after remapping, so we delete them to avoid making the output useless
-            if (SIGNATURE_FILE_PATTERN.matcher(name).matches()) {
-                continue;
-            }
-
-            try (InputStream entryIn = this.jarIn.getInputStream(entry)) {
-                processEntry(entry, entryIn);
-            }
-        }
+                    this.processEntrySync(entry);
+                    return true;
+                })
+                .asyncConsumer(entry -> {
+                    try (InputStream entryIn = this.jarIn.getInputStream(entry)) {
+                        processEntry(entry, entryIn);
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+                })
+                .start();
 
         this.remapper.setTask(null);
     }
+
+    private void processEntrySync(JarEntry entry) {
+        String name = entry.getName();
+        String mappedName = this.remapper.map(name);
+
+        // ensure the parent directory structure exists for the entry.
+//        processDirectorySync(mappedName, true);
+
+        if (!name.endsWith(".class")) {
+            if (name.equals("META-INF/MANIFEST.MF") || !this.resources.contains(mappedName)) {
+                this.resources.add(name);
+            }
+        }
+    }
+
+//    private void processDirectorySync(String name, boolean parentOnly) {
+//        int index = name.lastIndexOf('/');
+//        if (index != -1) {
+//            String parentDirectory = name.substring(0, index);
+//            if (!this.resources.contains(parentDirectory)) {
+//                processDirectorySync(parentDirectory, false);
+//            }
+//        }
+//
+//        if (parentOnly) {
+//            return;
+//        }
+//
+//        this.resources.add(name);
+//    }
 
     private void processEntry(JarEntry entry, InputStream entryIn) throws IOException {
         String name = entry.getName();
         String mappedName = this.remapper.map(name);
 
         // ensure the parent directory structure exists for the entry.
-        processDirectory(mappedName, true);
+//        processDirectory(mappedName);
 
         if (name.endsWith(".class")) {
             processClass(name, entryIn);
         } else if (name.equals("META-INF/MANIFEST.MF")) {
             processManifest(name, entryIn, entry.getTime());
-        } else if (!this.resources.contains(mappedName)) {
+        } else {
             processResource(mappedName, entryIn, entry.getTime());
         }
     }
 
-    private void processDirectory(String name, boolean parentsOnly) throws IOException {
-        int index = name.lastIndexOf('/');
-        if (index != -1) {
-            String parentDirectory = name.substring(0, index);
-            if (!this.resources.contains(parentDirectory)) {
-                processDirectory(parentDirectory, false);
-            }
-        }
-
-        if (parentsOnly) {
-            return;
-        }
-
-        // directory entries must end in "/"
-        JarEntry entry = new JarEntry(name + "/");
-        this.jarOut.putNextEntry(entry);
-        this.resources.add(name);
-    }
+//    private void processDirectory(String name) throws IOException {
+//        // directory entries must end in "/"
+//        JarEntry entry = new JarEntry(name + "/");
+//        this.lock.lock();
+//        try {
+//            this.jarOut.putNextEntry(entry);
+//        } finally {
+//            this.lock.unlock();
+//        }
+//    }
 
     private void processManifest(String name, InputStream entryIn, long lastModified) throws IOException {
         Manifest in = new Manifest(entryIn);
@@ -188,21 +230,27 @@ final class JarRelocatorTask {
 
         JarEntry jarEntry = new JarEntry(name);
         jarEntry.setTime(lastModified);
-        this.jarOut.putNextEntry(jarEntry);
 
-        out.write(this.jarOut);
-
-        this.resources.add(name);
+        this.lock.lock();
+        try {
+            this.jarOut.putNextEntry(jarEntry);
+            out.write(this.jarOut);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     private void processResource(String name, InputStream entryIn, long lastModified) throws IOException {
         JarEntry jarEntry = new JarEntry(name);
         jarEntry.setTime(lastModified);
 
-        this.jarOut.putNextEntry(jarEntry);
-        copy(entryIn, this.jarOut);
-
-        this.resources.add(name);
+        this.lock.lock();
+        try {
+            this.jarOut.putNextEntry(jarEntry);
+            copy(entryIn, this.jarOut);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     private void processClass(String name, InputStream entryIn) throws IOException {
@@ -222,8 +270,13 @@ final class JarRelocatorTask {
         String mappedName = this.remapper.map(name.substring(0, name.indexOf('.')));
 
         // Now we put it back on so the class file is written out with the right extension.
-        this.jarOut.putNextEntry(new JarEntry(mappedName + ".class"));
-        this.jarOut.write(renamedClass);
+        this.lock.lock();
+        try {
+            this.jarOut.putNextEntry(new JarEntry(mappedName + ".class"));
+            this.jarOut.write(renamedClass);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     private static void copy(InputStream from, OutputStream to) throws IOException {

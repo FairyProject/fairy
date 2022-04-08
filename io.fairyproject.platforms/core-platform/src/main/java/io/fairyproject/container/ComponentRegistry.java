@@ -28,7 +28,7 @@ import io.fairyproject.container.object.ComponentContainerObject;
 import io.fairyproject.util.entry.Entry;
 import io.fairyproject.util.entry.EntryArrayList;
 import io.fairyproject.Fairy;
-import io.fairyproject.reflect.ReflectLookup;
+import io.github.classgraph.ScanResult;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,10 +69,10 @@ public class ComponentRegistry {
         });
     }
 
-    public static List<ComponentContainerObject> scanComponents(ContainerContext containerContext, ReflectLookup reflectLookup, String prefix) {
+    public static List<ComponentContainerObject> scanComponents(ContainerContext containerContext, ScanResult scanResult, String prefix) {
         List<ComponentContainerObject> components = new ArrayList<>();
 
-        for (Class<?> type : reflectLookup.findAnnotatedClasses(Component.class)) {
+        for (Class<?> type : scanResult.getClassesWithAnnotation(Component.class).loadClasses()) {
             try {
                 Component component = type.getAnnotation(Component.class);
 

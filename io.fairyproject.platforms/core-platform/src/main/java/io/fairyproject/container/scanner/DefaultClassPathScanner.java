@@ -5,13 +5,15 @@ import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.CompletableFutureUtils;
 import io.fairyproject.util.SimpleTiming;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class DefaultClassPathScanner extends BaseClassPathScanner {
 
@@ -20,7 +22,9 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
         log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
 
         this.containerObjectList.addAll(this.included);
-        this.buildReflectLookup();
+        try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
+            this.buildClassScanner().join();
+        }
         this.scanClasses();
         this.initializeClasses();
 
@@ -32,12 +36,12 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
     private void scanClasses() throws Exception {
         // Scanning through the JAR to see every Service ContainerObject can be registered
         try (SimpleTiming ignored = logTiming("Scanning @Service")) {
-            this.scanServices(reflectLookup.findAnnotatedClasses(Service.class));
+            this.scanServices(scanResult.getClassesWithAnnotation(Service.class).loadClasses());
         }
 
         // Scanning methods that registers ContainerObject
         try (SimpleTiming ignored = logTiming("Scanning @Register")) {
-            this.scanRegister(reflectLookup.findAnnotatedStaticMethods(Register.class));
+            this.scanRegister(ClassGraphUtil.methodWithAnnotation(scanResult, Register.class).filter(method -> Modifier.isStatic(method.getModifiers())).collect(Collectors.toList()));
         }
     }
 
@@ -50,7 +54,7 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
 
     private void scanComponentAndInjection() throws Exception {
         try (SimpleTiming ignored = logTiming("Scanning Components")) {
-            containerObjectList.addAll(ComponentRegistry.scanComponents(CONTAINER_CONTEXT, reflectLookup, prefix));
+            containerObjectList.addAll(ComponentRegistry.scanComponents(CONTAINER_CONTEXT, scanResult, prefix));
         }
 
         // Inject @Autowired fields for ContainerObjects
@@ -68,13 +72,19 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
 
         // Inject @Autowired static fields
         try (SimpleTiming ignored = logTiming("Injecting Static Autowired Fields")) {
-            for (Field field : reflectLookup.findAnnotatedStaticFields(Autowired.class)) {
-                if (!Modifier.isStatic(field.getModifiers())) {
-                    continue;
-                }
+            ClassGraphUtil.fieldWithAnnotation(scanResult, Autowired.class)
+                    .filter(field -> Modifier.isStatic(field.getModifiers()))
+                    .forEach(field -> {
+                        if (!Modifier.isStatic(field.getModifiers())) {
+                            return;
+                        }
 
-                AutowiredContainerController.INSTANCE.applyField(field, null);
-            }
+                        try {
+                            AutowiredContainerController.INSTANCE.applyField(field, null);
+                        } catch (ReflectiveOperationException e) {
+                            SneakyThrowUtil.sneakyThrow(e);
+                        }
+                    });
         }
 
         // Call onEnable() for Components

@@ -28,8 +28,17 @@ import com.cryptomorin.xseries.XMaterial;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.util.BukkitUtil;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.util.CC;
+import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.terminable.TerminableConsumer;
+import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -43,17 +52,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.bukkit.util.BukkitUtil;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.util.CC;
-import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.terminable.TerminableConsumer;
-import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -106,7 +104,7 @@ public abstract class Menu implements TerminableConsumer {
         return menuList;
     }
 
-    private Int2ObjectOpenHashMap<Button> buttonsMap = new Int2ObjectOpenHashMap<>();
+    private Map<Integer, Button> buttonsMap = new HashMap<>();
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     protected Player player;
@@ -248,7 +246,7 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     public Menu clearBetween(int minSlot, int maxSlot) {
-        this.buttonsMap.int2ObjectEntrySet().removeIf(entry -> entry.getIntKey() >= minSlot && entry.getIntKey() <= maxSlot);
+        this.buttonsMap.entrySet().removeIf(entry -> entry.getKey() >= minSlot && entry.getKey() <= maxSlot);
         return this;
     }
 
@@ -433,7 +431,7 @@ public abstract class Menu implements TerminableConsumer {
             recreate = true;
         }
 
-        for (final Map.Entry<Integer, Button> buttonEntry : this.buttonsMap.int2ObjectEntrySet()) {
+        for (final Map.Entry<Integer, Button> buttonEntry : this.buttonsMap.entrySet()) {
             int slot = buttonEntry.getKey();
             Button button = buttonEntry.getValue();
             if (previousButtons == null || previousButtons.get(slot) != button) {

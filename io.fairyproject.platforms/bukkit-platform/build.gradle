@@ -34,7 +34,6 @@ dependencies {
     compileOnly "io.netty:netty-all:4.1.60.Final"
     compileOnly "com.viaversion:viaversion:4.0.1"
     compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
-//    compileOnly "com.boydti:fawe-api:latest"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
     compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
     compileOnly name: "ProtocolSupport"

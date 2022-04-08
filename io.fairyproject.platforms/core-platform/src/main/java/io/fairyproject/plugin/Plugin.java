@@ -25,7 +25,6 @@
 package io.fairyproject.plugin;
 
 import com.google.common.base.Preconditions;
-import io.fairyproject.module.Module;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -33,8 +32,6 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 public abstract class Plugin implements TerminableConsumer, Terminable {
@@ -43,7 +40,6 @@ public abstract class Plugin implements TerminableConsumer, Terminable {
 
     private ClassLoader classLoader;
 
-    private final List<Module> loadedModules = new ArrayList<>();
     private PluginDescription description;
     private PluginAction action;
     private boolean forceDisabling; // ignore every error caused by force disabling

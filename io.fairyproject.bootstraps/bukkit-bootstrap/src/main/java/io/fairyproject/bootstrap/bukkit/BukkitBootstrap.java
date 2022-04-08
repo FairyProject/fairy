@@ -37,16 +37,4 @@ class BukkitBootstrap extends BaseBootstrap {
     protected FairyPlatform createPlatform() {
         return new FairyBukkitPlatform(this.plugin, BukkitPlugin.INSTANCE.getDataFolder());
     }
-
-    @Override
-    protected Path getBootstrapDirectory() {
-        Path path;
-        try {
-            path = BootstrapUtil.getPluginDirectory().toPath();
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            path = new File(Bukkit.getWorldContainer(), "plugins").toPath();
-        }
-        return path;
-    }
 }

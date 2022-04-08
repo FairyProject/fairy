@@ -9,8 +9,6 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import io.netty.util.ByteProcessor;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import io.fairyproject.mc.util.BlockPosition;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
@@ -115,9 +113,9 @@ public class FriendlyByteBuf extends ByteBuf {
         return (List) this.readCollection((java.util.function.IntFunction) Lists::newArrayListWithCapacity, entryParser);
     }
 
-    public IntList readIntIdList() {
+    public List<Integer> readIntIdList() {
         int i = this.readVarInt();
-        IntArrayList intarraylist = new IntArrayList();
+        List<Integer> intarraylist = new ArrayList<>();
 
         for (int j = 0; j < i; ++j) {
             intarraylist.add(this.readVarInt());
@@ -126,9 +124,9 @@ public class FriendlyByteBuf extends ByteBuf {
         return intarraylist;
     }
 
-    public void writeIntIdList(IntList list) {
+    public void writeIntIdList(List<Integer> list) {
         this.writeVarInt(list.size());
-        list.forEach((java.util.function.IntConsumer) this::writeVarInt);
+        list.forEach(this::writeVarInt);
     }
 
     public <K, V, M extends Map<K, V>> M readMap(IntFunction<M> mapFactory, Function<FriendlyByteBuf, K> keyParser, Function<FriendlyByteBuf, V> valueParser) {

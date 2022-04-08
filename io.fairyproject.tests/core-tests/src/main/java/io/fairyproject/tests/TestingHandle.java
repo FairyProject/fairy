@@ -8,7 +8,7 @@ public interface TestingHandle {
 
     Plugin plugin();
 
-    FairyPlatform platform();
+    FairyPlatform platform(Plugin plugin);
 
     @Nullable String scanPath();
 

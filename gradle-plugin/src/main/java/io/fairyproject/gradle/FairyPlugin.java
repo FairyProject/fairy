@@ -5,17 +5,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.fairyproject.gradle.relocator.Relocation;
-import io.fairyproject.gradle.util.MavenUtil;
 import io.fairyproject.shared.FairyVersion;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.jvm.tasks.Jar;
 import org.jetbrains.annotations.NotNull;
@@ -26,13 +24,15 @@ import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
 public class FairyPlugin implements Plugin<Project> {
 
-    private static final String REPOSITORY = "https://maven.imanity.dev/repository/imanity-libraries/";
-    private static final String DEPENDENCY_FORMAT = "io.fairyproject:%s:%s";
+    public static final Gson GSON = new Gson();
+    public static final String REPOSITORY = "https://maven.imanity.dev/repository/imanity-libraries/";
+    public static final String DEPENDENCY_FORMAT = "io.fairyproject:%s:%s";
     public static Queue<Runnable> QUEUE = new ConcurrentLinkedQueue<>();
     public static FairyPlugin INSTANCE;
 
@@ -58,8 +58,10 @@ public class FairyPlugin implements Plugin<Project> {
         project.getPlugins().apply(JavaBasePlugin.class);
         project.getPlugins().apply(AspectJPlugin.class);
 
+        project.getConfigurations().all(c -> c.resolutionStrategy(resolutionStrategy -> resolutionStrategy.cacheDynamicVersionsFor(30, TimeUnit.SECONDS)));
+
         final Configuration fairyConfiguration = project.getConfigurations().maybeCreate("fairy");
-        final Configuration fairyModuleConfiguration = project.getConfigurations().maybeCreate("fairyModule");
+        final Configuration downloaderConfiguration = fairyConfiguration.copy();
         final FairyTask fairyTask = project.getTasks().create("fairyBuild", FairyTask.class);
         final FairyTestTask fairyTestTask = project.getTasks().create("fairyTest", FairyTestTask.class);
         project.afterEvaluate(p -> {
@@ -70,7 +72,6 @@ public class FairyPlugin implements Plugin<Project> {
             }
 
             p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyConfiguration);
-            p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyModuleConfiguration);
 
             if (!IS_IN_IDE) {
                 if (this.extension.getLocalRepo().get()) {
@@ -132,27 +133,30 @@ public class FairyPlugin implements Plugin<Project> {
                 }
             }
 
-            final Configuration copy = fairyModuleConfiguration.copy();
-            for (Map.Entry<String, String> moduleEntry : this.extension.getFairyModules().entrySet()) {
+            ModuleDependencyTreeLoader dependencyTreeLoader = ModuleDependencyTreeLoader.builder()
+                    .project(project)
+                    .configuration(fairyConfiguration)
+                    .downloaderConfiguration(downloaderConfiguration)
+                    .build();
+            this.extension.getFairyModules().forEach((key, value) -> {
                 final Dependency dependency;
                 if (IS_IN_IDE) {
-                    final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(moduleEntry.getKey()));
+                    final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(key));
                     dependency = this.project.getDependencies().create(dependProject);
                     ((ModuleDependency) dependency).setTargetConfiguration("shadow");
                 } else {
                     dependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                            moduleEntry.getKey(),
-                            moduleEntry.getValue()
+                            key,
+                            value
                     ));
                 }
 
                 try {
-                    new ModuleReader(project, extension, fairyModuleConfiguration, copy, new HashSet<>())
-                            .load(moduleEntry.getKey(), dependency, new ArrayList<>());
+                    dependencyTreeLoader.load(key, dependency);
                 } catch (IOException e) {
                     throw new IllegalArgumentException("An error occurs while reading dependency", e);
                 }
-            }
+            });
 
             Map<String, String> implementationModules = new HashMap<>();
             for (File file : p.getConfigurations().getByName("runtimeClasspath").copy()) {
@@ -208,9 +212,7 @@ public class FairyPlugin implements Plugin<Project> {
             for (File file : fairyConfiguration) {
                 list.add(file.isDirectory() ? file : project.zipTree(file));
             }
-            for (File file : fairyModuleConfiguration) {
-                list.add(file.isDirectory() ? file : project.zipTree(file));
-            }
+            jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
 
             jar.from(list);
 
@@ -223,6 +225,7 @@ public class FairyPlugin implements Plugin<Project> {
             fairyTask.setClassifier(extension.getClassifier().getOrNull());
             fairyTask.setRelocations(relocations);
             fairyTask.setExtension(extension);
+            fairyTask.setExclusions(dependencyTreeLoader.getExclusives());
             fairyTask.setDependModules(implementationModules);
             fairyTestTask.setExtension(extension);
         });
@@ -235,105 +238,6 @@ public class FairyPlugin implements Plugin<Project> {
             return null;
         }
 
-        return new Gson().fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
-    }
-
-    @RequiredArgsConstructor
-    private class ModuleReader {
-
-        private final Gson gson = new Gson();
-        private final Project project;
-        private final FairyExtension extension;
-        private final Configuration fairyModuleConfiguration;
-        private final Configuration copiedConfiguration;
-        private final Set<String> allLoadedModules;
-
-        public void load(String moduleName, Dependency dependency, List<String> moduleTree) throws IOException {
-            if (moduleTree.contains(moduleName)) {
-                moduleTree.add(moduleName);
-
-                StringBuilder stringBuilder = new StringBuilder();
-                final Iterator<String> iterator = moduleTree.iterator();
-
-                while (iterator.hasNext()) {
-                    final String name = iterator.next();
-                    if (name.equals(moduleName)) {
-                        stringBuilder.append("*").append(name).append("*");
-                    } else {
-                        stringBuilder.append(name);
-                    }
-                    if (iterator.hasNext()) {
-                        stringBuilder.append(" -> ");
-                    }
-                }
-                throw new IllegalStateException("Circular dependency: " + stringBuilder);
-            }
-
-            moduleTree.add(moduleName);
-            if (allLoadedModules.contains(moduleName)) {
-                return;
-            }
-
-            allLoadedModules.add(moduleName);
-            fairyModuleConfiguration.getDependencies().add(dependency);
-            project.getDependencies().add("testCompileOnly", dependency);
-
-            // copy for retrieve files
-            final Configuration copy = copiedConfiguration.copy();
-            copy.getDependencies().add(dependency);
-            for (File file : copy.files(dependency)) {
-                JarFile jarFile = new JarFile(file);
-                final ZipEntry entry = jarFile.getEntry("module.json");
-                if (entry != null) {
-                    final JsonObject jsonObject = gson.fromJson(new InputStreamReader(jarFile.getInputStream(entry)), JsonObject.class);
-
-                    if (jsonObject.has("libraries")) {
-                        for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
-                            final JsonObject library = element.getAsJsonObject();
-                            final String tag = library.get("dependency").getAsString();
-                            if (library.has("repository")) {
-                                final String repository = library.get("repository").getAsString();
-                                this.project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(repository));
-                            }
-                            this.project.getDependencies().add("compileOnly", this.project.getDependencies().create(tag));
-                        }
-                    }
-
-                    for (Pair<String, Dependency> pair : this.readDependencies(jsonObject)) {
-                        final List<String> tree = new ArrayList<>(moduleTree);
-                        this.load(pair.getKey(), pair.getValue(), tree);
-                    }
-                }
-            }
-        }
-
-        private List<Pair<String, Dependency>> readDependencies(JsonObject jsonObject) throws IOException {
-            List<Pair<String, Dependency>> list = new ArrayList<>();
-            if (jsonObject.has("depends")) {
-                for (JsonElement element : jsonObject.getAsJsonArray("depends")) {
-                    final String full = element.getAsString();
-                    final String[] split = full.split(":");
-                    final String name = split[0];
-                    String version = split[1];
-                    if (version == null) {
-                        version = MavenUtil.getLatest(name);
-                    }
-                    if (IS_IN_IDE) {
-                        final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(name));
-                        final ModuleDependency dependency = (ModuleDependency) this.project.getDependencies().create(dependProject);
-                        dependency.setTargetConfiguration("shadow");
-
-                        list.add(Pair.of(name, dependency));
-                    } else {
-                        list.add(Pair.of(name, this.project.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                                name,
-                                version
-                        ))));
-                    }
-                }
-            }
-            return list;
-        }
-
+        return GSON.fromJson(new InputStreamReader(jarFile.getInputStream(zipEntry)), JsonObject.class);
     }
 }

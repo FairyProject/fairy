@@ -35,6 +35,7 @@ import io.fairyproject.bukkit.impl.ComponentHolderBukkitListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.ComponentRegistry;
 import io.fairyproject.mc.MCInitializer;
@@ -54,10 +55,8 @@ import java.io.File;
 
 public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
-    private static final Logger LOGGER = LogManager.getLogger(FairyBukkitPlatform.class);
-
     public static FairyBukkitPlatform INSTANCE;
-    public static Plugin PLUGIN;
+    public static Plugin PLUGIN = JavaPluginUtil.getProvidingPlugin(FairyBukkitPlatform.class);
     public static BukkitAudiences AUDIENCES;
 
     private final ExtendedClassLoader classLoader;
@@ -145,7 +144,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
     @Override
     public boolean isRunning() {
-        return true; // TODO
+        return true;
     }
 
     @Override

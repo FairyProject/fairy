@@ -54,6 +54,7 @@ public class BlockingThreadAwaitQueue implements Executor {
                     this.exceptionHandler.accept(throwable);
                 }
             }
+            Thread.yield();
         }
 
         synchronized (this.lock) {

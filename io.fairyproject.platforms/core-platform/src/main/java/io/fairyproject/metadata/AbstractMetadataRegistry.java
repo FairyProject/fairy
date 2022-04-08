@@ -24,9 +24,10 @@
 
 package io.fairyproject.metadata;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -46,7 +47,7 @@ public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
     }
 
     @Nonnull
-    protected final LoadingCache<T, MetadataMap> cache = Caffeine.newBuilder().build(getLoader());
+    protected final LoadingCache<T, MetadataMap> cache = CacheBuilder.newBuilder().build(getLoader());
 
     public LoadingCache<T, MetadataMap> cache() {
         return this.cache;
@@ -56,7 +57,7 @@ public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
     @Override
     public MetadataMap provide(@Nonnull T id) {
         Objects.requireNonNull(id, "id");
-        return this.cache.get(id);
+        return ThrowingSupplier.sneaky(() -> this.cache.get(id)).get();
     }
 
     @Nonnull
@@ -80,7 +81,7 @@ public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
         this.cache.asMap().values().removeIf(MetadataMap::isEmpty);
     }
 
-    private static final class Loader<T> implements CacheLoader<T, MetadataMap> {
+    private static final class Loader<T> extends CacheLoader<T, MetadataMap> {
         @Override
         public MetadataMap load(@Nonnull T key) {
             return MetadataMap.create();

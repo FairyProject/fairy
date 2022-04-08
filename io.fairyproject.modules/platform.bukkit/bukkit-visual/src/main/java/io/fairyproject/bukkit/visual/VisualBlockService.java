@@ -24,9 +24,10 @@
 
 package io.fairyproject.bukkit.visual;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.base.Predicate;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import io.fairyproject.bukkit.listener.events.Events;
@@ -75,15 +76,18 @@ public class VisualBlockService implements TaskRunnable {
 
     public VisualBlockService() {
         this.claimPositionTable = HashBasedTable.create();
-        this.claimCache = Caffeine.newBuilder()
+        this.claimCache = CacheBuilder.newBuilder()
                 .maximumSize(8000)
-                .build(coordinatePair -> {
-                    final int chunkX = coordinatePair.getX() >> 4;
-                    final int chunkZ = coordinatePair.getZ() >> 4;
-                    final int posX = coordinatePair.getX() % 16;
-                    final int posZ = coordinatePair.getZ() % 16;
-                    synchronized (claimPositionTable) {
-                        return Optional.ofNullable(claimPositionTable.get(new CoordinatePair(coordinatePair.getWorldName(), chunkX, chunkZ), new CoordXZ((byte) posX, (byte) posZ)));
+                .build(new CacheLoader<CoordinatePair, Optional<VisualBlockClaim>>() {
+                    @Override
+                    public Optional<VisualBlockClaim> load(CoordinatePair coordinatePair) {
+                        final int chunkX = coordinatePair.getX() >> 4;
+                        final int chunkZ = coordinatePair.getZ() >> 4;
+                        final int posX = coordinatePair.getX() % 16;
+                        final int posZ = coordinatePair.getZ() % 16;
+                        synchronized (claimPositionTable) {
+                            return Optional.ofNullable(claimPositionTable.get(new CoordinatePair(coordinatePair.getWorldName(), chunkX, chunkZ), new CoordXZ((byte) posX, (byte) posZ)));
+                        }
                     }
                 });
         Task.asyncRepeated(this, 1L);

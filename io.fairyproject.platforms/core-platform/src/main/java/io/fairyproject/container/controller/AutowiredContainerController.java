@@ -36,7 +36,7 @@ public class AutowiredContainerController implements ContainerController {
     }
 
     public void applyObject(Object instance) throws ReflectiveOperationException {
-        Collection<Field> fields = Reflect.getDeclaredFields(instance.getClass());
+        Field[] fields = instance.getClass().getDeclaredFields();
 
         for (Field field : fields) {
             int modifiers = field.getModifiers();

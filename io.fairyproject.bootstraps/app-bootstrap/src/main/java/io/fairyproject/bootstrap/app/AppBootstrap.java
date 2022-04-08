@@ -7,9 +7,6 @@ import io.fairyproject.bootstrap.type.PlatformType;
 import io.fairyproject.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.File;
-import java.nio.file.Path;
-
 public class AppBootstrap extends BaseBootstrap {
 
     public static AppBootstrap INSTANCE;
@@ -34,11 +31,6 @@ public class AppBootstrap extends BaseBootstrap {
 
     @Override
     protected FairyPlatform createPlatform() {
-        return new FairyAppPlatform();
-    }
-
-    @Override
-    protected Path getBootstrapDirectory() {
-        return new File("fairy").toPath();
+        return new FairyAppPlatform(plugin);
     }
 }

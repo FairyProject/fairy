@@ -26,8 +26,8 @@ package io.fairyproject.container;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
@@ -42,26 +42,22 @@ import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.util.CompletableFutureUtils;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.CompletableFutureUtils;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import io.fairyproject.util.thread.executor.ListeningDecorator;
 import lombok.Getter;
 import lombok.NonNull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
@@ -71,11 +67,11 @@ public class ContainerContext {
     public static boolean SHOW_LOGS = Boolean.getBoolean("fairy.showlog");
     public static boolean SINGLE_THREADED = Runtime.getRuntime().availableProcessors() < 2 || Boolean.getBoolean("fairy.singlethreaded");
     public static ContainerContext INSTANCE;
-    public static ExecutorService EXECUTOR = Executors.newCachedThreadPool(new ThreadFactoryBuilder()
-                    .setNameFormat("Container Thread - %d")
-                    .setDaemon(true)
-                    .setUncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
-                    .build());
+    public static ListeningExecutorService EXECUTOR = ListeningDecorator.create(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
+            .setNameFormat("Container Thread - %d")
+            .setDaemon(true)
+            .setUncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
+            .build()));
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
 
     @Getter
@@ -134,7 +130,7 @@ public class ContainerContext {
                     .name("framework")
                     .url(this.getClass().getProtectionDomain().getCodeSource().getLocation())
                     .classLoader(ContainerContext.class.getClassLoader())
-                    .classPath("io.fairyproject");
+                    .classPath(Fairy.getFairyPackage());
             classPathScanner.scanBlocking();
 
             if (classPathScanner.getException() != null) {
@@ -148,93 +144,7 @@ public class ContainerContext {
 
         if (PluginManager.isInitialized()) {
             log("Find PluginManager, attempt to register Plugin Listeners");
-
-            PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
-
-                @Override
-                public void onPluginEnable(Plugin plugin) {
-                    final Class<? extends Plugin> aClass = plugin.getClass();
-                    ContainerObject containerObject = new SimpleContainerObject(plugin, aClass);
-
-                    try {
-                        containerObject.bindWith(plugin);
-                        registerObject(containerObject, false);
-                        log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
-                    } catch (Throwable throwable) {
-                        LOGGER.error("An error occurs while registering plugin", throwable);
-                        try {
-                            plugin.close();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                        return;
-                    }
-
-                    try {
-                        final List<String> classPaths = findClassPaths(aClass);
-                        classPaths.add(plugin.getDescription().getShadedPackage());
-                        final ClassPathScanner scanner = scanClasses()
-                                .name(plugin.getName())
-                                .classLoader(plugin.getPluginClassLoader());
-
-                        if (Debug.UNIT_TEST) {
-                            // Hard coded, anyway to make it safer?
-                            final Path pathMain = Paths.get("build/classes/java/main").toAbsolutePath();
-                            if (Files.exists(pathMain))
-                                scanner.url(pathMain.toUri().toURL());
-
-                            final Path pathTest = Paths.get("build/classes/java/test").toAbsolutePath();
-                            if (Files.exists(pathTest))
-                                scanner.url(pathTest.toUri().toURL());
-                        } else {
-                            scanner.url(plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
-                        }
-
-                        scanner
-                                .classPath(classPaths)
-                                .included(containerObject)
-                                .scanBlocking();
-
-                        if (scanner.getException() != null) {
-                            SneakyThrowUtil.sneakyThrow(scanner.getException());
-                        }
-                    } catch (Throwable throwable) {
-                        LOGGER.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
-                        try {
-                            plugin.closeSilently();
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                        }
-                    }
-                }
-
-                @Override
-                public void onPluginDisable(Plugin plugin) {
-                    Collection<ContainerObject> containerObjectList = findDetailsBindWith(plugin);
-                    try {
-                        lifeCycle(LifeCycle.PRE_DESTROY, containerObjectList);
-                    } catch (Throwable throwable) {
-                        LOGGER.error(throwable);
-                    }
-
-                    containerObjectList.forEach(containerObject -> {
-                        log("ContainerObject " + containerObject.getType() + " Disabled, due to " + plugin.getName() + " being disabled.");
-
-                        containerObject.closeAndReportException();
-                    });
-
-                    try {
-                        lifeCycle(LifeCycle.POST_DESTROY, containerObjectList);
-                    } catch (Throwable throwable) {
-                        LOGGER.error(throwable);
-                    }
-                }
-
-                @Override
-                public int priority() {
-                    return PLUGIN_LISTENER_PRIORITY;
-                }
-            });
+            PluginManager.INSTANCE.registerListener(new ContainerPluginListener(this));
         }
 
         Fairy.getPlatform().onPostServicesInitial();

@@ -23,10 +23,7 @@
  */
 
 dependencies {
-    api("org.reflections:reflections:0.9.10") {
-        exclude group: "com.google.guava", module: "guava"
-        exclude group: "com.google.code.findbugs", module: "annotations"
-    }
+    api "io.github.classgraph:classgraph:4.8.143"
     api "javax.persistence:javax.persistence-api:2.2"
     compileOnly "org.mongodb:mongo-java-driver:3.12.7"
     api project(":shared")

@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -36,7 +37,7 @@ public final class JarRelocator {
     /** The input jar */
     private final File input;
     /** The output jar */
-    private final File output;
+    private final JarOutputStream output;
     /** The relocating remapper */
     private final RelocatingRemapper remapper;
 
@@ -53,28 +54,11 @@ public final class JarRelocator {
      * @param output the output jar file
      * @param relocations the relocations
      */
-    public JarRelocator(File input, File output, Collection<Relocation> relocations, Set<File> relocateEntries) {
+    public JarRelocator(File input, JarOutputStream output, Collection<Relocation> relocations, Set<File> relocateEntries) {
         this.input = input;
         this.output = output;
         this.remapper = new RelocatingRemapper(relocations);
         this.relocateEntries = relocateEntries;
-    }
-
-    /**
-     * Creates a new instance with the given settings.
-     *
-     * @param input the input jar file
-     * @param output the output jar file
-     * @param relocations the relocations
-     */
-    public JarRelocator(File input, File output, Map<String, String> relocations) {
-        this.input = input;
-        this.output = output;
-        Collection<Relocation> c = new ArrayList<>(relocations.size());
-        for (Map.Entry<String, String> entry : relocations.entrySet()) {
-            c.add(new Relocation(entry.getKey(), entry.getValue()));
-        }
-        this.remapper = new RelocatingRemapper(c);
     }
 
     /**
@@ -88,11 +72,9 @@ public final class JarRelocator {
             throw new IllegalStateException("#run has already been called on this instance");
         }
 
-        try (JarOutputStream out = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(this.output)))) {
-            try (JarFile in = new JarFile(this.input)) {
-                JarRelocatorTask task = new JarRelocatorTask(this.remapper, out, in, this.relocateEntries);
-                task.processEntries();
-            }
+        try (JarFile in = new JarFile(this.input)) {
+            JarRelocatorTask task = new JarRelocatorTask(this.remapper, this.output, in, this.relocateEntries);
+            task.processEntries();
         }
     }
 

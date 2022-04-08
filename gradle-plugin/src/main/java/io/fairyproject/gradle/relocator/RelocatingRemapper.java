@@ -53,9 +53,6 @@ final class RelocatingRemapper extends Remapper {
     public Object mapValue(Object object) {
         if (object instanceof String) {
             String relocatedName = relocate((String) object, true);
-            if (object.equals("io.fairyproject.bootstrap.app.AppLauncher")) {
-                System.out.println(">> " + relocatedName);
-            }
             if (relocatedName != null) {
                 return relocatedName;
             }
