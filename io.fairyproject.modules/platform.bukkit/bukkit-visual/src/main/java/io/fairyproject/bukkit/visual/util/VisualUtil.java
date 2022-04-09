@@ -10,6 +10,7 @@ import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.util.BlockPosition;
@@ -108,6 +109,46 @@ public class VisualUtil {
     }
 
     @UtilityClass
+    private static class NewData {
+
+        private final Class<?> MAGIC_NUMBERS;
+        private final MethodWrapper<?> FROM_LEGACY_DATA;
+        private final MethodWrapper<?> GET_ID;
+
+        static {
+            Class<?> magicNumbers;
+            MethodWrapper<?> fromLegacyData;
+            MethodWrapper<?> getId;
+
+            try {
+                final NMSClassResolver CLASS_RESOLVER = new NMSClassResolver();
+                final Class<?> blockStateType = CLASS_RESOLVER.resolve("world.level.block.state.BlockState", "IBlockData");
+                final Class<?> blockType = CLASS_RESOLVER.resolve("world.level.block.Block", "Block");
+                magicNumbers = new OBCClassResolver().resolve("util.CraftMagicNumbers");
+                fromLegacyData = new MethodResolver(magicNumbers).resolve(blockStateType, 0, Material.class, byte.class);
+                getId = new MethodResolver(blockType).resolve(blockStateType, 0, blockType);
+            } catch (ReflectiveOperationException e) {
+                e.printStackTrace();
+                magicNumbers = null;
+                fromLegacyData = null;
+                getId = null;
+            }
+
+            MAGIC_NUMBERS = magicNumbers;
+            FROM_LEGACY_DATA = fromLegacyData;
+            GET_ID = getId;
+        }
+
+//        public int getId(XMaterial material) {
+//        }
+
+        public static boolean isCapable() {
+            return MAGIC_NUMBERS != null && FROM_LEGACY_DATA != null && GET_ID != null;
+        }
+
+    }
+
+    @UtilityClass
     private static class OldData {
 
         private final MethodWrapper<?> BLOCK_GET_BY_ID_METHOD;
@@ -158,7 +199,5 @@ public class VisualUtil {
         }
 
     }
-
-    // TODO - new data
 
 }
