@@ -18,6 +18,7 @@ import io.fairyproject.metadata.MetadataKey;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -100,9 +101,13 @@ public class VisualUtil {
         }
     }
 
-    private int getIdByMaterial(XMaterial material) {
+    private int getIdByMaterial(@NotNull XMaterial material) {
         if (OldData.isCapable()) {
             return OldData.getId(material);
+        }
+
+        if (NewData.isCapable()) {
+            return NewData.getId(material);
         }
 
         throw new UnsupportedOperationException();
@@ -127,8 +132,9 @@ public class VisualUtil {
                 magicNumbers = new OBCClassResolver().resolve("util.CraftMagicNumbers");
                 fromLegacyData = new MethodResolver(magicNumbers).resolve(blockStateType, 0, Material.class, byte.class);
                 getId = new MethodResolver(blockType).resolve(blockStateType, 0, blockType);
+
+                System.out.println("Initialized NewData for Visual module.");
             } catch (ReflectiveOperationException e) {
-                e.printStackTrace();
                 magicNumbers = null;
                 fromLegacyData = null;
                 getId = null;
@@ -139,8 +145,10 @@ public class VisualUtil {
             GET_ID = getId;
         }
 
-//        public int getId(XMaterial material) {
-//        }
+        public int getId(XMaterial material) {
+            final Object blockState = FROM_LEGACY_DATA.invoke(null, material.parseMaterial(), material.getData());
+            return (int) GET_ID.invoke(null, blockState);
+        }
 
         public static boolean isCapable() {
             return MAGIC_NUMBERS != null && FROM_LEGACY_DATA != null && GET_ID != null;
@@ -170,12 +178,13 @@ public class VisualUtil {
                 fromLegacyData = new MethodWrapper<>(blockType.getMethod("fromLegacyData", int.class));
                 blockRegistry = new FieldResolver(blockType).resolve(registryID, 0).get(0);
                 fromId = new MethodResolver(registryID).resolveWrapper(new ResolverQuery(int.class, 0));
+
+                System.out.println("Initialized OldData for Visual module.");
             } catch (Exception ex) {
                 blockGetById = null;
                 fromLegacyData = null;
                 fromId = null;
                 blockRegistry = null;
-                ex.printStackTrace();
             }
 
             BLOCK_GET_BY_ID_METHOD = blockGetById;
