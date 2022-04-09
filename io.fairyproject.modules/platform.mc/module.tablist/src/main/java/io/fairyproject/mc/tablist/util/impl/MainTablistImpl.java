@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.tablist.util.impl;
 
+import io.fairyproject.mc.protocol.MCProtocol;
 import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCAdventure;
@@ -48,10 +49,10 @@ public class MainTablistImpl implements TablistImpl {
     public void removeSelf(MCPlayer player) {
         final PacketPlay.Out.PlayerInfo playerInfo = PacketPlay.Out.PlayerInfo.builder()
                 .action(io.fairyproject.mc.protocol.item.PlayerInfoAction.REMOVE_PLAYER)
-                .entries(MCPlayer.from(player).asInfoData())
+                .entries(PlayerInfoData.create(MCPlayer.from(player)))
                 .build();
 
-        MCPlayer.all().forEach(mcPlayer -> mcPlayer.sendPacket(playerInfo));
+        MCPlayer.all().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, playerInfo));
     }
 
     @Override
@@ -74,7 +75,7 @@ public class MainTablistImpl implements TablistImpl {
                 .action(io.fairyproject.mc.protocol.item.PlayerInfoAction.ADD_PLAYER)
                 .entries(new PlayerInfoData(1, profile, io.fairyproject.mc.GameMode.SURVIVAL, Component.empty()))
                 .build();
-        player.sendPacket(packet);
+        MCProtocol.sendPacket(player, packet);
         return new TabEntry(string, profile.getUuid(), Component.empty(), tablist, Skin.GRAY, column, slot, rawSlot, 0);
     }
 
@@ -100,14 +101,14 @@ public class MainTablistImpl implements TablistImpl {
                     .teamAction(TeamAction.CHANGE)
                     .build();
 
-            player.sendPacket(packet);
+            MCProtocol.sendPacket(player, packet);
         } else {
             final PacketPlay.Out.PlayerInfo packet = PacketPlay.Out.PlayerInfo.builder()
                     .action(PlayerInfoAction.UPDATE_DISPLAY_NAME)
                     .entries(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, text))
                     .build();
 
-            player.sendPacket(packet);
+            MCProtocol.sendPacket(player, packet);
         }
 
         tabEntry.setText(text);
@@ -123,7 +124,7 @@ public class MainTablistImpl implements TablistImpl {
                 .entries(new PlayerInfoData(tabEntry.getLatency(), this.getGameProfile(version, tabEntry), GameMode.SURVIVAL, tabEntry.getText()))
                 .build();
 
-        tablist.getPlayer().sendPacket(packet);
+        MCProtocol.sendPacket(tablist.getPlayer(), packet);
 
         tabEntry.setLatency(latency);
     }
@@ -154,8 +155,8 @@ public class MainTablistImpl implements TablistImpl {
                 .entries(playerInfoData)
                 .build();
 
-        tablist.getPlayer().sendPacket(remove);
-        tablist.getPlayer().sendPacket(add);
+        MCProtocol.sendPacket(tablist.getPlayer(), remove);
+        MCProtocol.sendPacket(tablist.getPlayer(), add);
 
         tabEntry.setTexture(skin);
     }
@@ -171,7 +172,7 @@ public class MainTablistImpl implements TablistImpl {
                 .header(header)
                 .footer(footer)
                 .build();
-        player.sendPacket(packet);
+        MCProtocol.sendPacket(player, packet);
     }
 
     private MCGameProfile getGameProfile(MCVersion version, TabEntry tabEntry) {

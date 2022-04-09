@@ -35,6 +35,7 @@ import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
+import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.Utility;
@@ -46,7 +47,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service(name = "nametag")
+@Service
 public class NameTagService {
 
     protected static MetadataKey<NameTagList> TEAM_INFO_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "NameTag", NameTagList.class);
@@ -92,7 +93,7 @@ public class NameTagService {
                             Optional.empty(),
                             name
                     );
-                    other.sendPacket(packet);
+                    MCProtocol.sendPacket(other, packet);
                 }
             });
         }));
@@ -162,7 +163,7 @@ public class NameTagService {
                         Optional.empty(),
                         target.getName()
                 );
-                player.sendPacket(packet);
+                MCProtocol.sendPacket(player, packet);
                 break;
             }
         }
@@ -202,7 +203,7 @@ public class NameTagService {
                         WrapperPlayServerTeams.OptionData.NONE
                 ))
         );
-        mcPlayer.sendPacket(packet);
+        MCProtocol.sendPacket(mcPlayer, packet);
     }
 
     private String toKey(Component prefix, Component suffix) {

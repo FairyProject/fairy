@@ -24,10 +24,9 @@
 
 package io.fairyproject.bukkit;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import io.fairyproject.Debug;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.PlatformType;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
 import io.fairyproject.bukkit.impl.BukkitPluginHandler;
 import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
@@ -43,10 +42,7 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
@@ -83,10 +79,6 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
         PluginManager.initialize(new BukkitPluginHandler());
         MinecraftReflection.init();
-        if (!Debug.UNIT_TEST) {
-            PacketEvents.setAPI(SpigotPacketEventsBuilder.build(PLUGIN));
-            PacketEvents.getAPI().load();
-        }
         this.createMCInitializer().apply();
     }
 
@@ -95,22 +87,9 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         AUDIENCES = BukkitAudiences.create(PLUGIN);
 
         SpigotUtil.init();
-        if (!Debug.UNIT_TEST) {
-            PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(false);
-            PacketEvents.getAPI().init();
-        }
         ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
 
         super.enable();
-    }
-
-    @Override
-    public void disable() {
-        if (!Debug.UNIT_TEST) {
-            PacketEvents.getAPI().terminate();
-        }
-
-        super.disable();
     }
 
     @Override
@@ -157,4 +136,8 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         return new BukkitTaskScheduler();
     }
 
+    @Override
+    public PlatformType getPlatformType() {
+        return PlatformType.BUKKIT;
+    }
 }

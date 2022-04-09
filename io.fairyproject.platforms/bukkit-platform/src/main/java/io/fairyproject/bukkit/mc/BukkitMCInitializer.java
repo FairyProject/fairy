@@ -1,10 +1,7 @@
 package io.fairyproject.bukkit.mc;
 
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -14,11 +11,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class BukkitMCInitializer implements MCInitializer {
-
-    @Override
-    public PacketEventsAPI<?> createPacketEvents() {
-        return SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
-    }
 
     @Override
     public MCAdventure.AdventureHook createAdventure() {

@@ -1,0 +1,12 @@
+module {
+    platform("mc")
+    platform("bukkit")
+}
+
+dependencies {
+    compileOnly "io.netty:netty-all:" + findProperty("netty.version")
+    compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
+
+    api 'com.github.terminalsin.packetevents:api:' + findProperty("packetevents.version")
+    implementation 'com.github.terminalsin.packetevents:spigot:' + findProperty("packetevents.version")
+}

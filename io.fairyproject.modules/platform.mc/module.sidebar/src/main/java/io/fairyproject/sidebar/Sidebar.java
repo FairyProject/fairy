@@ -63,15 +63,14 @@ public class Sidebar {
                         : MCAdventure.asJsonString(Component.empty(), player.getLocale())),
                 Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
         );
-        player.sendPacket(objective);
+        MCProtocol.sendPacket(player, objective);
 
         final WrapperPlayServerDisplayScoreboard scoreboard = new WrapperPlayServerDisplayScoreboard(
                 ObjectiveDisplaySlot.SIDEBAR.getSerializeId(),
                 player.getName()
         );
 
-        player.sendPacket(scoreboard);
-
+        MCProtocol.sendPacket(player, scoreboard);
     }
 
     public void setTitle(Component title) {
@@ -81,7 +80,7 @@ public class Sidebar {
 
         this.title = title;
 
-        player.sendPacket(new WrapperPlayServerScoreboardObjective(
+        MCProtocol.sendPacket(player, new WrapperPlayServerScoreboardObjective(
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.UPDATE,
                 Optional.of(
@@ -174,7 +173,7 @@ public class Sidebar {
 
         teams[line] = component;
         packet.setTeamInfo(Optional.of(info));
-        this.player.sendPacket(packet);
+        MCProtocol.sendPacket(player, packet);
     }
 
     public void clear(int line) {
@@ -190,8 +189,8 @@ public class Sidebar {
 
             teams[line] = null;
 
-            player.sendPacket(packetA);
-            player.sendPacket(packetB);
+            MCProtocol.sendPacket(player, packetA);
+            MCProtocol.sendPacket(player, packetB);
         }
     }
 
@@ -217,7 +216,7 @@ public class Sidebar {
                     player.getName(),
                     Optional.of(line)
             );
-            this.player.sendPacket(score);
+            MCProtocol.sendPacket(player, score);
 
             return new WrapperPlayServerTeams(
                     "-sb" + line,

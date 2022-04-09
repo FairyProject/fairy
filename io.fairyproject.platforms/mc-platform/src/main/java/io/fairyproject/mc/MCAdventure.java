@@ -1,6 +1,5 @@
 package io.fairyproject.mc;
 
-import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import lombok.Builder;
 import lombok.Data;
@@ -22,11 +21,11 @@ public class MCAdventure {
     public void initialize(AdventureHook adventureHook) {
         final GsonComponentSerializer.Builder builder = GsonComponentSerializer.builder();
         final LegacyComponentSerializer.Builder legacyBuilder = LegacyComponentSerializer.builder();
-        if (!MCProtocol.INSTANCE.version().isHexColorSupport()) {
+        if (!MCServer.current().getVersion().isHexColorSupport()) {
             builder.downsampleColors();
         }
 
-        if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_16)) {
+        if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_16)) {
             legacyBuilder
                     .hexColors()
                     .useUnusualXRepeatedCharacterHexFormat();
@@ -57,7 +56,7 @@ public class MCAdventure {
     }
 
     public String asItemString(Component component, Locale locale) {
-        if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_13)) {
+        if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_13)) {
             return asJsonString(component, locale);
         } else {
             return asLegacyString(component, locale);

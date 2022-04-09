@@ -227,4 +227,11 @@ public abstract class FairyPlatform {
      */
     public abstract ITaskScheduler createTaskScheduler();
 
+    /**
+     * Get the platform type of current platform
+     *
+     * @return the Platform type
+     */
+    public abstract PlatformType getPlatformType();
+
 }

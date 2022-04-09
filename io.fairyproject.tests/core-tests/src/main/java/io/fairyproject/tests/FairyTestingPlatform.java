@@ -2,6 +2,7 @@ package io.fairyproject.tests;
 
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.PlatformType;
 import io.fairyproject.library.Library;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
@@ -71,5 +72,10 @@ public class FairyTestingPlatform extends FairyPlatform {
     @Override
     public ITaskScheduler createTaskScheduler() {
         return new AsyncTaskScheduler();
+    }
+
+    @Override
+    public PlatformType getPlatformType() {
+        throw new UnsupportedOperationException("Not Implemented.");
     }
 }

@@ -2,6 +2,7 @@ package io.fairyproject.app;
 
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.PlatformType;
 import io.fairyproject.library.Library;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
@@ -127,5 +128,10 @@ public class FairyAppPlatform extends FairyPlatform {
     @Override
     public ITaskScheduler createTaskScheduler() {
         return new AsyncTaskScheduler();
+    }
+
+    @Override
+    public PlatformType getPlatformType() {
+        return PlatformType.APP;
     }
 }

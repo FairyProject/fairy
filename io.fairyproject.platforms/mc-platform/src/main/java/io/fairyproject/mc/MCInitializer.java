@@ -1,13 +1,8 @@
 package io.fairyproject.mc;
 
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.netty.NettyInjector;
-
 public interface MCInitializer {
 
     default void apply() {
-        MCProtocol.initialize(this.createPacketEvents());
         MCAdventure.initialize(this.createAdventure());
         MCServer.Companion.CURRENT = this.createMCServer();
         MCEntity.Companion.BRIDGE = this.createEntityBridge();
@@ -16,7 +11,6 @@ public interface MCInitializer {
         MCGameProfile.Companion.BRIDGE = this.createGameProfileBridge();
     }
 
-    PacketEventsAPI<?> createPacketEvents();
     MCAdventure.AdventureHook createAdventure();
     MCServer createMCServer();
     MCEntity.Bridge createEntityBridge();

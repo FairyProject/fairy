@@ -24,13 +24,12 @@
 
 package io.fairyproject.bukkit.reflection.minecraft;
 
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
-import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.protocol.MCVersion;
 
 import java.lang.reflect.Field;
@@ -62,7 +61,7 @@ public class DataWatcher {
     }
 
     public static Object setValue(Object dataWatcher, int index, Object dataWatcherObject/*1.9*/, Object value) throws ReflectiveOperationException {
-        if (MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_8)) {
+        if (MCServer.current().getVersion().isOrBelow(MCVersion.V1_8)) {
             return V1_8.setValue(dataWatcher, index, value);
         } else {
             return V1_9.setValue(dataWatcher, dataWatcherObject, value);
@@ -74,7 +73,7 @@ public class DataWatcher {
     }
 
     public static Object setValue(Object dataWatcher, int index, Object value, FieldResolver dataWatcherObjectFieldResolver/*1.9*/, String... dataWatcherObjectFieldNames/*1.9*/) throws ReflectiveOperationException {
-        if (MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_8)) {
+        if (MCServer.current().getVersion().isOrBelow(MCVersion.V1_8)) {
             return V1_8.setValue(dataWatcher, index, value);
         } else {
             Object dataWatcherObject = dataWatcherObjectFieldResolver.resolve(dataWatcherObjectFieldNames).get(null/*Should be a static field*/);
@@ -84,7 +83,7 @@ public class DataWatcher {
 
     @Deprecated
     public static Object getValue(DataWatcher dataWatcher, int index) throws ReflectiveOperationException {
-        if (MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_8)) {
+        if (MCServer.current().getVersion().isOrBelow(MCVersion.V1_8)) {
             return V1_8.getValue(dataWatcher, index);
         } else {
             return V1_9.getValue(dataWatcher, index);
@@ -96,7 +95,7 @@ public class DataWatcher {
     }
 
     public static Object getValue(Object dataWatcher, int index, Object dataWatcherObject/*1.9*/) throws ReflectiveOperationException {
-        if (MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_8)) {
+        if (MCServer.current().getVersion().isOrBelow(MCVersion.V1_8)) {
             return V1_8.getWatchableObjectValue(V1_8.getValue(dataWatcher, index));
         } else {
             return V1_9.getValue(dataWatcher, dataWatcherObject);
@@ -344,7 +343,7 @@ public class DataWatcher {
                 try {
                     this.type = new FieldResolver(nmsClassResolver.resolve(className)).resolve(fieldNames).get(null);
                 } catch (Exception e) {
-                    if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_9)) {
+                    if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_9)) {
                         System.err.println("[Imanity] Failed to find DataWatcherObject for " + className + " " + Arrays.toString(fieldNames));
                     }
                 }
@@ -354,7 +353,7 @@ public class DataWatcher {
                 try {
                     this.type = new FieldResolver(nmsClassResolver.resolve(className)).resolveIndex(index).get(null);
                 } catch (Exception e) {
-                    if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_9)) {
+                    if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_9)) {
                         System.err.println("[Imanity] Failed to find DataWatcherObject for " + className + " #" + index);
                     }
                 }
@@ -372,7 +371,7 @@ public class DataWatcher {
                     }
                     this.type = new FieldResolver(clazz).resolveIndex(firstObject + offset).get(null);
                 } catch (Exception e) {
-                    if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_9)) {
+                    if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_9)) {
                         System.err.println("[Imanity] Failed to find DataWatcherObject for " + className + " #" + index + " (" + firstObject + "+" + offset + ")");
                     }
                 }

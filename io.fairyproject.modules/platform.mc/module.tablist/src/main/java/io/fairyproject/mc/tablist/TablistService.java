@@ -48,7 +48,7 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 @Getter
-@Service(name = "tablist")
+@Service
 @Log4j2
 public class TablistService {
 

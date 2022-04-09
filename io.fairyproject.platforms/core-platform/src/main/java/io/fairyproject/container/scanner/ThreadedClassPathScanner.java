@@ -48,7 +48,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     }
 
     @Override
-    public void scanBlocking() throws Exception {
+    public void scanBlocking() {
         this.scan();
 
         this.main.await(() -> this.getCompletedFuture().isDone());
