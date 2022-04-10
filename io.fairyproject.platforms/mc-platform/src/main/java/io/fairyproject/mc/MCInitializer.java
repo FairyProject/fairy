@@ -3,8 +3,9 @@ package io.fairyproject.mc;
 public interface MCInitializer {
 
     default void apply() {
-        MCAdventure.initialize(this.createAdventure());
         MCServer.Companion.CURRENT = this.createMCServer();
+
+        MCAdventure.initialize(this.createAdventure());
         MCEntity.Companion.BRIDGE = this.createEntityBridge();
         MCWorld.Companion.BRIDGE = this.createWorldBridge();
         MCPlayer.Companion.BRIDGE = this.createPlayerBridge();

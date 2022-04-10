@@ -28,6 +28,9 @@ dependencies {
     compileOnly "org.mongodb:mongo-java-driver:3.12.7"
     api project(":shared")
     api aspectjRuntime
+
+    implementation 'io.github.toolfactory:narcissus:1.0.7'
+
     implementation JacksonCore
     implementation JacksonDataBind
     implementation JacksonAnnotations

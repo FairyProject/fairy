@@ -28,7 +28,6 @@ dependencies {
     compileOnly Mongojack
     compileOnly MongoDB_driver_sync
     compileOnly HikariCP
-    compileOnly "net.bytebuddy:byte-buddy:1.10.9"
 
     testImplementation "mysql:mysql-connector-java:8.0.17"
     testImplementation "org.postgresql:postgresql:42.2.8"
@@ -42,4 +41,5 @@ module {
     library("org.mongodb:mongodb-driver-core:4.2.3")
     library("org.mongodb:mongodb-driver-sync:4.2.3")
     library("org.mongojack:mongojack:4.2.0")
+    library("net.bytebuddy:byte-buddy:1.10.9")
 }

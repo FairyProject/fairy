@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,35 +50,23 @@ public class StorageService {
 
     @PreInitialize
     public void onPreInitialize() {
-        Fairy.getLibraryHandler().downloadLibraries(true, Arrays.asList(
-                Library.MARIADB_DRIVER,
-                Library.HIKARI,
-                Library.MYSQL_DRIVER,
-                Library.POSTGRESQL_DRIVER,
-                Library.H2_DRIVER,
-                Library.BYTE_BUDDY
+        Fairy.getLibraryHandler().downloadLibraries(false, Collections.singletonList(
+                Library.H2_DRIVER
         ));
-        ComponentRegistry.registerComponentHolder(new ComponentHolder() {
-            @Override
-            public Class<?>[] type() {
-                return new Class[] {RepositoryProvider.class};
-            }
+        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
+                .type(RepositoryProvider.class)
+                .onEnable(obj -> {
+                    RepositoryProvider repositoryProvider = (RepositoryProvider) obj;
 
-            @Override
-            public void onEnable(Object instance) {
-                RepositoryProvider repositoryProvider = (RepositoryProvider) instance;
+                    registerRepositoryProvider(repositoryProvider);
+                    repositoryProvider.build();
+                })
+                .onDisable(obj -> {
+                    RepositoryProvider repositoryProvider = (RepositoryProvider) obj;
 
-                registerRepositoryProvider(repositoryProvider);
-                repositoryProvider.build();
-            }
-
-            @Override
-            public void onDisable(Object instance) {
-                RepositoryProvider repositoryProvider = (RepositoryProvider) instance;
-
-                unregisterRepositoryProvider(repositoryProvider);
-            }
-        });
+                    unregisterRepositoryProvider(repositoryProvider);
+                })
+                .build());
     }
 
     @PostDestroy
