@@ -56,9 +56,7 @@ public class Skin {
                     MCPlayer player = MCPlayer.find(key);
                     if (player != null) {
                         try (ServerThreadLock ignored = ServerThreadLock.obtain()) {
-
                             final MCGameProfile gameProfile = player.gameProfile();
-
                             if (!gameProfile.hasProperty("textures")) {
                                 Property property = gameProfile.getProperties().stream()
                                         .filter(p -> p.getName().equals("textures"))
@@ -69,7 +67,6 @@ public class Skin {
                                 return new Skin(texture, signature);
                             }
                         }
-                        return null;
                     }
 
                     return Skin.download(key);

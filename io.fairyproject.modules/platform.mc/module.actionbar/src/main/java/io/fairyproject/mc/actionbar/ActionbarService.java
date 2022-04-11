@@ -77,11 +77,15 @@ public class ActionbarService {
         Component retVal = null;
 
         this.lock.readLock().lock();
-        for (ActionbarAdapter adapter : this.getSortedAdapters()) {
-            retVal = adapter.build(player);
-            if (retVal != null && !retVal.equals(Component.empty())) {
-                break;
+        try {
+            for (ActionbarAdapter adapter : this.getSortedAdapters()) {
+                retVal = adapter.build(player);
+                if (retVal != null && !retVal.equals(Component.empty())) {
+                    break;
+                }
             }
+        } finally {
+            this.lock.readLock().unlock();
         }
 
         return retVal;
@@ -89,12 +93,17 @@ public class ActionbarService {
 
     private int getUpdateTick() {
         int tick = 2;
-        for (ActionbarAdapter adapter : this.getSortedAdapters()) {
-            int adapterTick = adapter.ticks();
-            if (adapterTick != -1) {
-                tick = adapterTick;
-                break;
+        this.lock.readLock().lock();
+        try {
+            for (ActionbarAdapter adapter : this.getSortedAdapters()) {
+                int adapterTick = adapter.ticks();
+                if (adapterTick != -1) {
+                    tick = adapterTick;
+                    break;
+                }
             }
+        } finally {
+            this.lock.readLock().unlock();
         }
 
         return tick;

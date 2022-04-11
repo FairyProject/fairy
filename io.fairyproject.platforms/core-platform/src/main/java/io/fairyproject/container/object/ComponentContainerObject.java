@@ -27,25 +27,46 @@ package io.fairyproject.container.object;
 import io.fairyproject.container.ComponentHolder;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ComponentContainerObject extends BaseContainerObject {
 
     private final ComponentHolder componentHolder;
+    private final AtomicBoolean enabled;
+    private final ReentrantLock lock;
 
     public ComponentContainerObject(Class<?> type, @Nullable Object instance, ComponentHolder componentHolder) {
         super(type, instance);
 
         this.componentHolder = componentHolder;
+        this.enabled = new AtomicBoolean(false);
+        this.lock = new ReentrantLock();
     }
 
     @Override
     public void onEnable() {
         super.onEnable();
-        this.componentHolder.onEnable(this.getInstance());
+        this.lock.lock();
+        try {
+            if (this.enabled.compareAndSet(false, true)) {
+                this.componentHolder.onEnable(this.getInstance());
+            }
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     @Override
     public void onDisable() {
         super.onDisable();
-        this.componentHolder.onDisable(this.getInstance());
+        this.lock.lock();
+        try {
+            if (this.enabled.compareAndSet(true, false)) {
+                this.componentHolder.onDisable(this.getInstance());
+            }
+        } finally {
+            this.lock.unlock();
+        }
     }
 }

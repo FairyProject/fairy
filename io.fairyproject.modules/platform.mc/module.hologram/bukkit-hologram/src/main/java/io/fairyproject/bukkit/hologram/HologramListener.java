@@ -24,12 +24,14 @@
 
 package io.fairyproject.bukkit.hologram;
 
+import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerConstruct;
 import io.fairyproject.container.Component;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.timings.TimingService;
+import io.fairyproject.container.PostInitialize;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -50,10 +52,14 @@ import java.util.Set;
 public class HologramListener implements Listener {
 
     private final Set<Player> toUpdate = new HashSet<>();
-    private final MCTiming timing;
+    private MCTiming timing;
 
-    @ContainerConstruct
-    public HologramListener(TimingService timingService) {
+    @Autowired
+    private TimingService timingService;
+
+    @PostInitialize
+    public void onPostInitialize() {
+        this.timing = timingService.of(FairyBukkitPlatform.PLUGIN, "Holograms Update");
         Imanity.registerMovementListener(new MovementListener() {
             @Override
             public void handleUpdateLocation(Player player, Location from, Location to) {
@@ -65,7 +71,6 @@ public class HologramListener implements Listener {
 
             }
         }).ignoreSameBlockAndY();
-        this.timing = timingService.of(FairyBukkitPlatform.PLUGIN, "Holograms Update");
         this.runScheduler();
     }
 

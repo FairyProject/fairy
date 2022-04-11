@@ -39,6 +39,7 @@ import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
 import io.fairyproject.bukkit.visual.type.VisualType;
 import io.fairyproject.bukkit.visual.util.VisualUtil;
+import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.Service;
 import io.fairyproject.mc.util.BlockPosition;
@@ -70,16 +71,17 @@ public class VisualBlockService implements TaskRunnable {
     private static final Logger LOGGER = LogManager.getLogger(VisualBlockService.class);
 
     private final Table<UUID, VisualPosition, VisualBlock> table = HashBasedTable.create();
-    private final LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
-    private final Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
+    private LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
+    private Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
     private final Queue<VisualTask> visualTasks = new ConcurrentLinkedQueue<>();
 
-    private final VisualBlockGenerator mainGenerator;
+    private VisualBlockGenerator mainGenerator;
     private final Map<Plugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
 
     private boolean destroyed;
 
-    public VisualBlockService() {
+    @PostInitialize
+    public void onPostInitialize() {
         this.claimPositionTable = HashBasedTable.create();
         this.claimCache = CacheBuilder.newBuilder()
                 .maximumSize(8000)

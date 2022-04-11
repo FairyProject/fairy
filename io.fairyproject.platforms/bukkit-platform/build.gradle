@@ -35,8 +35,8 @@ dependencies {
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
     compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
     compileOnly name: "ProtocolSupport"
-    compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
-    compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
+    implementation "org.ow2.asm:asm:" + findProperty("asm.version")
+    implementation "org.ow2.asm:asm-commons:" + findProperty("asm.version")
 }
 
 repositories {

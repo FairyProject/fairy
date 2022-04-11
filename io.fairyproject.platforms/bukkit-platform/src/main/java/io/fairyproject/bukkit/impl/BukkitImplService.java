@@ -31,7 +31,7 @@ import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.server.ServerImplementation;
 
-@Service(name = "bukkit-impl")
+@Service
 public class BukkitImplService {
 
     private final ContainerContext containerContext;
@@ -42,7 +42,8 @@ public class BukkitImplService {
     }
 
     @PreInitialize
-    public void preInit() {
+    public void onPreInit() {
+        System.out.println("======================================================= ServerImpl");
         Imanity.IMPLEMENTATION = ServerImplementation.load(this.containerContext);
     }
 

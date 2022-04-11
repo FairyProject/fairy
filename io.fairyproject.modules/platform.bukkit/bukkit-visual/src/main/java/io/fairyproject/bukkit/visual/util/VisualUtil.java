@@ -13,6 +13,7 @@ import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.metadata.MetadataKey;
 import lombok.experimental.UtilityClass;
@@ -85,7 +86,7 @@ public class VisualUtil {
                 }
 
                 WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(new Vector3i(chunkPosition.getX(), chunkPosition.getY(), chunkPosition.getZ()), false, encodedBlocks);
-                mcPlayer.sendPacket(packet);
+                MCProtocol.sendPacket(mcPlayer, packet);
             }
         }
     }
