@@ -2,13 +2,16 @@ package io.fairyproject.tests;
 
 import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -28,6 +31,15 @@ public abstract class TestingBase {
     @BeforeAll
     public static void init() throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
         setup();
+    }
+
+    @BeforeEach
+    public void beforeEach() {
+        try {
+            AutowiredContainerController.INSTANCE.applyObject(this);
+        } catch (ReflectiveOperationException e) {
+            SneakyThrowUtil.sneakyThrow(e);
+        }
     }
 
     public static void setup() throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

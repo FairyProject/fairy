@@ -63,7 +63,6 @@ public class FairyPlugin implements Plugin<Project> {
         final Configuration fairyConfiguration = project.getConfigurations().maybeCreate("fairy");
         final Configuration downloaderConfiguration = fairyConfiguration.copy();
         final FairyTask fairyTask = project.getTasks().create("fairyBuild", FairyTask.class);
-        final FairyTestTask fairyTestTask = project.getTasks().create("fairyTest", FairyTestTask.class);
         project.afterEvaluate(p -> {
             this.checkIdeIdentityState();
             Runnable runnable;
@@ -138,21 +137,21 @@ public class FairyPlugin implements Plugin<Project> {
                     .configuration(fairyConfiguration)
                     .downloaderConfiguration(downloaderConfiguration)
                     .build();
-            this.extension.getFairyModules().forEach((key, value) -> {
+            this.extension.getFairyModules().forEach(module -> {
                 final Dependency dependency;
                 if (IS_IN_IDE) {
-                    final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(key));
+                    final Project dependProject = this.project.project(IDEDependencyLookup.getIdentityPath(module));
                     dependency = this.project.getDependencies().create(dependProject);
                     ((ModuleDependency) dependency).setTargetConfiguration("shadow");
                 } else {
                     dependency = p.getDependencies().create(String.format(DEPENDENCY_FORMAT,
-                            key,
-                            value
+                            module,
+                            this.extension.getFairyVersion().get()
                     ));
                 }
 
                 try {
-                    dependencyTreeLoader.load(key, dependency);
+                    dependencyTreeLoader.load(module, dependency);
                 } catch (IOException e) {
                     throw new IllegalArgumentException("An error occurs while reading dependency", e);
                 }
@@ -199,8 +198,6 @@ public class FairyPlugin implements Plugin<Project> {
             }
             jar.finalizedBy(fairyTask);
 
-            p.getTasks().getByName("compileTestJava").finalizedBy(fairyTestTask);
-
             if (platformTypes.contains(PlatformType.APP)) {
                 if (!this.extension.getLibraryMode().get()) {
                     jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
@@ -227,7 +224,6 @@ public class FairyPlugin implements Plugin<Project> {
             fairyTask.setExtension(extension);
             fairyTask.setExclusions(dependencyTreeLoader.getExclusives());
             fairyTask.setDependModules(implementationModules);
-            fairyTestTask.setExtension(extension);
         });
     }
 

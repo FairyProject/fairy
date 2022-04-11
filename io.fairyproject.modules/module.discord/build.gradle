@@ -1,5 +1,3 @@
-version = "0.0.1b20"
-
 module {
     subDepend("module.command:core-command")
     library("net.dv8tion:JDA:4.3.0_339", "https://m2.dv8tion.net/releases/")

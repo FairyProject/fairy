@@ -41,13 +41,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
 
     protected CompletableFuture<ScanResult> buildClassScanner() {
         final ClassGraph classGraph = new ClassGraph()
-                .enableClassInfo()
-                .enableAnnotationInfo()
-                .enableMethodInfo()
-                .enableFieldInfo()
-                .ignoreClassVisibility()
-                .ignoreMethodVisibility()
-                .ignoreFieldVisibility()
+                .enableAllInfo()
                 .verbose(false);
 
         for (String classPath : classPaths) {

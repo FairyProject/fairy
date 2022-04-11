@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-version = "0.0.1b1"
-
 dependencies {
     compileOnly HikariCP
     compileOnly MongoDB_driver_sync

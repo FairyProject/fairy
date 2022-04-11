@@ -22,8 +22,6 @@
  * SOFTWARE.
  */
 
-apply from: "$parent.projectDir/parent.gradle"
-
 dependencies {
     compileOnly Mongojack
     compileOnly MongoDB_driver_sync

@@ -1,7 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
 
-version = project(":").version
-
 dependencies {
     implementation project(":io.fairyproject.bootstraps:bootstrap")
     compileOnly project(":io.fairyproject.platforms:app-platform")

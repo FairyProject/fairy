@@ -53,6 +53,9 @@ public class Fairy {
     }
 
     public String getFairyPackage() {
+        if (Debug.UNIT_TEST) {
+            return "io.fairyproject";
+        }
         return Fairy.getMainPlugin().getDescription().getShadedPackage() + "." + PACKAGE_NAME;
     }
 

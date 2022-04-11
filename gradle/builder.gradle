@@ -32,10 +32,12 @@ project.afterEvaluate(p -> {
         // XSeries
         exclude("com/cryptomorin/xseries/messages/*")
 
-        relocate("com.github.retrooper.packetevents", "io.fairyproject.protocol.packetevents")
-        relocate("com.cryptomorin.xseries", "io.fairyproject.bukkit.xseries")
+        Properties props = new Properties()
+        props.load(new FileInputStream(file("$rootProject.rootDir/gradle/relocate.properties")))
 
-        relocate "net.kyori", relocate + "kyori"
+        for (def prop in props) [
+                relocate(prop.key.toString(), prop.value.toString())
+        ]
     }
 })
 

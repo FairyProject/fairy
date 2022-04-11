@@ -20,7 +20,7 @@ import java.net.URL;
 public class MavenUtil {
 
     private final String VERSION_URL = "https://maven.imanity.dev/service/rest/v1/search/assets?repository=imanity-libraries&group=<group>&name=<module>&sort=version&maven.extension=jar";
-    private final String ITEM_URL = "https://maven.imanity.dev/service/rest/v1/search?repository=imanity-libraries&group=io.fairyproject&name=<module>";
+    private final String ITEM_URL = "https://maven.imanity.dev/service/rest/v1/search?repository=imanity-libraries&group=io.fairyproject&name=<module>&version=<version>";
 
     public String getLatest(String module) throws IOException {
         if (FairyPlugin.IS_IN_IDE) {
@@ -62,18 +62,14 @@ public class MavenUtil {
         return "0.5.2b3";
     }
 
-    public void addExistingModule(FairyExtension extension, String from, @Nullable String version) throws IOException {
-        if (version == null) {
-            version = getLatest(from);
-        }
-        extension.getFairyModules().put(from, version);
-    }
-
-    public boolean isExistingModule(String from) throws IOException {
+    public boolean isExistingModule(String module, String version) throws IOException {
         if (FairyPlugin.IS_IN_IDE) {
-            return IDEDependencyLookup.getIdentityPath(from) != null;
+            return IDEDependencyLookup.getIdentityPath(module) != null;
         }
-        final java.net.URL url = new URL(ITEM_URL.replace("<module>", from));
+        final java.net.URL url = new URL(ITEM_URL
+                .replace("<module>", module)
+                .replace("<version>", version)
+        );
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setDoInput(true);
         connection.setRequestMethod("GET");

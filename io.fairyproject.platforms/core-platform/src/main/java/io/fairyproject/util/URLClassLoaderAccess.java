@@ -1,15 +1,16 @@
 package io.fairyproject.util;
 
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import io.github.toolfactory.narcissus.Narcissus;
+import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Collection;
-
-import javax.annotation.Nonnull;
 
 /**
  * Provides access to {@link URLClassLoader}#addURL.
@@ -25,6 +26,8 @@ public abstract class URLClassLoaderAccess {
     public static URLClassLoaderAccess create(URLClassLoader classLoader) {
         if (Reflection.isSupported()) {
             return new Reflection(classLoader);
+        } else if (NarcissusUnsafe.isSupported()) {
+            return new NarcissusUnsafe(classLoader);
         } else if (Unsafe.isSupported()) {
             return new Unsafe(classLoader);
         } else {
@@ -82,6 +85,44 @@ public abstract class URLClassLoaderAccess {
             } catch (ReflectiveOperationException e) {
                 throw new RuntimeException(e);
             }
+        }
+    }
+
+    private static class NarcissusUnsafe extends URLClassLoaderAccess {
+
+        private final Collection<URL> unopenedURLs;
+        private final Collection<URL> pathURLs;
+
+        protected NarcissusUnsafe(URLClassLoader classLoader) {
+            super(classLoader);
+
+            Collection<URL> unopenedURLs;
+            Collection<URL> pathURLs;
+            try {
+                Object ucp = NarcissusUnsafe.fetchField(URLClassLoader.class, classLoader, "ucp");
+                unopenedURLs = (Collection<URL>) NarcissusUnsafe.fetchField(ucp.getClass(), ucp, "unopenedUrls");
+                pathURLs = (Collection<URL>) NarcissusUnsafe.fetchField(ucp.getClass(), ucp, "path");
+            } catch (Throwable e) {
+                unopenedURLs = null;
+                pathURLs = null;
+            }
+            this.unopenedURLs = unopenedURLs;
+            this.pathURLs = pathURLs;
+        }
+
+        public static boolean isSupported() {
+            return Narcissus.libraryLoaded;
+        }
+
+        private static Object fetchField(final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
+            Field field = Narcissus.findField(clazz, name);
+            return Narcissus.getField(object, field);
+        }
+
+        @Override
+        public void addURL(@NotNull URL url) {
+            this.unopenedURLs.add(url);
+            this.pathURLs.add(url);
         }
     }
 

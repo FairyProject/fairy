@@ -7,6 +7,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.jvm.tasks.Jar;
 
 import java.util.*;
@@ -21,11 +22,13 @@ public class ModulePlugin implements Plugin<Project> {
         final ModuleExtension extension = project.getExtensions().create("module", ModuleExtension.class);
         final ModuleTask task = project.getTasks().create("module", ModuleTask.class);
         final PublishSnapshotTask publishSnapshotDevTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotDev");
+        final PublishSnapshotTask publishSnapshotLocalTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotLocal");
         final PublishSnapshotTask publishSnapshotProductionTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotProduction");
 
         final Configuration configuration = project.getConfigurations().maybeCreate("module");
         project.afterEvaluate(p -> {
             publishSnapshotDevTask.setModuleTask(task);
+            publishSnapshotLocalTask.setModuleTask(task);
             publishSnapshotProductionTask.setModuleTask(task);
 
             p.getConfigurations().getByName("compileClasspath").extendsFrom(configuration);
@@ -48,7 +51,9 @@ public class ModulePlugin implements Plugin<Project> {
                 if (library.getRepository() != null) {
                     p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
                 }
-                configuration.getDependencies().add(project.getDependencies().create(library.getDependency()));
+                final Dependency dependency = project.getDependencies().create(library.getDependency());
+                configuration.getDependencies().add(dependency);
+                p.getDependencies().add("testImplementation", dependency);
             }
 
             Jar jar;
@@ -116,7 +121,9 @@ public class ModulePlugin implements Plugin<Project> {
                     if (library.getRepository() != null) {
                         this.project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
                     }
-                    fairyModuleConfiguration.getDependencies().add(project.getDependencies().create(library.getDependency()));
+                    final Dependency dependency = project.getDependencies().create(library.getDependency());
+                    fairyModuleConfiguration.getDependencies().add(dependency);
+                    project.getDependencies().add("testImplementation", dependency);
                 }
                 for (String depend : extension.getDepends().get()) {
                     list.add(Pair.of(depend, this.project.project(MODULE_PREFIX + depend)));

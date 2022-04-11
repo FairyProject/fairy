@@ -1,5 +1,3 @@
-apply from: "$parent.projectDir/parent.gradle"
-
 dependencies {
     compileOnly project.spigot()
 }

@@ -22,15 +22,15 @@ public class FileGeneratorFairy implements FileGenerator {
         }
 
         JsonArray jsonArray = new JsonArray();
-        final Map<String, String> modules = extension.getFairyModules();
-        if (modules != null) {
-            for (Map.Entry<String, String> module : modules.entrySet()) {
-                jsonArray.add(module.getKey() + ":" + module.getValue());
-            }
-        }
-        for (Map.Entry<String, String> entry : otherModules.entrySet()) {
-            jsonArray.add(entry.getKey() + ":" + entry.getValue());
-        }
+//        final Map<String, String> modules = extension.getFairyModules();
+//        if (modules != null) {
+//            for (Map.Entry<String, String> module : modules.entrySet()) {
+//                jsonArray.add(module.getKey() + ":" + module.getValue());
+//            }
+//        }
+//        for (Map.Entry<String, String> entry : otherModules.entrySet()) {
+//            jsonArray.add(entry.getKey() + ":" + entry.getValue());
+//        }
         jsonObject.add("modules", jsonArray);
 
         final Gson gson = new GsonBuilder().setPrettyPrinting().create();

@@ -64,10 +64,6 @@ public abstract class FairyPlatform {
     }
 
     public void load() {
-        if (Narcissus.libraryLoaded) {
-
-        }
-
         this.libraryHandler = new LibraryHandler();
         this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();

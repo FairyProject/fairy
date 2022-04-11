@@ -8,22 +8,10 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Getter
 public class FairyExtension {
-
-    private static String LATEST = "0.5.2b3";
-
-    static {
-        try {
-            LATEST = MavenUtil.getLatest("core-platform");
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
-    }
 
     // Fairy
     private final Property<String> fairyVersion;
@@ -46,12 +34,12 @@ public class FairyExtension {
     private final Property<Boolean> localRepo;
 
     private final Map<PlatformType, Map<String, String>> nodes;
-    private final Map<String, String> fairyModules;
+    private final List<String> fairyModules;
 
     @Inject
     public FairyExtension(ObjectFactory objectFactory) {
         // Fairy
-        this.fairyVersion = objectFactory.property(String.class).convention(LATEST);
+        this.fairyVersion = objectFactory.property(String.class);
         this.fairyPlatforms = objectFactory.listProperty(PlatformType.class).convention(Collections.singleton(PlatformType.BUKKIT));
 
         // Libraries
@@ -69,7 +57,7 @@ public class FairyExtension {
         this.authors = objectFactory.listProperty(String.class).convention(Collections.emptyList());
 
         this.nodes = new HashMap<>();
-        this.fairyModules = new HashMap<>();
+        this.fairyModules = new ArrayList<>();
     }
 
     public void bukkitApi(String api) {
@@ -86,42 +74,22 @@ public class FairyExtension {
 
     public void module(String name) {
         FairyPlugin.INSTANCE.checkIdeIdentityState();
-
         FairyPlugin.QUEUE.add(() -> {
             try {
                 String module = null;
                 for (PlatformType platformType : this.fairyPlatforms.get()) {
-                    module = platformType.searchModuleName(name);
+                    module = platformType.searchModuleName(name, this.fairyVersion.get());
                     if (module != null) {
                         break;
                     }
                 }
-                if (module == null) {
-                    throw new IllegalArgumentException("Couldn't find module " + name);
-                }
-                MavenUtil.addExistingModule(this, module, null);
-            } catch (Exception ex) {
-                SneakyThrow.sneaky(ex);
-            }
-        });
-    }
-
-    public void module(String name, String version) {
-        FairyPlugin.INSTANCE.checkIdeIdentityState();
-
-        FairyPlugin.QUEUE.add(() -> {
-            try {
-                String module = null;
-                for (PlatformType platformType : this.fairyPlatforms.get()) {
-                    module = platformType.searchModuleName(name);
-                    if (module != null) {
-                        break;
-                    }
+                if (this.localRepo.get() && module == null) {
+                    module = name;
                 }
                 if (module == null) {
                     throw new IllegalArgumentException("Couldn't find module " + name);
                 }
-                MavenUtil.addExistingModule(this, module, version);
+                this.getFairyModules().add(module);
             } catch (Exception ex) {
                 SneakyThrow.sneaky(ex);
             }
