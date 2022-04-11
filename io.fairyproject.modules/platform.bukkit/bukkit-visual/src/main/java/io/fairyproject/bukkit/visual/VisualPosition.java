@@ -31,7 +31,7 @@ import io.fairyproject.mc.util.BlockPosition;
 @Getter
 public class VisualPosition extends BlockPosition {
 
-    private VisualType type;
+    private final VisualType type;
 
     public VisualPosition(int x, int y, int z, String world, VisualType type) {
         super(x, y ,z);

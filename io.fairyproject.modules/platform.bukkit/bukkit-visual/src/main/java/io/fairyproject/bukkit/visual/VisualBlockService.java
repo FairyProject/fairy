@@ -24,17 +24,30 @@
 
 package io.fairyproject.bukkit.visual;
 
-import com.google.common.base.Predicate;
+import com.cryptomorin.xseries.XMaterial;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.player.movement.MovementListener;
+import io.fairyproject.bukkit.util.CoordXZ;
+import io.fairyproject.bukkit.util.CoordinatePair;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
 import io.fairyproject.bukkit.visual.type.VisualType;
+import io.fairyproject.bukkit.visual.util.VisualUtil;
+import io.fairyproject.container.PreDestroy;
+import io.fairyproject.container.Service;
+import io.fairyproject.mc.util.BlockPosition;
+import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginListenerAdapter;
+import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.task.Task;
+import io.fairyproject.task.TaskRunnable;
+import io.fairyproject.util.terminable.Terminable;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
@@ -43,25 +56,15 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
-import io.fairyproject.container.Service;
-import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.mc.util.BlockPosition;
-import io.fairyproject.bukkit.util.CoordXZ;
-import io.fairyproject.bukkit.util.CoordinatePair;
-import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginListenerAdapter;
-import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.task.Task;
-import io.fairyproject.task.TaskRunnable;
-import io.fairyproject.util.terminable.Terminable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Predicate;
 
-@Service(name = "visualBlockService")
+@Service
 public class VisualBlockService implements TaskRunnable {
 
     private static final Logger LOGGER = LogManager.getLogger(VisualBlockService.class);
@@ -74,19 +77,21 @@ public class VisualBlockService implements TaskRunnable {
     private final VisualBlockGenerator mainGenerator;
     private final Map<Plugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
 
+    private boolean destroyed;
+
     public VisualBlockService() {
         this.claimPositionTable = HashBasedTable.create();
         this.claimCache = CacheBuilder.newBuilder()
                 .maximumSize(8000)
                 .build(new CacheLoader<CoordinatePair, Optional<VisualBlockClaim>>() {
                     @Override
-                    public Optional<VisualBlockClaim> load(CoordinatePair coordinatePair) {
-                        final int chunkX = coordinatePair.getX() >> 4;
-                        final int chunkZ = coordinatePair.getZ() >> 4;
-                        final int posX = coordinatePair.getX() % 16;
-                        final int posZ = coordinatePair.getZ() % 16;
+                    public Optional<VisualBlockClaim> load(@NotNull CoordinatePair key) {
+                        final int chunkX = key.getX() >> 4;
+                        final int chunkZ = key.getZ() >> 4;
+                        final int posX = key.getX() % 16;
+                        final int posZ = key.getZ() % 16;
                         synchronized (claimPositionTable) {
-                            return Optional.ofNullable(claimPositionTable.get(new CoordinatePair(coordinatePair.getWorldName(), chunkX, chunkZ), new CoordXZ((byte) posX, (byte) posZ)));
+                            return Optional.ofNullable(claimPositionTable.get(new CoordinatePair(key.getWorldName(), chunkX, chunkZ), new CoordXZ((byte) posX, (byte) posZ)));
                         }
                     }
                 });
@@ -110,7 +115,7 @@ public class VisualBlockService implements TaskRunnable {
 
             for (int x = toX - 7; x < toX + 7; x++) {
                 for (int z = toZ - 7; z < toZ + 7; z++) {
-                    final VisualBlockClaim color = getTeamAt(location.getWorld(), x, z);
+                    final VisualBlockClaim color = getClaimAt(location.getWorld(), x, z);
                     PreHandleVisualClaimEvent claimEvent = new PreHandleVisualClaimEvent(player, color);
 
                     Events.call(claimEvent);
@@ -157,6 +162,11 @@ public class VisualBlockService implements TaskRunnable {
         });
     }
 
+    @PreDestroy
+    public void onPreDestroy() {
+        this.destroyed = true;
+    }
+
     public void registerGenerator(VisualBlockGenerator blockGenerator) {
         Plugin plugin = PluginManager.INSTANCE.getPluginByClass(blockGenerator.getClass());
 
@@ -196,7 +206,7 @@ public class VisualBlockService implements TaskRunnable {
 
     public void clearAll(final Player player, final boolean send) {
         table.rowMap().remove(player.getUniqueId());
-        Imanity.IMPLEMENTATION.clearFakeBlocks(player, send);
+        VisualUtil.clearFakeBlocks(player, send);
     }
 
     public void clearVisualType(final Player player, final VisualType visualType, final boolean send) {
@@ -211,17 +221,17 @@ public class VisualBlockService implements TaskRunnable {
                 final VisualPosition blockPosition = entry.getKey();
                 final VisualBlock visualBlock = entry.getValue();
                 final VisualType blockVisualType = visualBlock.getVisualType();
-                if (blockVisualType.equals(visualType) && (predicate == null || predicate.apply(visualBlock))) {
+                if (blockVisualType.equals(visualType) && (predicate == null || predicate.test(visualBlock))) {
                     removeFromClient.add(blockPosition);
                     currentBlocks.remove(blockPosition);
                 }
             }
         }
-        Imanity.IMPLEMENTATION.setFakeBlocks(player, Collections.emptyMap(), removeFromClient, send);
+        VisualUtil.setFakeBlocks(player, Collections.emptyMap(), removeFromClient, send);
     }
 
-    public Map<BlockPosition, MaterialData> addVisualType(final Player player, final Collection<VisualPosition> locations, final boolean send) {
-        final Map<BlockPosition, MaterialData> sendToClient = new HashMap<>();
+    public Map<BlockPosition, XMaterial> addVisualType(final Player player, final Collection<VisualPosition> locations, final boolean send) {
+        final Map<BlockPosition, XMaterial> sendToClient = new HashMap<>();
         locations.removeIf(blockPosition -> {
             final World world = player.getWorld();
             final Block block = world.getBlockAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
@@ -229,20 +239,19 @@ public class VisualBlockService implements TaskRunnable {
             return material.isSolid();
         });
         synchronized (table) {
-            final Iterator<VisualPosition> iterator = locations.iterator();
             for (VisualPosition blockPosition : locations) {
                 VisualType visualType = blockPosition.getType();
-                VisualBlockData visualBlockData = visualType.generate(player, blockPosition);
-                sendToClient.put(blockPosition, visualBlockData);
-                table.put(player.getUniqueId(), blockPosition, new VisualBlock(visualType, visualBlockData, blockPosition));
+                XMaterial material = visualType.generate(player, blockPosition);
+                sendToClient.put(blockPosition, material);
+                table.put(player.getUniqueId(), blockPosition, new VisualBlock(visualType, material, blockPosition));
             }
         }
-        Imanity.IMPLEMENTATION.setFakeBlocks(player, sendToClient, Collections.emptyList(), send);
+        VisualUtil.setFakeBlocks(player, sendToClient, Collections.emptyList(), send);
         return sendToClient;
     }
 
-    public Map<BlockPosition, MaterialData> setVisualType(final Player player, final Collection<VisualPosition> locations, final boolean send) {
-        final Map<BlockPosition, MaterialData> sendToClient = new HashMap<>();
+    public Map<BlockPosition, XMaterial> setVisualType(final Player player, final Collection<VisualPosition> locations, final boolean send) {
+        final Map<BlockPosition, XMaterial> sendToClient = new HashMap<>();
         final List<BlockPosition> removeFromClient = new ArrayList<>();
         locations.removeIf(blockPosition -> {
             final World world = player.getWorld();
@@ -265,20 +274,20 @@ public class VisualBlockService implements TaskRunnable {
             }
             for (VisualPosition blockPosition : locations) {
                 VisualType visualType = blockPosition.getType();
-                VisualBlockData visualBlockData = visualType.generate(player, blockPosition);
-                sendToClient.put(blockPosition, visualBlockData);
-                table.put(player.getUniqueId(), blockPosition, new VisualBlock(visualType, visualBlockData, blockPosition));
+                XMaterial material = visualType.generate(player, blockPosition);
+                sendToClient.put(blockPosition, material);
+                table.put(player.getUniqueId(), blockPosition, new VisualBlock(visualType, material, blockPosition));
             }
         }
-        Imanity.IMPLEMENTATION.setFakeBlocks(player, sendToClient, removeFromClient, send);
+        VisualUtil.setFakeBlocks(player, sendToClient, removeFromClient, send);
         return sendToClient;
     }
 
     public VisualBlockClaim getClaimAt(final Location location) {
-        return getTeamAt(location.getWorld(), location.getBlockX(), location.getBlockZ());
+        return getClaimAt(location.getWorld(), location.getBlockX(), location.getBlockZ());
     }
 
-    public VisualBlockClaim getTeamAt(final World world, final int x, final int z) {
+    public VisualBlockClaim getClaimAt(final World world, final int x, final int z) {
         try {
             return claimCache.get(new CoordinatePair(world, x, z)).orElse(null);
         } catch (final Exception exception) {
@@ -299,7 +308,7 @@ public class VisualBlockService implements TaskRunnable {
         }
 
         PreHandleVisualEvent event = new PreHandleVisualEvent(player);
-        Imanity.callEvent(event);
+        Events.call(event);
 
         if (event.isCancelled()) {
             return;
@@ -318,7 +327,6 @@ public class VisualBlockService implements TaskRunnable {
     }
 
     public List<Vector> getEdges(VisualBlockClaim claim) {
-
         final int minX = Math.min(claim.getMinX(), claim.getMaxX());
         final int maxX = Math.max(claim.getMinX(), claim.getMaxX());
         final int minZ = Math.min(claim.getMinZ(), claim.getMaxZ());
@@ -345,7 +353,6 @@ public class VisualBlockService implements TaskRunnable {
             result.add(new Vector(maxX, maxY, z));
         }
         return result;
-
     }
 
     public void addVisualTask(Player player, VisualTask task) {
@@ -359,6 +366,11 @@ public class VisualBlockService implements TaskRunnable {
 
     @Override
     public void run(Terminable terminable) {
+        if (destroyed) {
+            terminable.closeAndReportException();
+            return;
+        }
+
         VisualTask visualTask;
         while ((visualTask = visualTasks.poll()) != null) {
             this.setVisualType(visualTask.getPlayer(), visualTask.getBlockPositions(), true);

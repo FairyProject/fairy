@@ -2,4 +2,6 @@ dependencies {
     compileOnly project.spigot()
 }
 
-module {}
+module {
+    depend("platform.bukkit:bukkit-xseries")
+}
