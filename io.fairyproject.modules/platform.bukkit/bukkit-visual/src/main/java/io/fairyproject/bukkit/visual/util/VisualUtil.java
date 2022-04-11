@@ -147,7 +147,8 @@ public class VisualUtil {
 
         public int getId(XMaterial material) {
             final Object blockState = FROM_LEGACY_DATA.invoke(null, material.parseMaterial(), material.getData());
-            return (int) GET_ID.invoke(null, blockState);
+            final Object invoke = GET_ID.invoke(null, blockState);
+            return (int) invoke;
         }
 
         public static boolean isCapable() {
