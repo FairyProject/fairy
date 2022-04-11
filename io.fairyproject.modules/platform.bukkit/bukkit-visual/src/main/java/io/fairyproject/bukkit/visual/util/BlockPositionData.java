@@ -22,40 +22,25 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.visual;
+package io.fairyproject.bukkit.visual.util;
 
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.MaterialData;
+import com.cryptomorin.xseries.XMaterial;
+import io.fairyproject.mc.util.BlockPosition;
 
-public class VisualBlockData extends MaterialData {
-	public VisualBlockData(final Material type) {
-		super(type);
-	}
+public class BlockPositionData {
+    private final BlockPosition blockPosition;
+    private final XMaterial material;
 
-	public VisualBlockData(final Material type, final byte data) {
-		super(type, data);
-	}
+    public BlockPositionData(BlockPosition blockPosition, XMaterial material) {
+        this.blockPosition = blockPosition;
+        this.material = material;
+    }
 
-	public Material getBlockType() {
-		return getItemType();
-	}
+    public BlockPosition getBlockPosition() {
+        return this.blockPosition;
+    }
 
-	@Override
-	@Deprecated
-	public Material getItemType() {
-		return super.getItemType();
-	}
-
-	@Override
-	@Deprecated
-	public ItemStack toItemStack() {
-		throw new UnsupportedOperationException("This is a VisualBlock data");
-	}
-
-	@Override
-	@Deprecated
-	public ItemStack toItemStack(final int amount) {
-		throw new UnsupportedOperationException("This is a VisualBlock data");
-	}
+    public XMaterial getMaterial() {
+        return this.material;
+    }
 }

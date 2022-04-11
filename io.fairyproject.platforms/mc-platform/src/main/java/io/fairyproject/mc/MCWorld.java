@@ -10,6 +10,10 @@ public interface MCWorld {
 
     <T> T as(Class<T> worldClass);
 
+    int getMaxY();
+
+    int getMaxSectionY();
+
     @UtilityClass
     class Companion {
         public Bridge BRIDGE;

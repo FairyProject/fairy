@@ -18,4 +18,14 @@ public class BukkitMCWorld implements MCWorld {
         }
         return worldClass.cast(this.world);
     }
+
+    @Override
+    public int getMaxY() {
+        return this.world.getMaxHeight();
+    }
+
+    @Override
+    public int getMaxSectionY() {
+        return (this.getMaxY() - 1) >> 4;
+    }
 }

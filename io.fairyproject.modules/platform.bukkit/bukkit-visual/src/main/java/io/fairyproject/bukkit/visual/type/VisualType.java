@@ -24,15 +24,15 @@
 
 package io.fairyproject.bukkit.visual.type;
 
+import com.cryptomorin.xseries.XMaterial;
 import org.bukkit.entity.Player;
 import io.fairyproject.mc.util.BlockPosition;
-import io.fairyproject.bukkit.visual.VisualBlockData;
 
 public abstract class VisualType {
 	@Deprecated
-    VisualBlockData generate(final Player player, final int x, final int y, final int z) {
+	XMaterial generate(final Player player, final int x, final int y, final int z) {
 		return generate(player, new BlockPosition(x, y, z));
 	}
 
-	public abstract VisualBlockData generate(Player paramPlayer, BlockPosition paramLocation);
+	public abstract XMaterial generate(Player paramPlayer, BlockPosition paramLocation);
 }
