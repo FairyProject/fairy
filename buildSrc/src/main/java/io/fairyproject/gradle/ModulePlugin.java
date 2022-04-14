@@ -60,12 +60,17 @@ public class ModulePlugin implements Plugin<Project> {
                 p.getDependencies().add("testImplementation", dependency);
             }
 
-            for (Lib library : extension.getLibraries().getOrElse(Collections.emptyList())) {
+            for (Map.Entry<Lib, Boolean> libraryEntry : extension.getLibraries().getOrElse(Collections.emptyMap()).entrySet()) {
+                final Lib library = libraryEntry.getKey();
                 if (library.getRepository() != null) {
                     p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
                 }
                 final Dependency dependency = project.getDependencies().create(library.getDependency());
-                p.getDependencies().add("implementation", dependency);
+                if (libraryEntry.getValue()) {
+                    p.getDependencies().add("implementation", dependency);
+                } else {
+                    p.getDependencies().add("compileOnlyApi", dependency);
+                }
                 p.getDependencies().add("testImplementation", dependency);
             }
 

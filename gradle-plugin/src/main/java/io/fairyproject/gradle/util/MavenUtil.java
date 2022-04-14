@@ -63,7 +63,7 @@ public class MavenUtil {
                     && cachedHash != null
                     && Arrays.equals(cachedHash, hash)) {
                 recreate = false;
-                System.out.println("Loaded dependency cache from " + file);
+                System.out.println("Loaded dependency cache from " + file + ".");
             }
         }
 
@@ -83,7 +83,7 @@ public class MavenUtil {
         Files.write(CACHE_FILE, FairyPlugin.GSON.toJson(CACHE).getBytes(), StandardOpenOption.CREATE);
     }
 
-    public String getLatest(String module) throws IOException {
+    public String getLatest(String module) {
         if (FairyPlugin.IS_IN_IDE) {
             final String identityPath = IDEDependencyLookup.getIdentityPath(module);
 
@@ -208,9 +208,7 @@ public class MavenUtil {
     }
 
     private interface ThrowingSupplier<R> {
-
         R accept() throws Throwable;
-
     }
 
     public static MessageDigest createDigest() {

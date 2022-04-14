@@ -12,6 +12,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @Builder
@@ -27,7 +28,10 @@ public class ModuleExtensionSerializable implements Serializable {
                 .depends(extension.getDepends().get())
                 .subDepends(extension.getSubDepends().get())
                 .platforms(extension.getPlatforms().get())
-                .libraries(extension.getLibraries().get())
+                .libraries(extension.getLibraries().get().entrySet().stream()
+                        .filter(entry -> !entry.getValue())
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList()))
                 .exclusives(extension.getExclusives().get())
                 .build();
     }

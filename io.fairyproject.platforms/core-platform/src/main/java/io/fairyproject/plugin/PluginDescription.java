@@ -22,8 +22,6 @@ public class PluginDescription {
     private final String mainClass;
     private final String shadedPackage;
     @Singular
-    private final List<Pair<String, String>> modules;
-    @Singular
     private final List<Library> libraries;
 
     public PluginDescription(JsonObject jsonObject) {
@@ -34,14 +32,6 @@ public class PluginDescription {
         this.name = jsonObject.get("name").getAsString();
         this.mainClass = jsonObject.get("mainClass").getAsString();
         this.shadedPackage = jsonObject.get("shadedPackage").getAsString();
-
-        this.modules = new ArrayList<>();
-        if (jsonObject.has("modules")) {
-            for (JsonElement jsonElement : jsonObject.getAsJsonArray("modules")) {
-                final String[] entry = jsonElement.getAsString().split(":");
-                this.modules.add(Pair.of(entry[0], entry[1]));
-            }
-        }
 
         this.libraries = new ArrayList<>();
         if (jsonObject.has("libraries")) {
