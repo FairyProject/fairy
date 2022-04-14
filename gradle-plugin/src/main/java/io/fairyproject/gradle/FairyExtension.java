@@ -27,6 +27,7 @@ public class FairyExtension {
     private final Property<String> description;
     private final Property<Boolean> libraryMode;
     private final ListProperty<String> authors;
+    private final ListProperty<String> libraries;
 
     // Specify for debug
     private final Property<Boolean> fairyIde;
@@ -53,6 +54,7 @@ public class FairyExtension {
         this.localRepo = objectFactory.property(Boolean.class).convention(false);
         this.libraryMode = objectFactory.property(Boolean.class).convention(false);
         this.authors = objectFactory.listProperty(String.class).convention(Collections.emptyList());
+        this.libraries = objectFactory.listProperty(String.class).convention(Collections.emptyList());
 
         this.nodes = new HashMap<>();
         this.fairyModules = new ArrayList<>();
@@ -96,6 +98,10 @@ public class FairyExtension {
 
     public void platform(String platformName) {
         this.fairyPlatforms.add(PlatformType.valueOf(platformName.toUpperCase()));
+    }
+
+    public void library(String library) {
+        this.libraries.add(library);
     }
 
     public Map<String, String> properties(PlatformType type) {

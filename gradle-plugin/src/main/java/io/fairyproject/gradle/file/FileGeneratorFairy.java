@@ -1,10 +1,9 @@
 package io.fairyproject.gradle.file;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.fairyproject.gradle.FairyBuildData;
+import io.fairyproject.gradle.FairyPlugin;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Project;
 
@@ -23,18 +22,9 @@ public class FileGeneratorFairy implements FileGenerator {
         }
 
         JsonArray jsonArray = new JsonArray();
-//        final Map<String, String> modules = extension.getFairyModules();
-//        if (modules != null) {
-//            for (Map.Entry<String, String> module : modules.entrySet()) {
-//                jsonArray.add(module.getKey() + ":" + module.getValue());
-//            }
-//        }
-//        for (Map.Entry<String, String> entry : otherModules.entrySet()) {
-//            jsonArray.add(entry.getKey() + ":" + entry.getValue());
-//        }
-        jsonObject.add("modules", jsonArray);
+        extension.getLibraries().forEach(jsonArray::add);
+        jsonObject.add("libraries", jsonArray);
 
-        final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return Pair.of("fairy.json", gson.toJson(jsonObject).getBytes(StandardCharsets.UTF_8));
+        return Pair.of("fairy.json", FairyPlugin.GSON.toJson(jsonObject).getBytes(StandardCharsets.UTF_8));
     }
 }
