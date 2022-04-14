@@ -41,6 +41,7 @@ pluginBundle {
 
 repositories {
     maven { url "https://maven.imanity.dev/repository/imanity-libraries/" }
+    maven { url "https://plugins.gradle.org/m2/" }
 }
 
 dependencies {
@@ -57,6 +58,7 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:3.12.0'
     implementation 'org.ow2.asm:asm:9.2'
     implementation 'org.ow2.asm:asm-commons:9.2'
+    implementation 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
 
     compileOnly project(":shared")
 

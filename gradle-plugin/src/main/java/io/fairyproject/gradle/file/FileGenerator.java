@@ -1,13 +1,15 @@
 package io.fairyproject.gradle.file;
 
-import io.fairyproject.gradle.FairyExtension;
+import io.fairyproject.gradle.FairyBuildData;
 import org.apache.commons.lang3.tuple.Pair;
+import org.gradle.api.Project;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.Map;
 
 public interface FileGenerator {
 
-    @Nullable Pair<String, byte[]> generate(FairyExtension extension, @Nullable String mainClassPath, Map<String, String> otherModules);
+    @Nullable Pair<String, byte[]> generate(Project project, FairyBuildData extension, @Nullable String mainClassPath, List<String> otherModules);
 
 }

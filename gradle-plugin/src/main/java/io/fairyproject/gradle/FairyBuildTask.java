@@ -1,29 +1,26 @@
 package io.fairyproject.gradle;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 import com.google.common.io.ByteStreams;
 import io.fairyproject.gradle.file.*;
-import io.fairyproject.gradle.relocator.JarRelocator;
-import io.fairyproject.gradle.relocator.Relocation;
 import io.fairyproject.gradle.util.ParallelThreadingUtil;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.Optional;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ForkJoinPool;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -31,10 +28,8 @@ import java.util.jar.JarOutputStream;
 @Getter
 @Setter
 @CacheableTask
-public class FairyTask extends DefaultTask {
+public class FairyBuildTask extends DefaultTask {
 
-    private static final String PLUGIN_CLASS_PATH = "io/fairyproject/plugin/Plugin";
-    private static final String APPLICATION_CLASS_PATH = "io/fairyproject/app/Application";
     private static final List<ClassModifier> MODIFIERS = ImmutableList.of(
             new ClassModifierEvent(),
             new ClassModifierCancellable()
@@ -49,13 +44,10 @@ public class FairyTask extends DefaultTask {
     private String classifier;
 
     @Input
-    private List<Relocation> relocations;
+    private FairyBuildData extension;
 
     @Input
-    private FairyExtension extension;
-
-    @Input
-    private Map<String, String> dependModules;
+    private List<String> dependModules;
 
     @Input
     private Multimap<String, String> exclusions;
@@ -66,24 +58,46 @@ public class FairyTask extends DefaultTask {
     @Internal
     private transient final ReentrantLock lock = new ReentrantLock();
 
+    @Internal
+    private String pluginClass;
+
+    @Internal
+    private String appClass;
+
+    @Internal
+    private File outputFileInternal;
+
+    public FairyBuildTask() {
+        super();
+    }
+
+    @OutputFile
+    public File getOutputFile() {
+        if (this.outputFileInternal == null) {
+            int index = inJar.getName().lastIndexOf('.');
+            String fileName = inJar.getName().substring(0, index);
+            if (classifier != null && fileName.endsWith("-" + classifier)) {
+                fileName = fileName.substring(0, fileName.length() - ("-" + classifier).length());
+                final File dest = new File(inJar.getParentFile(), fileName + "-shadow" + inJar.getName().substring(index));
+                inJar.renameTo(dest);
+                inJar = dest;
+
+                index = inJar.getName().lastIndexOf('.');
+            }
+            String name = fileName + (classifier == null ? "" : "-" + classifier) + inJar.getName().substring(index);
+            this.outputFileInternal = new File(inJar.getParentFile(), name);
+        }
+        return this.outputFileInternal;
+    }
+
     @TaskAction
     public void run() throws IOException {
-        int index = inJar.getName().lastIndexOf('.');
-        String fileName = inJar.getName().substring(0, index);
-        if (classifier != null && fileName.endsWith("-" + classifier)) {
-            fileName = fileName.substring(0, fileName.length() - ("-" + classifier).length());
-            final File dest = new File(inJar.getParentFile(), fileName + "-shadow" + inJar.getName().substring(index));
-            inJar.renameTo(dest);
-            inJar = dest;
+        this.pluginClass = this.extension.getMainPackage().replace('.', '/') + "/fairy/plugin/Plugin";
+        this.appClass = this.extension.getMainPackage().replace('.', '/') + "/fairy/app/Application";
 
-            index = inJar.getName().lastIndexOf('.');
-        }
-        String name = fileName + (classifier == null ? "" : "-" + classifier) + inJar.getName().substring(index);
-        File outJar = new File(inJar.getParentFile(), name);
+        final File outJar = this.getOutputFile();
 
-        File tempOutJar = File.createTempFile(name, ".jar");
-
-        try (JarOutputStream out = new JarOutputStream(new FileOutputStream(tempOutJar))) {
+        try (JarOutputStream out = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(outJar)))) {
             try (JarFile jarFile = new JarFile(inJar)) {
                 ParallelThreadingUtil.invokeAll(jarFile.entries(), t -> {
                     try {
@@ -93,34 +107,25 @@ public class FairyTask extends DefaultTask {
                     }
                 });
             }
-        }
 
-        final Boolean libraryMode = extension.getLibraryMode().get();
-        if (mainClass == null && !libraryMode) {
-            System.out.println("No main class found! Is there something wrong?");
-        }
-
-        try (JarOutputStream out = new JarOutputStream(new BufferedOutputStream(new FileOutputStream(outJar)))) {
-            if (!libraryMode) {
-                JarRelocator jarRelocator = new JarRelocator(tempOutJar, out, this.relocations, ImmutableSet.of());
-                jarRelocator.run();
-            } else {
-                Files.write(outJar.toPath(), Files.readAllBytes(tempOutJar.toPath()));
+            final boolean libraryMode = extension.isLibraryMode();
+            if (mainClass == null && !libraryMode) {
+                System.out.println("No main class found! Is there something wrong?");
             }
 
-            for (PlatformType platformType : this.extension.getFairyPlatforms().get()) {
+            for (PlatformType platformType : this.extension.getFairyPlatforms()) {
                 final FileGenerator fileGenerator = platformType.createFileGenerator();
                 if (fileGenerator == null)
                     continue;
 
-                final Pair<String, byte[]> pair = fileGenerator.generate(this.extension, mainClass, this.dependModules);
+                final Pair<String, byte[]> pair = fileGenerator.generate(this.getProject(), this.extension, this.mainClass, this.dependModules);
                 if (pair != null) {
                     out.putNextEntry(new JarEntry(pair.getLeft()));
                     out.write(pair.getRight());
                 }
             }
 
-            final Pair<String, byte[]> pair = new FileGeneratorFairy().generate(this.extension, mainClass, this.dependModules);
+            final Pair<String, byte[]> pair = new FileGeneratorFairy().generate(this.getProject(), this.extension, this.mainClass, this.dependModules);
             if (pair != null) {
                 out.putNextEntry(new JarEntry(pair.getLeft()));
                 out.write(pair.getRight());
@@ -132,17 +137,17 @@ public class FairyTask extends DefaultTask {
         if (shouldExclude(jarEntry)) {
             return;
         }
-        byte[] bytes = null;
+        byte[] bytes = ByteStreams.toByteArray(jarFile.getInputStream(jarEntry));
 
         if (jarEntry.getName().endsWith(".class")) {
             // Read class through ASM
-            ClassReader classReader = new ClassReader(ByteStreams.toByteArray(jarFile.getInputStream(jarEntry)));
+            ClassReader classReader = new ClassReader(bytes);
             ClassNode classNode = new ClassNode();
 
             classReader.accept(classNode, ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
             // is Main Plugin class
-            if (classNode.superName != null && (classNode.superName.equals(PLUGIN_CLASS_PATH) || classNode.superName.equals(APPLICATION_CLASS_PATH))) {
+            if (classNode.superName != null && (classNode.superName.equals(this.pluginClass) || classNode.superName.equals(this.appClass))) {
                 if (mainClass != null) {
                     throw new IllegalStateException("Multiple main class found! (Current: " + mainClass + ", Another: " + classNode.name + ")");
                 }
@@ -161,9 +166,6 @@ public class FairyTask extends DefaultTask {
             }
         }
 
-        if (bytes == null) {
-            bytes = ByteStreams.toByteArray(jarFile.getInputStream(jarEntry));
-        }
         this.lock.lock();
         try {
             out.putNextEntry(new JarEntry(jarEntry.getName()));
@@ -184,7 +186,7 @@ public class FairyTask extends DefaultTask {
 
         for (Map.Entry<String, String> entry : this.exclusions.entries()) {
             if (jarEntry.getName().startsWith(entry.getKey())) {
-                if (!this.dependModules.containsKey(entry.getValue())) {
+                if (!this.dependModules.contains(entry.getValue())) {
                     return true;
                 }
             }

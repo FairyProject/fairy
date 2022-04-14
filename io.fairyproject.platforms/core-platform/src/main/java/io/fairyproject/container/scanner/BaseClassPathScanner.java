@@ -42,7 +42,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
     protected CompletableFuture<ScanResult> buildClassScanner() {
         final ClassGraph classGraph = new ClassGraph()
                 .enableAllInfo()
-                .verbose(false);
+                .verbose(ContainerContext.SHOW_LOGS);
 
         for (String classPath : classPaths) {
             // Only search package in the main class loader
@@ -53,8 +53,12 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
             classGraph.rejectPackages(classPath);
         }
 
-        classGraph.overrideClasspath(urls);
-        classGraph.overrideClassLoaders(classLoaders.toArray(new ClassLoader[0]));
+        if (!urls.isEmpty()) {
+            classGraph.overrideClasspath(urls);
+        }
+        if (!classLoaders.isEmpty()) {
+            classGraph.overrideClassLoaders(classLoaders.toArray(new ClassLoader[0]));
+        }
 
         CompletableFuture<ScanResult> future = new CompletableFuture<>();
         final ListenableFuture<ScanResult> scanResultFuture = (ListenableFuture<ScanResult>) classGraph.scanAsync(ContainerContext.EXECUTOR, 4);

@@ -4,21 +4,22 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.fairyproject.gradle.FairyExtension;
+import io.fairyproject.gradle.FairyBuildData;
 import org.apache.commons.lang3.tuple.Pair;
+import org.gradle.api.Project;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.util.List;
 
 public class FileGeneratorFairy implements FileGenerator {
     @Override
-    public Pair<String, byte[]> generate(FairyExtension extension, String mainClass, Map<String, String> otherModules) {
+    public Pair<String, byte[]> generate(Project project, FairyBuildData extension, String mainClass, List<String> otherModules) {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("name", extension.getName().get());
+        jsonObject.addProperty("name", extension.getName());
         if (mainClass != null) {
             jsonObject.addProperty("mainClass", mainClass);
-            jsonObject.addProperty("shadedPackage", extension.getMainPackage().get());
+            jsonObject.addProperty("shadedPackage", extension.getMainPackage());
         }
 
         JsonArray jsonArray = new JsonArray();

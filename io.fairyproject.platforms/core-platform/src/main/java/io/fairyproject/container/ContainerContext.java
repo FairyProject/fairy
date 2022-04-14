@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
@@ -128,9 +129,12 @@ public class ContainerContext {
         try {
             final ClassPathScanner classPathScanner = this.scanClasses()
                     .name("framework")
-                    .url(this.getClass().getProtectionDomain().getCodeSource().getLocation())
-                    .classLoader(ContainerContext.class.getClassLoader())
                     .classPath(Fairy.getFairyPackage());
+            if (!Debug.UNIT_TEST) {
+                classPathScanner
+                        .url(this.getClass().getProtectionDomain().getCodeSource().getLocation())
+                        .classLoader(ContainerContext.class.getClassLoader());
+            }
             classPathScanner.scanBlocking();
 
             if (classPathScanner.getException() != null) {

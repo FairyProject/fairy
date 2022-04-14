@@ -25,7 +25,6 @@ public class FairyExtension {
     private final Property<String> mainPackage;
     private final Property<String> name;
     private final Property<String> description;
-    private final Property<String> version;
     private final Property<Boolean> libraryMode;
     private final ListProperty<String> authors;
 
@@ -50,7 +49,6 @@ public class FairyExtension {
         this.mainPackage = objectFactory.property(String.class);
         this.name = objectFactory.property(String.class);
         this.description = objectFactory.property(String.class);
-        this.version = objectFactory.property(String.class);
         this.fairyIde = objectFactory.property(Boolean.class);
         this.localRepo = objectFactory.property(Boolean.class).convention(false);
         this.libraryMode = objectFactory.property(Boolean.class).convention(false);

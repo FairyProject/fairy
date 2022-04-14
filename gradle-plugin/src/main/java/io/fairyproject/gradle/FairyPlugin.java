@@ -1,28 +1,30 @@
 package io.fairyproject.gradle;
 
+import com.github.jengelman.gradle.plugins.shadow.ShadowPlugin;
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.fairyproject.gradle.relocator.Relocation;
-import io.fairyproject.shared.FairyVersion;
 import lombok.Getter;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.plugins.JavaBasePlugin;
-import org.gradle.jvm.tasks.Jar;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
@@ -57,20 +59,20 @@ public class FairyPlugin implements Plugin<Project> {
 
         project.getPlugins().apply(JavaBasePlugin.class);
         project.getPlugins().apply(AspectJPlugin.class);
+        project.getPlugins().apply(ShadowPlugin.class);
 
         project.getConfigurations().all(c -> c.resolutionStrategy(resolutionStrategy -> resolutionStrategy.cacheDynamicVersionsFor(30, TimeUnit.SECONDS)));
 
         final Configuration fairyConfiguration = project.getConfigurations().maybeCreate("fairy");
-        final Configuration downloaderConfiguration = fairyConfiguration.copy();
-        final FairyTask fairyTask = project.getTasks().create("fairyBuild", FairyTask.class);
+        final FairyBuildTask fairyTask = project.getTasks().create("fairyBuild", FairyBuildTask.class);
+
         project.afterEvaluate(p -> {
+            long start = System.currentTimeMillis();
             this.checkIdeIdentityState();
             Runnable runnable;
             while ((runnable = QUEUE.poll()) != null) {
                 runnable.run();
             }
-
-            p.getConfigurations().getByName("compileClasspath").extendsFrom(fairyConfiguration);
 
             if (!IS_IN_IDE) {
                 if (this.extension.getLocalRepo().get()) {
@@ -98,14 +100,11 @@ public class FairyPlugin implements Plugin<Project> {
                     dependency.setTargetConfiguration("shadow");
 
                     fairyConfiguration.getDependencies().add(dependency);
-                    p.getDependencies().add("testImplementation", dependency);
 
                     dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                     dependency.setTargetConfiguration("shadow");
                     fairyConfiguration.getDependencies().add(dependency);
-
                     p.getDependencies().add("aspect", dependency);
-                    p.getDependencies().add("testImplementation", dependency);
 
                     dependency = (ModuleDependency) p.getDependencies().create(p.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-tests")));
                     dependency.setTargetConfiguration("shadow");
@@ -120,11 +119,9 @@ public class FairyPlugin implements Plugin<Project> {
                             this.extension.getFairyVersion().get()
                     ));
                     fairyConfiguration.getDependencies().add(bootstrapDependency);
-                    p.getDependencies().add("testImplementation", bootstrapDependency);
 
                     fairyConfiguration.getDependencies().add(platformDependency);
                     p.getDependencies().add("aspect", platformDependency);
-                    p.getDependencies().add("testImplementation", platformDependency);
                     p.getDependencies().add("testImplementation", String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-tests",
                             this.extension.getFairyVersion().get()
@@ -132,11 +129,6 @@ public class FairyPlugin implements Plugin<Project> {
                 }
             }
 
-            ModuleDependencyTreeLoader dependencyTreeLoader = ModuleDependencyTreeLoader.builder()
-                    .project(project)
-                    .configuration(fairyConfiguration)
-                    .downloaderConfiguration(downloaderConfiguration)
-                    .build();
             this.extension.getFairyModules().forEach(module -> {
                 final Dependency dependency;
                 if (IS_IN_IDE) {
@@ -150,52 +142,12 @@ public class FairyPlugin implements Plugin<Project> {
                     ));
                 }
 
-                try {
-                    dependencyTreeLoader.load(module, dependency);
-                } catch (IOException e) {
-                    throw new IllegalArgumentException("An error occurs while reading dependency", e);
-                }
+                fairyConfiguration.getDependencies().add(dependency);
             });
 
-            Map<String, String> implementationModules = new HashMap<>();
-            for (File file : p.getConfigurations().getByName("runtimeClasspath").copy()) {
-                final JsonObject jsonObject;
-                try {
-                    jsonObject = readModuleData(file.toPath());
-                } catch (Throwable throwable) {
-                    throw new IllegalStateException(throwable);
-                }
-
-                if (jsonObject == null) {
-                    continue;
-                }
-
-                final JsonArray depends = jsonObject.getAsJsonArray("depends");
-                for (JsonElement element : depends) {
-                    final String[] split = element.getAsString().split(":");
-                    String name = split[0];
-                    String version = split[1];
-                    // Always get the latest version if multiple dependencies request same module
-                    implementationModules.compute(name, (ignored, curVersion) -> {
-                        if (curVersion == null) {
-                            return version;
-                        }
-                        final FairyVersion fairyVersion = FairyVersion.parse(curVersion);
-                        if (fairyVersion.isAbove(FairyVersion.parse(version))) {
-                            return curVersion;
-                        } else {
-                            return version;
-                        }
-                    });
-                }
-            }
-
-            Jar jar;
-            try {
-                jar = (Jar) p.getTasks().getByName("shadowJar");
-            } catch (UnknownTaskException ex) {
-                jar = (Jar) p.getTasks().getByName("jar");
-            }
+            ShadowJar jar = p.getTasks()
+                    .withType(ShadowJar.class)
+                    .getByName("shadowJar");
             jar.finalizedBy(fairyTask);
 
             if (platformTypes.contains(PlatformType.APP)) {
@@ -205,24 +157,34 @@ public class FairyPlugin implements Plugin<Project> {
                 jar.getManifest().getAttributes().put("Multi-Release", "true");
             }
 
-            List<Object> list = new ArrayList<>();
+            List<String> implementationModules = new ArrayList<>();
+            Multimap<String, String> exclusives = HashMultimap.create();
             for (File file : fairyConfiguration) {
-                list.add(file.isDirectory() ? file : project.zipTree(file));
+                try (JarFile jarFile = new JarFile(file)) {
+                    final ZipEntry entry = jarFile.getEntry("module.json");
+                    if (entry != null) {
+                        final JsonObject jsonObject = FairyPlugin.GSON.fromJson(new InputStreamReader(jarFile.getInputStream(entry)), JsonObject.class);
+                        final String name = jsonObject.get("name").getAsString();
+
+                        implementationModules.add(name);
+
+                        if (jsonObject.has("exclusives")) {
+                            for (Map.Entry<String, JsonElement> elementEntry : jsonObject.getAsJsonObject("exclusives").entrySet()) {
+                                exclusives.put(elementEntry.getKey(), elementEntry.getValue().getAsString());
+                            }
+                        }
+                    }
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace();
+                }
             }
             jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
-
-            jar.from(list);
-
-            List<Relocation> relocations = new ArrayList<>();
-            if (!this.extension.getLibraryMode().get()) {
-                relocations.add(new Relocation("io.fairyproject", extension.getMainPackage().get() + ".fairy").setOnlyRelocateShaded(true));
-            }
+            jar.relocate("io.fairyproject", extension.getMainPackage().get() + ".fairy");
 
             fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());
             fairyTask.setClassifier(extension.getClassifier().getOrNull());
-            fairyTask.setRelocations(relocations);
-            fairyTask.setExtension(extension);
-            fairyTask.setExclusions(dependencyTreeLoader.getExclusives());
+            fairyTask.setExtension(FairyBuildData.create(extension));
+            fairyTask.setExclusions(exclusives);
             fairyTask.setDependModules(implementationModules);
         });
     }

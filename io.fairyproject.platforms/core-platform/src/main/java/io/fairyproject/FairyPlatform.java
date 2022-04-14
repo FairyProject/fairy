@@ -33,6 +33,8 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
+import io.github.classgraph.ClassGraph;
+import io.github.toolfactory.narcissus.Narcissus;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -64,6 +66,10 @@ public abstract class FairyPlatform {
     }
 
     public void load() {
+        if (Narcissus.libraryLoaded) {
+            ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
+        }
+
         this.libraryHandler = new LibraryHandler();
         this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();

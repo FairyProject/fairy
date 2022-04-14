@@ -1,7 +1,6 @@
 dependencies {
     compileOnly project(":io.fairyproject.platforms:core-platform")
 
-    api "io.github.classgraph:classgraph:4.8.47"
     api "org.junit.platform:junit-platform-runner:1.0.3"
     api "org.junit.platform:junit-platform-suite-api:1.0.3"
     api "org.hamcrest:hamcrest-all:1.3"
