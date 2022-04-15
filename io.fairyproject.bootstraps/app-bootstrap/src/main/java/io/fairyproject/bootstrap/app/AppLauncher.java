@@ -31,13 +31,15 @@ public class AppLauncher {
         }
 
         AppBootstrap bootstrap = new AppBootstrap();
-        ApplicationHolder pluginHolder = new ApplicationHolder(jsonObject);
         AppBootstrap.INSTANCE = bootstrap;
-        if (!bootstrap.load(pluginHolder.getPlugin())) {
+        if (!bootstrap.preload()) {
             System.err.println("Failed to boot fairy! check stacktrace for the reason of failure!");
             System.exit(-1);
             return;
         }
+
+        ApplicationHolder pluginHolder = new ApplicationHolder(jsonObject);
+        bootstrap.load(pluginHolder.getPlugin());
         AppBootstrap.FAIRY_READY = true;
 
         pluginHolder.onLoad();

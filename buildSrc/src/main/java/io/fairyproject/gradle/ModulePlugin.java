@@ -1,6 +1,7 @@
 package io.fairyproject.gradle;
 
 import com.google.gson.Gson;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -8,6 +9,9 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.jvm.tasks.Jar;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 public class ModulePlugin implements Plugin<Project> {
@@ -16,6 +20,7 @@ public class ModulePlugin implements Plugin<Project> {
     protected static final String MODULE_PREFIX = ":io.fairyproject.modules:";
     protected static final String PLATFORM_PREFIX = ":io.fairyproject.platforms:";
 
+    @SneakyThrows
     @Override
     public void apply(Project project) {
         final ModuleExtension extension = project.getExtensions().create("module", ModuleExtension.class);
@@ -24,21 +29,23 @@ public class ModulePlugin implements Plugin<Project> {
         final PublishSnapshotTask publishSnapshotLocalTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotLocal");
         final PublishSnapshotTask publishSnapshotProductionTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotProduction");
 
-        project.afterEvaluate(p -> {
+        project.afterEvaluate(i -> {
             publishSnapshotDevTask.setModuleTask(task);
             publishSnapshotLocalTask.setModuleTask(task);
             publishSnapshotProductionTask.setModuleTask(task);
 
             Map<Lib, Boolean> libs = new HashMap<>(extension.getLibraries().getOrElse(Collections.emptyMap()));
             List<Pair<String, String>> exclusives = new ArrayList<>();
-            for (String module : extension.getDepends().get()) {
-                final Project moduleProject = p.project(MODULE_PREFIX + module);
-                Dependency dependency = p.getDependencies().create(p.project(MODULE_PREFIX + module));
+            for (String moduleName : extension.getDepends().get()) {
+                final Project module = project.project(MODULE_PREFIX + moduleName);
+                project.evaluationDependsOn(MODULE_PREFIX + moduleName);
 
-                p.getDependencies().add("implementation", dependency);
-                p.getDependencies().add("testImplementation", dependency);
+                Dependency dependency = project.getDependencies().create(module);
 
-                final ModuleExtension moduleExtension = moduleProject.getExtensions().getByType(ModuleExtension.class);
+                project.getDependencies().add("implementation", dependency);
+                project.getDependencies().add("testImplementation", dependency);
+
+                final ModuleExtension moduleExtension = module.getExtensions().getByType(ModuleExtension.class);
                 for (Map.Entry<String, String> entry : moduleExtension.getExclusives().get().entrySet()) {
                     exclusives.add(Pair.of(entry.getKey(), entry.getValue()));
                 }
@@ -47,38 +54,39 @@ public class ModulePlugin implements Plugin<Project> {
             }
 
             for (String module : extension.getSubDepends().get()) {
-                final Dependency dependency = p.getDependencies().create(p.project(MODULE_PREFIX + module));
+                final Dependency dependency = project.getDependencies().create(project.project(MODULE_PREFIX + module));
 
-                p.getDependencies().add("compileOnly", dependency);
-                p.getDependencies().add("testImplementation", dependency);
+                project.getDependencies().add("compileOnly", dependency);
+                project.getDependencies().add("testImplementation", dependency);
             }
 
             for (String platform : extension.getPlatforms().get()) {
-                final Dependency dependency = p.getDependencies().create(p.project(PLATFORM_PREFIX + platform + "-platform"));
+                final Dependency dependency = project.getDependencies().create(project.project(PLATFORM_PREFIX + platform + "-platform"));
 
-                p.getDependencies().add("compileOnly", dependency);
-                p.getDependencies().add("testImplementation", dependency);
+                project.getDependencies().add("compileOnly", dependency);
+                project.getDependencies().add("testImplementation", dependency);
             }
 
             for (Map.Entry<Lib, Boolean> libraryEntry : libs.entrySet()) {
                 final Lib library = libraryEntry.getKey();
+
                 if (library.getRepository() != null) {
-                    p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
+                    project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
                 }
                 final Dependency dependency = project.getDependencies().create(library.getDependency());
                 if (libraryEntry.getValue()) {
-                    p.getDependencies().add("implementation", dependency);
+                    project.getDependencies().add("implementation", dependency);
                 } else {
-                    p.getDependencies().add("compileOnlyApi", dependency);
+                    project.getDependencies().add("compileOnlyApi", dependency);
                 }
-                p.getDependencies().add("testImplementation", dependency);
+                project.getDependencies().add("testImplementation", dependency);
             }
 
             Jar jar;
             try {
-                jar = (Jar) p.getTasks().getByName("shadowJar");
+                jar = (Jar) project.getTasks().getByName("shadowJar");
             } catch (UnknownTaskException ex) {
-                jar = (Jar) p.getTasks().getByName("jar");
+                jar = (Jar) project.getTasks().getByName("jar");
             }
             jar.finalizedBy(task);
 

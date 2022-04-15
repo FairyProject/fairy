@@ -64,6 +64,10 @@ public abstract class FairyPlatform {
     public FairyPlatform() {
     }
 
+    public void preload() {
+        this.libraryHandler = new LibraryHandler();
+    }
+
     public void load(Plugin mainPlugin) {
         this.mainPlugin = mainPlugin;
 
@@ -71,7 +75,6 @@ public abstract class FairyPlatform {
             ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
         }
 
-        this.libraryHandler = new LibraryHandler();
         this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();
     }

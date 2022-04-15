@@ -61,8 +61,6 @@ public abstract class TestingBase {
         FairyPlatform fairyPlatform = testingHandle.platform();
         FairyPlatform.INSTANCE = fairyPlatform;
 
-        fairyPlatform.load(plugin);
-
         PluginDescription description = PluginDescription.builder()
                 .name("unitTesting")
                 .shadedPackage(testingHandle.scanPath())
@@ -84,9 +82,13 @@ public abstract class TestingBase {
             }
         };
 
+        fairyPlatform.preload();
+
         CompletableFuture<Plugin> completableFuture = new CompletableFuture<>();
         PluginManager.INSTANCE.onPluginPreLoaded(testingHandle.getClass().getClassLoader(), description, pluginAction, completableFuture);
         completableFuture.complete(plugin);
+
+        fairyPlatform.load(plugin);
 
         if (testingHandle.shouldInitialize()) {
             plugin.initializePlugin(description, pluginAction, plugin.getClass().getClassLoader());

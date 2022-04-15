@@ -42,8 +42,7 @@ public class BukkitImplService {
     }
 
     @PreInitialize
-    public void onPreInit() {
-        System.out.println("======================================================= ServerImpl");
+    public void onPreInitialize() {
         Imanity.IMPLEMENTATION = ServerImplementation.load(this.containerContext);
     }
 

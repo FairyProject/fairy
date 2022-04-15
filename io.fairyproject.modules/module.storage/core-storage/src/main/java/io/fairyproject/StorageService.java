@@ -24,18 +24,15 @@
 
 package io.fairyproject;
 
-import io.fairyproject.container.*;
 import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
+import io.fairyproject.container.*;
 import io.fairyproject.jackson.JacksonService;
-import io.fairyproject.library.Library;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,9 +47,6 @@ public class StorageService {
 
     @PreInitialize
     public void onPreInitialize() {
-        Fairy.getLibraryHandler().downloadLibraries(false, Collections.singletonList(
-                Library.H2_DRIVER
-        ));
         ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
                 .type(RepositoryProvider.class)
                 .onEnable(obj -> {

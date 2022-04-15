@@ -157,6 +157,7 @@ public class LibraryHandler {
                     LOGGER.info("Loaded Library " + library.name() + " v" + library.getVersion());
                 } catch (Throwable throwable) {
                     LOGGER.warn("Unable to load library " + library.getFileName() + ".", throwable);
+                    future.completeExceptionally(throwable);
                 } finally {
                     future.complete(null);
                 }

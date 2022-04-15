@@ -22,7 +22,7 @@ public class FileGeneratorFairy implements FileGenerator {
         }
 
         JsonArray jsonArray = new JsonArray();
-        extension.getLibraries().forEach(jsonArray::add);
+        extension.getLibraries().forEach(lib -> jsonArray.add(lib.toJsonObject()));
         jsonObject.add("libraries", jsonArray);
 
         return Pair.of("fairy.json", FairyPlugin.GSON.toJson(jsonObject).getBytes(StandardCharsets.UTF_8));

@@ -27,7 +27,6 @@ public class FairyExtension {
     private final Property<String> description;
     private final Property<Boolean> libraryMode;
     private final ListProperty<String> authors;
-    private final ListProperty<String> libraries;
 
     // Specify for debug
     private final Property<Boolean> fairyIde;
@@ -35,6 +34,7 @@ public class FairyExtension {
 
     private final Map<PlatformType, Map<String, String>> nodes;
     private final List<String> fairyModules;
+    private final List<Lib> libraries;
 
     @Inject
     public FairyExtension(ObjectFactory objectFactory) {
@@ -54,10 +54,10 @@ public class FairyExtension {
         this.localRepo = objectFactory.property(Boolean.class).convention(false);
         this.libraryMode = objectFactory.property(Boolean.class).convention(false);
         this.authors = objectFactory.listProperty(String.class).convention(Collections.emptyList());
-        this.libraries = objectFactory.listProperty(String.class).convention(Collections.emptyList());
 
         this.nodes = new HashMap<>();
         this.fairyModules = new ArrayList<>();
+        this.libraries = new ArrayList<>();
     }
 
     public void bukkitApi(String api) {
@@ -101,7 +101,11 @@ public class FairyExtension {
     }
 
     public void library(String library) {
-        this.libraries.add(library);
+        this.libraries.add(new Lib(library, null));
+    }
+
+    public void library(String library, String repository) {
+        this.libraries.add(new Lib(library, repository));
     }
 
     public Map<String, String> properties(PlatformType type) {

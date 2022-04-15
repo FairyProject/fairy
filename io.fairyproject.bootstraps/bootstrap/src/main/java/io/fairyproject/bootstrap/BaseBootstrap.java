@@ -12,7 +12,7 @@ public abstract class BaseBootstrap {
     public BaseBootstrap() {
     }
 
-    public final boolean load(Plugin plugin) {
+    public final boolean preload() {
         if (FairyPlatform.class.getClassLoader() != this.getClass().getClassLoader()) {
             return true;
         }
@@ -22,12 +22,24 @@ public abstract class BaseBootstrap {
 
         try {
             this.fairyPlatform = this.createPlatform();
-            this.fairyPlatform.load(plugin);
+            this.fairyPlatform.preload();
         } catch (Throwable throwable) {
             this.onFailure(throwable);
             return false;
         }
+
         return true;
+    }
+
+    public final void load(Plugin plugin) {
+        if (this.fairyPlatform == null) {
+            return;
+        }
+        try {
+            this.fairyPlatform.load(plugin);
+        } catch (Throwable throwable) {
+            this.onFailure(throwable);
+        }
     }
 
     public final void enable() {

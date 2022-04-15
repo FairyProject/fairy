@@ -38,12 +38,13 @@ public final class BukkitPlugin extends JavaPlugin {
         }
 
         this.bootstrap = new BukkitBootstrap();
-        this.pluginHolder = new BukkitPluginHolder(jsonObject);
-        if (!this.bootstrap.load(this.pluginHolder.getPlugin())) {
+        if (!this.bootstrap.preload()) {
             this.getLogger().warning("Failed to boot fairy! check stacktrace for the reason of failure!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
+        this.pluginHolder = new BukkitPluginHolder(jsonObject);
+        this.bootstrap.load(this.pluginHolder.getPlugin());
         this.pluginHolder.onLoad();
 
         this.loaded = true;

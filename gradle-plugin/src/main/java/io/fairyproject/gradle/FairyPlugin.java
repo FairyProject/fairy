@@ -23,10 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
@@ -165,7 +162,7 @@ public class FairyPlugin implements Plugin<Project> {
                 jar.getManifest().getAttributes().put("Multi-Release", "true");
             }
 
-            List<String> libraries = new ArrayList<>();
+            Set<Lib> libraries = new HashSet<>();
             List<String> modules = new ArrayList<>();
             Multimap<String, String> exclusives = HashMultimap.create();
             for (File file : fairyConfiguration) {
@@ -185,7 +182,8 @@ public class FairyPlugin implements Plugin<Project> {
 
                         if (jsonObject.has("libraries")) {
                             for (JsonElement element : jsonObject.getAsJsonArray("libraries")) {
-                                libraries.add(element.getAsString());
+                                final JsonObject library = element.getAsJsonObject();
+                                libraries.add(Lib.fromJsonObject(library));
                             }
                         }
                     }
@@ -202,10 +200,13 @@ public class FairyPlugin implements Plugin<Project> {
                 project.getDependencies().add("testImplementation", dependency);
             }
 
-            libraries.addAll(extension.getLibraries().get());
-            for (String library : libraries) {
-                project.getDependencies().add("compileOnly", library);
-                project.getDependencies().add("testImplementation", library);
+            libraries.addAll(extension.getLibraries());
+            for (Lib library : libraries) {
+                if (library.getRepository() != null) {
+                    project.getRepositories().add(project.getRepositories().maven(repo -> repo.setUrl(library.getRepository())));
+                }
+                project.getDependencies().add("compileOnly", library.getDependency());
+                project.getDependencies().add("testImplementation", library.getDependency());
             }
 
             fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());

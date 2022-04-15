@@ -3,6 +3,7 @@ package io.fairyproject.mc.protocol;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.PostDestroy;
 import io.fairyproject.container.PostInitialize;
@@ -10,6 +11,7 @@ import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.impl.BukkitPacketEventsBuilder;
+import io.fairyproject.mc.protocol.impl.mock.MockPacketEventsBuilder;
 import lombok.Getter;
 
 @Getter
@@ -28,12 +30,16 @@ public class MCProtocol {
     public void onPreInitialize() {
         PacketEventsBuilder packetEventsBuilder;
 
-        switch (Fairy.getPlatform().getPlatformType()) {
-            case BUKKIT:
-                packetEventsBuilder = new BukkitPacketEventsBuilder();
-                break;
-            default:
-                throw new UnsupportedOperationException("The current platform aren't supported for protocol module.");
+        if (Debug.UNIT_TEST) {
+            packetEventsBuilder = new MockPacketEventsBuilder();
+        } else {
+            switch (Fairy.getPlatform().getPlatformType()) {
+                case BUKKIT:
+                    packetEventsBuilder = new BukkitPacketEventsBuilder();
+                    break;
+                default:
+                    throw new UnsupportedOperationException("The current platform aren't supported for protocol module.");
+            }
         }
 
         this.packetEvents = packetEventsBuilder.build();

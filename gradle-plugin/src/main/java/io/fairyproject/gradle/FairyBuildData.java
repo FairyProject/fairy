@@ -1,5 +1,6 @@
 package io.fairyproject.gradle;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Builder;
 import lombok.Data;
 
@@ -10,14 +11,15 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Data
 @Builder
 public class FairyBuildData implements Serializable {
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 3L;
 
-    public static FairyBuildData create(FairyExtension fairyExtension, List<String> libraries) {
+    public static FairyBuildData create(FairyExtension fairyExtension, Set<Lib> libraries) {
         return FairyBuildData.builder()
                 .fairyVersion(fairyExtension.getFairyVersion().get())
                 .fairyPlatforms(fairyExtension.getFairyPlatforms().get())
@@ -32,7 +34,7 @@ public class FairyBuildData implements Serializable {
                 .localRepo(fairyExtension.getLocalRepo().get())
                 .nodes(fairyExtension.getNodes())
                 .fairyModules(fairyExtension.getFairyModules())
-                .libraries(libraries)
+                .libraries(ImmutableList.copyOf(libraries))
                 .build();
     }
 
@@ -49,7 +51,7 @@ public class FairyBuildData implements Serializable {
     private String description;
     private boolean libraryMode;
     private List<String> authors;
-    private List<String> libraries;
+    private List<Lib> libraries;
 
     // Specify for debug
     private boolean fairyIde;

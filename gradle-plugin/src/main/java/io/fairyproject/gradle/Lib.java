@@ -24,6 +24,15 @@ public class Lib implements Serializable {
     @Nullable
     private String repository;
 
+    public static Lib fromJsonObject(JsonObject jsonObject) {
+        String dependency = jsonObject.get("dependency").getAsString();
+        String repository = null;
+        if (jsonObject.has("repository")) {
+            repository = jsonObject.get("repository").getAsString();
+        }
+        return new Lib(dependency, repository);
+    }
+
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("dependency", this.dependency);
