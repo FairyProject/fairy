@@ -27,6 +27,8 @@ package io.fairyproject.bukkit.util.items;
 import com.cryptomorin.xseries.SkullUtils;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import io.fairyproject.bukkit.nbt.NBTKey;
+import io.fairyproject.bukkit.nbt.NBTModifier;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -39,7 +41,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.bukkit.util.nms.NBTEditor;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -190,8 +191,13 @@ public class ItemBuilder implements Listener, Cloneable {
 		return this;
 	}
 
+	@Deprecated
 	public ItemBuilder tag(Object value, String... key) {
-		this.itemStack = NBTEditor.set(this.itemStack, value, key);
+		return tag(NBTKey.create(key), value);
+	}
+
+	public ItemBuilder tag(NBTKey key, Object value) {
+		this.itemStack = NBTModifier.get().setTag(this.itemStack, key, value);
 		return this;
 	}
 

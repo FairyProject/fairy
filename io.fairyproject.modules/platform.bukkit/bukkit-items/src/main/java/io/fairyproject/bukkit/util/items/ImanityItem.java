@@ -33,9 +33,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import io.fairyproject.container.Autowired;
+import io.fairyproject.bukkit.nbt.NBTKey;
+import io.fairyproject.bukkit.nbt.NBTModifier;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
-import io.fairyproject.bukkit.util.nms.NBTEditor;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.PlaceholderEntry;
@@ -69,6 +69,7 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
     private static final Map<Plugin, List<ImanityItem>> PLUGIN_TO_ITEMS = new ConcurrentHashMap<>();
     private static final AtomicInteger UNNAMED_ITEM_COUNTER = new AtomicInteger(0);
     private static final Logger LOGGER = LogManager.getLogger(ImanityItem.class);
+    private static final NBTKey KEY = NBTKey.create("imanity", "item", "id");
 
     private Plugin plugin;
 
@@ -114,11 +115,11 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
             return null;
         }
 
-        if (!NBTEditor.contains(itemStack, "imanity", "item", "id")) {
+        if (!NBTModifier.get().has(itemStack, KEY)) {
             return null;
         }
 
-        return NBTEditor.getString(itemStack, "imanity", "item", "id");
+        return NBTModifier.get().getString(itemStack, KEY);
     }
 
     @Deprecated
@@ -314,9 +315,7 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
         if (!this.submitted) {
             return itemBuilder.build();
         }
-        return itemBuilder
-                .tag(this.id, "imanity", "item", "id")
-                .build();
+        return itemBuilder.tag(KEY, this.id).build();
     }
 
     @Override
