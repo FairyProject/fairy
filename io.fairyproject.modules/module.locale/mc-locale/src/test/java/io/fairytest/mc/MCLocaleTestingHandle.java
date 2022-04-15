@@ -13,8 +13,8 @@ public class MCLocaleTestingHandle implements TestingHandle {
     }
 
     @Override
-    public FairyPlatform platform(Plugin plugin) {
-        return new FairyTestingPlatform(plugin);
+    public FairyPlatform platform() {
+        return new FairyTestingPlatform();
     }
 
     @Override

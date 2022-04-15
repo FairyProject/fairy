@@ -58,10 +58,10 @@ public abstract class TestingBase {
 
         Debug.UNIT_TEST = true;
         final Plugin plugin = testingHandle.plugin();
-        FairyPlatform fairyPlatform = testingHandle.platform(plugin);
+        FairyPlatform fairyPlatform = testingHandle.platform();
         FairyPlatform.INSTANCE = fairyPlatform;
 
-        fairyPlatform.load();
+        fairyPlatform.load(plugin);
 
         PluginDescription description = PluginDescription.builder()
                 .name("unitTesting")

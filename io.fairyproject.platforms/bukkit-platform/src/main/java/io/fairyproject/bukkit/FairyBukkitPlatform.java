@@ -65,19 +65,19 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         return this.compositeTerminable.bind(terminable);
     }
 
-    public FairyBukkitPlatform(io.fairyproject.plugin.Plugin plugin, File dataFolder) {
-        super(plugin);
+    public FairyBukkitPlatform(File dataFolder) {
         FairyPlatform.INSTANCE = this;
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
+
+        PluginManager.initialize(new BukkitPluginHandler());
     }
 
     @Override
-    public void load() {
-        super.load();
+    public void load(io.fairyproject.plugin.Plugin plugin) {
+        super.load(plugin);
 
-        PluginManager.initialize(new BukkitPluginHandler());
         MinecraftReflection.init();
         this.createMCInitializer().apply();
     }

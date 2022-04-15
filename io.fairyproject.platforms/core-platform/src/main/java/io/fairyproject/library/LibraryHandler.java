@@ -24,11 +24,10 @@
 
 package io.fairyproject.library;
 
+import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.library.classloader.IsolatedClassLoader;
-import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginListenerAdapter;
-import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.plugin.*;
 import io.fairyproject.util.FairyThreadFactory;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.URLClassLoaderAccess;
@@ -71,6 +70,12 @@ public class LibraryHandler {
 
         if (PluginManager.isInitialized()) {
             PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
+                @Override
+                public void onPluginPreLoaded(ClassLoader classLoader, PluginDescription description, PluginAction action, CompletableFuture<Plugin> completableFuture) {
+                    if (Debug.UNIT_TEST) return;
+                    downloadLibraries(true, description.getLibraries());
+                }
+
                 @Override
                 public void onPluginInitial(Plugin plugin) {
                     final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) plugin.getPluginClassLoader());

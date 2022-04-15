@@ -7,14 +7,12 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseBootstrap {
 
-    protected final Plugin plugin;
     private FairyPlatform fairyPlatform;
 
-    public BaseBootstrap(Plugin plugin) {
-        this.plugin = plugin;
+    public BaseBootstrap() {
     }
 
-    public final boolean load() {
+    public final boolean load(Plugin plugin) {
         if (FairyPlatform.class.getClassLoader() != this.getClass().getClassLoader()) {
             return true;
         }
@@ -24,7 +22,7 @@ public abstract class BaseBootstrap {
 
         try {
             this.fairyPlatform = this.createPlatform();
-            this.fairyPlatform.load();
+            this.fairyPlatform.load(plugin);
         } catch (Throwable throwable) {
             this.onFailure(throwable);
             return false;

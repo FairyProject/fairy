@@ -16,8 +16,8 @@ import java.nio.file.Path;
 @Getter
 class BukkitBootstrap extends BaseBootstrap {
 
-    public BukkitBootstrap(Plugin plugin) {
-        super(plugin);
+    public BukkitBootstrap() {
+        super();
     }
 
     @Override
@@ -35,6 +35,6 @@ class BukkitBootstrap extends BaseBootstrap {
 
     @Override
     protected FairyPlatform createPlatform() {
-        return new FairyBukkitPlatform(this.plugin, BukkitPlugin.INSTANCE.getDataFolder());
+        return new FairyBukkitPlatform(BukkitPlugin.INSTANCE.getDataFolder());
     }
 }

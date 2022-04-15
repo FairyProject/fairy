@@ -18,7 +18,6 @@ public class PluginTest extends TestingBase {
                 .name("test")
                 .mainClass("io.fairytest.plugin.PluginMock")
                 .shadedPackage("io.fairytest.plugin")
-                .module(Pair.of("module.command", "0.0.1b1"))
                 .build();
 
         JsonObject jsonObject;

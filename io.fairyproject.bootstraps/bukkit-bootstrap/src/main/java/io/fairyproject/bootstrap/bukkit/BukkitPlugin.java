@@ -37,10 +37,9 @@ public final class BukkitPlugin extends JavaPlugin {
             throw new IllegalArgumentException("Unable to load " + FAIRY_JSON_PATH, throwable);
         }
 
+        this.bootstrap = new BukkitBootstrap();
         this.pluginHolder = new BukkitPluginHolder(jsonObject);
-
-        this.bootstrap = new BukkitBootstrap(this.pluginHolder.getPlugin());
-        if (!this.bootstrap.load()) {
+        if (!this.bootstrap.load(this.pluginHolder.getPlugin())) {
             this.getLogger().warning("Failed to boot fairy! check stacktrace for the reason of failure!");
             Bukkit.getPluginManager().disablePlugin(this);
             return;

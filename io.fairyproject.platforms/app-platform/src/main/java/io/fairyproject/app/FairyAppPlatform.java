@@ -3,7 +3,6 @@ package io.fairyproject.app;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
-import io.fairyproject.library.Library;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
@@ -16,8 +15,6 @@ import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.jar.JarFile;
 
@@ -34,8 +31,7 @@ public class FairyAppPlatform extends FairyPlatform {
     private final Object shutdownLock = new Object();
     private boolean shuttingDown;
 
-    public FairyAppPlatform(Plugin plugin) {
-        super(plugin);
+    public FairyAppPlatform() {
         FairyPlatform.INSTANCE = this;
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
         this.mainThread = Thread.currentThread();
@@ -43,8 +39,8 @@ public class FairyAppPlatform extends FairyPlatform {
     }
 
     @Override
-    public void load() {
-        super.load();
+    public void load(Plugin plugin) {
+        super.load(plugin);
 
         PluginManager.initialize(new AppPluginHandler());
     }

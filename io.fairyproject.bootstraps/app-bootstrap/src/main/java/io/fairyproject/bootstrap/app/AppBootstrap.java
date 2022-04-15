@@ -12,8 +12,8 @@ public class AppBootstrap extends BaseBootstrap {
     public static AppBootstrap INSTANCE;
     public static boolean FAIRY_READY = false;
 
-    public AppBootstrap(Plugin plugin) {
-        super(plugin);
+    public AppBootstrap() {
+        super();
     }
 
     @Override
@@ -31,6 +31,6 @@ public class AppBootstrap extends BaseBootstrap {
 
     @Override
     protected FairyPlatform createPlatform() {
-        return new FairyAppPlatform(plugin);
+        return new FairyAppPlatform();
     }
 }

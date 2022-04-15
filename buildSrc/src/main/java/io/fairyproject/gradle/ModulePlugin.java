@@ -8,10 +8,7 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.jvm.tasks.Jar;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ModulePlugin implements Plugin<Project> {
 
@@ -32,6 +29,7 @@ public class ModulePlugin implements Plugin<Project> {
             publishSnapshotLocalTask.setModuleTask(task);
             publishSnapshotProductionTask.setModuleTask(task);
 
+            Map<Lib, Boolean> libs = new HashMap<>(extension.getLibraries().getOrElse(Collections.emptyMap()));
             List<Pair<String, String>> exclusives = new ArrayList<>();
             for (String module : extension.getDepends().get()) {
                 final Project moduleProject = p.project(MODULE_PREFIX + module);
@@ -44,6 +42,8 @@ public class ModulePlugin implements Plugin<Project> {
                 for (Map.Entry<String, String> entry : moduleExtension.getExclusives().get().entrySet()) {
                     exclusives.add(Pair.of(entry.getKey(), entry.getValue()));
                 }
+
+                libs.putAll(moduleExtension.getLibraries().get());
             }
 
             for (String module : extension.getSubDepends().get()) {
@@ -60,7 +60,7 @@ public class ModulePlugin implements Plugin<Project> {
                 p.getDependencies().add("testImplementation", dependency);
             }
 
-            for (Map.Entry<Lib, Boolean> libraryEntry : extension.getLibraries().getOrElse(Collections.emptyMap()).entrySet()) {
+            for (Map.Entry<Lib, Boolean> libraryEntry : libs.entrySet()) {
                 final Lib library = libraryEntry.getKey();
                 if (library.getRepository() != null) {
                     p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
@@ -83,7 +83,7 @@ public class ModulePlugin implements Plugin<Project> {
             jar.finalizedBy(task);
 
             task.setInJar(task.getInJar() != null ? task.getInJar() : jar.getArchiveFile().get().getAsFile());
-            task.setExtension(ModuleExtensionSerializable.create(extension));
+            task.setExtension(ModuleExtensionSerializable.create(extension, libs));
             task.setExclusives(exclusives);
         });
     }

@@ -5,6 +5,7 @@ import io.fairyproject.mc.*;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -54,7 +55,7 @@ public class BukkitMCInitializer implements MCInitializer {
     public MCPlayer.Bridge createPlayerBridge() {
         return new MCPlayer.Bridge() {
             @Override
-            public UUID from(Object obj) {
+            public UUID from(@NotNull Object obj) {
                 return Players.tryGetUniqueId(obj);
             }
 

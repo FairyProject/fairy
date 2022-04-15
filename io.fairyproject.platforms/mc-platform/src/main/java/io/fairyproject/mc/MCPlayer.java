@@ -29,7 +29,10 @@ public interface MCPlayer extends Audience {
     }
 
     @NotNull
-    static <T> MCPlayer from(T originalPlayer) {
+    static <T> MCPlayer from(@Nullable T originalPlayer) {
+        if (originalPlayer == null) {
+            throw new IllegalArgumentException("originalPlayer cannot be null.");
+        }
         return CommonMetadataRegistries
                 .provide(Companion.BRIDGE.from(originalPlayer))
                 .getOrPut(METADATA, () -> Companion.BRIDGE.create(originalPlayer));
@@ -223,7 +226,7 @@ public interface MCPlayer extends Audience {
 
     interface Bridge {
 
-        UUID from(Object obj);
+        UUID from(@NotNull Object obj);
 
         MCPlayer find(UUID uuid);
 

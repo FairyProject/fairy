@@ -30,10 +30,10 @@ public class AppLauncher {
             throw new IllegalArgumentException("Unable to load " + FAIRY_JSON_PATH, throwable);
         }
 
+        AppBootstrap bootstrap = new AppBootstrap();
         ApplicationHolder pluginHolder = new ApplicationHolder(jsonObject);
-        AppBootstrap bootstrap = new AppBootstrap(pluginHolder.getPlugin());
         AppBootstrap.INSTANCE = bootstrap;
-        if (!bootstrap.load()) {
+        if (!bootstrap.load(pluginHolder.getPlugin())) {
             System.err.println("Failed to boot fairy! check stacktrace for the reason of failure!");
             System.exit(-1);
             return;

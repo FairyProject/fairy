@@ -27,12 +27,26 @@ package io.fairyproject.bukkit.impl;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.plugin.PluginHandler;
-import io.fairyproject.reflect.ReflectObject;
+import io.fairyproject.util.AccessUtil;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.PluginClassLoader;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+
 public class BukkitPluginHandler implements PluginHandler {
+
+    private final Field field;
+
+    public BukkitPluginHandler() {
+        try {
+            this.field = PluginClassLoader.class.getDeclaredField("plugin");
+            AccessUtil.setAccessible(field);
+        } catch (Throwable throwable) {
+            throw new RuntimeException(throwable);
+        }
+    }
 
     @Override
     public @Nullable String getPluginByClass(Class<?> type) {
@@ -45,9 +59,8 @@ public class BukkitPluginHandler implements PluginHandler {
 
         try {
             ClassLoader classLoader = type.getClassLoader();
-            ReflectObject reflectObject = new ReflectObject(classLoader);
 
-            Plugin plugin = reflectObject.get("plugin");
+            final Plugin plugin = (Plugin) this.field.get(classLoader);
             return plugin.getName();
         } catch (Throwable ignored) {
             return FairyBukkitPlatform.PLUGIN.getName();

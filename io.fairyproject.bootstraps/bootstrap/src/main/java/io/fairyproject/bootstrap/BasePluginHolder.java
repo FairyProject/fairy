@@ -22,7 +22,7 @@ public abstract class BasePluginHolder {
         PluginDescription pluginDescription = new PluginDescription(jsonObject);
 
         this.classLoader = this.getClassLoader();
-//        PluginManager.INSTANCE.onPluginPreLoaded(this.classLoader, pluginDescription, this.getPluginAction(), this.pluginCompletableFuture);
+        PluginManager.INSTANCE.onPluginPreLoaded(this.classLoader, pluginDescription, this.getPluginAction(), this.pluginCompletableFuture);
 
         this.plugin = this.findMainClass(pluginDescription.getMainClass());
         this.plugin.initializePlugin(pluginDescription, this.getPluginAction(), this.classLoader);

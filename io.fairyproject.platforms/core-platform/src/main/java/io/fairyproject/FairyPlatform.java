@@ -53,7 +53,7 @@ public abstract class FairyPlatform {
 
     public static FairyPlatform INSTANCE;
     private final AtomicBoolean loadedDependencies = new AtomicBoolean();
-    private final Plugin mainPlugin;
+    private Plugin mainPlugin;
 
     private ITaskScheduler taskScheduler;
     private CompositeTerminable compositeTerminable;
@@ -61,11 +61,12 @@ public abstract class FairyPlatform {
     private LibraryHandler libraryHandler;
     private ContainerContext containerContext;
 
-    public FairyPlatform(Plugin mainPlugin) {
-        this.mainPlugin = mainPlugin;
+    public FairyPlatform() {
     }
 
-    public void load() {
+    public void load(Plugin mainPlugin) {
+        this.mainPlugin = mainPlugin;
+
         if (Narcissus.libraryLoaded) {
             ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
         }

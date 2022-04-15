@@ -20,7 +20,7 @@ public class ModuleExtensionSerializable implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public static ModuleExtensionSerializable create(ModuleExtension extension) {
+    public static ModuleExtensionSerializable create(ModuleExtension extension, Map<Lib, Boolean> libraries) {
         return ModuleExtensionSerializable.builder()
                 .name(extension.getName().get())
                 .classPath(extension.getClassPath().get())
@@ -28,7 +28,7 @@ public class ModuleExtensionSerializable implements Serializable {
                 .depends(extension.getDepends().get())
                 .subDepends(extension.getSubDepends().get())
                 .platforms(extension.getPlatforms().get())
-                .libraries(extension.getLibraries().get().entrySet().stream()
+                .libraries(libraries.entrySet().stream()
                         .filter(entry -> !entry.getValue())
                         .map(Map.Entry::getKey)
                         .collect(Collectors.toList()))
