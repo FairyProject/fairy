@@ -3,7 +3,7 @@ package io.fairytest.container.threaded;
 import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.container.scanner.ThreadedClassPathScanner;
-import io.fairyproject.tests.TestingBase;
+import io.fairyproject.tests.base.JUnitJupiterBase;
 import io.fairytest.container.ContainerObjectMock;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ThreadedClassPathScannerTest extends TestingBase {
+public class ThreadedClassPathScannerTest extends JUnitJupiterBase {
 
     @Test
     @Disabled // Test is random and does not necessarily create multiple threads

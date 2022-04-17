@@ -3,7 +3,7 @@ package io.fairytest.container;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.container.scanner.ClassPathScanner;
-import io.fairyproject.tests.TestingBase;
+import io.fairyproject.tests.base.JUnitJupiterBase;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairytest.container.annotated.AnnotatedRegistration;
 import io.fairytest.container.annotated.BeanInterface;
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ContainerTest extends TestingBase {
+public class ContainerTest extends JUnitJupiterBase {
 
     @Test
     public void syncLifeCycle() {

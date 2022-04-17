@@ -3,12 +3,12 @@ package io.fairytest.serializer;
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.container.Containers;
 import io.fairyproject.container.SerializerFactory;
-import io.fairyproject.tests.TestingBase;
+import io.fairyproject.tests.base.JUnitJupiterBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class SerializerFactoryTest extends TestingBase {
+public class SerializerFactoryTest extends JUnitJupiterBase {
 
     @AfterEach
     public void afterEach() {

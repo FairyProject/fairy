@@ -3,14 +3,13 @@ package io.fairytest.plugin;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.fairyproject.plugin.PluginDescription;
-import io.fairyproject.tests.TestingBase;
-import org.apache.commons.lang3.tuple.Pair;
+import io.fairyproject.tests.base.JUnitJupiterBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.InputStreamReader;
 
-public class PluginTest extends TestingBase {
+public class PluginTest extends JUnitJupiterBase {
 
     @Test
     public void descriptionParser() {
