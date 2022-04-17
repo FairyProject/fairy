@@ -24,6 +24,7 @@
 
 package io.fairyproject.locale;
 
+import io.fairyproject.Debug;
 import io.fairyproject.container.*;
 import io.fairyproject.locale.util.YamlResourceBundle;
 import io.fairyproject.mc.MCPlayer;
@@ -69,6 +70,7 @@ public class LocaleService {
     @PostInitialize
     public void onPostInitialize() {
         this.localizationConfiguration = new LocalizationConfiguration();
+        if (Debug.UNIT_TEST) return;
         this.localizationConfiguration.loadAndSave();
     }
 
