@@ -219,6 +219,7 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
         for (ItemBehaviour behaviour : this.behaviours) {
             behaviour.init0(this);
         }
+        this.submitted = true;
         return this;
     }
 

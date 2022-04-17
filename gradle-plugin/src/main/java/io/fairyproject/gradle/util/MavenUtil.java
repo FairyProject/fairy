@@ -56,14 +56,20 @@ public class MavenUtil {
 
         CACHE_FILE = file;
         if (!force && Files.exists(file)) {
-            CACHE = FairyPlugin.GSON.fromJson(new String(Files.readAllBytes(file)), JsonObject.class);
+            try {
+                CACHE = FairyPlugin.GSON.fromJson(new String(Files.readAllBytes(file)), JsonObject.class);
 
-            if (CACHE.has("timestamp")
-                    && timestamp - CACHE.get("timestamp").getAsLong() < MAX_CACHE_TIMESTAMP
-                    && cachedHash != null
-                    && Arrays.equals(cachedHash, hash)) {
+                if (CACHE.has("timestamp")
+                        && timestamp - CACHE.get("timestamp").getAsLong() < MAX_CACHE_TIMESTAMP
+                        && cachedHash != null
+                        && Arrays.equals(cachedHash, hash)) {
+                    recreate = false;
+                    System.out.println("Loaded dependency cache from " + file + ".");
+                }
+            } catch (Throwable throwable) {
+                CACHE = null;
                 recreate = false;
-                System.out.println("Loaded dependency cache from " + file + ".");
+                throwable.printStackTrace();
             }
         }
 
