@@ -31,6 +31,7 @@ import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import io.github.classgraph.ClassGraph;
@@ -38,6 +39,7 @@ import io.github.toolfactory.narcissus.Narcissus;
 import lombok.Getter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -47,7 +49,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
-public abstract class FairyPlatform {
+public abstract class FairyPlatform implements TerminableConsumer {
 
     public static final Logger LOGGER = LogManager.getLogger(FairyPlatform.class);
 
@@ -62,6 +64,9 @@ public abstract class FairyPlatform {
     private ContainerContext containerContext;
 
     public FairyPlatform() {
+        if (Narcissus.libraryLoaded) {
+            ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
+        }
     }
 
     public void preload() {
@@ -70,10 +75,6 @@ public abstract class FairyPlatform {
 
     public void load(Plugin mainPlugin) {
         this.mainPlugin = mainPlugin;
-
-        if (Narcissus.libraryLoaded) {
-            ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
-        }
 
         this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();
@@ -96,6 +97,7 @@ public abstract class FairyPlatform {
 
         this.containerContext.stop();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
+        PluginManager.INSTANCE.unload();
     }
 
     private void loadBindable() {
@@ -104,7 +106,8 @@ public abstract class FairyPlatform {
 //        this.bind(CacheableAspect.UPDATER_SERVICE);
     }
 
-    public <T extends AutoCloseable> T bind(T t) {
+    @Override
+    public <T extends AutoCloseable> @NotNull T bind(T t) {
         return this.compositeTerminable.bind(t);
     }
 

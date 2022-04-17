@@ -21,7 +21,7 @@ public class FairyBuildData implements Serializable {
 
     public static FairyBuildData create(FairyExtension fairyExtension, Set<Lib> libraries) {
         return FairyBuildData.builder()
-                .fairyVersion(fairyExtension.getFairyVersion().get())
+                .fairyVersion(fairyExtension.getFairyVersion().getOrElse(""))
                 .fairyPlatforms(fairyExtension.getFairyPlatforms().get())
                 .aspectJVersion(fairyExtension.getAspectJVersion().get())
                 .classifier(fairyExtension.getClassifier().get())

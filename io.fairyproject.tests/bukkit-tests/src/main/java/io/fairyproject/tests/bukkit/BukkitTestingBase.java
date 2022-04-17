@@ -1,15 +1,14 @@
 package io.fairyproject.tests.bukkit;
 
-import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.MockPlugin;
 import be.seeseemelk.mockbukkit.ServerMock;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.util.JavaPluginUtil;
-import io.fairyproject.tests.TestingBase;
-import io.fairyproject.tests.TestingHandle;
-import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import io.fairyproject.tests.TestingContext;
 import org.junit.jupiter.api.BeforeAll;
 
+/**
+ * @deprecated see {@link io.fairyproject.tests.bukkit.base.BukkitJUnitBase} and {@link io.fairyproject.tests.bukkit.base.BukkitJUnitJupiterBase}
+ */
+@Deprecated
 public abstract class BukkitTestingBase {
 
     protected static ServerMock SERVER;
@@ -17,28 +16,15 @@ public abstract class BukkitTestingBase {
 
     @BeforeAll
     public static void setup() {
-        ThrowingRunnable.sneaky(() -> {
-            if (TestingBase.isInitialized()) {
-                return;
-            }
+        if (TestingContext.get().isInitialized()) {
+            return;
+        }
 
-            ServerMock serverMock = null;
-            TestingHandle testingHandle = TestingBase.findTestingHandle();
-            if (testingHandle instanceof BukkitTestingHandle) {
-                serverMock = ((BukkitTestingHandle) testingHandle).createServerMock();
-            }
+        MockBukkitContext.get().initialize();
+        SERVER = MockBukkitContext.get().getServer();
+        PLUGIN = MockBukkitContext.get().getPlugin();
 
-            if (!MockBukkit.isMocked()) {
-                SERVER = MockBukkit.mock(serverMock == null ? new BukkitServerMockImpl() : serverMock);
-            }
-            PLUGIN = MockBukkit.createMockPlugin();
-
-            FairyBukkitPlatform.PLUGIN = PLUGIN;
-            JavaPluginUtil.setCurrentPlugin(PLUGIN);
-            FairyBukkitTestingPlatform.patchBukkitPlugin(PLUGIN);
-
-            TestingBase.setup(testingHandle);
-        }).run();
+        TestingContext.get().initialize();
     }
 
 }

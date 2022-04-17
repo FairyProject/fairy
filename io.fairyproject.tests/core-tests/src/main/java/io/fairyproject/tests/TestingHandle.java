@@ -16,4 +16,6 @@ public interface TestingHandle {
         return true;
     }
 
+    default void onPreInitialization() {}
+
 }

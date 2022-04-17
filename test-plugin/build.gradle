@@ -24,7 +24,7 @@ fairy {
     fairyIde = true
 
     platform("bukkit")
-    module("locale")
+//    module("locale")
 }
 
 test {

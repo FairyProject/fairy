@@ -35,13 +35,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 
 @Getter
-public class ContainerParameterDetailsConstructor extends ContainerParameterDetailsAbstract {
+public class ContainerParameterConstructor extends ContainerParameterBase {
 
     private final Class<?> type;
     private final Constructor<?> constructor;
 
     @SneakyThrows
-    public ContainerParameterDetailsConstructor(Class<?> type, ContainerContext containerContext) {
+    public ContainerParameterConstructor(Class<?> type) {
         this.type = type;
 
         Constructor<?> constructorRet = null;
@@ -65,7 +65,7 @@ public class ContainerParameterDetailsConstructor extends ContainerParameterDeta
         this.constructor = constructorRet;
         this.parameters = this.constructor.getParameters();
         for (Parameter parameter : this.parameters) {
-            if (!containerContext.isObject(parameter.getType())) {
+            if (!ContainerContext.get().isObject(parameter.getType())) {
                 throw new IllegalArgumentException("The type " + parameter.getType().getName() + " it's not supposed to be in bean constructor!");
             }
         }

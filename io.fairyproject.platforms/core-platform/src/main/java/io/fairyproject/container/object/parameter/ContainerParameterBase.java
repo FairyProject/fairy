@@ -22,16 +22,35 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.items;
+package io.fairyproject.container.object.parameter;
 
-import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.inventory.ItemStack;
+import lombok.Getter;
+import io.fairyproject.container.ContainerContext;
 
-@Deprecated
-public interface ItemPlaceCallback {
+import java.lang.reflect.Parameter;
 
-    boolean onPlace(Player player, ItemStack itemStack, Block block, BlockPlaceEvent event);
+public class ContainerParameterBase implements ContainerParameterDetails {
 
+    @Getter
+    protected Parameter[] parameters;
+
+    @Override
+    public Object[] getParameters(ContainerContext containerContext) {
+        if (this.parameters == null) {
+            throw new IllegalArgumentException("No parameters found!");
+        }
+
+        Object[] parameters = new Object[this.parameters.length];
+
+        for (int i = 0; i < parameters.length; i++) {
+            Object bean = containerContext.getContainerObject(this.parameters[i].getType());
+            if (bean == null) {
+                throw new IllegalArgumentException("Couldn't find bean " + this.parameters[i].getName() + "!");
+            }
+
+            parameters[i] = bean;
+        }
+
+        return parameters;
+    }
 }

@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
 @Getter
-public class ContainerParameterDetailsMethod extends ContainerParameterDetailsAbstract {
+public class ContainerParameterDetailsMethod extends ContainerParameterBase {
 
     private final Method method;
 

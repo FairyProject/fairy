@@ -24,7 +24,7 @@
 
 package io.fairyproject.container;
 
-import io.fairyproject.container.object.parameter.ContainerParameterDetailsConstructor;
+import io.fairyproject.container.object.parameter.ContainerParameterConstructor;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,9 +37,9 @@ public abstract class ComponentHolder {
         return this.newInstance(this.constructorDetails(type));
     }
 
-    public Object newInstance(ContainerParameterDetailsConstructor constructorDetails) {
+    public Object newInstance(ContainerParameterConstructor constructorDetails) {
         try {
-            return constructorDetails.newInstance(ContainerContext.INSTANCE);
+            return constructorDetails.newInstance(ContainerContext.get());
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
         }
@@ -55,8 +55,8 @@ public abstract class ComponentHolder {
 
     public abstract Class<?>[] type();
 
-    public ContainerParameterDetailsConstructor constructorDetails(Class<?> type) {
-        return new ContainerParameterDetailsConstructor(type, ContainerContext.INSTANCE);
+    public ContainerParameterConstructor constructorDetails(Class<?> type) {
+        return new ContainerParameterConstructor(type);
     }
 
     public static Builder builder() {

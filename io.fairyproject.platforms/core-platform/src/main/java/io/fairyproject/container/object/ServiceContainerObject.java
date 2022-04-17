@@ -25,7 +25,7 @@
 package io.fairyproject.container.object;
 
 import io.fairyproject.container.*;
-import io.fairyproject.container.object.parameter.ContainerParameterDetailsConstructor;
+import io.fairyproject.container.object.parameter.ContainerParameterConstructor;
 import io.fairyproject.util.CompletableFutureUtils;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,7 +39,7 @@ import java.util.concurrent.CompletableFuture;
 @Setter
 public class ServiceContainerObject extends RelativeContainerObject {
 
-    private ContainerParameterDetailsConstructor constructorDetails;
+    private ContainerParameterConstructor containerConstructor;
 
     public ServiceContainerObject(Class<?> type, Class<?>[] dependencies) {
         super(type, dependencies);
@@ -48,8 +48,8 @@ public class ServiceContainerObject extends RelativeContainerObject {
     }
 
     public void setupConstruction(ContainerContext containerContext) {
-        this.constructorDetails = new ContainerParameterDetailsConstructor(this.getType(), containerContext);
-        for (Parameter parameter : this.constructorDetails.getParameters()) {
+        this.containerConstructor = new ContainerParameterConstructor(this.getType());
+        for (Parameter parameter : this.containerConstructor.getParameters()) {
             ContainerObject details = containerContext.getObjectDetails(parameter.getType());
 
             ServiceDependencyType type = ServiceDependencyType.FORCE;
@@ -62,7 +62,7 @@ public class ServiceContainerObject extends RelativeContainerObject {
     }
 
     public CompletableFuture<?> build(ContainerContext context) {
-        if (this.constructorDetails == null) {
+        if (this.containerConstructor == null) {
             throw new IllegalArgumentException("The construction for ContainerObject " + this.getType().getName() + " hasn't been called!");
         }
 
@@ -82,7 +82,7 @@ public class ServiceContainerObject extends RelativeContainerObject {
 
     private void buildSync(ContainerContext context) {
         try {
-            this.setInstance(this.constructorDetails.newInstance(context));
+            this.setInstance(this.containerConstructor.newInstance(context));
         } catch (IllegalAccessException | InvocationTargetException | InstantiationException e) {
             throw new RuntimeException(e);
         }

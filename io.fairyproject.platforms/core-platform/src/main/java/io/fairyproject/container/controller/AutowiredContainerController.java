@@ -1,17 +1,16 @@
 package io.fairyproject.container.controller;
 
+import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ContainerHolder;
+import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.reflect.Reflect;
+import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import org.apache.logging.log4j.LogManager;
-import io.fairyproject.container.Autowired;
-import io.fairyproject.container.object.ContainerObject;
-import io.fairyproject.util.AccessUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Collection;
 import java.util.Optional;
 
 public class AutowiredContainerController implements ContainerController {
@@ -71,7 +70,7 @@ public class AutowiredContainerController implements ContainerController {
                 return;
             }
         }
-        Object objectToInject = ContainerContext.INSTANCE.getContainerObject(type);
+        Object objectToInject = ContainerContext.get().getContainerObject(type);
         if (optional) {
             objectToInject = Optional.ofNullable(objectToInject);
         } else if (beanHolder) {

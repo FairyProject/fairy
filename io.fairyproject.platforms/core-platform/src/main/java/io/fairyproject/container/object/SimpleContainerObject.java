@@ -184,6 +184,6 @@ public class SimpleContainerObject implements ContainerObject {
         this.closed = true;
 
         this.onDisable();
-        ContainerContext.INSTANCE.unregisterObject(this);
+        ContainerContext.get().unregisterObject(this);
     }
 }

@@ -67,7 +67,9 @@ public class ContainerContext {
 
     public static boolean SHOW_LOGS = Boolean.getBoolean("fairy.showlog");
     public static boolean SINGLE_THREADED = Runtime.getRuntime().availableProcessors() < 2 || Boolean.getBoolean("fairy.singlethreaded");
-    public static ContainerContext INSTANCE;
+
+    private static ContainerContext INSTANCE;
+
     public static ListeningExecutorService EXECUTOR = ListeningDecorator.create(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
             .setNameFormat("Container Thread - %d")
             .setDaemon(true)
@@ -112,8 +114,13 @@ public class ContainerContext {
             LOGGER.fatal(String.format(msg, replacement), e);
         }
     }
+
     public static SimpleTiming logTiming(String msg) {
         return SimpleTiming.create(time -> log("Ended %s - took %d ms", msg, time));
+    }
+
+    public static ContainerContext get() {
+        return INSTANCE;
     }
 
     /**
@@ -123,6 +130,7 @@ public class ContainerContext {
         INSTANCE = this;
 
         this.registerObject(new SimpleContainerObject(this, this.getClass()));
+        System.out.println(this.isObject(ContainerContext.class));
         log("ContainerContext has been registered as ContainerObject.");
 
         ComponentRegistry.registerComponentHolders();
@@ -169,6 +177,8 @@ public class ContainerContext {
             containerObject.closeAndReportException();
         }
         lifeCycle(LifeCycle.POST_DESTROY, detailsList);
+
+        INSTANCE = null;
     }
 
     public void disableObjectUnchecked(Class<?> type) {

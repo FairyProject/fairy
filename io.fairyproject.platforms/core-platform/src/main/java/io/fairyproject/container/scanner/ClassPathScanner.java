@@ -13,8 +13,6 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class ClassPathScanner {
 
-    public static ContainerContext CONTAINER_CONTEXT = ContainerContext.INSTANCE;
-
     protected String prefix = "";
     protected String scanName;
     protected final List<String> classPaths = new ArrayList<>();

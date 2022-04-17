@@ -67,7 +67,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     }
 
     public CompletableFuture<?> scanComponentAndInjection() {
-        containerObjectList.addAll(ComponentRegistry.scanComponents(CONTAINER_CONTEXT, scanResult, prefix));
+        containerObjectList.addAll(ComponentRegistry.scanComponents(ContainerContext.get(), scanResult, prefix));
         final CompletableFuture<?> future = this.applyAutowiredStaticFields();
 
         this.applyControllers();
@@ -75,7 +75,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     }
 
     private CompletableFuture<?> callInit(LifeCycle lifeCycle) {
-        return CONTAINER_CONTEXT.lifeCycleAsynchronously(lifeCycle, containerObjectList);
+        return ContainerContext.get().lifeCycleAsynchronously(lifeCycle, containerObjectList);
     }
 
     public CompletableFuture<?> scanClasses() {
@@ -96,7 +96,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     }
 
     public void applyControllers() {
-        this.applyControllers(CONTAINER_CONTEXT.getControllers());
+        this.applyControllers(ContainerContext.get().getControllers());
     }
 
     public void applyControllers(ContainerController[] controllers) {

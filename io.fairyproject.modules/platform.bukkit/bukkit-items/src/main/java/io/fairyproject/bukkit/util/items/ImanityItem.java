@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.nbt.NBTKey;
 import io.fairyproject.bukkit.nbt.NBTModifier;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
@@ -79,15 +80,7 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
     private Component displayName;
     private Component displayLore;
 
-    private ItemCallback clickCallback;
-    private ItemPlaceCallback placeCallback;
-
     private final List<ItemBehaviour> behaviours = new ArrayList<>();
-    @Deprecated
-    private final List<PlaceholderEntry> displayNamePlaceholders = new ArrayList<>();
-    @Deprecated
-    private final List<PlaceholderEntry> displayLorePlaceholders = new ArrayList<>();
-
     private final MetadataMap metadataMap;
 
     public static ImanityItemBuilder builder(String id) {
@@ -162,8 +155,6 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
         this.displayName = displayName;
         this.displayLore = displayLore;
         this.behaviours.addAll(behaviours);
-        this.displayNamePlaceholders.addAll(displayNamePlaceholders);
-        this.displayLorePlaceholders.addAll(displayLorePlaceholders);
         this.metadataMap = metadataMap;
     }
 
@@ -199,30 +190,6 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
         return this;
     }
 
-    @Deprecated
-    public ImanityItem appendNameReplace(String target, Function<Player, String> replacement) {
-        this.displayNamePlaceholders.add(PlaceholderEntry.entry(target, replacement));
-        return this;
-    }
-
-    @Deprecated
-    public ImanityItem appendLoreReplace(String target, Function<Player, String> replacement) {
-        this.displayLorePlaceholders.add(PlaceholderEntry.entry(target, replacement));
-        return this;
-    }
-
-    @Deprecated
-    public ImanityItem callback(ItemCallback callback) {
-        this.clickCallback = callback;
-        return this;
-    }
-
-    @Deprecated
-    public ImanityItem placeCallback(ItemPlaceCallback placeCallback) {
-        this.placeCallback = placeCallback;
-        return this;
-    }
-
     public ImanityItem addBehaviour(ItemBehaviour behaviour) {
         this.behaviours.add(behaviour);
         return this;
@@ -239,10 +206,6 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
             throw new IllegalArgumentException("No Item registered!");
         }
 
-        if (this.placeCallback != null && !this.getItemBuilder().getType().isBlock()) {
-            throw new IllegalArgumentException("Registering ItemPlaceCallback but the item isn't a block!");
-        }
-
         if (this.id == null) {
             this.id = "unnamed-item:" + UNNAMED_ITEM_COUNTER.getAndIncrement();
             LOGGER.warn("The Item doesn't have an id! (outdated?)", new Throwable());
@@ -256,8 +219,6 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
         for (ItemBehaviour behaviour : this.behaviours) {
             behaviour.init0(this);
         }
-        this.submitted = true;
-
         return this;
     }
 
@@ -270,12 +231,18 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
         this.unregister();
     }
 
+    @Override
+    public boolean isClosed() {
+        return !this.submitted;
+    }
+
     public void unregister() {
         for (ItemBehaviour behaviour : this.behaviours) {
             behaviour.unregister();
         }
 
         NAME_TO_ITEMS.remove(this.id);
+        this.submitted = false;
     }
 
     public ItemStack get(Player player) {
@@ -296,19 +263,11 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
         ItemBuilder itemBuilder = this.itemBuilder.clone();
         if (displayName != null) {
             String name = MCAdventure.asItemString(displayName, locale);
-            for (PlaceholderEntry rv : this.displayNamePlaceholders) {
-                name = StringUtil.replace(name, rv.getTarget(), rv.getReplacement(player));
-            }
-
             itemBuilder.name(name);
         }
 
         if (displayLore != null) {
             String lore = MCAdventure.asItemString(displayLore, locale);
-            for (PlaceholderEntry rv : this.displayLorePlaceholders) {
-                lore = StringUtil.replace(lore, rv.getTarget(), rv.getReplacement(player));
-            }
-
             itemBuilder.lore(StringUtil.separateLines(lore, "\n"));
         }
 

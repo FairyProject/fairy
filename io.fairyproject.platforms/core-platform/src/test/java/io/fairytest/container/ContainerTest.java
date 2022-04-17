@@ -21,7 +21,7 @@ public class ContainerTest extends TestingBase {
 
     @Test
     public void syncLifeCycle() {
-        final ContainerContext containerContext = ContainerContext.INSTANCE;
+        final ContainerContext containerContext = ContainerContext.get();
         final Thread mainThread = Thread.currentThread();
 
         ThrowingRunnable.sneaky(() -> {
@@ -89,7 +89,7 @@ public class ContainerTest extends TestingBase {
 
     @Test
     public void annotatedBeanRegistration() {
-        final ContainerContext containerContext = ContainerContext.INSTANCE;
+        final ContainerContext containerContext = ContainerContext.get();
 
         ThrowingRunnable.sneaky(() -> {
             final ClassPathScanner classPathScanner = containerContext.scanClasses()

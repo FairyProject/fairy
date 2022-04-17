@@ -48,19 +48,19 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
     private void callInit(LifeCycle lifeCycle, String displayName) throws Exception {
         // Call @PreInitialize methods for ContainerObject
         try (SimpleTiming ignored = logTiming("LifeCycle " + displayName)) {
-            CONTAINER_CONTEXT.lifeCycle(lifeCycle, containerObjectList);
+            ContainerContext.get().lifeCycle(lifeCycle, containerObjectList);
         }
     }
 
     private void scanComponentAndInjection() throws Exception {
         try (SimpleTiming ignored = logTiming("Scanning Components")) {
-            containerObjectList.addAll(ComponentRegistry.scanComponents(CONTAINER_CONTEXT, scanResult, prefix));
+            containerObjectList.addAll(ComponentRegistry.scanComponents(ContainerContext.get(), scanResult, prefix));
         }
 
         // Inject @Autowired fields for ContainerObjects
         try (SimpleTiming ignored = logTiming("Injecting ContainerObjects")) {
             for (ContainerObject containerObject : containerObjectList) {
-                for (ContainerController controller : CONTAINER_CONTEXT.getControllers()) {
+                for (ContainerController controller : ContainerContext.get().getControllers()) {
                     try {
                         controller.applyContainerObject(containerObject);
                     } catch (Throwable throwable) {

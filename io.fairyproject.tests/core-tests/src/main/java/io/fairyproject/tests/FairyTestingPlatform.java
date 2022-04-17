@@ -42,7 +42,7 @@ public class FairyTestingPlatform extends FairyPlatform {
 
     @Override
     public File getDataFolder() {
-        return new File(".");
+        return new File("build/tmp/fairy");
     }
 
     @Override

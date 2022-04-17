@@ -28,6 +28,7 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.plugin.PluginHandler;
 import io.fairyproject.util.AccessUtil;
+import io.github.toolfactory.narcissus.Narcissus;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.java.PluginClassLoader;
@@ -41,7 +42,8 @@ public class BukkitPluginHandler implements PluginHandler {
 
     public BukkitPluginHandler() {
         try {
-            this.field = PluginClassLoader.class.getDeclaredField("plugin");
+            final Class<?> pluginClassLoader = Narcissus.findClass("org.bukkit.plugin.java.PluginClassLoader");
+            this.field = Narcissus.findField(pluginClassLoader, "plugin");
             AccessUtil.setAccessible(field);
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
