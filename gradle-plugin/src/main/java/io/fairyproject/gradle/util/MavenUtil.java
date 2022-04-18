@@ -68,7 +68,7 @@ public class MavenUtil {
                 }
             } catch (Throwable throwable) {
                 CACHE = null;
-                recreate = false;
+                recreate = true;
                 throwable.printStackTrace();
             }
         }
