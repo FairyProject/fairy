@@ -23,8 +23,13 @@ public abstract class FairyBukkitTestingPlatform extends FairyBukkitPlatform {
 
     public abstract OBCVersion version();
 
-    public static void patchBukkitPlugin(JavaPlugin plugin) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
-        final Class<?> type = Class.forName("io.fairyproject.bootstrap.bukkit.BukkitPlugin");
+    public static void patchBukkitPlugin(JavaPlugin plugin) throws NoSuchFieldException, IllegalAccessException {
+        final Class<?> type;
+        try {
+            type = Class.forName("io.fairyproject.bootstrap.bukkit.BukkitPlugin");
+        } catch (ClassNotFoundException ex) {
+            return;
+        }
 
         final Field field = type.getDeclaredField("INSTANCE");
         field.setAccessible(true);

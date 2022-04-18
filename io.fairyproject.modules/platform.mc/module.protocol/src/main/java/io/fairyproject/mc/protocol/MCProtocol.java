@@ -12,14 +12,17 @@ import io.fairyproject.container.Service;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.impl.BukkitPacketEventsBuilder;
 import io.fairyproject.mc.protocol.impl.mock.MockPacketEventsBuilder;
+import io.fairyproject.mc.protocol.packet.PacketSender;
+import io.fairyproject.mc.protocol.packet.impl.PacketSenderImpl;
+import io.fairyproject.mc.protocol.packet.impl.PacketSenderMock;
 import lombok.Getter;
 
 @Getter
 @Service
 public class MCProtocol {
-    public static MCVersion OVERWRITTEN_VERSION;
     public static MCProtocol INSTANCE;
 
+    private PacketSender packetSender;
     private PacketEventsAPI<?> packetEvents;
 
     private MCProtocol() {
@@ -29,10 +32,13 @@ public class MCProtocol {
     @PreInitialize
     public void onPreInitialize() {
         PacketEventsBuilder packetEventsBuilder;
+        PacketSender packetSender;
 
         if (Debug.UNIT_TEST) {
             packetEventsBuilder = new MockPacketEventsBuilder();
+            packetSender = PacketSenderMock.get();
         } else {
+            packetSender = new PacketSenderImpl();
             switch (Fairy.getPlatform().getPlatformType()) {
                 case BUKKIT:
                     packetEventsBuilder = new BukkitPacketEventsBuilder();
@@ -45,6 +51,8 @@ public class MCProtocol {
         this.packetEvents = packetEventsBuilder.build();
         PacketEvents.setAPI(this.packetEvents);
         this.packetEvents.load();
+
+        this.packetSender = packetSender;
     }
 
     @PostInitialize
@@ -61,19 +69,8 @@ public class MCProtocol {
         this.packetEvents.terminate();
     }
 
-    public MCVersion version() {
-        if (OVERWRITTEN_VERSION != null) {
-            return OVERWRITTEN_VERSION;
-        }
-        return MCVersion.getVersionFromRaw(
-                PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion()
-        );
-    }
-
     public static void sendPacket(MCPlayer mcPlayer, PacketWrapper<?> packetWrapper) {
-        MCProtocol.INSTANCE.getPacketEvents()
-                .getProtocolManager()
-                .sendPacket(mcPlayer.getChannel(), packetWrapper);
+        MCProtocol.INSTANCE.getPacketSender().sendPacket(mcPlayer, packetWrapper);
     }
 
 }

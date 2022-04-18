@@ -9,9 +9,6 @@ import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.jvm.tasks.Jar;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 
 public class ModulePlugin implements Plugin<Project> {
@@ -19,6 +16,7 @@ public class ModulePlugin implements Plugin<Project> {
     private static final Gson GSON = new Gson();
     protected static final String MODULE_PREFIX = ":io.fairyproject.modules:";
     protected static final String PLATFORM_PREFIX = ":io.fairyproject.platforms:";
+    protected static final String TEST_PREFIX = ":io.fairyproject.tests:";
 
     @SneakyThrows
     @Override
@@ -62,9 +60,15 @@ public class ModulePlugin implements Plugin<Project> {
 
             for (String platform : extension.getPlatforms().get()) {
                 final Dependency dependency = project.getDependencies().create(project.project(PLATFORM_PREFIX + platform + "-platform"));
+                final Dependency testDependency = project.getDependencies().create(project.project(TEST_PREFIX + platform + "-tests"));
 
                 project.getDependencies().add("compileOnly", dependency);
                 project.getDependencies().add("testImplementation", dependency);
+                project.getDependencies().add("testImplementation", testDependency);
+
+                if (platform.equals("bukkit")) {
+                    project.getDependencies().add("testImplementation", "dev.imanity.mockbukkit:MockBukkit1.16:1.0.17");
+                }
             }
 
             for (Map.Entry<Lib, Boolean> libraryEntry : libs.entrySet()) {

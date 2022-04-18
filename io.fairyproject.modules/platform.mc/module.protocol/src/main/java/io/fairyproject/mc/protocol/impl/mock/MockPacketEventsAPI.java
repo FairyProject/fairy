@@ -62,7 +62,7 @@ public class MockPacketEventsAPI extends PacketEventsAPI<Plugin> {
 
     @Override
     public NettyManager getNettyManager() {
-        return null;
+        return new MockNettyManager();
     }
 
     @Override

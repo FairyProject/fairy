@@ -69,7 +69,7 @@ public class MavenUtil {
             } catch (Throwable throwable) {
                 CACHE = null;
                 recreate = true;
-                throwable.printStackTrace();
+                System.out.println("An error occurs while reading cache: " + throwable.getClass().getSimpleName() + " : " + throwable.getMessage());
             }
         }
 

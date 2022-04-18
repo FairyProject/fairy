@@ -32,6 +32,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 import io.fairyproject.Fairy;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.item.ObjectiveDisplaySlot;
@@ -58,7 +59,7 @@ public class Sidebar {
         final WrapperPlayServerScoreboardObjective objective = new WrapperPlayServerScoreboardObjective(
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.CREATE,
-                Optional.of(MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_7)
+                Optional.of(MCServer.current().getVersion().isOrBelow(MCVersion.V1_7)
                         ? MCAdventure.asLegacyString(Component.empty(), player.getLocale())
                         : MCAdventure.asJsonString(Component.empty(), player.getLocale())),
                 Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
@@ -84,7 +85,7 @@ public class Sidebar {
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.UPDATE,
                 Optional.of(
-                        MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_12)
+                        MCServer.current().getVersion().isOrBelow(MCVersion.V1_12)
                         ? MCAdventure.asLegacyString(title, player.getLocale())
                         : MCAdventure.asJsonString(title, player.getLocale())
                 ),
