@@ -28,6 +28,7 @@ import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
 import io.fairyproject.container.*;
 import io.fairyproject.jackson.JacksonService;
+import io.fairyproject.providers.inmemory.InMemoryRepositoryProvider;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 
 import javax.annotation.Nullable;
@@ -81,6 +82,9 @@ public class StorageService {
 
     @Nullable
     public RepositoryProvider getRepositoryProvider(String providerId) {
+        if (Debug.UNIT_TEST) {
+            return InMemoryRepositoryProvider.INSTANCE;
+        }
         return this.repositoryProviders.get(providerId);
     }
 
@@ -99,7 +103,7 @@ public class StorageService {
     public <E, ID extends Serializable> Repository<E, ID> createRepository(String providerId, String repoId, Class<E> entityType) {
         final RepositoryProvider repositoryProvider = this.getRepositoryProvider(providerId);
         if (repositoryProvider == null) {
-            throw new NullPointerException("Repository does not exists.");
+            throw new IllegalStateException("Repository does not exists.");
         }
 
         return repositoryProvider.buildRepository(entityType, repoId);

@@ -25,6 +25,7 @@
 package io.fairyproject.mc.nametag;
 
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ComponentHolder;
@@ -108,6 +109,10 @@ public class NameTagService {
         this.adapters.remove(adapter);
     }
 
+    public Collection<NameTagAdapter> getAdapters() {
+        return ImmutableList.copyOf(this.adapters);
+    }
+
     public CompletableFuture<?> updateFromThirdSide(MCPlayer target) {
         NameTagUpdate update = NameTagUpdate.createTarget(target);
         return Task.runAsync(() -> this.applyUpdate(update));
@@ -150,22 +155,30 @@ public class NameTagService {
         }
     }
 
-    private void updateForInternal(MCPlayer player, MCPlayer target) {
+    @Nullable
+    public NameTag findNameTag(MCPlayer player, MCPlayer target) {
         for (NameTagAdapter adapter : this.adapters) {
             NameTag nametag = adapter.fetch(player, target);
             if (nametag != null) {
-                NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
-
-                list.addNameTag(target.getName(), nametag);
-                WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
-                        nametag.getName(),
-                        WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
-                        Optional.empty(),
-                        target.getName()
-                );
-                MCProtocol.sendPacket(player, packet);
-                break;
+                return nametag;
             }
+        }
+        return null;
+    }
+
+    private void updateForInternal(MCPlayer player, MCPlayer target) {
+        final NameTag nameTag = this.findNameTag(player, target);
+        if (nameTag != null) {
+            NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
+
+            list.addNameTag(target.getName(), nameTag);
+            WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
+                    nameTag.getName(),
+                    WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
+                    Optional.empty(),
+                    target.getName()
+            );
+            MCProtocol.sendPacket(player, packet);
         }
     }
 
