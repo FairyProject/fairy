@@ -79,7 +79,7 @@ public class PlayerEventRecognizer {
             return true;
         }
 
-        return searchMethod(type) != null;
+        return searchMethod(type, true) != null;
     }
 
     @SafeVarargs
@@ -109,20 +109,14 @@ public class PlayerEventRecognizer {
 
         final Class<? extends Event> type = event.getClass();
 
-        if (EVENT_PLAYER_METHODS.containsKey(type)) {
-            return EVENT_PLAYER_METHODS.get(type).apply(event);
-        } else {
-            final MethodHandleFunction methodHandleFunction = searchMethod(type);
-
-            if (methodHandleFunction != null) {
-                return methodHandleFunction.apply(event);
-            }
+        final Function<Event, Player> function = EVENT_PLAYER_METHODS.computeIfAbsent(type, ignored -> searchMethod(type, false));
+        if (function != null) {
+            return function.apply(event);
         }
-
         return null;
     }
 
-    private MethodHandleFunction searchMethod(Class<? extends Event> type) {
+    private MethodHandleFunction searchMethod(Class<? extends Event> type, boolean put) {
         MethodHandle methodHandle;
 
         if (!NO_METHODS.contains(type)) {
@@ -134,8 +128,9 @@ public class PlayerEventRecognizer {
                             methodHandle = Reflect.lookup().unreflect(method);
 
                             MethodHandleFunction methodHandleFunction = new MethodHandleFunction(methodHandle);
-                            EVENT_PLAYER_METHODS.put(type, methodHandleFunction);
-
+                            if (put) {
+                                EVENT_PLAYER_METHODS.put(type, methodHandleFunction);
+                            }
                             return methodHandleFunction;
                         } catch (Throwable throwable) {
                             throw new IllegalArgumentException("Something wrong while looking for player", throwable);

@@ -1,6 +1,7 @@
 package io.fairyproject.event;
 
 import io.fairyproject.event.impl.AnnotatedSubscriber;
+import io.fairyproject.event.impl.ConsumerSubscriber;
 import io.fairyproject.util.Utility;
 import lombok.experimental.UtilityClass;
 import org.apache.logging.log4j.LogManager;
@@ -10,6 +11,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 @UtilityClass
 public class EventBus {
@@ -23,6 +25,11 @@ public class EventBus {
 
     public Subscribers getGlobalSubscribers() {
         return SUBSCRIBERS.get(Object.class);
+    }
+
+    public void shutdown() {
+        SUBSCRIBERS.forEach((k, v) -> v.clear());
+        SUBSCRIBERS.clear();
     }
 
     public void call(Object event) {
@@ -66,6 +73,14 @@ public class EventBus {
 
     public void unsubscribeAll(Object listener) {
         SUBSCRIBERS.values().forEach(subscribers -> subscribers.unregisterObject(listener));
+    }
+
+    public <E> void subscribe(Class<E> eventClass, Consumer<E> consumer) {
+        EventBus.subscribe(eventClass, 0, consumer);
+    }
+
+    public <E> void subscribe(Class<E> eventClass, int priority, Consumer<E> consumer) {
+        EventBus.subscribe(new ConsumerSubscriber<>(eventClass, priority, consumer));
     }
 
     public void subscribe(Subscriber<?> subscriber) {

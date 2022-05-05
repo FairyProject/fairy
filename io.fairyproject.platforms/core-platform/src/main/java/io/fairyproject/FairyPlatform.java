@@ -27,6 +27,7 @@ package io.fairyproject;
 import io.fairyproject.aspect.AsyncAspect;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.SimpleContainerObject;
+import io.fairyproject.event.EventBus;
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
@@ -96,6 +97,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
         }
 
         this.containerContext.stop();
+        EventBus.shutdown();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
         PluginManager.INSTANCE.unload();
     }

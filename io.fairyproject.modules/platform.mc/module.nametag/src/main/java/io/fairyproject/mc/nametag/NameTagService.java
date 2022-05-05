@@ -32,6 +32,7 @@ import io.fairyproject.container.ComponentHolder;
 import io.fairyproject.container.ComponentRegistry;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
+import io.fairyproject.event.EventBus;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
@@ -167,11 +168,18 @@ public class NameTagService {
     }
 
     private void updateForInternal(MCPlayer player, MCPlayer target) {
-        final NameTag nameTag = this.findNameTag(player, target);
+        NameTag nameTag = this.findNameTag(player, target);
         if (nameTag != null) {
-            NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
+            NameTagUpdateEvent event = new NameTagUpdateEvent(player, target, nameTag);
+            EventBus.call(event);
+            if (event.isCancelled()) {
+                return;
+            }
+            nameTag = event.getNameTag();
 
+            NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
             list.addNameTag(target.getName(), nameTag);
+
             WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
                     nameTag.getName(),
                     WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,

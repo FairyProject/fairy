@@ -29,6 +29,7 @@ import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Getter
 final class NameTagUpdate {
@@ -38,6 +39,8 @@ final class NameTagUpdate {
 
     @Nullable
     private final UUID player;
+
+    private final CompletableFuture<?> future = new CompletableFuture<>();
 
     public static NameTagUpdate all() {
         return new NameTagUpdate(null, null);
