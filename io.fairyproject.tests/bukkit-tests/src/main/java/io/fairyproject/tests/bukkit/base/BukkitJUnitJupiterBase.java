@@ -20,6 +20,10 @@ public abstract class BukkitJUnitJupiterBase extends JUnitJupiterBase {
         if (!mockBukkitInitialized.compareAndSet(false, true)) {
             return;
         }
+        this.initMockBukkit();
+    }
+
+    private void initMockBukkit() {
         MockBukkitContext.get().initialize();
         this.server = MockBukkitContext.get().getServer();
         this.plugin = MockBukkitContext.get().getPlugin();
@@ -27,7 +31,7 @@ public abstract class BukkitJUnitJupiterBase extends JUnitJupiterBase {
 
     @Override
     public void initRuntime(TestingHandle testingHandle) {
-        MockBukkitContext.get().initialize();
+        this.initMockBukkit();
         super.initRuntime(testingHandle);
     }
 

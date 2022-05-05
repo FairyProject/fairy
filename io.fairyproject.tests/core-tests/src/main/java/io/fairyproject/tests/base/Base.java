@@ -7,20 +7,24 @@ import io.fairyproject.tests.TestingHandle;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.Getter;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
 abstract class Base {
 
-    @Getter
-    private boolean initialized;
+    private static final Set<Class<?>> INITIALIZED_CLASSES = ConcurrentHashMap.newKeySet();
 
     public final void checkInitRuntime() {
         switch (this.runtimeMode()) {
             case GLOBAL:
                 break;
             case BEFORE_ALL:
-                if (this.initialized) {
+                final Class<? extends Base> baseClass = this.getClass();
+                if (INITIALIZED_CLASSES.contains(baseClass)) {
                     break;
                 }
-                this.initialized = true;
+                INITIALIZED_CLASSES.add(baseClass);
             case BEFORE_EACH:
                 this.initRuntime();
                 break;

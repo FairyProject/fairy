@@ -33,9 +33,10 @@ public class MockBukkitContext {
             serverMock = ((BukkitTestingHandle) testingHandle).createServerMock();
         }
 
-        if (!MockBukkit.isMocked()) {
-            this.server = MockBukkit.mock(serverMock == null ? new BukkitServerMockImpl() : serverMock);
+        if (MockBukkit.isMocked()) {
+            MockBukkit.unmock();
         }
+        this.server = MockBukkit.mock(serverMock == null ? new BukkitServerMockImpl() : serverMock);
         this.plugin = MockBukkit.createMockPlugin();
 
         FairyBukkitPlatform.PLUGIN = plugin;
