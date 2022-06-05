@@ -114,6 +114,7 @@ public class TestingContext {
             this.plugin.onPluginDisable();
             PluginManager.INSTANCE.onPluginDisable(this.plugin);
             FairyPlatform.INSTANCE.disable();
+            PluginManager.INSTANCE.unload();
             this.plugin.onFrameworkFullyDisable();
         }
     }

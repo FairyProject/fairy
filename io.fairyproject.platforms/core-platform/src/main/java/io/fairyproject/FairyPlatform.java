@@ -99,7 +99,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
         this.containerContext.stop();
         EventBus.shutdown();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
-        PluginManager.INSTANCE.unload();
     }
 
     private void loadBindable() {
