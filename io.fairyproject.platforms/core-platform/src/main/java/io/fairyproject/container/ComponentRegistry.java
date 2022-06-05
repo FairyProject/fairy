@@ -24,7 +24,7 @@
 
 package io.fairyproject.container;
 
-import io.fairyproject.container.object.ComponentContainerObject;
+import io.fairyproject.container.object.ComponentContainerObj;
 import io.fairyproject.util.entry.Entry;
 import io.fairyproject.util.entry.EntryArrayList;
 import io.fairyproject.Fairy;
@@ -33,6 +33,7 @@ import io.github.classgraph.ScanResult;
 import java.util.ArrayList;
 import java.util.List;
 
+@Deprecated
 public class ComponentRegistry {
 
     private static final EntryArrayList<Class<?>, ComponentHolder> COMPONENT_HOLDERS = new EntryArrayList<>();
@@ -69,8 +70,8 @@ public class ComponentRegistry {
         });
     }
 
-    public static List<ComponentContainerObject> scanComponents(ContainerContext containerContext, ScanResult scanResult, String prefix) {
-        List<ComponentContainerObject> components = new ArrayList<>();
+    public static List<ComponentContainerObj> scanComponents(ContainerContext containerContext, ScanResult scanResult, String prefix) {
+        List<ComponentContainerObj> components = new ArrayList<>();
 
         for (Class<?> type : scanResult.getClassesWithAnnotation(Component.class).loadClasses()) {
             try {
@@ -87,7 +88,7 @@ public class ComponentRegistry {
                 Object instance = componentHolder.newInstance(type);
 
                 if (instance != null) {
-                    final ComponentContainerObject beanDetails = containerContext.registerComponent(instance, prefix, type, componentHolder);
+                    final ComponentContainerObj beanDetails = containerContext.registerComponent(instance, prefix, type, componentHolder);
                     if (beanDetails != null) {
                         components.add(beanDetails);
                     }

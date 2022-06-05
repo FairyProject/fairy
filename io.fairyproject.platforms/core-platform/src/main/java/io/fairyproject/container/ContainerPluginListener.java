@@ -2,9 +2,10 @@ package io.fairyproject.container;
 
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.node.ContainerNode;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
-import io.fairyproject.container.object.SimpleContainerObject;
+import io.fairyproject.container.object.SimpleContainerObj;
 import io.fairyproject.container.scanner.ClassPathScanner;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
@@ -26,24 +27,32 @@ public class ContainerPluginListener implements PluginListenerAdapter {
     @Override
     public void onPluginEnable(Plugin plugin) {
         final Class<? extends Plugin> aClass = plugin.getClass();
-        ContainerObject containerObject = new SimpleContainerObject(plugin, aClass);
+        ContainerNode node = ContainerNode.create(plugin.getName());
+        ContainerObj pluginObj = new SimpleContainerObj(plugin, aClass);
+
+        plugin.setNode(node);
 
         try {
-            containerObject.bindWith(plugin);
-            this.containerContext.registerObject(containerObject, false);
-            ContainerContext.log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
+            pluginObj.bindWith(plugin);
+            node.addObj(pluginObj);
+            Debug.log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
         } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error("An error occurs while registering plugin", throwable);
+            Debug.LOGGER.error("An error occurs while registering plugin", throwable);
             plugin.closeAndReportException();
             return;
         }
 
         try {
-            final List<String> classPaths = this.containerContext.findClassPaths(aClass);
+            List<String> classPaths = this.containerContext.findClassPaths(aClass);
             classPaths.add(plugin.getDescription().getShadedPackage());
-            final ClassPathScanner scanner = this.containerContext.scanClasses()
+
+            ClassPathScanner scanner = this.containerContext.scanClasses()
                     .name(plugin.getName())
-                    .classLoader(plugin.getPluginClassLoader());
+                    .classLoader(plugin.getPluginClassLoader())
+                    .classPath(classPaths)
+                    .excludePackage(Fairy.getFairyPackage())
+                    .included(pluginObj)
+                    .node(node);
 
             if (Debug.UNIT_TEST) {
                 // Hard coded, anyway to make it safer?
@@ -58,40 +67,22 @@ public class ContainerPluginListener implements PluginListenerAdapter {
                 scanner.url(plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
             }
 
-            scanner
-                    .classPath(classPaths)
-                    .excludePackage(Fairy.getFairyPackage())
-                    .included(containerObject)
-                    .scanBlocking();
+            scanner.scanBlocking();
 
             if (scanner.getException() != null) {
                 SneakyThrowUtil.sneakyThrow(scanner.getException());
             }
         } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
+            Debug.LOGGER.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
             plugin.closeAndReportException();
         }
     }
 
     @Override
     public void onPluginDisable(Plugin plugin) {
-        Collection<ContainerObject> containerObjectList = this.containerContext.findDetailsBindWith(plugin);
-        try {
-            this.containerContext.lifeCycle(LifeCycle.PRE_DESTROY, containerObjectList);
-        } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error(throwable);
-        }
-
-        containerObjectList.forEach(containerObject -> {
-            ContainerContext.log("ContainerObject " + containerObject.getType() + " Disabled, due to " + plugin.getName() + " being disabled.");
-
-            containerObject.closeAndReportException();
-        });
-
-        try {
-            this.containerContext.lifeCycle(LifeCycle.POST_DESTROY, containerObjectList);
-        } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error(throwable);
+        final ContainerNode node = plugin.getNode();
+        if (node != null) {
+            node.closeAndReportException();
         }
     }
 

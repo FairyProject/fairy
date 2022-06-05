@@ -2,16 +2,14 @@ package io.fairyproject.container.scanner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.Register;
-import io.fairyproject.container.Service;
-import io.fairyproject.container.ServiceDependencyType;
+import io.fairyproject.Debug;
+import io.fairyproject.container.*;
 import io.fairyproject.container.exception.ServiceAlreadyExistsException;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
-import io.fairyproject.container.object.RelativeContainerObject;
-import io.fairyproject.container.object.ServiceContainerObject;
-import io.fairyproject.container.object.parameter.ContainerParameterDetailsMethod;
+import io.fairyproject.container.object.RelativeContainerObj;
+import io.fairyproject.container.object.ServiceContainerObj;
+import io.fairyproject.container.object.parameter.MethodContainerResolver;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.NonNullArrayList;
 import io.fairyproject.util.SimpleTiming;
@@ -33,8 +31,6 @@ import java.util.concurrent.ExecutionException;
 public abstract class BaseClassPathScanner extends ClassPathScanner implements Terminable {
 
     protected ScanResult scanResult;
-    @Getter
-    protected List<ContainerObject> containerObjectList = new NonNullArrayList<>();
     @Nullable
     @Getter
     private Throwable exception;
@@ -78,26 +74,26 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
 
     protected void unregisterDisabledContainers() {
         ContainerContext containerContext = ContainerContext.get();
-        containerContext.doWriteLock(() -> containerContext.getSortedObjects().addAll(containerObjectList));
+        containerContext.doWriteLock(() -> containerContext.getSortedObjects().addAll(containerObjList));
 
-        for (ContainerObject containerObject : ImmutableList.copyOf(containerObjectList)) {
-            if (!containerObjectList.contains(containerObject)) {
+        for (ContainerObj containerObj : ImmutableList.copyOf(containerObjList)) {
+            if (!containerObjList.contains(containerObj)) {
                 continue;
             }
             try {
-                if (!containerObject.shouldInitialize()) {
-                    log("Unregistering " + containerObject + " due to it cancelled to register");
+                if (!containerObj.shouldActive()) {
+                    log("Unregistering " + containerObj + " due to it cancelled to register");
 
-                    containerObjectList.remove(containerObject);
-                    for (ContainerObject details : containerContext.unregisterObject(containerObject)) {
-                        log("Unregistering " + containerObject + " due to it dependency unregistered");
+                    containerObjList.remove(containerObj);
+                    for (ContainerObj details : containerContext.unregisterObject(containerObj)) {
+                        log("Unregistering " + containerObj + " due to it dependency unregistered");
 
-                        containerObjectList.remove(details);
+                        containerObjList.remove(details);
                     }
                 }
             } catch (InvocationTargetException | IllegalAccessException e) {
-                ContainerContext.LOGGER.error(e);
-                containerContext.unregisterObject(containerObject);
+                Debug.LOGGER.error(e);
+                containerContext.unregisterObject(containerObj);
             }
         }
     }
@@ -105,7 +101,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
     protected void initializeClasses() throws Exception {
         // Load ContainerObjects in Dependency Tree Order
         try (SimpleTiming ignored = logTiming("Initializing ContainerObject")) {
-            initializeContainers();
+            this.initializeContainers();
         }
 
         // Unregistering ContainerObjects that returns false in shouldInitialize
@@ -115,24 +111,24 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
     }
 
     protected void initializeContainers() {
-        final Map<Class<?>, ContainerObject> relationship = this.searchDependencyRelationship();
+        final Map<Class<?>, ContainerObj> relationship = this.searchDependencyRelationship();
 
         // Continually loop until all dependency found and loaded
-        List<ContainerObject> sorted = new NonNullArrayList<>();
+        List<ContainerObj> sorted = new NonNullArrayList<>();
         Queue<Class<?>> removeQueue = new ArrayDeque<>();
         while (!relationship.isEmpty()) {
-            Iterator<Map.Entry<Class<?>, ContainerObject>> iterator = relationship.entrySet().iterator();
+            Iterator<Map.Entry<Class<?>, ContainerObj>> iterator = relationship.entrySet().iterator();
             List<CompletableFuture<?>> futures = new ArrayList<>();
 
             while (iterator.hasNext()) {
-                Map.Entry<Class<?>, ContainerObject> entry = iterator.next();
-                ContainerObject containerObject = entry.getValue();
+                Map.Entry<Class<?>, ContainerObj> entry = iterator.next();
+                ContainerObj containerObj = entry.getValue();
 
-                if (!this.isMissingDependencies(containerObject, relationship)) {
-                    final CompletableFuture<?> future = containerObject.build(ContainerContext.get())
+                if (!this.isMissingDependencies(containerObj, relationship)) {
+                    final CompletableFuture<?> future = containerObj.construct(ContainerContext.get())
                             .thenRun(() -> {
-                                containerObject.lifeCycle(LifeCycle.CONSTRUCT);
-                                sorted.add(containerObject);
+                                containerObj.lifeCycle(LifeCycle.CONSTRUCT);
+                                sorted.add(containerObj);
                                 removeQueue.add(entry.getKey());
                             });
 
@@ -152,16 +148,16 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
             }
             removeQueue.clear();
         }
-        this.containerObjectList = sorted;
+        this.containerObjList = sorted;
     }
 
-    private boolean isMissingDependencies(ContainerObject containerObject, Map<Class<?>, ContainerObject> relationship) {
+    private boolean isMissingDependencies(ContainerObj containerObj, Map<Class<?>, ContainerObj> relationship) {
         boolean missingDependencies = false;
 
-        for (Map.Entry<ServiceDependencyType, List<Class<?>>> dependencyEntry : containerObject.getDependencyEntries()) {
+        for (Map.Entry<ServiceDependencyType, List<Class<?>>> dependencyEntry : containerObj.getDependEntries()) {
             final ServiceDependencyType type = dependencyEntry.getKey();
             for (Class<?> dependency : dependencyEntry.getValue()) {
-                ContainerObject dependencyDetails = ContainerContext.get().getObjectDetails(dependency);
+                ContainerObj dependencyDetails = ContainerRef.getObj(dependency);
                 if (dependencyDetails != null && dependencyDetails.getInstance() != null) {
                     continue;
                 }
@@ -176,33 +172,33 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
     }
 
     @NotNull
-    protected Map<Class<?>, ContainerObject> searchDependencyRelationship() {
+    protected Map<Class<?>, ContainerObj> searchDependencyRelationship() {
         ContainerContext containerContext = ContainerContext.get();
-        Map<Class<?>, ContainerObject> toLoad = new HashMap<>();
+        Map<Class<?>, ContainerObj> toLoad = new HashMap<>();
 
-        for (ContainerObject containerObject : containerObjectList) {
-            toLoad.put(containerObject.getType(), containerObject);
-            if (containerObject instanceof ServiceContainerObject) {
-                ((ServiceContainerObject) containerObject).setupConstruction(containerContext);
+        for (ContainerObj containerObj : containerObjList) {
+            toLoad.put(containerObj.getType(), containerObj);
+            if (containerObj instanceof ServiceContainerObj) {
+                ((ServiceContainerObj) containerObj).setupConstruction(containerContext);
             }
         }
         // Remove Services without valid dependency
-        Iterator<Map.Entry<Class<?>, ContainerObject>> removeIterator = toLoad.entrySet().iterator();
+        Iterator<Map.Entry<Class<?>, ContainerObj>> removeIterator = toLoad.entrySet().iterator();
         while (removeIterator.hasNext()) {
-            Map.Entry<Class<?>, ContainerObject> entry = removeIterator.next();
-            ContainerObject containerObject = entry.getValue();
-            if (!containerObject.hasDependencies()) {
+            Map.Entry<Class<?>, ContainerObj> entry = removeIterator.next();
+            ContainerObj containerObj = entry.getValue();
+            if (!containerObj.hasDepend()) {
                 continue;
             }
-            for (Map.Entry<ServiceDependencyType, List<Class<?>>> allDependency : containerObject.getDependencyEntries()) {
+            for (Map.Entry<ServiceDependencyType, List<Class<?>>> allDependency : containerObj.getDependEntries()) {
                 final ServiceDependencyType type = allDependency.getKey();
                 search: for (Class<?> dependency : allDependency.getValue()) {
-                    ContainerObject dependencyObject = containerContext.getObjectDetails(dependency);
+                    ContainerObj dependencyObject = containerContext.getObjectDetails(dependency);
                     if (dependencyObject == null) {
                         switch (type) {
                             default:
                             case FORCE:
-                                ContainerContext.LOGGER.error("Couldn't find the dependency " + dependency + " for " + containerObject.getType().getSimpleName() + "!");
+                                ContainerContext.LOGGER.error("Couldn't find the dependency " + dependency + " for " + containerObj.getType().getSimpleName() + "!");
                                 removeIterator.remove();
                                 break search;
                             case SUB_DISABLE:
@@ -213,16 +209,16 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
                         }
                         // Prevent dependency each other
                     } else {
-                        if (dependencyObject.hasDependencies()
-                                && dependencyObject.getAllDependencies().contains(containerObject.getType())) {
-                            ContainerContext.LOGGER.error("Target " + containerObject.getType().getSimpleName() + " and " + dependency + " depend to each other!");
+                        if (dependencyObject.hasDepend()
+                                && dependencyObject.getDepends().contains(containerObj.getType())) {
+                            Debug.LOGGER.error("Target " + containerObj.getType().getSimpleName() + " and " + dependency + " depend to each other!");
                             removeIterator.remove();
 
                             toLoad.remove(dependency);
                             break;
                         }
 
-                        dependencyObject.addChildren(containerObject.getType());
+                        dependencyObject.addChild(containerObj.getType());
                     }
                 }
             }
@@ -239,10 +235,10 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
                 this.handleException(new IllegalArgumentException("The Method " + method + " has annotated @Register but no return type!"));
                 return;
             }
-            ContainerParameterDetailsMethod detailsMethod = new ContainerParameterDetailsMethod(method, containerContext);
+            MethodContainerResolver detailsMethod = new MethodContainerResolver(method, containerContext);
             List<Class<?>> dependencies = new ArrayList<>();
             for (Parameter type : detailsMethod.getParameters()) {
-                ContainerObject details = containerContext.getObjectDetails(type.getType());
+                ContainerObj details = containerContext.getObjectDetails(type.getType());
                 if (details != null) {
                     dependencies.add(details.getType());
                 }
@@ -260,14 +256,14 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
             }
 
             if (containerContext.getObjectDetails(objectType) == null) {
-                ContainerObject containerObject = new RelativeContainerObject(objectType, instance, dependencies.toArray(new Class<?>[0]));
+                ContainerObj containerObj = new RelativeContainerObj(objectType, instance, dependencies.toArray(new Class<?>[0]));
 
                 log("Found " + objectType + " with type " + instance.getClass().getSimpleName() + ", Registering it as ContainerObject...");
 
-                containerContext.attemptBindPlugin(containerObject);
-                containerContext.registerObject(containerObject, false);
+                containerContext.attemptBindPlugin(containerObj);
+                containerContext.registerObject(containerObj, false);
 
-                containerObjectList.add(containerObject);
+                containerObjList.add(containerObj);
             } else {
                 this.handleException(new ServiceAlreadyExistsException(objectType));
                 break;
@@ -282,15 +278,15 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
             Service service = type.getDeclaredAnnotation(Service.class);
             ConditionUtils.notNull(service, "The type " + type.getName() + " doesn't have @Service annotation! " + Arrays.toString(type.getAnnotations()));
 
-            if (containerContext.getObjectDetails(type) == null) {
-                ServiceContainerObject containerObject = new ServiceContainerObject(type, service.depends());
+            if (ContainerRef.getObj(type) == null) {
+                ServiceContainerObj containerObject = new ServiceContainerObj(type, service.depends());
 
                 log("Found " + containerObject + " with type " + type.getSimpleName() + ", Registering it as ContainerObject...");
 
                 containerContext.attemptBindPlugin(containerObject);
-                containerContext.registerObject(containerObject, false);
+                this.node.addObj(containerObject);
 
-                containerObjectList.add(containerObject);
+                containerObjList.add(containerObject);
             } else {
                 new ServiceAlreadyExistsException(type).printStackTrace();
             }

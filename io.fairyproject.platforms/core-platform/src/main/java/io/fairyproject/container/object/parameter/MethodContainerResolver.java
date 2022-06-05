@@ -25,32 +25,42 @@
 package io.fairyproject.container.object.parameter;
 
 import lombok.Getter;
+import lombok.SneakyThrows;
 import io.fairyproject.container.ContainerContext;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-public class ContainerParameterBase implements ContainerParameterDetails {
+@Getter
+public class MethodContainerResolver extends ContainerResolverBase {
 
-    @Getter
-    protected Parameter[] parameters;
+    private final Method method;
 
-    @Override
-    public Object[] getParameters(ContainerContext containerContext) {
-        if (this.parameters == null) {
-            throw new IllegalArgumentException("No parameters found!");
-        }
+    @SneakyThrows
+    public MethodContainerResolver(Method method, ContainerContext containerContext) {
+        this.method = method;
 
-        Object[] parameters = new Object[this.parameters.length];
-
-        for (int i = 0; i < parameters.length; i++) {
-            Object bean = containerContext.getContainerObject(this.parameters[i].getType());
-            if (bean == null) {
-                throw new IllegalArgumentException("Couldn't find bean " + this.parameters[i].getName() + "!");
+        this.parameters = this.method.getParameters();
+        for (Parameter parameter : this.parameters) {
+            if (!containerContext.isObject(parameter.getType())) {
+                throw new IllegalArgumentException("The type " + parameter.getType().getName() + " is not a bean!, it's not supposed to be in bean method!");
             }
-
-            parameters[i] = bean;
         }
-
-        return parameters;
     }
+
+    public String name() {
+        return this.method.getName();
+    }
+
+    public Class<?> returnType() {
+        return this.method.getReturnType();
+    }
+
+    public Object invoke(Object instance, ContainerContext containerContext) throws InvocationTargetException, IllegalAccessException {
+        Object[] parameters = this.getParameters(containerContext);
+
+        return this.method.invoke(instance, parameters);
+    }
+
 }

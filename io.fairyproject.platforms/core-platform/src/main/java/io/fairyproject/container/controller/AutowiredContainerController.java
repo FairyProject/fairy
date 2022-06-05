@@ -3,10 +3,13 @@ package io.fairyproject.container.controller;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ContainerHolder;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.AccessUtil;
+import io.fairyproject.util.ClassGraphUtil;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
+import io.github.classgraph.ScanResult;
 import org.apache.logging.log4j.LogManager;
 
 import java.lang.reflect.Field;
@@ -22,15 +25,28 @@ public class AutowiredContainerController implements ContainerController {
     }
 
     @Override
-    public void applyContainerObject(ContainerObject containerObject) throws Exception {
-        Object object = containerObject.getInstance();
+    public void init(ScanResult scanResult) {
+        ClassGraphUtil.fieldWithAnnotation(scanResult, Autowired.class)
+                .filter(field -> Modifier.isStatic(field.getModifiers()))
+                .forEach(field -> {
+                    try {
+                        AutowiredContainerController.INSTANCE.applyField(field, null);
+                    } catch (ReflectiveOperationException e) {
+                        SneakyThrowUtil.sneakyThrow(e);
+                    }
+                });
+    }
+
+    @Override
+    public void applyContainerObject(ContainerObj containerObj) throws Exception {
+        Object object = containerObj.instance();
         if (object != null) {
             this.applyObject(object);
         }
     }
 
     @Override
-    public void removeContainerObject(ContainerObject containerObject) {
+    public void removeContainerObject(ContainerObj containerObj) {
 
     }
 

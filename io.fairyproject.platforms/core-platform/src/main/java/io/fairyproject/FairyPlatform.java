@@ -26,7 +26,7 @@ package io.fairyproject;
 
 import io.fairyproject.aspect.AsyncAspect;
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.object.SimpleContainerObject;
+import io.fairyproject.container.object.SimpleContainerObj;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.plugin.Plugin;
@@ -85,7 +85,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
         this.loadBindable();
 
         this.containerContext = new ContainerContext();
-        this.containerContext.registerObject(new SimpleContainerObject(this, this.getClass()));
+        this.containerContext.registerObject(new SimpleContainerObj(this, this.getClass()));
         this.containerContext.init();
     }
 

@@ -1,7 +1,7 @@
 package io.fairytest.container;
 
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.scanner.ClassPathScanner;
 import io.fairyproject.tests.base.JUnitJupiterBase;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
@@ -31,9 +31,9 @@ public class ContainerTest extends JUnitJupiterBase {
                     .url(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation())
                     .classPath("io.fairytest.container.service");
             classPathScanner.scanBlocking();
-            final List<ContainerObject> containerObjects = classPathScanner.getCompletedFuture().join();
-            assertEquals(1, containerObjects.size());
-            assertEquals(ServiceMock.class, containerObjects.get(0).getInstance().getClass());
+            final List<ContainerObj> containerObjs = classPathScanner.getCompletedFuture().join();
+            assertEquals(1, containerObjs.size());
+            assertEquals(ServiceMock.class, containerObjs.get(0).getInstance().getClass());
         }).run();
 
         final ServiceMock serviceMock = ServiceMock.STATIC_WIRED;
@@ -99,7 +99,7 @@ public class ContainerTest extends JUnitJupiterBase {
                     .classPath("io.fairytest.container.annotated");
             classPathScanner.scanBlocking();
 
-            final List<ContainerObject> beanDetails = classPathScanner.getCompletedFuture().join();
+            final List<ContainerObj> beanDetails = classPathScanner.getCompletedFuture().join();
             assertEquals(1, beanDetails.size());
             assertEquals(BeanInterface.class, beanDetails.get(0).getType());
             assertEquals(BeanInterfaceImpl.class, beanDetails.get(0).getInstance().getClass());

@@ -1,10 +1,10 @@
 package io.fairytest.container.threaded;
 
 import io.fairyproject.container.controller.ContainerController;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.tests.base.JUnitJupiterBase;
-import io.fairytest.container.ContainerObjectMock;
+import io.fairytest.container.ContainerObjMock;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -27,18 +27,18 @@ public class ThreadedClassPathScannerTest extends JUnitJupiterBase {
         int objects = 20;
 
         for (int i = 0; i < objects; i++) {
-            classPathScanner.getContainerObjectList().add(new ContainerObjectMock());
+            classPathScanner.getContainerObjList().add(new ContainerObjMock());
         }
 
         classPathScanner.applyControllers(new ContainerController[] {
                 new ContainerController() {
                     @Override
-                    public void applyContainerObject(ContainerObject containerObject) {
+                    public void applyContainerObject(ContainerObj containerObj) {
                         threads.add(Thread.currentThread());
                     }
 
                     @Override
-                    public void removeContainerObject(ContainerObject containerObject) {
+                    public void removeContainerObject(ContainerObj containerObj) {
                         // Do nothing
                     }
                 }

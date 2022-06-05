@@ -33,42 +33,42 @@ public class EventBus {
     }
 
     public void call(Object event) {
-        Subscribers subscribers;
-        if (!(event instanceof IEvent)) {
-            subscribers = SUBSCRIBERS.get(event.getClass());
-        } else {
-            subscribers = ((IEvent) event).getSubscribers();
-        }
-        if (subscribers == null) {
-            return;
-        }
-        for (Subscriber<?> subscriber : subscribers.all()) {
-            try {
-                subscriber.invoke0(event);
-            } catch (Throwable throwable) {
-                subscriber.handleException0(event, throwable);
-            }
-        }
+//        Subscribers subscribers;
+//        if (!(event instanceof Event)) {
+//            subscribers = SUBSCRIBERS.get(event.getClass());
+//        } else {
+//            subscribers = ((Event) event).getSubscribers();
+//        }
+//        if (subscribers == null) {
+//            return;
+//        }
+//        for (Subscriber<?> subscriber : subscribers.all()) {
+//            try {
+//                subscriber.invoke0(event);
+//            } catch (Throwable throwable) {
+//                subscriber.handleException0(event, throwable);
+//            }
+//        }
     }
 
     public void subscribeAll(Object listener) {
-        for (Class<?> type : Utility.getSuperAndInterfaces(listener.getClass())) {
-            for (Method method : type.getDeclaredMethods()) {
-                Subscribe subscribe = method.getAnnotation(Subscribe.class);
-                if (subscribe == null) {
-                    continue;
-                }
-
-                if (method.getParameterCount() != 1) {
-                    LOGGER.error("The method " + method + " is subscribing event but parameter count isn't 1");
-                    continue;
-                }
-
-                final Class<?> parameter = method.getParameterTypes()[0];
-                final AnnotatedSubscriber<?> subscriber = new AnnotatedSubscriber<>(parameter, subscribe.priority(), listener, method);
-                EventBus.subscribe(subscriber);
-            }
-        }
+//        for (Class<?> type : Utility.getSuperAndInterfaces(listener.getClass())) {
+//            for (Method method : type.getDeclaredMethods()) {
+//                Subscribe subscribe = method.getAnnotation(Subscribe.class);
+//                if (subscribe == null) {
+//                    continue;
+//                }
+//
+//                if (method.getParameterCount() != 1) {
+//                    LOGGER.error("The method " + method + " is subscribing event but parameter count isn't 1");
+//                    continue;
+//                }
+//
+//                final Class<?> parameter = method.getParameterTypes()[0];
+//                final AnnotatedSubscriber<?> subscriber = new AnnotatedSubscriber<>(parameter, subscribe.priority(), listener, method);
+//                EventBus.subscribe(subscriber);
+//            }
+//        }
     }
 
     public void unsubscribeAll(Object listener) {

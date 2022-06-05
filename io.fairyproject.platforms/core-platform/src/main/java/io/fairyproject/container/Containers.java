@@ -24,7 +24,7 @@
 
 package io.fairyproject.container;
 
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.experimental.UtilityClass;
@@ -48,12 +48,12 @@ public class Containers {
     }
 
     public void bindWith(Class<?> containerClass, Terminable terminable) {
-        final ContainerObject containerObject = CONTAINER_CONTEXT.getObjectDetails(containerClass);
-        if (containerObject == null) {
+        final ContainerObj containerObj = CONTAINER_CONTEXT.getObjectDetails(containerClass);
+        if (containerObj == null) {
             throw new IllegalArgumentException("Cannot bind terminable to a class that isn't registered as ContainerObject.");
         }
 
-        terminable.bindWith(containerObject);
+        terminable.bindWith(containerObj);
     }
 
     public void inject(Object instance) {

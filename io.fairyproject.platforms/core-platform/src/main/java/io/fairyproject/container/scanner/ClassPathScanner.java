@@ -1,7 +1,9 @@
 package io.fairyproject.container.scanner;
 
+import io.fairyproject.Debug;
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.node.ContainerNode;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.util.SimpleTiming;
 
 import java.net.URL;
@@ -15,19 +17,22 @@ public abstract class ClassPathScanner {
 
     protected String prefix = "";
     protected String scanName;
+
+    protected ContainerNode node;
+
     protected final List<String> classPaths = new ArrayList<>();
     protected final List<String> excludedPackages = new ArrayList<>();
     protected final List<URL> urls = new ArrayList<>();
     protected final List<ClassLoader> classLoaders = new ArrayList<>();
 
-    protected final List<ContainerObject> included = new ArrayList<>();
+    protected final List<ContainerObj> included = new ArrayList<>();
 
     public static void log(String msg, Object... replacement) {
-        ContainerContext.log(msg, replacement);
+        Debug.log(msg, replacement);
     }
 
     public static SimpleTiming logTiming(String msg) {
-        return ContainerContext.logTiming(msg);
+        return Debug.logTiming(msg);
     }
 
     public ClassPathScanner prefix(String prefix) {
@@ -75,13 +80,18 @@ public abstract class ClassPathScanner {
         return this;
     }
 
-    public ClassPathScanner included(ContainerObject... containerObjects) {
-        this.included.addAll(Arrays.asList(containerObjects));
+    public ClassPathScanner included(ContainerObj... containerObjs) {
+        this.included.addAll(Arrays.asList(containerObjs));
         return this;
     }
 
-    public ClassPathScanner included(Collection<ContainerObject> containerObjects) {
-        this.included.addAll(containerObjects);
+    public ClassPathScanner included(Collection<ContainerObj> containerObjs) {
+        this.included.addAll(containerObjs);
+        return this;
+    }
+
+    public ClassPathScanner node(ContainerNode node) {
+        this.node = node;
         return this;
     }
 
@@ -91,7 +101,7 @@ public abstract class ClassPathScanner {
 
     public abstract void scan() throws Exception;
 
-    public abstract CompletableFuture<List<ContainerObject>> getCompletedFuture();
+    public abstract CompletableFuture<List<ContainerObj>> getCompletedFuture();
 
     public abstract Throwable getException();
 

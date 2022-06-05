@@ -1,9 +1,10 @@
 package io.fairyproject.container.scanner;
 
+import io.fairyproject.Debug;
 import io.fairyproject.container.*;
 import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.CompletableFutureUtils;
@@ -21,7 +22,6 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
     public void scan() throws Exception {
         log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
 
-        this.containerObjectList.addAll(this.included);
         try (SimpleTiming ignored = logTiming("Reflect Lookup building")) {
             this.buildClassScanner().join();
         }
@@ -48,23 +48,23 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
     private void callInit(LifeCycle lifeCycle, String displayName) throws Exception {
         // Call @PreInitialize methods for ContainerObject
         try (SimpleTiming ignored = logTiming("LifeCycle " + displayName)) {
-            ContainerContext.get().lifeCycle(lifeCycle, containerObjectList);
+            this.node.all().forEach(obj -> obj.lifeCycle(lifeCycle));
         }
     }
 
     private void scanComponentAndInjection() throws Exception {
         try (SimpleTiming ignored = logTiming("Scanning Components")) {
-            containerObjectList.addAll(ComponentRegistry.scanComponents(ContainerContext.get(), scanResult, prefix));
+            containerObjList.addAll(ComponentRegistry.scanComponents(ContainerContext.get(), scanResult, prefix));
         }
 
         // Inject @Autowired fields for ContainerObjects
         try (SimpleTiming ignored = logTiming("Injecting ContainerObjects")) {
-            for (ContainerObject containerObject : containerObjectList) {
+            for (ContainerObj containerObj : containerObjList) {
                 for (ContainerController controller : ContainerContext.get().getControllers()) {
                     try {
-                        controller.applyContainerObject(containerObject);
+                        controller.applyContainerObject(containerObj);
                     } catch (Throwable throwable) {
-                        ContainerContext.LOGGER.warn("An error occurs while apply controller for " + containerObject.getType(), throwable);
+                        Debug.LOGGER.warn("An error occurs while apply controller for " + containerObj.getType(), throwable);
                     }
                 }
             }
@@ -89,15 +89,15 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
 
         // Call onEnable() for Components
         try (SimpleTiming ignored = logTiming("Call onEnable() for Components")) {
-            containerObjectList.forEach(ContainerObject::onEnable);
+            containerObjList.forEach(ContainerObj::onEnable);
         }
     }
 
     @Override
-    public CompletableFuture<List<ContainerObject>> getCompletedFuture() {
+    public CompletableFuture<List<ContainerObj>> getCompletedFuture() {
         if (this.getException() != null) {
             return CompletableFutureUtils.failureOf(this.getException());
         }
-        return CompletableFuture.completedFuture(this.containerObjectList);
+        return CompletableFuture.completedFuture(this.containerObjList);
     }
 }

@@ -28,7 +28,7 @@ import io.fairyproject.container.ContainerContext;
 
 import java.lang.reflect.Parameter;
 
-public interface ContainerParameterDetails {
+public interface ContainerResolver {
 
     Object[] getParameters(ContainerContext containerContext);
 

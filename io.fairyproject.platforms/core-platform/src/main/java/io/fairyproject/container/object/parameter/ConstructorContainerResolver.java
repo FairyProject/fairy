@@ -35,13 +35,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 
 @Getter
-public class ContainerParameterConstructor extends ContainerParameterBase {
+public class ConstructorContainerResolver extends ContainerResolverBase {
 
     private final Class<?> type;
     private final Constructor<?> constructor;
 
     @SneakyThrows
-    public ContainerParameterConstructor(Class<?> type) {
+    public ConstructorContainerResolver(Class<?> type) {
         this.type = type;
 
         Constructor<?> constructorRet = null;

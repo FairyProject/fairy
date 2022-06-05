@@ -3,7 +3,7 @@ package io.fairyproject.container.scanner;
 import io.fairyproject.container.*;
 import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
-import io.fairyproject.container.object.ContainerObject;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.Stacktrace;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class ThreadedClassPathScanner extends BaseClassPathScanner {
 
     @Getter
-    private final CompletableFuture<List<ContainerObject>> completedFuture = new CompletableFuture<>();
+    private final CompletableFuture<List<ContainerObj>> completedFuture = new CompletableFuture<>();
 
     private Collection<Class<?>> serviceClasses;
     private BlockingThreadAwaitQueue main;
@@ -34,7 +34,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     public void scan() {
         log("Start scanning containers for %s with packages [%s]... (%s)", scanName, String.join(" ", classPaths), String.join(" ", this.excludedPackages));
 
-        this.containerObjectList.addAll(this.included);
+        this.containerObjList.addAll(this.included);
         this.main = BlockingThreadAwaitQueue.create(this::handleException);
 
         // Build the instance for Reflection Lookup
@@ -44,7 +44,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
                 .thenComposeAsync(this.directlyCompose(() -> this.callInit(LifeCycle.PRE_INIT)), this.main)
                 .thenCompose(this.directlyCompose(this::scanComponentAndInjection))
                 .thenComposeAsync(this.directlyCompose(() -> this.callInit(LifeCycle.POST_INIT)), this.main)
-                .whenComplete(this.whenComplete(() -> this.completedFuture.complete(this.containerObjectList)));
+                .whenComplete(this.whenComplete(() -> this.completedFuture.complete(this.containerObjList)));
     }
 
     @Override
@@ -67,15 +67,15 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     }
 
     public CompletableFuture<?> scanComponentAndInjection() {
-        containerObjectList.addAll(ComponentRegistry.scanComponents(ContainerContext.get(), scanResult, prefix));
+        containerObjList.addAll(ComponentRegistry.scanComponents(ContainerContext.get(), scanResult, prefix));
         final CompletableFuture<?> future = this.applyAutowiredStaticFields();
 
         this.applyControllers();
-        return future.thenRun(() -> containerObjectList.forEach(ContainerObject::onEnable));
+        return future.thenRun(() -> containerObjList.forEach(ContainerObj::onEnable));
     }
 
     private CompletableFuture<?> callInit(LifeCycle lifeCycle) {
-        return ContainerContext.get().lifeCycleAsynchronously(lifeCycle, containerObjectList);
+        return ContainerContext.get().lifeCycleAsynchronously(lifeCycle, containerObjList);
     }
 
     public CompletableFuture<?> scanClasses() {
@@ -100,7 +100,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
     }
 
     public void applyControllers(ContainerController[] controllers) {
-        containerObjectList.parallelStream()
+        containerObjList.parallelStream()
                 .forEach(containerObject -> {
                     for (ContainerController controller : controllers) {
                         try {
