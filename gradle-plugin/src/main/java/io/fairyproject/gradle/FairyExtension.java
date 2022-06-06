@@ -17,9 +17,6 @@ public class FairyExtension {
     private final Property<String> fairyVersion;
     private final ListProperty<PlatformType> fairyPlatforms;
 
-    // Libraries
-    private final Property<String> aspectJVersion;
-
     // Plugin
     private final Property<String> classifier;
     private final Property<String> mainPackage;
@@ -41,9 +38,6 @@ public class FairyExtension {
         // Fairy
         this.fairyVersion = objectFactory.property(String.class);
         this.fairyPlatforms = objectFactory.listProperty(PlatformType.class).convention(Collections.singleton(PlatformType.BUKKIT));
-
-        // Libraries
-        this.aspectJVersion = objectFactory.property(String.class).convention("1.9.7");
 
         // Plugin
         this.classifier = objectFactory.property(String.class).convention("all");

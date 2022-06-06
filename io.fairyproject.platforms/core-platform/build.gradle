@@ -29,7 +29,6 @@ dependencies {
 
     compileOnly "org.mongodb:mongo-java-driver:3.12.7"
     api project(":shared")
-    api aspectjRuntime
 
     implementation JacksonCore
     implementation JacksonDataBind

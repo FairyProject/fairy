@@ -57,7 +57,6 @@ public class FairyPlugin implements Plugin<Project> {
         this.project = project;
 
         project.getPlugins().apply(JavaBasePlugin.class);
-        project.getPlugins().apply(AspectJPlugin.class);
         project.getPlugins().apply(ShadowPlugin.class);
 
         project.getConfigurations().all(c -> c.resolutionStrategy(resolutionStrategy -> resolutionStrategy.cacheDynamicVersionsFor(30, TimeUnit.SECONDS)));
