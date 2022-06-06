@@ -26,13 +26,9 @@ package io.fairyproject.bukkit.listener;
 
 import com.google.common.collect.ImmutableSet;
 import io.fairyproject.bukkit.listener.annotation.IgnoredFilters;
-import io.fairyproject.bukkit.listener.annotation.PlayerSearchAttribute;
-import io.fairyproject.bukkit.listener.asm.ASMEventExecutorGenerator;
-import io.fairyproject.bukkit.listener.asm.ClassDefiner;
 import io.fairyproject.bukkit.listener.asm.MethodHandleEventExecutor;
 import io.fairyproject.bukkit.listener.asm.StaticMethodHandleEventExecutor;
 import io.fairyproject.bukkit.listener.timings.TimedEventExecutor;
-import io.fairyproject.bukkit.player.PlayerEventRecognizer;
 import io.fairyproject.util.ConditionUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -137,36 +133,8 @@ public final class FilteredListenerRegistry {
         ConditionUtils.notNull(m, "Null method");
         ConditionUtils.check(m.getParameterCount() != 0, "Incorrect number of arguments %s", m.getParameterCount());
         ConditionUtils.check(m.getParameterTypes()[0] == eventClass, "First parameter %s doesn't match event class %s", m.getParameterTypes()[0], eventClass);
-        ClassDefiner definer = ClassDefiner.getInstance();
         if (Modifier.isStatic(m.getModifiers())) {
             return new StaticMethodHandleEventExecutor(eventClass, m, ignoredFilters, eventList);
-        } else if (definer.isBypassAccessChecks() || Modifier.isPublic(m.getDeclaringClass().getModifiers()) && Modifier.isPublic(m.getModifiers())) {
-            // get the existing generated EventExecutor class for the Method or generate one
-            Class<? extends EventExecutor> executorClass = eventExecutorMap.computeIfAbsent(m, (__) -> {
-                String name = ASMEventExecutorGenerator.generateName();
-                byte[] classData = ASMEventExecutorGenerator.generateEventExecutor(m, name);
-                return definer.defineClass(m.getDeclaringClass().getClassLoader(), name, classData).asSubclass(EventExecutor.class);
-            });
-
-            Class<? extends PlayerEventRecognizer.Attribute<?>>[] attributes;
-            final PlayerSearchAttribute annotation = m.getAnnotation(PlayerSearchAttribute.class);
-            if (annotation != null) {
-                attributes = annotation.value();
-            } else {
-                attributes = new Class[0];
-            }
-
-            try {
-                EventExecutor asmExecutor = executorClass.newInstance();
-                // Define a wrapper to conform to bukkit stupidity (passing in events that don't match and wrapper exception)
-                return (listener, event) -> {
-                    if (eventClass.isInstance(event) && (ignoredFilters || eventList.check(event, attributes))) {
-                        asmExecutor.execute(listener, event);
-                    }
-                };
-            } catch (InstantiationException | IllegalAccessException e) {
-                throw new AssertionError("Unable to initialize generated event executor", e);
-            }
         } else {
             return new MethodHandleEventExecutor(eventClass, m, ignoredFilters, eventList);
         }
