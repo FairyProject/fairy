@@ -1,14 +1,18 @@
 package io.fairyproject.app;
 
+import io.fairyproject.Debug;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
+import io.fairyproject.app.logger.TinyLogger;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
+import org.tinylog.provider.ProviderRegistry;
 
 import java.io.File;
 import java.net.JarURLConnection;
@@ -36,6 +40,9 @@ public class FairyAppPlatform extends FairyPlatform {
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
         this.mainThread = Thread.currentThread();
         this.running = true;
+
+        if (!Debug.UNIT_TEST)
+            Log.set(new TinyLogger());
     }
 
     @Override
@@ -97,13 +104,19 @@ public class FairyAppPlatform extends FairyPlatform {
             }
             this.shuttingDown = true;
         }
-        LOGGER.info("Shutting down...");
+        Log.info("Shutting down...");
 
         if (this.mainApplication != null) {
             try {
                 this.mainApplication.close();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    ProviderRegistry.getLoggingProvider().shutdown();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 

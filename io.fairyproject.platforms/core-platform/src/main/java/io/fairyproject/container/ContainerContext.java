@@ -42,6 +42,7 @@ import io.fairyproject.container.scanner.DefaultClassPathScanner;
 import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.CompletableFutureUtils;
@@ -52,8 +53,6 @@ import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.thread.executor.ListeningDecorator;
 import lombok.Getter;
 import lombok.NonNull;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -98,20 +97,14 @@ public class ContainerContext {
     /**
      * Logging
      */
-    public static final Logger LOGGER = LogManager.getLogger(ContainerContext.class);
     public static void log(String msg, Object... replacement) {
         if (SHOW_LOGS) {
-            LOGGER.info(String.format(msg, replacement));
+            Log.info(String.format(msg, replacement));
         }
     }
     public static void warn(String msg, Object... replacement) {
         if (SHOW_LOGS) {
-            LOGGER.warn(String.format(msg, replacement));
-        }
-    }
-    public static void fatal(String msg, Throwable e, Object... replacement) {
-        if (SHOW_LOGS) {
-            LOGGER.fatal(String.format(msg, replacement), e);
+            Log.warn(String.format(msg, replacement));
         }
     }
 
@@ -149,7 +142,7 @@ public class ContainerContext {
                 SneakyThrowUtil.sneakyThrow(classPathScanner.getException());
             }
         } catch (Throwable throwable) {
-            LOGGER.error("Error while scanning classes for framework", Stacktrace.simplifyStacktrace(throwable));
+            Log.error("Error while scanning classes for framework", Stacktrace.simplifyStacktrace(throwable));
             Fairy.getPlatform().shutdown();
             return;
         }
@@ -311,7 +304,7 @@ public class ContainerContext {
                 if (!this.isRegisteredObject(dependency)) {
                     switch (serviceDependency.type()) {
                         case FORCE:
-                            LOGGER.error("Couldn't find the dependency " + dependency + " for " + type.getSimpleName() + "!");
+                            Log.error("Couldn't find the dependency " + dependency + " for " + type.getSimpleName() + "!");
                         case SUB_DISABLE:
                             return null;
                         case SUB:
@@ -333,7 +326,7 @@ public class ContainerContext {
         try {
             containerObject.lifeCycle(LifeCycle.PRE_INIT);
         } catch (Throwable throwable) {
-            LOGGER.error(throwable);
+            Log.error(throwable);
         }
         return containerObject;
     }

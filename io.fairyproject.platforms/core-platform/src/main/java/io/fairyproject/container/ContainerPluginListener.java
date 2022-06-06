@@ -6,6 +6,7 @@ import io.fairyproject.container.object.ContainerObject;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.SimpleContainerObject;
 import io.fairyproject.container.scanner.ClassPathScanner;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.util.Stacktrace;
@@ -33,7 +34,7 @@ public class ContainerPluginListener implements PluginListenerAdapter {
             this.containerContext.registerObject(containerObject, false);
             ContainerContext.log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
         } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error("An error occurs while registering plugin", throwable);
+            Log.error("An error occurs while registering plugin", throwable);
             plugin.closeAndReportException();
             return;
         }
@@ -68,7 +69,7 @@ public class ContainerPluginListener implements PluginListenerAdapter {
                 SneakyThrowUtil.sneakyThrow(scanner.getException());
             }
         } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
+            Log.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
             plugin.closeAndReportException();
         }
     }
@@ -79,7 +80,7 @@ public class ContainerPluginListener implements PluginListenerAdapter {
         try {
             this.containerContext.lifeCycle(LifeCycle.PRE_DESTROY, containerObjectList);
         } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error(throwable);
+            Log.error(throwable);
         }
 
         containerObjectList.forEach(containerObject -> {
@@ -91,7 +92,7 @@ public class ContainerPluginListener implements PluginListenerAdapter {
         try {
             this.containerContext.lifeCycle(LifeCycle.POST_DESTROY, containerObjectList);
         } catch (Throwable throwable) {
-            ContainerContext.LOGGER.error(throwable);
+            Log.error(throwable);
         }
     }
 

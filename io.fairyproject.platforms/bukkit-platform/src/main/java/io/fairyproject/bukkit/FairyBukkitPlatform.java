@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit;
 
+import io.fairyproject.Debug;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
@@ -32,11 +33,13 @@ import io.fairyproject.bukkit.impl.BukkitPluginHandler;
 import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
 import io.fairyproject.bukkit.impl.ComponentHolderBukkitListener;
 import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.logger.Log4jLogger;
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.ComponentRegistry;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCInitializer;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
@@ -72,6 +75,9 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
 
         PluginManager.initialize(new BukkitPluginHandler());
+        // Use log4j for bukkit platform
+        if (!Debug.UNIT_TEST)
+            Log.set(new Log4jLogger());
     }
 
     @Override

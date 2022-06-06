@@ -27,12 +27,11 @@ package io.fairyproject.library;
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.library.classloader.IsolatedClassLoader;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.*;
 import io.fairyproject.util.FairyThreadFactory;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.URLClassLoaderAccess;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.InputStream;
@@ -53,7 +52,6 @@ public class LibraryHandler {
     private final Map<Plugin, URLClassLoaderAccess> pluginClassLoaders = new ConcurrentHashMap<>();
     private final Map<Set<Library>, IsolatedClassLoader> loaders = new HashMap<>();
 
-    private final Logger LOGGER = LogManager.getLogger(LibraryHandler.class);
     private final ExecutorService EXECUTOR = Executors.newCachedThreadPool(FairyThreadFactory.builder()
             .daemon(true)
             .name("Library Downloader - <id>")
@@ -154,9 +152,9 @@ public class LibraryHandler {
             EXECUTOR.submit(() -> {
                 try {
                     loadLibrary(library, autoLoad);
-                    LOGGER.info("Loaded Library " + library.name() + " v" + library.getVersion());
+                    Log.info("Loaded Library " + library.name() + " v" + library.getVersion());
                 } catch (Throwable throwable) {
-                    LOGGER.warn("Unable to load library " + library.getFileName() + ".", throwable);
+                    Log.warn("Unable to load library " + library.getFileName() + ".", throwable);
                     future.completeExceptionally(throwable);
                 } finally {
                     future.complete(null);

@@ -7,10 +7,5 @@ dependencies {
     api "com.google.jimfs:jimfs:1.1"
     api "org.junit.jupiter:junit-jupiter-api:5.7.1"
 
-    // log4j
-    api "org.apache.logging.log4j:log4j-core:" + findProperty("log4j.version")
-    api "org.apache.logging.log4j:log4j-iostreams:" + findProperty("log4j.version")
-    api "org.apache.logging.log4j:log4j-api:" + findProperty("log4j.version")
-
     api "org.junit.jupiter:junit-jupiter-engine:5.7.0"
 }

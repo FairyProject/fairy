@@ -24,12 +24,11 @@
 
 package io.fairyproject.mysql.pojo.statement;
 
+import io.fairyproject.log.Log;
 import io.fairyproject.mysql.ImanitySqlException;
 import io.fairyproject.mysql.pojo.Property;
 import io.fairyproject.mysql.pojo.Query;
 import io.fairyproject.mysql.pojo.Where;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.fairyproject.mysql.pojo.info.StandardPojoInfo;
 import io.fairyproject.mysql.util.SQLUtil;
 
@@ -43,8 +42,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * Produces ANSI-standard SQL. Extend this class to handle different flavors of sql.
  */
 public class StandardSqlStatementBuilder implements SqlStatementBuilder {
-
-	private static final Logger LOGGER = LogManager.getLogger(StandardSqlStatementBuilder.class);
 	private static final ConcurrentHashMap<Class<?>, StandardPojoInfo> POJOS = new ConcurrentHashMap<>();
 
 	public StandardPojoInfo getPojoInfo(Class<?> rowClass) {
@@ -214,7 +211,7 @@ public class StandardSqlStatementBuilder implements SqlStatementBuilder {
 				}
 			}
 		} else if (query.getWheres().size() > 0) {
-			LOGGER.error(new IllegalArgumentException("There is where statement specified but Where list also not empty!"));
+			Log.error(new IllegalArgumentException("There is where statement specified but Where list also not empty!"));
 		}
 
 		String table = query.getTable();

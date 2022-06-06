@@ -2,10 +2,12 @@ package io.fairyproject.tests;
 
 import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.tests.logger.DebugLogger;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
 import lombok.Getter;
@@ -51,6 +53,7 @@ public class TestingContext {
             if (!this.initialized.compareAndSet(false, true)) {
                 return;
             }
+            Log.set(new DebugLogger());
             testingHandle.onPreInitialization();
 
             Debug.UNIT_TEST = true;
@@ -65,7 +68,7 @@ public class TestingContext {
             PluginAction pluginAction = new PluginAction() {
                 @Override
                 public void close() {
-                    throw new IllegalStateException("close() shouldn't be called in unit testing.");
+                    shutdown();
                 }
 
                 @Override

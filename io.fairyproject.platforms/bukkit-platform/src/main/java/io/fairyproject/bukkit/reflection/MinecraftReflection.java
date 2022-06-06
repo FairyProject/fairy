@@ -41,6 +41,7 @@ import io.fairyproject.bukkit.reflection.wrapper.ChatComponentWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.PacketWrapper;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.EquivalentConverter;
@@ -219,7 +220,7 @@ public class MinecraftReflection {
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             throw new RuntimeException(e);
         }
-        Imanity.LOGGER.info("Initialized Protocol Check with " + lastSuccess.getSimpleName());
+        Log.info("Initialized Protocol Check with " + lastSuccess.getSimpleName());
     }
 
     /**

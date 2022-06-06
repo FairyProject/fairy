@@ -28,7 +28,6 @@ import io.fairyproject.mysql.Session;
 import io.fairyproject.mysql.config.AbstractSqlRepositoryProvider;
 import io.fairyproject.mysql.connection.AbstractConnectionFactory;
 import io.fairyproject.mysql.pojo.Transaction;
-import org.apache.logging.log4j.LogManager;
 
 import java.io.Serializable;
 import java.util.List;

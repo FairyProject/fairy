@@ -33,10 +33,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.nbt.NBTKey;
 import io.fairyproject.bukkit.nbt.NBTModifier;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.PlaceholderEntry;
@@ -47,8 +47,6 @@ import io.fairyproject.util.StringUtil;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -56,10 +54,12 @@ import org.bukkit.plugin.Plugin;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Function;
 
 @Getter
 @JsonSerialize(using = ImanityItem.Serializer.class)
@@ -69,7 +69,6 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
     private static final Map<String, ImanityItem> NAME_TO_ITEMS = new ConcurrentHashMap<>();
     private static final Map<Plugin, List<ImanityItem>> PLUGIN_TO_ITEMS = new ConcurrentHashMap<>();
     private static final AtomicInteger UNNAMED_ITEM_COUNTER = new AtomicInteger(0);
-    private static final Logger LOGGER = LogManager.getLogger(ImanityItem.class);
     private static final NBTKey KEY = NBTKey.create("imanity", "item", "id");
 
     private Plugin plugin;
@@ -208,7 +207,7 @@ public final class ImanityItem implements Terminable, MetadataMapProxy {
 
         if (this.id == null) {
             this.id = "unnamed-item:" + UNNAMED_ITEM_COUNTER.getAndIncrement();
-            LOGGER.warn("The Item doesn't have an id! (outdated?)", new Throwable());
+            Log.warn("The Item doesn't have an id! (outdated?)", new Throwable());
         }
 
         if (NAME_TO_ITEMS.containsKey(this.id)) {

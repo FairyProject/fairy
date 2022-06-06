@@ -27,9 +27,8 @@ package io.fairyproject.mysql.connection.hikari;
 import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import io.fairyproject.log.Log;
 import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import io.fairyproject.Fairy;
 import io.fairyproject.mysql.connection.AbstractConnectionFactory;
 import io.fairyproject.mysql.pojo.statement.SqlStatementBuilder;
@@ -41,8 +40,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public abstract class HikariConnectionFactory extends AbstractConnectionFactory {
-
-    private static final Logger LOGGER = LogManager.getLogger(HikariConnectionFactory.class);
 
     @Getter
     protected HikariConfig config;
@@ -113,8 +110,8 @@ public abstract class HikariConnectionFactory extends AbstractConnectionFactory 
                 "org.slf4j.impl.StaticLoggerBinder"
         );
 
-        LOGGER.warn("A " + linkageError.getClass().getSimpleName() + " has occurred whilst initialising Hikari. This is likely due to classloading conflicts between other plugins.");
-        LOGGER.warn("Please check for other plugins below (and try loading LuckPerms without them installed) before reporting the issue.");
+        Log.warn("A " + linkageError.getClass().getSimpleName() + " has occurred whilst initialising Hikari. This is likely due to classloading conflicts between other plugins.");
+        Log.warn("Please check for other plugins below (and try loading LuckPerms without them installed) before reporting the issue.");
 
         for (String className : noteworthyClasses) {
             Class<?> clazz;
@@ -132,7 +129,7 @@ public abstract class HikariConnectionFactory extends AbstractConnectionFactory 
                 loaderName = loader.toString();
             }
 
-            LOGGER.warn("Class " + className + " has been loaded by: " + loaderName);
+            Log.warn("Class " + className + " has been loaded by: " + loaderName);
         }
     }
 }
