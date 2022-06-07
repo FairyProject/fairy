@@ -25,10 +25,10 @@
 package io.fairyproject.bukkit.timer;
 
 import com.google.common.collect.Sets;
+import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.timer.event.TimerClearEvent;
 import io.fairyproject.bukkit.timer.impl.PlayerTimer;
 import org.bukkit.event.player.PlayerQuitEvent;
-import io.fairyproject.ScheduledAtFixedRate;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
@@ -79,24 +79,25 @@ public class TimerService {
         this.lock.unlock();
     }
 
-    @ScheduledAtFixedRate(async = false, ticks = 2, delay = 2)
     public void startScheduler() {
-        this.lock.lock();
-        Iterator<Timer> iterator = this.timers.iterator();
-        while (iterator.hasNext()) {
-            Timer timer = iterator.next();
-            if (timer.isPaused()) {
-                continue;
-            }
-            timer.tick();
-            if (timer.isElapsed() && timer.elapsed()) {
-                if (!timer.clear(false, TimerClearEvent.Reason.ELAPSED)) {
+        Fairy.getTaskScheduler().runRepeated(t -> {
+            this.lock.lock();
+            Iterator<Timer> iterator = this.timers.iterator();
+            while (iterator.hasNext()) {
+                Timer timer = iterator.next();
+                if (timer.isPaused()) {
                     continue;
                 }
-                iterator.remove();
+                timer.tick();
+                if (timer.isElapsed() && timer.elapsed()) {
+                    if (!timer.clear(false, TimerClearEvent.Reason.ELAPSED)) {
+                        continue;
+                    }
+                    iterator.remove();
+                }
             }
-        }
-        this.lock.unlock();
+            this.lock.unlock();
+        }, 2L);
     }
 
     public boolean isTimerRunning(Class<? extends Timer> timerClass) {

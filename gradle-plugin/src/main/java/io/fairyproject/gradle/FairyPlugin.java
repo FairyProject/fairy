@@ -109,7 +109,6 @@ public class FairyPlugin implements Plugin<Project> {
                     dependency = (ModuleDependency) project.getDependencies().create(project.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-platform")));
                     dependency.setTargetConfiguration("shadow");
                     dependencies.add(dependency);
-                    project.getDependencies().add("aspect", dependency);
 
                     dependency = (ModuleDependency) project.getDependencies().create(project.project(IDEDependencyLookup.getIdentityPath(platformType.getDependencyName() + "-tests")));
                     dependency.setTargetConfiguration("shadow");
@@ -125,7 +124,6 @@ public class FairyPlugin implements Plugin<Project> {
                     ));
                     dependencies.add(bootstrapDependency);
                     dependencies.add(platformDependency);
-                    project.getDependencies().add("aspect", platformDependency);
                     project.getDependencies().add("testImplementation", String.format(DEPENDENCY_FORMAT,
                             platformType.getDependencyName() + "-tests",
                             this.extension.getFairyVersion().get()

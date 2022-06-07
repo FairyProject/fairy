@@ -40,9 +40,6 @@ public class FairyBuildData implements Serializable {
     private String fairyVersion;
     private List<PlatformType> fairyPlatforms;
 
-    // Libraries
-    private String aspectJVersion;
-
     // Plugin
     private String classifier;
     private String mainPackage;

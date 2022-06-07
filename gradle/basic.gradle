@@ -1,10 +1,7 @@
-import io.fairyproject.gradle.AspectJPlugin
-
 //file:noinspection GroovyAssignabilityCheck
 
 // Main script
 //apply plugin: "io.freefair.aspectj.post-compile-weaving"
-apply plugin: AspectJPlugin
 
 configurations {
     compileOnly {
@@ -44,12 +41,10 @@ dependencies {
             def platformName = names[0]
 
             compileOnly project(":io.fairyproject.platforms:$platformName-platform")
-            aspect project(":io.fairyproject.platforms:$platformName-platform")
             testImplementation project(":io.fairyproject.tests:$platformName-tests")
         }
     } else {
         compileOnly project(":io.fairyproject.platforms:core-platform")
-        aspect project(":io.fairyproject.platforms:core-platform")
         testImplementation project(":io.fairyproject.tests:core-tests")
     }
 
@@ -74,8 +69,3 @@ sourceSets {
     test.compileClasspath += configurations.compileOnly
     test.runtimeClasspath += configurations.compileOnly
 }
-
-compileJava.ajc.options.compilerArgs += "-showWeaveInfo"
-compileJava.ajc.options.compilerArgs += "-verbose"
-
-compileTestJava.ajc.options.aspectpath.from sourceSets.main.output

@@ -24,7 +24,6 @@
 
 package io.fairyproject;
 
-import io.fairyproject.aspect.AsyncAspect;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.SimpleContainerObject;
 import io.fairyproject.event.EventBus;
@@ -99,7 +98,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
     }
 
     private void loadBindable() {
-        this.bind(AsyncAspect.EXECUTOR);
 //        this.bind(CacheableAspect.CLEANER_SERVICE);
 //        this.bind(CacheableAspect.UPDATER_SERVICE);
     }
