@@ -120,8 +120,17 @@ public class NameTagService {
     }
 
     public CompletableFuture<?> updateFromFirstSide(MCPlayer player) {
-        NameTagUpdate update = NameTagUpdate.createTarget(player);
+        NameTagUpdate update = NameTagUpdate.createPlayer(player);
         return Task.runAsync(() -> this.applyUpdate(update));
+    }
+
+    public CompletableFuture<?> update(MCPlayer player) {
+        NameTagUpdate firstSide = NameTagUpdate.createPlayer(player);
+        NameTagUpdate thirdSide = NameTagUpdate.createTarget(player);
+        return Task.runAsync(() -> {
+            this.applyUpdate(firstSide);
+            this.applyUpdate(thirdSide);
+        });
     }
 
     public CompletableFuture<?> update(MCPlayer target, MCPlayer player) {
