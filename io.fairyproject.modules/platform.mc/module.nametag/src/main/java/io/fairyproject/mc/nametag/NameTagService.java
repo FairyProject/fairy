@@ -38,6 +38,7 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.item.NameTagVisibility;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.Utility;
@@ -200,19 +201,20 @@ public class NameTagService {
     }
 
     @Nullable
-    protected NameTag getNameTag(Component prefix, Component suffix) {
-        return this.nametags.getOrDefault(this.toKey(prefix, suffix), null);
+    protected NameTag getNameTag(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
+        return this.nametags.getOrDefault(this.toKey(prefix, suffix, nameTagVisibility), null);
     }
 
-    protected NameTag getOrCreate(Component prefix, Component suffix) {
-        NameTag info = this.getNameTag(prefix, suffix);
+    protected NameTag getOrCreate(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
+        NameTag info = this.getNameTag(prefix, suffix, nameTagVisibility);
 
         if (info != null) {
             return info;
         }
 
         NameTag newTeam = new NameTag(prefix, suffix);
-        this.nametags.put(this.toKey(prefix, suffix), newTeam);
+        newTeam.setNameTagVisibility(nameTagVisibility);
+        this.nametags.put(this.toKey(prefix, suffix, nameTagVisibility), newTeam);
         for (MCPlayer player : MCPlayer.all()) {
             this.sendPacket(player, newTeam);
         }
@@ -220,6 +222,7 @@ public class NameTagService {
     }
 
     private void sendPacket(MCPlayer mcPlayer, NameTag info) {
+        WrapperPlayServerTeams.NameTagVisibility packetVisibility = WrapperPlayServerTeams.NameTagVisibility.fromID(info.getNameTagVisibility().name);
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
                 info.getName(),
                 WrapperPlayServerTeams.TeamMode.CREATE,
@@ -227,7 +230,7 @@ public class NameTagService {
                         Component.empty(),
                         info.getPrefix(),
                         info.getSuffix(),
-                        WrapperPlayServerTeams.NameTagVisibility.ALWAYS,
+                        packetVisibility,
                         WrapperPlayServerTeams.CollisionRule.ALWAYS,
                         NamedTextColor.WHITE,
                         WrapperPlayServerTeams.OptionData.NONE
@@ -236,7 +239,7 @@ public class NameTagService {
         MCProtocol.sendPacket(mcPlayer, packet);
     }
 
-    private String toKey(Component prefix, Component suffix) {
-        return prefix + ":" + suffix;
+    private String toKey(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
+        return prefix + ":" + suffix + ":" + nameTagVisibility;
     }
 }

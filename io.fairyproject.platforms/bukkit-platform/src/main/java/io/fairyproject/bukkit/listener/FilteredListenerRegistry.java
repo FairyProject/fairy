@@ -29,6 +29,7 @@ import io.fairyproject.bukkit.listener.annotation.IgnoredFilters;
 import io.fairyproject.bukkit.listener.asm.MethodHandleEventExecutor;
 import io.fairyproject.bukkit.listener.asm.StaticMethodHandleEventExecutor;
 import io.fairyproject.bukkit.listener.timings.TimedEventExecutor;
+import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.ConditionUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -42,16 +43,12 @@ import org.bukkit.plugin.IllegalPluginAccessException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.function.Function;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class FilteredListenerRegistry {
@@ -109,25 +106,6 @@ public final class FilteredListenerRegistry {
         }
     }
 
-    private final ConcurrentMap<Method, Class<? extends EventExecutor>> eventExecutorMap = new ConcurrentHashMap<Method, Class<? extends EventExecutor>>() {
-        @NonNull
-        @Override
-        public Class<? extends EventExecutor> computeIfAbsent(@NonNull Method key, @NonNull Function<? super Method, ? extends Class<? extends EventExecutor>> mappingFunction) {
-            Class<? extends EventExecutor> executorClass = get(key);
-            if (executorClass != null)
-                return executorClass;
-
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
-            synchronized (key) {
-                executorClass = get(key);
-                if (executorClass != null)
-                    return executorClass;
-
-                return super.computeIfAbsent(key, mappingFunction);
-            }
-        }
-    };
-
     @NonNull
     private EventExecutor create(@NonNull Method m, @NonNull Class<? extends Event> eventClass, boolean ignoredFilters, FilteredEventList eventList) {
         ConditionUtils.notNull(m, "Null method");
@@ -143,6 +121,7 @@ public final class FilteredListenerRegistry {
     private static HandlerList getHandlerList(Class<? extends Event> clazz) {
         try {
             Method method = clazz.getDeclaredMethod("getHandlerList");
+            AccessUtil.setAccessible(method);
             return (HandlerList) method.invoke(null);
         } catch (NoSuchMethodException e) {
             if (clazz.getSuperclass() != null
@@ -152,7 +131,7 @@ public final class FilteredListenerRegistry {
             } else {
                 throw new IllegalPluginAccessException("Unable to find handler list for event " + clazz.getName() + ". Static getHandlerList method required!");
             }
-        } catch (IllegalAccessException | InvocationTargetException e) {
+        } catch (ReflectiveOperationException e) {
             throw new IllegalArgumentException("An error occurs while invoking for getHandlerList()", e);
         }
     }
