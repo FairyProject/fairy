@@ -24,11 +24,11 @@
 
 package io.fairyproject;
 
-import io.fairyproject.aspect.AsyncAspect;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.object.SimpleContainerObj;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.library.LibraryHandler;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
@@ -38,8 +38,6 @@ import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import io.github.classgraph.ClassGraph;
 import io.github.toolfactory.narcissus.Narcissus;
 import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -51,8 +49,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public abstract class FairyPlatform implements TerminableConsumer {
-
-    public static final Logger LOGGER = LogManager.getLogger(FairyPlatform.class);
 
     public static FairyPlatform INSTANCE;
     private final AtomicBoolean loadedDependencies = new AtomicBoolean();
@@ -99,11 +95,9 @@ public abstract class FairyPlatform implements TerminableConsumer {
         this.containerContext.stop();
         EventBus.shutdown();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
-        PluginManager.INSTANCE.unload();
     }
 
     private void loadBindable() {
-        this.bind(AsyncAspect.EXECUTOR);
 //        this.bind(CacheableAspect.CLEANER_SERVICE);
 //        this.bind(CacheableAspect.UPDATER_SERVICE);
     }
@@ -173,7 +167,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
 
                 try {
                     if (outFile.exists() && !replace) {
-                        LOGGER.warn("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
+                        Log.warn("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
                     } else {
                         OutputStream out = new FileOutputStream(outFile);
                         byte[] buf = new byte[1024];
@@ -187,7 +181,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
                         in.close();
                     }
                 } catch (IOException var10) {
-                    LOGGER.info("Could not save " + outFile.getName() + " to " + outFile, var10);
+                    Log.info("Could not save " + outFile.getName() + " to " + outFile, var10);
                 }
 
             }

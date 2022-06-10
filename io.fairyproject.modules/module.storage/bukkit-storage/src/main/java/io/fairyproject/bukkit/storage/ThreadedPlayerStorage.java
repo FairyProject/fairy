@@ -27,8 +27,7 @@ package io.fairyproject.bukkit.storage;
 import com.google.common.collect.Lists;
 import io.fairyproject.StorageService;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import io.fairyproject.log.Log;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -66,7 +65,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @ServiceDependency(StorageService.class)
 public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
-    private static final Logger LOGGER = LogManager.getLogger(ThreadedPlayerStorage.class);
     private final Object lock = new Object();
 
     private ThreadedPlayerStorageConfiguration<T> storageConfiguration;
@@ -181,7 +179,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
         this.storageConfiguration = this.buildStorageConfiguration();
         if (this.storageConfiguration == null) {
-            LOGGER.error("No storage configuration were enabled.");
+            Log.error("No storage configuration were enabled.");
             this.containerContext.unregisterObject(containerObj);
             return;
         }
@@ -193,11 +191,11 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     final UUID uuid = event.getUniqueId();
                     final String name = event.getName();
                     if (this.isDebugging()) {
-                        LOGGER.info("Processing async pre-login for Player " + uuid + " - " + name);
+                        Log.info("Processing async pre-login for Player " + uuid + " - " + name);
                     }
 
                     if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-                        LOGGER.info("Other plugin has cancelled pre-login event for " + uuid + " - " + name + ", Repository data for " + this.storageConfiguration.getName() + " will not be loaded.");
+                        Log.info("Other plugin has cancelled pre-login event for " + uuid + " - " + name + ", Repository data for " + this.storageConfiguration.getName() + " will not be loaded.");
                         synchronized (this.lock) {
                             this.asyncLoginReject.add(uuid);
                         }
@@ -212,12 +210,12 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
                         final long diff = System.currentTimeMillis() - time;
                         if (diff > 1000L || this.isDebugging()) {
-                            LOGGER.warn("Server took " + diff + "ms to load data from repository " + this.storageConfiguration.getName() + " for " + uuid + " - " + name);
+                            Log.warn("Server took " + diff + "ms to load data from repository " + this.storageConfiguration.getName() + " for " + uuid + " - " + name);
                         }
 
                         this.onLoadedAsync(uuid, name, t);
                     } catch (Exception exception) {
-                        LOGGER.error("Error occur while loading data from repository " + this.storageConfiguration.getName() + " for " + uuid + " - " + name, exception);
+                        Log.error("Error occur while loading data from repository " + this.storageConfiguration.getName() + " for " + uuid + " - " + name, exception);
 
                         synchronized (this.lock) {
                             this.asyncLoginReject.add(uuid);
@@ -234,7 +232,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     synchronized (this.lock) {
                         if (this.asyncLoginReject.remove(event.getUniqueId())) {
                             if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-                                LOGGER.warn("Player pre-login were re-allowed for " + event.getUniqueId() + " by plugins. rejecting it once again");
+                                Log.warn("Player pre-login were re-allowed for " + event.getUniqueId() + " by plugins. rejecting it once again");
                                 event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "");
                             }
                         }
@@ -249,7 +247,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     Player player = event.getPlayer();
 
                     if (this.isDebugging()) {
-                        LOGGER.info("Processing login for Player " + player.getUniqueId() + " - " + player.getName());
+                        Log.info("Processing login for Player " + player.getUniqueId() + " - " + player.getName());
                     }
 
                     final T t = this.find(player.getUniqueId());
@@ -274,7 +272,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     synchronized (this.lock) {
                         if (this.syncLoginReject.remove(event.getPlayer().getUniqueId())) {
                             if (event.getResult() == PlayerLoginEvent.Result.ALLOWED) {
-                                LOGGER.warn("Player login were re-allowed for " + event.getPlayer().getUniqueId() + " by plugins. rejecting it once again");
+                                Log.warn("Player login were re-allowed for " + event.getPlayer().getUniqueId() + " by plugins. rejecting it once again");
                                 event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "");
                             }
                         }

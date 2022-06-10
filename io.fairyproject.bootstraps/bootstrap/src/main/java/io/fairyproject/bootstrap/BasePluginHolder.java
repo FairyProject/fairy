@@ -1,12 +1,12 @@
 package io.fairyproject.bootstrap;
 
 import com.google.gson.JsonObject;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
 import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
@@ -69,7 +69,7 @@ public abstract class BasePluginHolder {
             plugin.onPluginEnable();
         } catch (Throwable throwable) {
             if (!plugin.isClosed() && !plugin.isForceDisabling()) {
-                LogManager.getLogger(plugin.getClass()).error(throwable);
+                Log.error(throwable);
             }
         }
     }
@@ -79,7 +79,7 @@ public abstract class BasePluginHolder {
             plugin.onPluginDisable();
         } catch (Throwable throwable) {
             if (!plugin.isForceDisabling()) {
-                LogManager.getLogger(plugin.getClass()).error(throwable);
+                Log.error(throwable);
             }
         }
 

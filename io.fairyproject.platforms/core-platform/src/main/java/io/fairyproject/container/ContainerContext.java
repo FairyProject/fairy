@@ -42,6 +42,7 @@ import io.fairyproject.container.scanner.DefaultClassPathScanner;
 import io.fairyproject.container.scanner.ThreadedClassPathScanner;
 import io.fairyproject.event.EventBus;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.CompletableFutureUtils;
@@ -111,7 +112,7 @@ public class ContainerContext {
                 SneakyThrowUtil.sneakyThrow(classPathScanner.getException());
             }
         } catch (Throwable throwable) {
-            Debug.LOGGER.error("Error while scanning classes for framework", Stacktrace.simplifyStacktrace(throwable));
+            Log.error("Error while scanning classes for framework", Stacktrace.simplifyStacktrace(throwable));
             Fairy.getPlatform().shutdown();
             return;
         }
@@ -179,7 +180,7 @@ public class ContainerContext {
                 if (!this.isRegisteredObject(dependency)) {
                     switch (serviceDependency.type()) {
                         case FORCE:
-                            Debug.LOGGER.error("Couldn't find the dependency " + dependency + " for " + type.getSimpleName() + "!");
+                            Log.error("Couldn't find the dependency " + dependency + " for " + type.getSimpleName() + "!");
                         case SUB_DISABLE:
                             return null;
                         case SUB:
@@ -201,7 +202,7 @@ public class ContainerContext {
         try {
             containerObject.lifeCycle(LifeCycle.PRE_INIT);
         } catch (Throwable throwable) {
-            Debug.LOGGER.error(throwable);
+            Log.error(throwable);
         }
         return containerObject;
     }

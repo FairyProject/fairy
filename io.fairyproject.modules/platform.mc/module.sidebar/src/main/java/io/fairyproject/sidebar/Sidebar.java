@@ -118,7 +118,7 @@ public class Sidebar {
             return;
         }
 
-        final Object channel = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getChannel(player.getName());
+        final Object channel = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getChannel(player.getUUID());
         final ClientVersion version = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getClientVersion(channel);
         final WrapperPlayServerTeams packet = getOrRegisterTeam(line);
 

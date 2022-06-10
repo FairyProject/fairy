@@ -54,7 +54,7 @@ allprojects {
         maven { url "https://jitpack.io" }
         maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
         maven { url "https://repo.viaversion.com/" }
-        maven { url "https://maven.sk89q.com/repo/" }
+        maven { url "https://maven.enginehub.org/repo/" }
         flatDir { dir("${this.projectDir.path}/libs") }
     }
 

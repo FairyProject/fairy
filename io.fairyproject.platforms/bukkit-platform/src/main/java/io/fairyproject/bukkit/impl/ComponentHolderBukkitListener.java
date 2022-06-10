@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.impl;
 
 import io.fairyproject.container.ComponentHolder;
-import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.log.Log;
 import org.bukkit.event.Listener;
 import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.events.Events;
@@ -41,7 +41,7 @@ public class ComponentHolderBukkitListener extends ComponentHolder {
         } else if (Listener.class.isAssignableFrom(type)) {
             Events.subscribe((Listener) object);
         } else {
-            Imanity.LOGGER.error("The Class " + type.getSimpleName() + " wasn't implement Listener or FunctionListener!");
+            Log.error("The Class " + type.getSimpleName() + " wasn't implement Listener or FunctionListener!");
             return null;
         }
 

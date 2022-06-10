@@ -3,6 +3,7 @@ package io.fairyproject.container.controller;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ContainerHolder;
+import io.fairyproject.log.Log;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.AccessUtil;
@@ -10,7 +11,6 @@ import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import io.github.classgraph.ScanResult;
-import org.apache.logging.log4j.LogManager;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -97,7 +97,7 @@ public class AutowiredContainerController implements ContainerController {
             AccessUtil.setAccessible(field);
             Reflect.setField(instance, field, objectToInject);
         } else {
-            LogManager.getLogger(AutowiredContainerController.class).error("The Autowired field " + field + " trying to wired with type " + type.getSimpleName() + " but couldn't find any matching Service! (or not being registered)");
+            Log.error("The Autowired field " + field + " trying to wired with type " + type.getSimpleName() + " but couldn't find any matching Service! (or not being registered)");
         }
     }
 }

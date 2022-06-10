@@ -38,7 +38,6 @@ import io.fairyproject.metadata.MetadataKey;
 import lombok.Getter;
 import lombok.Setter;
 import io.fairyproject.util.Stacktrace;
-import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,7 +48,6 @@ import java.util.concurrent.*;
 
 @Getter
 @Service
-@Log4j2
 public class TablistService {
 
     public static TablistService INSTANCE;

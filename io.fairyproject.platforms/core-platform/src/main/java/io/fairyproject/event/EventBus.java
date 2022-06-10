@@ -2,10 +2,9 @@ package io.fairyproject.event;
 
 import io.fairyproject.event.impl.AnnotatedSubscriber;
 import io.fairyproject.event.impl.ConsumerSubscriber;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.Utility;
 import lombok.experimental.UtilityClass;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -15,8 +14,6 @@ import java.util.function.Consumer;
 
 @UtilityClass
 public class EventBus {
-
-    private final Logger LOGGER = LogManager.getLogger(EventBus.class);
     private final Map<Class<?>, Subscribers> SUBSCRIBERS = new ConcurrentHashMap<>();
 
     static {
@@ -88,7 +85,7 @@ public class EventBus {
             final Subscribers subscribers = getSubscribers(subscriber.getType());
             subscribers.register(subscriber);
         } catch (Throwable e) {
-            LOGGER.error("An error occurs while subscribing event", e);
+            Log.error("An error occurs while subscribing event", e);
         }
     }
 
@@ -103,7 +100,7 @@ public class EventBus {
                 SUBSCRIBERS.remove(type);
             }
         } catch (Throwable e) {
-            LOGGER.error("An error occurs while subscribing event", e);
+            Log.error("An error occurs while subscribing event", e);
         }
     }
 

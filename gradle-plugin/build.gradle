@@ -2,7 +2,7 @@ repositories {
     gradlePluginPortal()
 }
 
-version = "1.1.0b2"
+version = "1.1.0b3"
 
 apply plugin: "java-gradle-plugin"
 apply plugin: "maven-publish"
@@ -61,11 +61,6 @@ dependencies {
     implementation 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
 
     compileOnly project(":shared")
-
-    // AspectJ weaver
-    compileOnly "org.aspectj:aspectjtools:1.9.7"
-    compileOnly "org.aspectj:aspectjrt:1.9.7"
-    compileOnly "org.aspectj:aspectjweaver:1.9.7"
 
     testImplementation "org.junit.jupiter:junit-jupiter-engine:5.7.0"
 }

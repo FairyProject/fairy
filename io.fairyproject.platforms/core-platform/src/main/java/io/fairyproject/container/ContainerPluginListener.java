@@ -7,6 +7,7 @@ import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.SimpleContainerObj;
 import io.fairyproject.container.scanner.ClassPathScanner;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.util.Stacktrace;
@@ -37,7 +38,7 @@ public class ContainerPluginListener implements PluginListenerAdapter {
             node.addObj(pluginObj);
             Debug.log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
         } catch (Throwable throwable) {
-            Debug.LOGGER.error("An error occurs while registering plugin", throwable);
+            Log.error("An error occurs while registering plugin", throwable);
             plugin.closeAndReportException();
             return;
         }
@@ -73,7 +74,7 @@ public class ContainerPluginListener implements PluginListenerAdapter {
                 SneakyThrowUtil.sneakyThrow(scanner.getException());
             }
         } catch (Throwable throwable) {
-            Debug.LOGGER.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
+            Log.error("Plugin " + plugin.getName() + " occurs error when doing class path scanning.", Stacktrace.simplifyStacktrace(throwable));
             plugin.closeAndReportException();
         }
     }

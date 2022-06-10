@@ -10,6 +10,7 @@ import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.RelativeContainerObj;
 import io.fairyproject.container.object.ServiceContainerObj;
 import io.fairyproject.container.object.parameter.MethodContainerResolver;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.NonNullArrayList;
 import io.fairyproject.util.SimpleTiming;
@@ -92,7 +93,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
                     }
                 }
             } catch (InvocationTargetException | IllegalAccessException e) {
-                Debug.LOGGER.error(e);
+                Log.error(e);
                 containerContext.unregisterObject(containerObj);
             }
         }
@@ -198,7 +199,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
                         switch (type) {
                             default:
                             case FORCE:
-                                ContainerContext.LOGGER.error("Couldn't find the dependency " + dependency + " for " + containerObj.getType().getSimpleName() + "!");
+                                Log.error("Couldn't find the dependency " + dependency + " for " + containerObj.getType().getSimpleName() + "!");
                                 removeIterator.remove();
                                 break search;
                             case SUB_DISABLE:
@@ -211,7 +212,7 @@ public abstract class BaseClassPathScanner extends ClassPathScanner implements T
                     } else {
                         if (dependencyObject.hasDepend()
                                 && dependencyObject.getDepends().contains(containerObj.getType())) {
-                            Debug.LOGGER.error("Target " + containerObj.getType().getSimpleName() + " and " + dependency + " depend to each other!");
+                            Log.error("Target " + containerObj.getType().getSimpleName() + " and " + dependency + " depend to each other!");
                             removeIterator.remove();
 
                             toLoad.remove(dependency);

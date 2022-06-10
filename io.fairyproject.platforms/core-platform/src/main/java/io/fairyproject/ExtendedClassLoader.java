@@ -24,8 +24,7 @@
 
 package io.fairyproject;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import io.fairyproject.log.Log;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -36,8 +35,6 @@ import java.nio.file.Path;
 import java.util.function.Supplier;
 
 public class ExtendedClassLoader {
-
-    private static final Logger LOGGER = LogManager.getLogger(ExtendedClassLoader.class);
     private final URLClassLoader classLoader;
 
     @SuppressWarnings("Guava") // we can't use java.util.Function because old Guava versions are used at runtime
@@ -56,7 +53,7 @@ public class ExtendedClassLoader {
             public Method get() {
                 if (retVal == null) {
                     if (isJava9OrNewer()) {
-                        LOGGER.info("It is safe to ignore any warning printed following this message " +
+                        Log.info("It is safe to ignore any warning printed following this message " +
                                 "starting with 'WARNING: An illegal reflective access operation has occurred, Illegal reflective " +
                                 "access by " + getClass().getName() + "'. This is intended, and will not have any impact on the " +
                                 "operation of Imanity.");

@@ -5,6 +5,7 @@ import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
@@ -61,7 +62,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
                     try {
                         AutowiredContainerController.INSTANCE.applyField(field, null);
                     } catch (ReflectiveOperationException e) {
-                        SneakyThrowUtil.sneakyThrow(e);
+                        throw new RuntimeException("The error occurs while applying field for " + field, e);
                     }
                 }));
     }
@@ -106,7 +107,7 @@ public class ThreadedClassPathScanner extends BaseClassPathScanner {
                         try {
                             controller.applyContainerObject(containerObject);
                         } catch (Throwable throwable) {
-                            ContainerContext.LOGGER.warn("An error occurs while apply controller for " + containerObject.getType(), throwable);
+                            Log.warn("An error occurs while apply controller for " + containerObject.getType(), throwable);
                         }
                     }
                 });

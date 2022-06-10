@@ -26,13 +26,12 @@ package io.fairyproject.container;
 
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.jackson.JacksonService;
+import io.fairyproject.log.Log;
 import io.fairyproject.serializer.AvoidDuplicate;
 import io.fairyproject.serializer.SerializerData;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -49,8 +48,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @ServiceDependency(JacksonService.class)
 @Getter
 public class SerializerFactory {
-
-    private static final Logger LOGGER = LogManager.getLogger(SerializerFactory.class);
 
     private Map<Class<?>, SerializerData> serializerByValueType;
     private Map<Class<?>, SerializerData> serializerBySerializerType;
@@ -86,7 +83,7 @@ public class SerializerFactory {
             if (avoidDuplication) {
                 throw new IllegalArgumentException("The Serializer for " + serializer.inputClass().getName() + " already exists!");
             } else {
-                LOGGER.warn("Serializer with key type " + serializer.inputClass().getName() + " already exists, it is recommended to avoid duplication.");
+                Log.warn("Serializer with key type " + serializer.inputClass().getName() + " already exists, it is recommended to avoid duplication.");
             }
             return;
         }

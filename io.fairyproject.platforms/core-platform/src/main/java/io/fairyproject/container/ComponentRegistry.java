@@ -25,6 +25,7 @@
 package io.fairyproject.container;
 
 import io.fairyproject.container.object.ComponentContainerObj;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.entry.Entry;
 import io.fairyproject.util.entry.EntryArrayList;
 import io.fairyproject.Fairy;
@@ -80,7 +81,7 @@ public class ComponentRegistry {
                 ComponentHolder componentHolder = ComponentRegistry.getComponentHolder(type);
                 if (componentHolder == null) {
                     if (component.throwIfNotRegistered()) {
-                        ContainerContext.LOGGER.error("No ComponentHolder was registered for class " + type.getName() + "!");
+                        Log.error("No ComponentHolder was registered for class " + type.getName() + "!");
                     }
                     continue;
                 }
@@ -94,7 +95,7 @@ public class ComponentRegistry {
                     }
                 }
             } catch (Throwable throwable) {
-                ContainerContext.LOGGER.error("Something wrong will scanning component for " + type.getName(), throwable);
+                Log.error("Something wrong will scanning component for " + type.getName(), throwable);
             }
         }
 

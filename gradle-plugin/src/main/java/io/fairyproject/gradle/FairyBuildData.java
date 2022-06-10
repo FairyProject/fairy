@@ -23,7 +23,6 @@ public class FairyBuildData implements Serializable {
         return FairyBuildData.builder()
                 .fairyVersion(fairyExtension.getFairyVersion().getOrElse(""))
                 .fairyPlatforms(fairyExtension.getFairyPlatforms().get())
-                .aspectJVersion(fairyExtension.getAspectJVersion().get())
                 .classifier(fairyExtension.getClassifier().get())
                 .mainPackage(fairyExtension.getMainPackage().get())
                 .name(fairyExtension.getName().get())
@@ -40,9 +39,6 @@ public class FairyBuildData implements Serializable {
 
     private String fairyVersion;
     private List<PlatformType> fairyPlatforms;
-
-    // Libraries
-    private String aspectJVersion;
 
     // Plugin
     private String classifier;

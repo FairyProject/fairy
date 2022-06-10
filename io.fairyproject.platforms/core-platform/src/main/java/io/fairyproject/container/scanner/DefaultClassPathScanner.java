@@ -6,6 +6,7 @@ import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.CompletableFutureUtils;
 import io.fairyproject.util.SimpleTiming;
@@ -64,7 +65,7 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
                     try {
                         controller.applyContainerObject(containerObj);
                     } catch (Throwable throwable) {
-                        Debug.LOGGER.warn("An error occurs while apply controller for " + containerObj.getType(), throwable);
+                        Log.warn("An error occurs while apply controller for " + containerObject.getType(), throwable);
                     }
                 }
             }

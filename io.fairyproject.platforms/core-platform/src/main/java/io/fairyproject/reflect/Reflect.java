@@ -27,6 +27,7 @@ package io.fairyproject.reflect;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.gson.annotations.SerializedName;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -118,7 +119,7 @@ public class Reflect {
                 methodHandle.bindTo(src).invokeWithArguments(value);
             }
         } catch (Throwable t) {
-            getUnsafe().throwException(t);
+            SneakyThrowUtil.sneakyThrow(t);
         }
     }
 
