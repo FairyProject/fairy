@@ -22,10 +22,11 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.object.parameter;
+package io.fairyproject.container.object.resolver;
 
 import io.fairyproject.container.ContainerConstruct;
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.ContainerRef;
 import io.fairyproject.util.AccessUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -65,7 +66,7 @@ public class ConstructorContainerResolver extends ContainerResolverBase {
         this.constructor = constructorRet;
         this.parameters = this.constructor.getParameters();
         for (Parameter parameter : this.parameters) {
-            if (!ContainerContext.get().isObject(parameter.getType())) {
+            if (!ContainerRef.hasObj(parameter.getType())) {
                 throw new IllegalArgumentException("The type " + parameter.getType().getName() + " it's not supposed to be in bean constructor!");
             }
         }

@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import io.fairyproject.StorageService;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.log.Log;
+import io.fairyproject.util.AsyncUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
@@ -145,7 +146,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
     public CompletableFuture<T> save(UUID uuid) {
         final T t = this.find(uuid);
         if (t == null) {
-            return CompletableFuture.completedFuture(null);
+            return AsyncUtils.empty();
         }
 
         return this.save(uuid, t);

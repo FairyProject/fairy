@@ -2,14 +2,13 @@ package io.fairyproject.container.scanner;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
-import io.fairyproject.Debug;
 import io.fairyproject.container.*;
 import io.fairyproject.container.exception.ServiceAlreadyExistsException;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.RelativeContainerObj;
 import io.fairyproject.container.object.ServiceContainerObj;
-import io.fairyproject.container.object.parameter.MethodContainerResolver;
+import io.fairyproject.container.object.resolver.MethodContainerResolver;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.NonNullArrayList;

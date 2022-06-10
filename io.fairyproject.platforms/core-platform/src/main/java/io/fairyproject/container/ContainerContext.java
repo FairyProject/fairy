@@ -45,7 +45,7 @@ import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.util.CompletableFutureUtils;
+import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.thread.executor.ListeningDecorator;
@@ -231,7 +231,7 @@ public class ContainerContext {
                 futures.add(containerObj.lifeCycle(lifeCycle));
             } catch (Throwable throwable) {
                 futures.clear();
-                return CompletableFutureUtils.failureOf(throwable);
+                return AsyncUtils.failureOf(throwable);
             }
         }
 

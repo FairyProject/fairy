@@ -1,6 +1,8 @@
 package io.fairyproject.container.object;
 
 import io.fairyproject.container.ServiceDependencyType;
+import io.fairyproject.container.Threading;
+import io.fairyproject.container.object.lifecycle.LifeCycleChangeHandler;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Contract;
@@ -28,12 +30,17 @@ public interface ContainerObj {
 
     @Nullable Object instance();
 
+    @NotNull Threading.Mode threadingMode();
+
+    @Contract("_ -> this")
+    @NotNull ContainerObj setThreadingMode(@NotNull Threading.Mode threadingMode);
+
     @NotNull LifeCycle lifeCycle();
 
     @NotNull CompletableFuture<?> setLifeCycle(@NotNull LifeCycle lifeCycle);
 
     @Contract("_ -> this")
-    @NotNull ContainerObj lifeCycleChangeHandler(@NotNull Function<LifeCycle, CompletableFuture<?>> lifeCycleChangeHandler);
+    @NotNull ContainerObj lifeCycleChangeHandler(@NotNull LifeCycleChangeHandler lifeCycleChangeHandler);
 
     void setInstance(@NotNull Object instance);
 

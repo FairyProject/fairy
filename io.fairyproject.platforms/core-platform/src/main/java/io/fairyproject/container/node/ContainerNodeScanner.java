@@ -8,9 +8,9 @@ import io.fairyproject.container.exception.ServiceAlreadyExistsException;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.Obj;
-import io.fairyproject.container.object.parameter.MethodContainerResolver;
+import io.fairyproject.container.object.resolver.MethodContainerResolver;
 import io.fairyproject.util.ClassGraphUtil;
-import io.fairyproject.util.CompletableFutureUtils;
+import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingConsumer;
@@ -121,7 +121,7 @@ public class ContainerNodeScanner {
             futures.add(future);
         }
 
-        return CompletableFutureUtils.allOf(futures);
+        return AsyncUtils.allOf(futures);
     }
 
     private CompletableFuture<?> resolveGraph() {
@@ -197,13 +197,19 @@ public class ContainerNodeScanner {
     }
 
     private void handleLoadClass(Class<?> aClass, Class<?>[] depends, ContainerNode node) {
-        if (ContainerRef.hasObj(aClass)) {
+        if (ContainerRef.hasObj(aClass))
             throw new ServiceAlreadyExistsException(aClass);
-        }
 
         ContainerObj containerObject = ContainerObj.of(aClass);
         for (Class<?> depend : depends)
             containerObject.addDepend(depend, ServiceDependencyType.FORCE);
+
+        containerObject.lifeCycleChangeHandler(lifeCycle -> {
+            switch (lifeCycle) {
+                case CONSTRUCT:
+
+            }
+        });
 
         ContainerContext.get().attemptBindPlugin(containerObject);
         node.addObj(containerObject);

@@ -1,6 +1,9 @@
 package io.fairyproject.container.object;
 
 import io.fairyproject.container.ServiceDependencyType;
+import io.fairyproject.container.Threading;
+import io.fairyproject.container.object.lifecycle.LifeCycleChangeHandler;
+import io.fairyproject.util.AsyncUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,9 +20,11 @@ public class ContainerObjImpl implements ContainerObj {
     private final Set<ContainerObj.DependEntry> depends = ConcurrentHashMap.newKeySet();
     private final Class<?> type;
 
-    private Function<LifeCycle, CompletableFuture<?>> lifeCycleChangeHandler = cycle -> CompletableFuture.completedFuture(null);
+    private LifeCycleChangeHandler lifeCycleChangeHandler;
     private Object instance = null;
     private LifeCycle lifeCycle = LifeCycle.NONE;
+
+    private Threading.Mode threadingMode = Threading.Mode.SYNC;
 
     public ContainerObjImpl(Class<?> type) {
         this.type = type;
@@ -41,16 +46,30 @@ public class ContainerObjImpl implements ContainerObj {
     }
 
     @Override
-    public @NotNull CompletableFuture<?> setLifeCycle(@NotNull LifeCycle lifeCycle) {
-        if (lifeCycle == this.lifeCycle) {
-            return CompletableFuture.completedFuture(null);
-        }
-        this.lifeCycle = lifeCycle;
-        return this.lifeCycleChangeHandler.apply(lifeCycle);
+    public @NotNull Threading.Mode threadingMode() {
+        return this.threadingMode;
     }
 
     @Override
-    public @NotNull ContainerObj lifeCycleChangeHandler(@NotNull Function<LifeCycle, CompletableFuture<?>> lifeCycleChangeHandler) {
+    public @NotNull ContainerObj setThreadingMode(Threading.@NotNull Mode threadingMode) {
+        this.threadingMode = threadingMode;
+        return this;
+    }
+
+    @Override
+    public @NotNull CompletableFuture<?> setLifeCycle(@NotNull LifeCycle lifeCycle) {
+        if (lifeCycle == this.lifeCycle) {
+            return AsyncUtils.empty();
+        }
+        this.lifeCycle = lifeCycle;
+        if (this.lifeCycleChangeHandler != null)
+            return this.lifeCycleChangeHandler.apply(lifeCycle);
+        else
+            return AsyncUtils.empty();
+    }
+
+    @Override
+    public @NotNull ContainerObj lifeCycleChangeHandler(@NotNull LifeCycleChangeHandler lifeCycleChangeHandler) {
         this.lifeCycleChangeHandler = lifeCycleChangeHandler;
         return this;
     }

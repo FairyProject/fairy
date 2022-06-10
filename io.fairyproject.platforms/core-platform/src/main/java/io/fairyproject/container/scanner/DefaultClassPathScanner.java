@@ -1,6 +1,5 @@
 package io.fairyproject.container.scanner;
 
-import io.fairyproject.Debug;
 import io.fairyproject.container.*;
 import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
@@ -8,7 +7,7 @@ import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.ClassGraphUtil;
-import io.fairyproject.util.CompletableFutureUtils;
+import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 
@@ -97,7 +96,7 @@ public class DefaultClassPathScanner extends BaseClassPathScanner {
     @Override
     public CompletableFuture<List<ContainerObj>> getCompletedFuture() {
         if (this.getException() != null) {
-            return CompletableFutureUtils.failureOf(this.getException());
+            return AsyncUtils.failureOf(this.getException());
         }
         return CompletableFuture.completedFuture(this.containerObjList);
     }

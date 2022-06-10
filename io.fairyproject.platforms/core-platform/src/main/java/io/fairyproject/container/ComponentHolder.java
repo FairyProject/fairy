@@ -24,7 +24,7 @@
 
 package io.fairyproject.container;
 
-import io.fairyproject.container.object.parameter.ConstructorContainerResolver;
+import io.fairyproject.container.object.resolver.ConstructorContainerResolver;
 
 import java.util.ArrayList;
 import java.util.Arrays;

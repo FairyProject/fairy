@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.object.parameter;
+package io.fairyproject.container.object.resolver;
 
 import lombok.Getter;
 import io.fairyproject.container.ContainerContext;

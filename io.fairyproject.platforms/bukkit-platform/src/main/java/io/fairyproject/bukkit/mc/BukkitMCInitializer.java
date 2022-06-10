@@ -71,7 +71,12 @@ public class BukkitMCInitializer implements MCInitializer {
             @Override
             public MCPlayer create(Object obj) {
                 if (!(obj instanceof Player)) {
-                    throw new IllegalArgumentException();
+                    if (obj instanceof UUID) {
+                        final Player player = Bukkit.getPlayer((UUID) obj);
+                        if (player != null)
+                            return create(player);
+                    }
+                    throw new IllegalArgumentException(obj.getClass().getName());
                 }
                 return new BukkitMCPlayer((Player) obj);
             }

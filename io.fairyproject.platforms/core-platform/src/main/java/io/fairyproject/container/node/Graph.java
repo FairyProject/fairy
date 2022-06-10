@@ -1,7 +1,7 @@
 package io.fairyproject.container.node;
 
 import com.google.common.collect.ImmutableList;
-import io.fairyproject.util.CompletableFutureUtils;
+import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
@@ -127,13 +127,13 @@ public abstract class Graph<T> {
                 dependFutures.add(futures.get(depend));
             }
 
-            final CompletableFuture<?> future = CompletableFutureUtils
+            final CompletableFuture<?> future = AsyncUtils
                     .allOf(dependFutures)
                     .thenCompose(k -> func.apply(t));
             futures.put(t, future);
         }
 
-        return CompletableFutureUtils.allOf(futures.values());
+        return AsyncUtils.allOf(futures.values());
     }
 
     public void forEachClockwise(Consumer<T> consumer) {
