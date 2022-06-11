@@ -183,6 +183,7 @@ public class VisualUtil {
 
                 System.out.println("Initialized OldData for Visual module.");
             } catch (Exception ex) {
+                ex.printStackTrace();
                 blockGetById = null;
                 fromLegacyData = null;
                 fromId = null;
