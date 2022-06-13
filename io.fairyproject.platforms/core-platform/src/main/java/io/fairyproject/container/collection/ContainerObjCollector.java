@@ -23,7 +23,7 @@ public interface ContainerObjCollector extends Iterable<ContainerObj>, Predicate
         return containerObj -> {
             final Object instance = containerObj.instance();
             ConditionUtils.notNull(instance, "The instance of the container object hasn't been constructed.");
-            ConditionUtils.check(type.isAssignableFrom(containerObj.type()), String.format("The container object type %s doesn't match with %s", containerObj.type(), type));
+            ConditionUtils.is(type.isAssignableFrom(containerObj.type()), String.format("The container object type %s doesn't match with %s", containerObj.type(), type));
 
             consumer.accept(type.cast(instance));
         };

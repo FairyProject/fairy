@@ -111,8 +111,8 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
     public @NotNull EventNode<T> addChild(@NotNull EventNode<? extends T> child) {
         synchronized (GLOBAL_CHILD_LOCK) {
             val childImpl = (EventNodeImpl<? extends T>) child;
-            ConditionUtils.check(childImpl.parent != null, "Node already has a parent");
-            ConditionUtils.check(Objects.equals(parent, child), "Cannot have a child as parent");
+            ConditionUtils.not(childImpl.parent != null, "Node already has a parent");
+            ConditionUtils.not(Objects.equals(parent, child), "Cannot have a child as parent");
             if (!children.add((EventNodeImpl<T>) childImpl)) return this; // Couldn't add the child (already present?)
             childImpl.parent = this;
             childImpl.invalidateEventsFor(this);
@@ -159,8 +159,8 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
         EventNodeImpl<E> node;
         synchronized (GLOBAL_CHILD_LOCK) {
             node = new EventNodeLazyImpl<>(this, value, filter);
-            ConditionUtils.check(node.parent != null, "Node already has a parent");
-            ConditionUtils.check(Objects.equals(parent, node), "Cannot map to self");
+            ConditionUtils.not(node.parent != null, "Node already has a parent");
+            ConditionUtils.not(Objects.equals(parent, node), "Cannot map to self");
             EventNodeImpl<T> previous = this.mappedNodeCache.putIfAbsent(value, (EventNodeImpl<T>) node);
             if (previous != null) return (EventNode<E>) previous;
             node.parent = this;

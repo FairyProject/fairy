@@ -106,7 +106,7 @@ public abstract class LifeCycleAnnotationProcessor implements LifeCycleHandler {
             return;
 
         // The method has extra parameter which is not allowed
-        ConditionUtils.check(method.getParameterCount() == 0, String.format("The method annotated with %s is not supposed to be null", annotation));
+        ConditionUtils.is(method.getParameterCount() == 0, String.format("The method %s annotated with %s is not supposed to have parameters", method, annotation));
 
         final LifeCycleElement processor = new LifeCycleElement(method);
         this.processors[index].add(processor);

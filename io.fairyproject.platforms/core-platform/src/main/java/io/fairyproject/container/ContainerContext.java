@@ -111,7 +111,9 @@ public class ContainerContext {
 
             scanner.scan();
         } catch (Throwable throwable) {
-            Log.error("Error while scanning classes for framework", Stacktrace.simplifyStacktrace(throwable));
+            final Throwable stacktrace = Stacktrace.simplifyStacktrace(throwable);
+            Log.error("Error while scanning classes for framework", stacktrace);
+            stacktrace.printStackTrace();
             Fairy.getPlatform().shutdown();
             return;
         }

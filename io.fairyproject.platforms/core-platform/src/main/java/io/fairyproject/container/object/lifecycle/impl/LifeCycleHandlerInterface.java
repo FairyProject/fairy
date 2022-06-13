@@ -16,7 +16,7 @@ public class LifeCycleHandlerInterface implements LifeCycleHandler {
     public LifeCycleHandlerInterface(ContainerObj containerObj) {
         this.containerObj = containerObj;
 
-        ConditionUtils.check(ILifeCycle.class.isAssignableFrom(containerObj.type()), String.format("The container object must be implemented by %s", ILifeCycle.class));
+        ConditionUtils.is(ILifeCycle.class.isAssignableFrom(containerObj.type()), String.format("The container object must be implemented by %s", ILifeCycle.class));
     }
 
     @Override

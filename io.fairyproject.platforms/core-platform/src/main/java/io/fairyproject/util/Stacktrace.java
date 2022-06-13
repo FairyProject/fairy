@@ -30,6 +30,7 @@ import lombok.experimental.UtilityClass;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ExecutionException;
 
 @UtilityClass
 public class Stacktrace {
@@ -47,7 +48,9 @@ public class Stacktrace {
 
     public Throwable simplifyStacktrace(Throwable throwable) {
         Throwable t = throwable;
-        while (t instanceof InvocationTargetException || t instanceof RuntimeException) {
+        while (t instanceof InvocationTargetException ||
+                t instanceof RuntimeException ||
+                t instanceof ExecutionException) {
             if (t.getCause() == null) {
                 break;
             }

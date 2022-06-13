@@ -98,7 +98,7 @@ public class StorageService {
     public <E, ID extends Serializable> Repository<E, ID> createRepository(String providerId, String repoId, Class<E> entityType) {
         final RepositoryProvider repositoryProvider = this.getRepositoryProvider(providerId);
         if (repositoryProvider == null) {
-            throw new IllegalStateException("Repository does not exists.");
+            throw new IllegalStateException(String.format("Repository provider %s does not exists.", providerId));
         }
 
         return repositoryProvider.buildRepository(entityType, repoId);

@@ -27,6 +27,7 @@ package io.fairyproject.bukkit.storage;
 import com.google.common.collect.Lists;
 import io.fairyproject.StorageService;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.container.*;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.AsyncUtils;
 import org.bukkit.Bukkit;
@@ -38,13 +39,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
-import io.fairyproject.container.Autowired;
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.ServiceDependency;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.task.Task;
+import org.checkerframework.checker.units.qual.C;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -173,7 +171,9 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
     }
 
     @PostInitialize
-    public final void onPostInitializeStorage(ContainerObj containerObj) {
+    public final void onPostInitializeStorage() {
+        final ContainerObj containerObj = ContainerRef.getObj(this.getClass());
+
         this.storedObjects = new ConcurrentHashMap<>();
         this.asyncLoginReject = new HashSet<>();
         this.syncLoginReject = new HashSet<>();

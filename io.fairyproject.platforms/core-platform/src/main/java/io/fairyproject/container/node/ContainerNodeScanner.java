@@ -14,6 +14,7 @@ import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingConsumer;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.thread.BlockingThreadAwaitQueue;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfoList;
@@ -138,14 +139,16 @@ public class ContainerNodeScanner {
     private CompletableFuture<?> handleController() {
         List<CompletableFuture<?>> futures = new ArrayList<>();
         for (ContainerController controller : ContainerContext.get().controllers()) {
-            final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                controller.init(this.scanResult);
-                this.mainNode.graph().forEachClockwise(ThrowingConsumer.sneaky(controller::applyContainerObject));
-            });
-            futures.add(future);
+            controller.init(this.scanResult);
+            futures.add(this.mainNode.graph().forEachClockwiseAwait(obj -> this.handleControllerForObject(controller, obj)));
+            futures.add(this.objNode.graph().forEachClockwiseAwait(obj -> this.handleControllerForObject(controller, obj)));
         }
 
         return AsyncUtils.allOf(futures);
+    }
+
+    private CompletableFuture<?> handleControllerForObject(ContainerController controller, ContainerObj obj) {
+        return CompletableFuture.runAsync(ThrowingRunnable.sneaky(() -> controller.applyContainerObject(obj)));
     }
 
     private CompletableFuture<?> resolveGraph() {

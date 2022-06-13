@@ -50,17 +50,17 @@ public abstract class Graph<T> {
     }
 
     public void add(@NotNull T obj) {
-        ConditionUtils.check(!this.resolved.get(), "The DependencyTree was resolved.");
+        ConditionUtils.is(!this.resolved.get(), "The DependencyTree was resolved.");
         this.objects.add(obj);
     }
 
     public Graph<T> resolve() {
-        ConditionUtils.check(this.resolved.compareAndSet(false, true), "The DependencyTree was resolved.");
+        ConditionUtils.is(this.resolved.compareAndSet(false, true), "The DependencyTree was resolved.");
         // Resolve depends to edges
         for (T object : objects) {
             final T[] depends = this.depends(object);
             for (T depend : depends) {
-                ConditionUtils.check(
+                ConditionUtils.is(
                         this.objects.contains(depend),
                         String.format("%s depend by %s", depend, object)
                 );
@@ -111,7 +111,7 @@ public abstract class Graph<T> {
         recStack[index] = true;
 
         for (T child : this.edges.getOrDefault(element, Collections.emptyList())) {
-            ConditionUtils.check(this.objects.contains(element), "Child " + child + " wasn't an element of this dependency tree");
+            ConditionUtils.is(this.objects.contains(element), "Child " + child + " wasn't an element of this dependency tree");
             int childIndex = array.indexOf(child);
 
             List<T> newDiagram = new ArrayList<>(diagram);
@@ -126,7 +126,7 @@ public abstract class Graph<T> {
     }
 
     public CompletableFuture<?> forEachClockwiseAwait(Function<T, CompletableFuture<?>> func) {
-        ConditionUtils.check(this.resolved.get(), "The DependencyTree wasn't resolved.");
+        ConditionUtils.is(this.resolved.get(), "The DependencyTree wasn't resolved.");
         Map<T, CompletableFuture<?>> futures = new HashMap<>();
 
         for (T t : this.nodes) {
@@ -148,7 +148,7 @@ public abstract class Graph<T> {
     }
 
     public CompletableFuture<?> forEachCounterClockwiseAwait(Function<T, CompletableFuture<?>> func) {
-        ConditionUtils.check(this.resolved.get(), "The DependencyTree wasn't resolved.");
+        ConditionUtils.is(this.resolved.get(), "The DependencyTree wasn't resolved.");
         Map<T, CompletableFuture<?>> futures = new HashMap<>();
 
         this.forEachCounterClockwise(t -> {
@@ -170,12 +170,12 @@ public abstract class Graph<T> {
     }
 
     public void forEachClockwise(Consumer<T> consumer) {
-        ConditionUtils.check(this.resolved.get(), "The DependencyTree wasn't resolved.");
+        ConditionUtils.is(this.resolved.get(), "The DependencyTree wasn't resolved.");
         this.nodes.forEach(consumer);
     }
 
     public void forEachCounterClockwise(Consumer<T> consumer) {
-        ConditionUtils.check(this.resolved.get(), "The DependencyTree wasn't resolved.");
+        ConditionUtils.is(this.resolved.get(), "The DependencyTree wasn't resolved.");
         for (int i = this.nodes.size() - 1; i >= 0; i--) {
             consumer.accept(this.nodes.get(i));
         }

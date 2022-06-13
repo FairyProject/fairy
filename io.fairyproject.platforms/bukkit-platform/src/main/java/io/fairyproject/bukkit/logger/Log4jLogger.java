@@ -6,42 +6,42 @@ import org.apache.logging.log4j.LogManager;
 public class Log4jLogger implements ILogger {
     @Override
     public void info(String message, Object... replace) {
-        LogManager.getLogger().info(message, replace);
+        LogManager.getLogger().info(String.format(message, replace));
     }
 
     @Override
     public void debug(String message, Object... replace) {
-        LogManager.getLogger().debug(message, replace);
+        LogManager.getLogger().debug(String.format(message, replace));
     }
 
     @Override
     public void warn(String message, Object... replace) {
-        LogManager.getLogger().warn(message, replace);
+        LogManager.getLogger().warn(String.format(message, replace));
     }
 
     @Override
     public void error(String message, Object... replace) {
-        LogManager.getLogger().error(message, replace);
+        LogManager.getLogger().error(String.format(message, replace));
     }
 
     @Override
     public void info(String message, Throwable throwable, Object... replace) {
-        LogManager.getLogger().info(message, throwable, replace);
+        LogManager.getLogger().info(String.format(message, replace), throwable);
     }
 
     @Override
     public void debug(String message, Throwable throwable, Object... replace) {
-        LogManager.getLogger().debug(message, throwable, replace);
+        LogManager.getLogger().debug(String.format(message, replace), throwable);
     }
 
     @Override
     public void warn(String message, Throwable throwable, Object... replace) {
-        LogManager.getLogger().warn(message, throwable, replace);
+        LogManager.getLogger().warn(String.format(message, replace), throwable);
     }
 
     @Override
     public void error(String message, Throwable throwable, Object... replace) {
-        LogManager.getLogger().error(message, throwable, replace);
+        LogManager.getLogger().error(String.format(message, replace), throwable);
     }
 
     @Override

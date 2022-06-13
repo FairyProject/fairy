@@ -132,7 +132,7 @@ public class SerializerFactory {
      */
     @NotNull
     public ObjectSerializer<?, ?> findOrCacheSerializer(@NotNull Class<?> serializerClass) {
-        ConditionUtils.check(ObjectSerializer.class.isAssignableFrom(serializerClass), "Cannot findOrCacheSerializer() by a non-serializer class.");
+        ConditionUtils.is(ObjectSerializer.class.isAssignableFrom(serializerClass), "Cannot findOrCacheSerializer() by a non-serializer class.");
         final SerializerData serializerData = this.serializerBySerializerType.get(serializerClass);
         if (serializerData == null) {
             ObjectSerializer<?, ?> serializer = ThrowingSupplier

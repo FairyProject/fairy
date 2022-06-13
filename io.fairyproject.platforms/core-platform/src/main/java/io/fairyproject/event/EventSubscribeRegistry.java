@@ -28,7 +28,7 @@ public class EventSubscribeRegistry {
                         return;
                     }
 
-                    ConditionUtils.check(method.getParameterCount() != 1, "The method " + method + " is subscribing event but parameter count isn't 1");
+                    ConditionUtils.is(method.getParameterCount() == 1, "The method " + method + " is subscribing event but parameter count isn't 1");
                     Class<?> parameterType = method.getParameterTypes()[0];
 
                     val eventType = parameterType.asSubclass(Event.class);

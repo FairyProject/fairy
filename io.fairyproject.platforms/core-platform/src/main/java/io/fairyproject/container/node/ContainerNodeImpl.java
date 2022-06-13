@@ -1,12 +1,14 @@
 package io.fairyproject.container.node;
 
-import com.sun.corba.se.impl.orbutil.graph.GraphImpl;
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ContainerRef;
 import io.fairyproject.container.ServiceDependencyType;
+import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,7 +35,7 @@ public class ContainerNodeImpl implements ContainerNode {
 
     @Override
     public @NotNull ContainerNode addObj(@NotNull ContainerObj obj) {
-        ConditionUtils.check(!this.isResolved(), "The ContainerNode has already been resolved.");
+        ConditionUtils.is(!this.isResolved(), "The ContainerNode has already been resolved.");
         this.objects.put(obj.type(), obj);
         ContainerRef.setObj(obj.type(), obj);
         return this;
@@ -126,6 +128,9 @@ public class ContainerNodeImpl implements ContainerNode {
             SneakyThrowUtil.sneakyThrow(t);
         } finally {
             obj.setLifeCycle(LifeCycle.POST_DESTROY);
+            for (ContainerController controller : ContainerContext.get().controllers()) {
+                ThrowingRunnable.sneaky(() -> controller.removeContainerObject(obj)).run();
+            }
             ContainerRef.setObj(obj.type(), null);
         }
     }

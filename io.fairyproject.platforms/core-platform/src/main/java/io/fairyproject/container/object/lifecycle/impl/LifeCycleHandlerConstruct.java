@@ -25,7 +25,6 @@ public class LifeCycleHandlerConstruct implements LifeCycleHandler {
             return;
         this.constructor = new ConstructorContainerResolver(obj.type());
         for (Class<?> type : this.constructor.getTypes()) {
-            System.out.printf("Added depend %s to %s%n", type, this.obj.type());
             this.obj.addDepend(type, ServiceDependencyType.FORCE);
         }
     }
