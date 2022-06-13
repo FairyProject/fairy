@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -23,9 +24,14 @@ import java.util.stream.Collectors;
  */
 public abstract class Graph<T> {
 
+    private static final AtomicInteger ID_COUNTER = new AtomicInteger();
+
+
     protected final Set<T> objects = new HashSet<>();
     protected final Map<T, List<T>> edges = new HashMap<>();
     private final AtomicBoolean resolved = new AtomicBoolean(false);
+
+    private final int id = ID_COUNTER.getAndIncrement();
     @Getter
     private List<T> nodes;
 
@@ -54,6 +60,10 @@ public abstract class Graph<T> {
         for (T object : objects) {
             final T[] depends = this.depends(object);
             for (T depend : depends) {
+                ConditionUtils.check(
+                        this.objects.contains(depend),
+                        String.format("%s depend by %s", depend, object)
+                );
                 this.edges.computeIfAbsent(depend, k -> new ArrayList<>()).add(object);
             }
         }
@@ -100,7 +110,7 @@ public abstract class Graph<T> {
         visited[index] = true;
         recStack[index] = true;
 
-        for (T child : this.depends(element)) {
+        for (T child : this.edges.getOrDefault(element, Collections.emptyList())) {
             ConditionUtils.check(this.objects.contains(element), "Child " + child + " wasn't an element of this dependency tree");
             int childIndex = array.indexOf(child);
 
@@ -124,7 +134,8 @@ public abstract class Graph<T> {
             List<CompletableFuture<?>> dependFutures = new ArrayList<>(depends.length);
 
             for (T depend : depends) {
-                dependFutures.add(futures.get(depend));
+                final CompletableFuture<?> future = futures.get(depend);
+                dependFutures.add(future);
             }
 
             final CompletableFuture<?> future = AsyncUtils
@@ -132,6 +143,28 @@ public abstract class Graph<T> {
                     .thenCompose(k -> func.apply(t));
             futures.put(t, future);
         }
+
+        return AsyncUtils.allOf(futures.values());
+    }
+
+    public CompletableFuture<?> forEachCounterClockwiseAwait(Function<T, CompletableFuture<?>> func) {
+        ConditionUtils.check(this.resolved.get(), "The DependencyTree wasn't resolved.");
+        Map<T, CompletableFuture<?>> futures = new HashMap<>();
+
+        this.forEachCounterClockwise(t -> {
+            final List<T> child = this.edges.getOrDefault(t, Collections.emptyList());
+            List<CompletableFuture<?>> childFutures = new ArrayList<>(child.size());
+
+            for (T depend : child) {
+                final CompletableFuture<?> future = futures.get(depend);
+                childFutures.add(future);
+            }
+
+            final CompletableFuture<?> future = AsyncUtils
+                    .allOf(childFutures)
+                    .thenCompose(k -> func.apply(t));
+            futures.put(t, future);
+        });
 
         return AsyncUtils.allOf(futures.values());
     }

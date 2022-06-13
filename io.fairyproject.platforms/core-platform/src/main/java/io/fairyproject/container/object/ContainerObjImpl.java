@@ -2,25 +2,31 @@ package io.fairyproject.container.object;
 
 import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.container.Threading;
-import io.fairyproject.container.object.lifecycle.LifeCycleChangeHandler;
+import io.fairyproject.container.collection.ContainerObjCollector;
+import io.fairyproject.container.object.lifecycle.LifeCycleHandler;
+import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.AsyncUtils;
+import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ContainerObjImpl implements ContainerObj {
 
     private final Set<ContainerObj.DependEntry> depends = ConcurrentHashMap.newKeySet();
+    private final Set<LifeCycleHandler> lifeCycleHandlers = ConcurrentHashMap.newKeySet();
+    private final Set<ContainerObjCollector> collectors = ConcurrentHashMap.newKeySet();
+    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
+    private final MetadataMap metadataMap = MetadataMap.create();
     private final Class<?> type;
 
-    private LifeCycleChangeHandler lifeCycleChangeHandler;
     private Object instance = null;
     private LifeCycle lifeCycle = LifeCycle.NONE;
 
@@ -62,15 +68,25 @@ public class ContainerObjImpl implements ContainerObj {
             return AsyncUtils.empty();
         }
         this.lifeCycle = lifeCycle;
-        if (this.lifeCycleChangeHandler != null)
-            return this.lifeCycleChangeHandler.apply(lifeCycle);
+        if (!this.lifeCycleHandlers.isEmpty()) {
+            return AsyncUtils.allOf(this.lifeCycleHandlers.stream()
+                    .map(lifeCycleHandler -> lifeCycleHandler.apply(lifeCycle))
+                    .collect(Collectors.toList())
+            );
+        }
         else
             return AsyncUtils.empty();
     }
 
+    @NotNull
     @Override
-    public @NotNull ContainerObj lifeCycleChangeHandler(@NotNull LifeCycleChangeHandler lifeCycleChangeHandler) {
-        this.lifeCycleChangeHandler = lifeCycleChangeHandler;
+    public CompletableFuture<?> initLifeCycleHandlers() {
+        return this.threadingMode.execute(() -> this.lifeCycleHandlers.forEach(LifeCycleHandler::init));
+    }
+
+    @Override
+    public @NotNull ContainerObj addLifeCycleHandler(@NotNull LifeCycleHandler lifeCycleHandler) {
+        this.lifeCycleHandlers.add(lifeCycleHandler);
         return this;
     }
 
@@ -93,6 +109,68 @@ public class ContainerObjImpl implements ContainerObj {
 
     @Override
     public void addDepend(@NotNull Class<?> dependClass, @NotNull ServiceDependencyType dependType) {
+        // Avoid adding duplicated dependencies
+        for (DependEntry entry : this.depends) {
+            if (entry.getDependClass() == dependClass) {
+                // If new dependency type is stricter, overwrite it
+                if (entry.getDependType().ordinal() > dependType.ordinal())
+                    this.depends.remove(entry);
+                else
+                    return;
+            }
+        }
         this.depends.add(ContainerObj.DependEntry.of(dependClass, dependType));
+    }
+
+    @Override
+    public @NotNull Collection<ContainerObjCollector> collectors() {
+        return Collections.unmodifiableSet(this.collectors);
+    }
+
+    @Override
+    public @NotNull MetadataMap metadata() {
+        return this.metadataMap;
+    }
+
+    @Override
+    public void addCollector(@NotNull ContainerObjCollector collector) {
+        this.collectors.add(collector);
+    }
+
+    @Override
+    public void removeCollector(@NotNull ContainerObjCollector collector) {
+        this.collectors.remove(collector);
+    }
+
+    @NotNull
+    @Override
+    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+        return this.compositeTerminable.bind(terminable);
+    }
+
+    @Override
+    public void close() throws Exception {
+        this.compositeTerminable.close();
+
+        this.collectors.forEach(collector -> collector.remove(this));
+        this.collectors.clear();
+    }
+
+    @Override
+    public String toString() {
+        return this.type.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ContainerObjImpl that = (ContainerObjImpl) o;
+        return type.equals(that.type);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type);
     }
 }

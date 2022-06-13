@@ -26,6 +26,9 @@ public class AsyncUtils {
         if (futures.isEmpty()) {
             return AsyncUtils.empty();
         }
+        if (futures.size() == 1) {
+            return futures.iterator().next();
+        }
         return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
     }
 

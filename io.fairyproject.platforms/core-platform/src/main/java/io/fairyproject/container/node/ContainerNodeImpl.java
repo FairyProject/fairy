@@ -6,6 +6,7 @@ import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.util.ConditionUtils;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -119,8 +120,14 @@ public class ContainerNodeImpl implements ContainerNode {
 
     private void handleCloseObj(ContainerObj obj) {
         obj.setLifeCycle(LifeCycle.PRE_DESTROY);
-        // TODO - do something on close
-        obj.setLifeCycle(LifeCycle.POST_DESTROY);
+        try {
+            obj.close();
+        } catch (Throwable t) {
+            SneakyThrowUtil.sneakyThrow(t);
+        } finally {
+            obj.setLifeCycle(LifeCycle.POST_DESTROY);
+            ContainerRef.setObj(obj.type(), null);
+        }
     }
 
     @NotNull
@@ -135,7 +142,14 @@ public class ContainerNodeImpl implements ContainerNode {
         public ContainerObj[] depends(ContainerObj parent) {
             final List<ContainerObj> retVal = new ArrayList<>();
             for (ContainerObj.DependEntry entry : parent.dependEntries()) {
-                final ContainerObj obj = getObj(entry.getDependClass());
+                final Class<?> type = entry.getDependClass();
+                final ContainerObj obj = getObj(type);
+
+                // it's not in current node but has container object
+                // assuming it's registered by other node.
+                if (obj == null && ContainerRef.hasObj(type)) {
+                    continue;
+                }
                 retVal.add(obj);
             }
 

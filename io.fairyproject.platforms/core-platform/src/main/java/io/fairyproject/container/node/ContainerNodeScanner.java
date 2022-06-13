@@ -14,6 +14,7 @@ import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingConsumer;
+import io.fairyproject.util.thread.BlockingThreadAwaitQueue;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.ScanResult;
@@ -26,6 +27,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class ContainerNodeScanner {
 
@@ -60,6 +62,10 @@ public class ContainerNodeScanner {
         this.scanName = name;
     }
 
+    public void node(ContainerNode node) {
+        this.mainNode = node;
+    }
+
     public void classPath(String... classPath) {
         this.classPaths.addAll(Arrays.asList(classPath));
     }
@@ -88,32 +94,50 @@ public class ContainerNodeScanner {
         this.classLoaders.addAll(classLoaders);
     }
 
-    public void scan() {
-        this.mainNode = ContainerNode.create(this.scanName);
+    public ContainerNode scan() {
+        if (this.mainNode == null)
+            this.mainNode = ContainerNode.create(this.scanName);
         this.objNode = ContainerNode.create(this.scanName + ":obj");
 
         this.mainNode.addChild(this.objNode);
 
+        BlockingThreadAwaitQueue queue = BlockingThreadAwaitQueue.create();
+
         try {
-            this.buildClassScanner()
+            final CompletableFuture<?> future = this.buildClassScanner()
                     .thenRun(this::loadServiceClasses)
                     .thenRun(this::loadRegister)
                     .thenRun(this::loadObjClasses)
+                    .thenCompose(directlyCompose(this::initLifeCycleHandlers))
                     .thenCompose(directlyCompose(this::resolveGraph))
-                    .thenCompose(directlyCompose(() -> this.handleLifeCycle(LifeCycle.CONSTRUCT)))
+                    .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.CONSTRUCT)), queue)
                     .thenCompose(directlyCompose(this::handleController))
-                    .thenCompose(directlyCompose(() -> this.handleLifeCycle(LifeCycle.PRE_INIT)))
-                    // Obj Collector
-                    .thenCompose(directlyCompose(() -> this.handleLifeCycle(LifeCycle.POST_INIT)))
-                    .get();
+                    .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.PRE_INIT)), queue)
+                    .thenRun(this::handleObjCollector)
+                    .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.POST_INIT)), queue);
+
+            queue.await(future::isDone);
+            future.get();
         } catch (InterruptedException | ExecutionException e) {
             throw new RuntimeException(e);
         }
+
+        return this.mainNode;
+    }
+
+    private void handleObjCollector() {
+        this.objNode.all().forEach(ContainerContext.get().objectCollectorRegistry()::collect);
+    }
+
+    private CompletableFuture<?> initLifeCycleHandlers() {
+        return AsyncUtils.allOf(this.mainNode.all().stream()
+                .map(ContainerObj::initLifeCycleHandlers)
+                .collect(Collectors.toList()));
     }
 
     private CompletableFuture<?> handleController() {
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        for (ContainerController controller : ContainerContext.get().getControllers()) {
+        for (ContainerController controller : ContainerContext.get().controllers()) {
             final CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 controller.init(this.scanResult);
                 this.mainNode.graph().forEachClockwise(ThrowingConsumer.sneaky(controller::applyContainerObject));
@@ -137,10 +161,17 @@ public class ContainerNodeScanner {
     }
 
     private CompletableFuture<?> handleLifeCycle(LifeCycle lifeCycle) {
-        return CompletableFuture.allOf(
-                this.mainNode.graph().forEachClockwiseAwait(obj -> obj.setLifeCycle(lifeCycle)),
-                this.objNode.graph().forEachClockwiseAwait(obj -> obj.setLifeCycle(lifeCycle))
-        );
+        if (lifeCycle.isReverseOrder()) {
+            return CompletableFuture.allOf(
+                    this.mainNode.graph().forEachCounterClockwiseAwait(obj -> obj.setLifeCycle(lifeCycle)),
+                    this.objNode.graph().forEachCounterClockwiseAwait(obj -> obj.setLifeCycle(lifeCycle))
+            );
+        } else {
+            return CompletableFuture.allOf(
+                    this.mainNode.graph().forEachClockwiseAwait(obj -> obj.setLifeCycle(lifeCycle)),
+                    this.objNode.graph().forEachClockwiseAwait(obj -> obj.setLifeCycle(lifeCycle))
+            );
+        }
     }
 
     private void loadRegister() {
@@ -154,8 +185,8 @@ public class ContainerNodeScanner {
                         throw new IllegalArgumentException("The Method " + method + " has annotated @Register but no return type!");
 
                     MethodContainerResolver resolver = new MethodContainerResolver(method, ContainerContext.get());
-                    Class<?>[] dependencies = Arrays.stream(resolver.getParameters())
-                            .map(param -> ContainerRef.getObj(param.getType()))
+                    Class<?>[] dependencies = Arrays.stream(resolver.getTypes())
+                            .map(ContainerRef::getObj)
                             .filter(Objects::nonNull)
                             .map(ContainerObj::type)
                             .toArray(Class<?>[]::new);
@@ -181,7 +212,6 @@ public class ContainerNodeScanner {
                     }
                     log("Found {} with type {}, Registering it as ContainerObject...", objectType, instance.getClass().getSimpleName());
 
-                    ContainerContext.get().attemptBindPlugin(containerObj);
                     this.mainNode.addObj(containerObj);
                 });
     }
@@ -201,17 +231,13 @@ public class ContainerNodeScanner {
             throw new ServiceAlreadyExistsException(aClass);
 
         ContainerObj containerObject = ContainerObj.of(aClass);
+
         for (Class<?> depend : depends)
             containerObject.addDepend(depend, ServiceDependencyType.FORCE);
+        ContainerContext.get()
+                .lifeCycleHandlerRegistry()
+                .handle(containerObject);
 
-        containerObject.lifeCycleChangeHandler(lifeCycle -> {
-            switch (lifeCycle) {
-                case CONSTRUCT:
-
-            }
-        });
-
-        ContainerContext.get().attemptBindPlugin(containerObject);
         node.addObj(containerObject);
     }
 
@@ -250,10 +276,6 @@ public class ContainerNodeScanner {
             this.scanResult = result;
             return this.scanResult;
         });
-    }
-
-    public Throwable getException() {
-
     }
 
     private <T, U> Function<T, CompletionStage<U>> directlyCompose(Supplier<CompletionStage<U>> supplier) {

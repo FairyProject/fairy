@@ -26,11 +26,9 @@ package io.fairyproject.container.object.resolver;
 
 import io.fairyproject.container.ContainerContext;
 
-import java.lang.reflect.Parameter;
-
 public interface ContainerResolver {
 
-    Object[] getParameters(ContainerContext containerContext);
+    Object[] resolve(ContainerContext containerContext);
 
-    Parameter[] getParameters();
+    Class<?>[] getTypes();
 }

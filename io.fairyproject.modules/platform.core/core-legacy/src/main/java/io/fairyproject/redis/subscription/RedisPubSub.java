@@ -39,7 +39,7 @@ public class RedisPubSub<T> {
 
     public RedisPubSub(String name, RedisService redis, Class<T> type) {
         this.name = name;
-        this.topic = redis.getClient().getPatternTopic(name);
+        this.topic = redis.getClient().getTopic(name);
         this.type = type;
     }
 

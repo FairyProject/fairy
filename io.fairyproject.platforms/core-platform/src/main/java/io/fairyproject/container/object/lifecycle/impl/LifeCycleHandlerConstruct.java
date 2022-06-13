@@ -1,19 +1,21 @@
-package io.fairyproject.container.object.lifecycle;
+package io.fairyproject.container.object.lifecycle.impl;
 
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.object.lifecycle.LifeCycleHandler;
 import io.fairyproject.container.object.resolver.ConstructorContainerResolver;
 import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 
 import java.util.concurrent.CompletableFuture;
 
-public class LifeCycleChangeHandlerImpl implements LifeCycleChangeHandler {
+public class LifeCycleHandlerConstruct implements LifeCycleHandler {
 
     private final ContainerObj obj;
     private ConstructorContainerResolver constructor;
 
-    public LifeCycleChangeHandlerImpl(ContainerObj obj) {
+    public LifeCycleHandlerConstruct(ContainerObj obj) {
         this.obj = obj;
     }
 
@@ -22,6 +24,10 @@ public class LifeCycleChangeHandlerImpl implements LifeCycleChangeHandler {
         if (this.obj.instance() != null)
             return;
         this.constructor = new ConstructorContainerResolver(obj.type());
+        for (Class<?> type : this.constructor.getTypes()) {
+            System.out.printf("Added depend %s to %s%n", type, this.obj.type());
+            this.obj.addDepend(type, ServiceDependencyType.FORCE);
+        }
     }
 
     @Override

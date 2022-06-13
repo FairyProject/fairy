@@ -1,9 +1,11 @@
 package io.fairyproject.container;
 
 import io.fairyproject.container.object.ContainerObj;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+@ApiStatus.Internal
 public class ContainerRef {
 
     private static final ClassValue<ContainerRef> GLOBAL = new ClassValue<ContainerRef>() {

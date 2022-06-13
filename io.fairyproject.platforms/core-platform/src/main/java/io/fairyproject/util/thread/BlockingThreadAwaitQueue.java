@@ -18,16 +18,11 @@ public class BlockingThreadAwaitQueue implements Executor {
 
     private final Queue<Runnable> runnableQueue = new ConcurrentLinkedQueue<>();
     private final Object lock = new Object();
-    private final Consumer<Throwable> exceptionHandler;
 
     private boolean workingState = true;
 
-    private BlockingThreadAwaitQueue(Consumer<Throwable> exceptionHandler) {
-        this.exceptionHandler = exceptionHandler;
-    }
-
-    public static BlockingThreadAwaitQueue create(Consumer<Throwable> exceptionHandler) {
-        return new BlockingThreadAwaitQueue(exceptionHandler);
+    public static BlockingThreadAwaitQueue create() {
+        return new BlockingThreadAwaitQueue();
     }
 
     @Override
@@ -48,11 +43,7 @@ public class BlockingThreadAwaitQueue implements Executor {
                 runnable = runnableQueue.poll();
             }
             if (runnable != null) {
-                try {
-                    runnable.run();
-                } catch (Throwable throwable) {
-                    this.exceptionHandler.accept(throwable);
-                }
+                runnable.run();
             }
             Thread.yield();
         }
@@ -61,11 +52,7 @@ public class BlockingThreadAwaitQueue implements Executor {
             this.workingState = false;
             Runnable runnable;
             while ((runnable = runnableQueue.poll()) != null) {
-                try {
-                    runnable.run();
-                } catch (Throwable throwable) {
-                    this.exceptionHandler.accept(throwable);
-                }
+                runnable.run();
             }
         }
     }

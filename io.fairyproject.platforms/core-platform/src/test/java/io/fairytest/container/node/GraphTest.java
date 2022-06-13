@@ -37,8 +37,7 @@ public class GraphTest extends JUnitJupiterBase {
         graph.add(0);
         graph.resolve();
 
-        System.out.println(Arrays.toString(graph.getNodes().toArray(new Integer[0])));
-        Assertions.assertArrayEquals(new Integer[] { 5, 4, 2, 0, 3, 1 }, graph.getNodes().toArray(new Integer[0]));
+        Assertions.assertArrayEquals(new Integer[] { 1, 3, 2, 0, 5, 4 }, graph.getNodes().toArray(new Integer[0]));
     }
 
     @Test

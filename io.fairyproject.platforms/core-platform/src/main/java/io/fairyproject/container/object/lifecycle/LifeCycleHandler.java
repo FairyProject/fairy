@@ -6,7 +6,7 @@ import io.fairyproject.util.AsyncUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public interface LifeCycleChangeHandler extends Function<LifeCycle, CompletableFuture<?>> {
+public interface LifeCycleHandler extends Function<LifeCycle, CompletableFuture<?>> {
 
     @Override
     default CompletableFuture<?> apply(LifeCycle lifeCycle) {

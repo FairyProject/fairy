@@ -25,9 +25,9 @@
 package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 
-@Component
+@Obj
 public class ImanityItemSerializer implements ObjectSerializer<ImanityItem, String> {
     @Override
     public String serialize(ImanityItem input) {

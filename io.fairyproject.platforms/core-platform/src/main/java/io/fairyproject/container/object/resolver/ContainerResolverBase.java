@@ -24,33 +24,29 @@
 
 package io.fairyproject.container.object.resolver;
 
-import lombok.Getter;
 import io.fairyproject.container.ContainerContext;
-
-import java.lang.reflect.Parameter;
+import io.fairyproject.container.ContainerRef;
+import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.util.ConditionUtils;
+import lombok.Getter;
 
 public class ContainerResolverBase implements ContainerResolver {
 
     @Getter
-    protected Parameter[] parameters;
+    protected Class<?>[] types;
 
     @Override
-    public Object[] getParameters(ContainerContext containerContext) {
-        if (this.parameters == null) {
+    public Object[] resolve(ContainerContext containerContext) {
+        if (this.types == null)
             throw new IllegalArgumentException("No parameters found!");
+        Object[] args = new Object[this.types.length];
+        for (int i = 0; i < args.length; i++) {
+            ContainerObj obj = ContainerRef.getObj(this.types[i]);
+            ConditionUtils.notNull(obj, String.format("Couldn't find container object %s!", this.types[i].getName()));
+            ConditionUtils.notNull(obj.instance(), String.format("Container obj %s has no instance!", obj.type()));
+
+            args[i] = obj.instance();
         }
-
-        Object[] parameters = new Object[this.parameters.length];
-
-        for (int i = 0; i < parameters.length; i++) {
-            Object bean = containerContext.getContainerObject(this.parameters[i].getType());
-            if (bean == null) {
-                throw new IllegalArgumentException("Couldn't find bean " + this.parameters[i].getName() + "!");
-            }
-
-            parameters[i] = bean;
-        }
-
-        return parameters;
+        return args;
     }
 }

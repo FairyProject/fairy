@@ -1,11 +1,9 @@
 package io.fairyproject;
 
-import io.fairyproject.container.ContainerContext;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.Stacktrace;
 import lombok.experimental.UtilityClass;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 @UtilityClass
 public class Debug {
@@ -27,20 +25,14 @@ public class Debug {
     /**
      * Logging
      */
-    public static final Logger LOGGER = LogManager.getLogger(ContainerContext.class);
     public static void log(String msg, Object... replacement) {
         if (SHOW_LOGS) {
-            LOGGER.info(String.format(msg, replacement));
+            Log.info(String.format(msg, replacement));
         }
     }
     public static void warn(String msg, Object... replacement) {
         if (SHOW_LOGS) {
-            LOGGER.warn(String.format(msg, replacement));
-        }
-    }
-    public static void fatal(String msg, Throwable e, Object... replacement) {
-        if (SHOW_LOGS) {
-            LOGGER.fatal(String.format(msg, replacement), e);
+            Log.warn(String.format(msg, replacement));
         }
     }
 

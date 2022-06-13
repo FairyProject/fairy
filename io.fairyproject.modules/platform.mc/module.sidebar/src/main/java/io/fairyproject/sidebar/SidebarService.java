@@ -24,16 +24,20 @@
 
 package io.fairyproject.sidebar;
 
-import io.fairyproject.container.*;
+import io.fairyproject.Fairy;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
-import io.fairyproject.util.terminable.Terminable;
-import io.fairyproject.Fairy;
 import io.fairyproject.task.Task;
 import io.fairyproject.task.TaskRunnable;
 import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -54,11 +58,11 @@ public class SidebarService implements TaskRunnable {
         this.adapters = new ArrayList<>();
         this.runnableQueue = new ConcurrentLinkedQueue<>();
         this.activated = new AtomicBoolean(true);
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(SidebarAdapter.class)
-                .onEnable(obj -> this.addAdapter((SidebarAdapter) obj))
-                .onDisable(obj -> this.removeAdapter((SidebarAdapter) obj))
-                .build());
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(SidebarAdapter.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, this::addAdapter))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, this::removeAdapter))
+        );
     }
 
     @PostInitialize

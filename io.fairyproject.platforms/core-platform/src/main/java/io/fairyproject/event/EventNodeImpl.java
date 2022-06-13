@@ -1,8 +1,10 @@
 package io.fairyproject.event;
 
 import io.fairyproject.util.ConditionUtils;
-import io.fairyproject.util.Utility;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.val;
+import lombok.var;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -18,7 +20,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class EventNodeImpl<T extends Event> implements EventNode<T> {
     static final Object GLOBAL_CHILD_LOCK = new Object();
@@ -139,31 +140,6 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
             entry.listeners.add((EventListener<T>) listener);
             invalidateEvent(eventType);
         }
-        return this;
-    }
-
-    @Override
-    public @NotNull EventNode<T> addListenerAll(@NotNull Object listener) {
-        Utility.getSuperClasses(listener.getClass()).stream()
-                .flatMap(type -> Stream.of(type.getDeclaredMethods()))
-                .forEach(method -> {
-                    Subscribe subscribe = method.getAnnotation(Subscribe.class);
-                    if (subscribe == null) {
-                        return;
-                    }
-
-                    ConditionUtils.check(method.getParameterCount() != 1, "The method " + method + " is subscribing event but parameter count isn't 1");
-                    Class<?> parameterType = method.getParameterTypes()[0];
-
-                    ConditionUtils.check(this.eventType.isAssignableFrom(parameterType), "The method " + method + " is subscribing event that is not implemented for this event node.");
-                    val eventType = parameterType.asSubclass(this.eventType);
-                    val eventListener = EventListener.builder(eventType)
-                            .ignoreCancelled(subscribe.ignoreCancelled())
-                            .handler(new AnnotatedHandler<>(listener, method))
-                            .build();
-
-                    this.addListener(eventListener);
-                });
         return this;
     }
 

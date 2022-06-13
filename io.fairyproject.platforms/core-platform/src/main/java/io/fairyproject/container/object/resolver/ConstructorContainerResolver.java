@@ -64,16 +64,16 @@ public class ConstructorContainerResolver extends ContainerResolverBase {
         }
 
         this.constructor = constructorRet;
-        this.parameters = this.constructor.getParameters();
-        for (Parameter parameter : this.parameters) {
-            if (!ContainerRef.hasObj(parameter.getType())) {
-                throw new IllegalArgumentException("The type " + parameter.getType().getName() + " it's not supposed to be in bean constructor!");
+        this.types = this.constructor.getParameterTypes();
+        for (Class<?> aClass : this.types) {
+            if (!ContainerRef.hasObj(aClass)) {
+                throw new IllegalArgumentException("The type " + aClass.getName() + " it's not supposed to be in bean constructor!");
             }
         }
     }
 
     public Object newInstance(ContainerContext containerContext) throws IllegalAccessException, InvocationTargetException, InstantiationException {
-        return this.constructor.newInstance(this.getParameters(containerContext));
+        return this.constructor.newInstance(this.resolve(containerContext));
     }
 
 }

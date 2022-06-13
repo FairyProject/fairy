@@ -41,10 +41,10 @@ public class MethodContainerResolver extends ContainerResolverBase {
     public MethodContainerResolver(Method method, ContainerContext containerContext) {
         this.method = method;
 
-        this.parameters = this.method.getParameters();
-        for (Parameter parameter : this.parameters) {
-            if (!containerContext.isObject(parameter.getType())) {
-                throw new IllegalArgumentException("The type " + parameter.getType().getName() + " is not a bean!, it's not supposed to be in bean method!");
+        this.types = this.method.getParameterTypes();
+        for (Class<?> type : this.types) {
+            if (!containerContext.isObject(type)) {
+                throw new IllegalArgumentException("The type " + type.getName() + " is not a bean!, it's not supposed to be in bean method!");
             }
         }
     }
@@ -58,7 +58,7 @@ public class MethodContainerResolver extends ContainerResolverBase {
     }
 
     public Object invoke(Object instance, ContainerContext containerContext) throws InvocationTargetException, IllegalAccessException {
-        Object[] parameters = this.getParameters(containerContext);
+        Object[] parameters = this.resolve(containerContext);
 
         return this.method.invoke(instance, parameters);
     }

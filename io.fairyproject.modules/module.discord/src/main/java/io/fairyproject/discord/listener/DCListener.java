@@ -1,15 +1,16 @@
 package io.fairyproject.discord.listener;
 
-import io.fairyproject.container.Component;
+import com.google.common.eventbus.EventBus;
+import io.fairyproject.container.object.Obj;
 import io.fairyproject.discord.DCBot;
 import io.fairyproject.discord.event.DCMessageReceivedEvent;
-import io.fairyproject.event.EventBus;
+import io.fairyproject.event.GlobalEventNode;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-@Component
+@Obj
 public class DCListener extends ListenerAdapter {
 
     @Override
@@ -21,7 +22,7 @@ public class DCListener extends ListenerAdapter {
         }
 
         DCMessageReceivedEvent messageReceivedEvent = new DCMessageReceivedEvent(bot, event);
-        EventBus.call(messageReceivedEvent);
+        GlobalEventNode.get().call(messageReceivedEvent);
 
         if (messageReceivedEvent.isCancelled()) {
             messageReceivedEvent.getMessage()

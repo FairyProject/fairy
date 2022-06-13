@@ -28,11 +28,11 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTe
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Ints;
 import io.fairyproject.Fairy;
-import io.fairyproject.container.ComponentHolder;
-import io.fairyproject.container.ComponentRegistry;
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
-import io.fairyproject.event.EventBus;
+import io.fairyproject.container.collection.ContainerObjCollector;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
@@ -60,11 +60,11 @@ public class NameTagService {
 
     @PreInitialize
     public void onPreInitialize() {
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(NameTagAdapter.class)
-                .onEnable(obj -> this.register((NameTagAdapter) obj))
-                .onDisable(obj -> this.unregister((NameTagAdapter) obj))
-                .build());
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(NameTagAdapter.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(NameTagAdapter.class, this::register))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(NameTagAdapter.class, this::unregister))
+        );
 
         this.adapters = new LinkedList<>();
         this.nametags = new ConcurrentHashMap<>();
@@ -181,7 +181,7 @@ public class NameTagService {
         NameTag nameTag = this.findNameTag(player, target);
         if (nameTag != null) {
             NameTagUpdateEvent event = new NameTagUpdateEvent(player, target, nameTag);
-            EventBus.call(event);
+            GlobalEventNode.get().call(event);
             if (event.isCancelled()) {
                 return;
             }

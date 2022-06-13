@@ -25,6 +25,7 @@
 package io.fairyproject.container;
 
 import io.fairyproject.ObjectSerializer;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.jackson.JacksonService;
 import io.fairyproject.log.Log;
 import io.fairyproject.serializer.AvoidDuplicate;
@@ -60,17 +61,11 @@ public class SerializerFactory {
         this.serializerByValueType = new ConcurrentHashMap<>();
         this.serializerBySerializerType = new ConcurrentHashMap<>();
 
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                        .type(ObjectSerializer.class)
-                        .onEnable(obj -> {
-                            ObjectSerializer<?, ?> serializer = (ObjectSerializer<?, ?>) obj;
-                            this.registerSerializer(serializer);
-                        })
-                        .onDisable(obj -> {
-                            ObjectSerializer<?, ?> serializer = (ObjectSerializer<?, ?>) obj;
-                            this.unregisterSerializer(serializer);
-                        })
-                .build());
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(ObjectSerializer.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(ObjectSerializer.class, this::registerSerializer))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(ObjectSerializer.class, this::unregisterSerializer))
+        );
     }
 
     /**

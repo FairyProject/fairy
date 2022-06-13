@@ -59,12 +59,6 @@ public class LocaleService {
 
     @PreInitialize
     public void onPreInitialize() {
-        ComponentRegistry.registerComponentHolder(new ComponentHolder() {
-            @Override
-            public Class<?>[] type() {
-                return new Class[] {TranslationManager.class};
-            }
-        });
     }
 
     @PostInitialize

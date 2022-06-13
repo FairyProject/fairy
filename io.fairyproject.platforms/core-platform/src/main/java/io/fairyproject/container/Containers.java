@@ -48,7 +48,7 @@ public class Containers {
     }
 
     public void bindWith(Class<?> containerClass, Terminable terminable) {
-        final ContainerObj containerObj = CONTAINER_CONTEXT.getObjectDetails(containerClass);
+        final ContainerObj containerObj = ContainerRef.getObj(containerClass);
         if (containerObj == null) {
             throw new IllegalArgumentException("Cannot bind terminable to a class that isn't registered as ContainerObject.");
         }

@@ -25,8 +25,6 @@
 package io.fairyproject;
 
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.object.SimpleContainerObj;
-import io.fairyproject.event.EventBus;
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
@@ -81,7 +79,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
         this.loadBindable();
 
         this.containerContext = new ContainerContext();
-        this.containerContext.registerObject(new SimpleContainerObj(this, this.getClass()));
         this.containerContext.init();
     }
 
@@ -93,7 +90,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
         }
 
         this.containerContext.stop();
-        EventBus.shutdown();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
     }
 
