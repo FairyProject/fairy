@@ -1,0 +1,10 @@
+module {
+    platform("mc")
+    platform("bukkit")
+
+    depend("platform.mc:module.protocol")
+}
+
+dependencies {
+    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+}

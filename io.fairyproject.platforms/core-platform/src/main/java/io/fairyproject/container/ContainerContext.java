@@ -38,6 +38,7 @@ import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.node.ContainerNodeScanner;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.lifecycle.LifeCycleHandlerRegistry;
+import io.fairyproject.container.object.lifecycle.impl.annotation.FairyLifeCycleAnnotationProcessor;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.log.Log;
@@ -96,8 +97,12 @@ public class ContainerContext {
 
         this.node = ContainerNode.create("global");
         this.node.addObj(ContainerObj.of(this.getClass(), this));
-        this.node.addObj(ContainerObj.of(FairyPlatform.class, Fairy.getPlatform()));
         log("ContainerContext has been registered as ContainerObject.");
+
+        final ContainerObj platform = ContainerObj.of(FairyPlatform.class, Fairy.getPlatform());
+        platform.addLifeCycleHandler(new FairyLifeCycleAnnotationProcessor(platform));
+        this.node.addObj(platform);
+        log("FairyPlatform has been registered as ContainerObject.");
 
         try {
             ContainerNodeScanner scanner = new ContainerNodeScanner();

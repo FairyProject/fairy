@@ -31,6 +31,7 @@ import io.fairyproject.PlatformType;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
 import io.fairyproject.bukkit.impl.BukkitPluginHandler;
 import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
+import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
@@ -102,6 +103,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     public void onPreInitialize() {
         ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(Listener.class))
+                .withFilter(ContainerObjCollector.inherits(FilteredListener.class).negate())
                 .withAddHandler(ContainerObjCollector.warpInstance(Listener.class, Events::subscribe))
         );
     }

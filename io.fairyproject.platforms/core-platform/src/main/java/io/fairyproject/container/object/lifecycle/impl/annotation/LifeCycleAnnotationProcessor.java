@@ -51,7 +51,14 @@ public abstract class LifeCycleAnnotationProcessor implements LifeCycleHandler {
 
     @Override
     public void init() {
-        Class<?> aClass = this.containerObj.type();
+        Class<?> aClass;
+        Object instance = containerObj.instance();
+        if (instance != null)
+            // If container object has instanced, prioritize instance's class as the type could just be a contract interface.
+            aClass = instance.getClass();
+        else
+            aClass = this.containerObj.type();
+
         for (int i = 0; i < this.processors.length; i++) {
             processors[i] = new ArrayList<>();
         }

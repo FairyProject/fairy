@@ -71,6 +71,7 @@ void initModules() {
     include "io.fairyproject.modules:platform.mc:module.actionbar"
     include "io.fairyproject.modules:platform.mc:module.bossbar:bukkit-bossbar"
     include "io.fairyproject.modules:platform.mc:module.protocol"
+    include "io.fairyproject.modules:platform.mc:module.map"
 
     include "io.fairyproject.modules:module.discord"
     include "io.fairyproject.modules:module.config"
