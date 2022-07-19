@@ -121,7 +121,7 @@ public class MapService {
             );
 
             wrapperPlayServerMapData.prepareForSend();
-            System.out.println(wrapperPlayServerMapData.readVarInt());
+            wrapperPlayServerMapData.readVarInt();
             final PacketPlayOutMap packetPlayOutMap = new PacketPlayOutMap();
             packetPlayOutMap.a(new PacketDataSerializer((ByteBuf) wrapperPlayServerMapData.getBuffer()));
             System.out.println(packetPlayOutMap);

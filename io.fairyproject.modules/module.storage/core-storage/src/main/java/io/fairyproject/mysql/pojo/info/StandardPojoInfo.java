@@ -32,6 +32,7 @@ import io.fairyproject.mysql.ImanitySqlException;
 import io.fairyproject.mysql.pojo.CustomSerialize;
 import io.fairyproject.mysql.pojo.Property;
 import io.fairyproject.util.AccessUtil;
+import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -75,7 +76,6 @@ public class StandardPojoInfo implements PojoInfo {
 	private String selectColumns;
 
 	public StandardPojoInfo(Class<?> type) {
-
 		try {
 
 			if (Map.class.isAssignableFrom(type)) {
@@ -104,6 +104,8 @@ public class StandardPojoInfo implements PojoInfo {
 					}
 					this.getPropertyMap().put(property.getName().toUpperCase(), property);
 				}
+
+//				ConditionUtils.notNull(this.primaryKeyName, String.format("Primary key for %s cannot be found! (Any field annotate with @Id?)", type));
 			}
 
 			Table table = type.getAnnotation(Table.class);
@@ -123,8 +125,7 @@ public class StandardPojoInfo implements PojoInfo {
 	}
 
 	private List<Property> populateProperties(Class<?> clazz)
-			throws IntrospectionException, ReflectiveOperationException {
-
+			throws ReflectiveOperationException {
 		List<Property> properties = new ArrayList<>();
 
 		for (Field field : clazz.getDeclaredFields()) {
@@ -182,7 +183,6 @@ public class StandardPojoInfo implements PojoInfo {
 	 */
 	private void applyAnnotations(Property property, AnnotatedElement annotatedElement)
 			throws InstantiationException, IllegalAccessException {
-
 		Column column = annotatedElement.getAnnotation(Column.class);
 		if (column != null) {
 			String name = column.name().trim();
