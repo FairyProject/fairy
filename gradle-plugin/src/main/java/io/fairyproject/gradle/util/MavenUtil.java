@@ -1,9 +1,6 @@
 package io.fairyproject.gradle.util;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import io.fairyproject.gradle.FairyPlugin;
 import io.fairyproject.gradle.IDEDependencyLookup;
 import io.fairyproject.shared.FairyVersion;
@@ -28,8 +25,8 @@ import java.util.concurrent.TimeUnit;
 @UtilityClass
 public class MavenUtil {
 
-    private final String VERSION_URL = "https://maven.imanity.dev/service/rest/v1/search/assets?repository=imanity-libraries&group=<group>&name=<module>&sort=version&maven.extension=jar";
-    private final String ITEM_URL = "https://maven.imanity.dev/service/rest/v1/search?repository=imanity-libraries&group=io.fairyproject&name=<module>&version=<version>";
+    private final String VERSION_URL = "https://repo.imanity.dev/api/maven/latest/version/imanity-libraries/";
+    private final String ITEM_URL = "https://repo.imanity.dev/api/maven/details/imanity-libraries/";
     private final long MAX_CACHE_TIMESTAMP = TimeUnit.MINUTES.toMillis(30);
     private JsonObject CACHE;
     private Path CACHE_FILE;
@@ -104,10 +101,7 @@ public class MavenUtil {
 
     public String getLatest(String group, String artifact) {
         return cacheable("getLatest", group + "|" + artifact, String.class, () -> {
-            final URL url = new URL(VERSION_URL
-                    .replace("<module>", artifact)
-                    .replace("<group>", group)
-            );
+            final URL url = new URL(VERSION_URL + group.replace(".", "/") + "/" + artifact);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.setRequestMethod("GET");
@@ -119,11 +113,7 @@ public class MavenUtil {
             if (responseCode >= 200 && responseCode < 300) {
                 try (InputStream in = connection.getInputStream()) {
                     JsonObject jsonObject = new Gson().fromJson(new InputStreamReader(in), JsonObject.class);
-                    for (JsonElement items : jsonObject.getAsJsonArray("items")) {
-                        final JsonObject itemObject = items.getAsJsonObject();
-
-                        return itemObject.getAsJsonObject("maven2").get("version").getAsString();
-                    }
+                    return jsonObject.get("version").getAsString();
                 }
             }
 
@@ -136,20 +126,22 @@ public class MavenUtil {
             return IDEDependencyLookup.getIdentityPath(module) != null;
         }
         return cacheable("isExistingModule", module + "|" + version, Boolean.class, () -> {
-            final java.net.URL url = new URL(ITEM_URL
-                    .replace("<module>", module)
-                    .replace("<version>", version)
-            );
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.setRequestMethod("GET");
-            connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+            try {
+                final java.net.URL url = new URL(ITEM_URL + "io/fairyproject/" + module + "/" + version);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.setRequestMethod("GET");
+                connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
 
-            if (connection.getResponseCode() == 200) {
-                final JsonObject jsonObject = new Gson().fromJson(new InputStreamReader(connection.getInputStream()), JsonObject.class);
-                return jsonObject.get("items").getAsJsonArray().size() > 0;
+                if (connection.getResponseCode() == 200) {
+                    final JsonArray jsonObject = new Gson().fromJson(new InputStreamReader(connection.getInputStream()), JsonArray.class);
+                    return jsonObject.size() > 0;
+                }
+                return false;
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+                throw throwable;
             }
-            return false;
         });
     }
 

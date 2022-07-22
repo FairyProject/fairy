@@ -42,13 +42,13 @@ public abstract class BasePluginHolder {
         }
 
         if (!Plugin.class.isAssignableFrom(mainClass)) {
-            throw new IllegalStateException("Couldn't found no args constructor from " + mainClassPath);
+            throw new IllegalStateException(String.format("%s wasn't implementing Plugin", mainClass));
         }
 
         try {
             return (Plugin) mainClass.getDeclaredConstructor().newInstance();
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-            throw new IllegalStateException("Failed to new instance " + mainClassPath + " (Do it has no args constructor in the class?)");
+            throw new IllegalStateException("Failed to new instance " + mainClassPath + " (Does it has no args constructor in the class?)", e);
         }
     }
 

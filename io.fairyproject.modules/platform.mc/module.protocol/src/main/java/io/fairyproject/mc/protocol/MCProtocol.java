@@ -2,6 +2,7 @@ package io.fairyproject.mc.protocol;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
+import com.github.retrooper.packetevents.event.PacketListenerCommon;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
@@ -15,6 +16,7 @@ import io.fairyproject.mc.protocol.impl.mock.MockPacketEventsBuilder;
 import io.fairyproject.mc.protocol.packet.PacketSender;
 import io.fairyproject.mc.protocol.packet.impl.PacketSenderImpl;
 import io.fairyproject.mc.protocol.packet.impl.PacketSenderMock;
+import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
 
 @Getter
@@ -71,6 +73,11 @@ public class MCProtocol {
 
     public static void sendPacket(MCPlayer mcPlayer, PacketWrapper<?> packetWrapper) {
         MCProtocol.INSTANCE.getPacketSender().sendPacket(mcPlayer, packetWrapper);
+    }
+
+    public static Terminable listen(PacketListenerCommon packetListener) {
+        MCProtocol.INSTANCE.getPacketEvents().getEventManager().registerListener(packetListener);
+        return () -> MCProtocol.INSTANCE.getPacketEvents().getEventManager().unregisterListener(packetListener);
     }
 
 }

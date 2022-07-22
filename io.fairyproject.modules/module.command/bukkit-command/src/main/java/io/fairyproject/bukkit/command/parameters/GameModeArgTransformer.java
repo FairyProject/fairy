@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.protocol.MCVersion;
 import org.apache.commons.lang.StringUtils;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Component
+@Obj
 public class GameModeArgTransformer extends BukkitArgTransformer<GameMode> {
 
 	private static final Map<String, GameMode> MAP = new HashMap<>();

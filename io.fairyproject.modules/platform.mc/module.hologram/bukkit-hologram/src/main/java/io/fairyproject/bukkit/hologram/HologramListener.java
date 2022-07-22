@@ -32,8 +32,8 @@ import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.timings.MCTiming;
 import io.fairyproject.bukkit.timings.TimingService;
 import io.fairyproject.container.Autowired;
-import io.fairyproject.container.Component;
 import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.object.Obj;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -47,7 +47,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-@Component
+@Obj
 public class HologramListener implements Listener {
 
     private final Set<Player> toUpdate = new HashSet<>();

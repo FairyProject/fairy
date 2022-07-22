@@ -18,6 +18,6 @@ public class PojoListenerPrimaryKey implements PojoListener {
 
     @Override
     public void onMapperInitialized(PojoMapper<?> pojoMapper) {
-        ConditionUtils.check(pojoMapper.has(PojoEx.PRIMARY_KEY), "The mapper doesn't contain any primary key! (field with @javax.persistence.Id annotation.)");
+        ConditionUtils.is(pojoMapper.has(PojoEx.PRIMARY_KEY), "The mapper doesn't contain any primary key! (field with @javax.persistence.Id annotation.)");
     }
 }

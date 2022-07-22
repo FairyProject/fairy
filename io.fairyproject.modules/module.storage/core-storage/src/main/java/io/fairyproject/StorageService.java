@@ -27,6 +27,7 @@ package io.fairyproject;
 import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
 import io.fairyproject.container.*;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.jackson.JacksonService;
 import io.fairyproject.providers.inmemory.InMemoryRepositoryProvider;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
@@ -48,20 +49,14 @@ public class StorageService {
 
     @PreInitialize
     public void onPreInitialize() {
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(RepositoryProvider.class)
-                .onEnable(obj -> {
-                    RepositoryProvider repositoryProvider = (RepositoryProvider) obj;
-
-                    registerRepositoryProvider(repositoryProvider);
-                    repositoryProvider.build();
-                })
-                .onDisable(obj -> {
-                    RepositoryProvider repositoryProvider = (RepositoryProvider) obj;
-
-                    unregisterRepositoryProvider(repositoryProvider);
-                })
-                .build());
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(RepositoryProvider.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(RepositoryProvider.class, obj -> {
+                    registerRepositoryProvider(obj);
+                    obj.build();
+                }))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(RepositoryProvider.class, this::unregisterRepositoryProvider))
+        );
     }
 
     @PostDestroy
@@ -103,7 +98,7 @@ public class StorageService {
     public <E, ID extends Serializable> Repository<E, ID> createRepository(String providerId, String repoId, Class<E> entityType) {
         final RepositoryProvider repositoryProvider = this.getRepositoryProvider(providerId);
         if (repositoryProvider == null) {
-            throw new IllegalStateException("Repository does not exists.");
+            throw new IllegalStateException(String.format("Repository provider %s does not exists.", providerId));
         }
 
         return repositoryProvider.buildRepository(entityType, repoId);

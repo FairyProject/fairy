@@ -6,10 +6,9 @@ import io.fairyproject.mc.MCPlayer;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Event
 @Getter
 @AllArgsConstructor
-public class NameTagUpdateEvent implements Cancellable {
+public class NameTagUpdateEvent implements Event, Cancellable {
 
     private final MCPlayer player;
     private final MCPlayer target;

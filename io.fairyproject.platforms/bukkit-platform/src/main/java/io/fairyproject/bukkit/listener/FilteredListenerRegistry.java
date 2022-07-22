@@ -109,8 +109,8 @@ public final class FilteredListenerRegistry {
     @NonNull
     private EventExecutor create(@NonNull Method m, @NonNull Class<? extends Event> eventClass, boolean ignoredFilters, FilteredEventList eventList) {
         ConditionUtils.notNull(m, "Null method");
-        ConditionUtils.check(m.getParameterCount() != 0, "Incorrect number of arguments %s", m.getParameterCount());
-        ConditionUtils.check(m.getParameterTypes()[0] == eventClass, "First parameter %s doesn't match event class %s", m.getParameterTypes()[0], eventClass);
+        ConditionUtils.is(m.getParameterCount() != 0, "Incorrect number of arguments %s", m.getParameterCount());
+        ConditionUtils.is(m.getParameterTypes()[0] == eventClass, "First parameter %s doesn't match event class %s", m.getParameterTypes()[0], eventClass);
         if (Modifier.isStatic(m.getModifiers())) {
             return new StaticMethodHandleEventExecutor(eventClass, m, ignoredFilters, eventList);
         } else {

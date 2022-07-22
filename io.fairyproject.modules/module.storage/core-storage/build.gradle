@@ -25,7 +25,7 @@
 dependencies {
     compileOnly Mongojack
     compileOnly MongoDB_driver_sync
-    compileOnly HikariCP
+    compileOnly libs.hikari.cp
 }
 
 module {

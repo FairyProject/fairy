@@ -1,0 +1,87 @@
+apply plugin: "maven-publish"
+
+project.afterEvaluate {
+    def shadowJar = project.tasks.findByName("shadowJar")
+    publishing {
+        publications {
+            production(MavenPublication) { publication ->
+                if (shadowJar != null)
+                    from project.shadow.component(publication)
+                else
+                    from components.java
+                pom {
+                    name = "Fairy " + project.name
+                }
+            }
+
+            snapshot(MavenPublication) { publication ->
+                if (shadowJar != null)
+                    from project.shadow.component(publication)
+                else
+                    from components.java
+                pom {
+                    name = "Fairy " + project.name
+                    version = project.version + "-SNAPSHOT"
+                }
+            }
+
+            latest(MavenPublication) { publication ->
+                if (shadowJar != null)
+                    from project.shadow.component(publication)
+                else
+                    from components.java
+                pom {
+                    name = "Fairy " + project.name
+                    version = "latest"
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name "Dev"
+                url "$rootDir/libs/local"
+            }
+
+            maven {
+                name "Production"
+                url "https://repo.imanity.dev/imanity-libraries/"
+                credentials {
+                    username findProperty("imanityLibrariesUsername").toString()
+                    password findProperty("imanityLibrariesPassword").toString()
+                }
+            }
+        }
+    }
+
+    if (shadowJar != null) {
+        tasks.withType(AbstractPublishToMaven).forEach(t -> {
+            t.dependsOn(shadowJar)
+        })
+    }
+
+    /* -------------------------------------------------------
+     * Last edit: 03/03/2022
+     * Fixes modules not properly being published with
+     * the module.json
+     * ------------------------------------------------------- */
+    def moduleTask = project.tasks.findByName("module")
+    if (moduleTask != null) {
+        moduleTask.finalizedBy(publishAllPublicationsToDevRepository)
+    } else if (shadowJar != null) {
+        shadowJar.finalizedBy(publishAllPublicationsToDevRepository)
+    } else {
+        build.finalizedBy(publishAllPublicationsToDevRepository)
+    }
+    def publishSnapshotDev = project.tasks.findByName("publishSnapshotDev")
+    if (publishSnapshotDev != null)
+        publishSnapshotDev.finalizedBy(publishSnapshotPublicationToDevRepository)
+
+    def publishSnapshotProduction = project.tasks.findByName("publishSnapshotProduction")
+    if (publishSnapshotProduction != null)
+        publishSnapshotProduction.finalizedBy(publishSnapshotPublicationToProductionRepository)
+
+    def publishSnapshotLocal = project.tasks.findByName("publishSnapshotLocal")
+    if (publishSnapshotLocal != null)
+        publishSnapshotLocal.finalizedBy(publishSnapshotPublicationToMavenLocal)
+}

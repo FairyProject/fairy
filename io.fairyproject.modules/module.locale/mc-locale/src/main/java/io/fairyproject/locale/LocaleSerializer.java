@@ -26,11 +26,12 @@ package io.fairyproject.locale;
 
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.container.*;
+import io.fairyproject.container.object.Obj;
 import net.kyori.adventure.translation.Translator;
 
 import java.util.Locale;
 
-@Component
+@Obj
 @ServiceDependency(value = LocaleService.class, type = ServiceDependencyType.SUB_DISABLE)
 public class LocaleSerializer implements ObjectSerializer<Locale, String> {
 

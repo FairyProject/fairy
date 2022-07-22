@@ -26,7 +26,6 @@ import io.fairyproject.gradle.PublishSnapshotTask
 //file:noinspection GroovyAssignabilityCheck
 
 plugins {
-//    id "io.freefair.aspectj.post-compile-weaving" version "6.1.0" apply false
     id "com.github.johnrengelman.shadow" version "7.1.2" apply false
     id "com.gradle.plugin-publish" version "0.14.0" apply false
 }
@@ -35,7 +34,7 @@ plugins {
 version = findProperty("fairy.version")
 
 allprojects {
-    apply from: "${rootDir}/gradle/tasks.gradle"
+    apply from: "${rootDir}/gradle/scripts/tasks.gradle"
 
     if (isNotJavaProject(project)) {
         project.tasks.all { task -> task.enabled = false }
@@ -49,7 +48,7 @@ allprojects {
             name = "sonatype-oss-snapshots"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
-        maven { url "https://maven.imanity.dev/repository/imanity-libraries/" }
+        maven { url "https://repo.imanity.dev/imanity-libraries/" }
         maven { url "https://nexus.funkemunky.cc/content/repositories/releases/" }
         maven { url "https://jitpack.io" }
         maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
@@ -63,14 +62,6 @@ allprojects {
 
         // Dependencies
         // TODO - naming rules
-        aspectjRuntime = "org.aspectj:aspectjrt:" + findProperty("aspectj.version")
-
-        JacksonCore = "com.fasterxml.jackson.core:jackson-core:" + findProperty("jackson.version")
-        JacksonDataBind = "com.fasterxml.jackson.core:jackson-databind:" + findProperty("jackson.version")
-        JacksonAnnotations = "com.fasterxml.jackson.core:jackson-annotations:" + findProperty("jackson.version")
-        JacksonJsr310 = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:" + findProperty("jackson.version")
-
-        HikariCP = "com.zaxxer:HikariCP:3.4.5"
         MongoDB_driver_sync = "org.mongodb:mongodb-driver-sync:4.0.4"
         Mongojack = "org.mongojack:mongojack:" + findProperty("mongojack.version")
         Redisson = "org.redisson:redisson:3.13.2"
@@ -92,27 +83,27 @@ subprojects {
     if (project.name != "gradle-plugin") {
         version = findProperty("fairy.version")
 
-        apply from: "${rootDir}/gradle/builder.gradle"
+        apply from: "${rootDir}/gradle/scripts/builder.gradle"
         tasks.create("publishSnapshotDev", PublishSnapshotTask.class).group("fairy")
         tasks.create("publishSnapshotProduction", PublishSnapshotTask.class).group("fairy")
         tasks.create("publishSnapshotLocal", PublishSnapshotTask.class).group("fairy")
 
-        apply from: "${rootDir}/gradle/extensions.gradle"
+        apply from: "${rootDir}/gradle/scripts/extensions.gradle"
         if (project.name.contains("bootstrap")) {
-            apply from: "${rootDir}/gradle/bootstrap.gradle"
+            apply from: "${rootDir}/gradle/scripts/bootstrap.gradle"
         } else {
-            apply from: "${rootDir}/gradle/basic.gradle"
+            apply from: "${rootDir}/gradle/scripts/basic.gradle"
             if (project.name.endsWith("-platform")) {
-                apply from: "${rootDir}/gradle/platform.gradle"
+                apply from: "${rootDir}/gradle/scripts/platform.gradle"
             } else if (!project.name.endsWith("-tests")) {
-                apply from: "${rootDir}/gradle/module.gradle"
+                apply from: "${rootDir}/gradle/scripts/module.gradle"
             } else {
                 version = project(":").version
             }
         }
     }
 
-    apply from: "${rootDir}/gradle/publish.gradle"
+    apply from: "${rootDir}/gradle/scripts/publish.gradle"
 }
 
 static boolean isNotJavaProject(Project project) {

@@ -26,7 +26,7 @@ package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 import org.bukkit.entity.Item;
@@ -37,7 +37,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
 
-@Component
+@Obj
 public class ItemListener implements Listener {
 
     private static final MetadataKey<Boolean> METADATA = MetadataKey.createBooleanKey(Fairy.METADATA_PREFIX + "Item");

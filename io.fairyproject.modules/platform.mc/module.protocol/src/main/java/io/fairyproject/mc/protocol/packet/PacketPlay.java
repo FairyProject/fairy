@@ -103,7 +103,7 @@ public class PacketPlay {
 
         @Getter @Setter @Deprecated
         public static class ScoreboardObjective extends WrapperPlayServerScoreboardObjective {
-            public ScoreboardObjective(String name, ObjectiveMode mode, Optional<String> displayName, Optional<HealthDisplay> display) {
+            public ScoreboardObjective(String name, ObjectiveMode mode, Component displayName, RenderType display) {
                 super(name, mode, displayName, display);
             }
 
@@ -139,17 +139,16 @@ public class PacketPlay {
 
                 public ScoreboardObjective build() {
                     final ObjectiveMode mode = ObjectiveMode.values()[renderType.ordinal()];
-                    final Optional<HealthDisplay> method = Optional.ofNullable(this.method == null
+                    final RenderType method = this.method == null
                             ? null
-                            : HealthDisplay.values()[this.method]
-                    );
+                            : RenderType.values()[this.method];
 
                     return new ScoreboardObjective(
                             objectiveName,
                             mode,
                             displayName == null
-                                    ? Optional.empty()
-                                    : Optional.of(MCAdventure.asJsonString(displayName, Locale.getDefault())),
+                                    ? null
+                                    : displayName,
                             method
                     );
                 }

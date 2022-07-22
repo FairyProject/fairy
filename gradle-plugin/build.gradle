@@ -40,7 +40,7 @@ pluginBundle {
 }
 
 repositories {
-    maven { url "https://maven.imanity.dev/repository/imanity-libraries/" }
+    maven { url "https://repo.imanity.dev/imanity-libraries/" }
     maven { url "https://plugins.gradle.org/m2/" }
 }
 

@@ -1,11 +1,9 @@
 package io.fairyproject.event;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+/**
+ * You do not need to implement this class yourself
+ * If you are using gradle plugin correctly all of your Event class should automatically generate them
+ */
+public interface Event {
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Event {
 }

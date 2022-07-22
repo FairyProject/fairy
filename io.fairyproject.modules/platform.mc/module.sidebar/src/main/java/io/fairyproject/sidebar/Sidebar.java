@@ -59,10 +59,8 @@ public class Sidebar {
         final WrapperPlayServerScoreboardObjective objective = new WrapperPlayServerScoreboardObjective(
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.CREATE,
-                Optional.of(MCServer.current().getVersion().isOrBelow(MCVersion.V1_7)
-                        ? MCAdventure.asLegacyString(Component.empty(), player.getLocale())
-                        : MCAdventure.asJsonString(Component.empty(), player.getLocale())),
-                Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
+                Component.empty(),
+                WrapperPlayServerScoreboardObjective.RenderType.INTEGER
         );
         MCProtocol.sendPacket(player, objective);
 
@@ -84,12 +82,8 @@ public class Sidebar {
         MCProtocol.sendPacket(player, new WrapperPlayServerScoreboardObjective(
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.UPDATE,
-                Optional.of(
-                        MCServer.current().getVersion().isOrBelow(MCVersion.V1_12)
-                        ? MCAdventure.asLegacyString(title, player.getLocale())
-                        : MCAdventure.asJsonString(title, player.getLocale())
-                ),
-                Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
+                title,
+                WrapperPlayServerScoreboardObjective.RenderType.INTEGER
         ));
     }
 

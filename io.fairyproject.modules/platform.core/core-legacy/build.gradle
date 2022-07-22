@@ -23,7 +23,7 @@
  */
 
 dependencies {
-    compileOnly HikariCP
+    compileOnly libs.hikari.cp
     compileOnly MongoDB_driver_sync
     compileOnly Redisson
 }

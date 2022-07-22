@@ -64,8 +64,8 @@ public final class BukkitPlugin extends JavaPlugin {
         if (!this.loaded) {
             return;
         }
-        this.bootstrap.disable();
         this.pluginHolder.onDisable();
+        this.bootstrap.disable();
     }
 
     // public extension
