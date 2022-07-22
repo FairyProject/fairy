@@ -45,7 +45,7 @@ project.afterEvaluate {
 
             maven {
                 name "Production"
-                url "https://maven.imanity.dev/repository/imanity-libraries/"
+                url "https://repo.imanity.dev/imanity-libraries/"
                 credentials {
                     username findProperty("imanityLibrariesUsername").toString()
                     password findProperty("imanityLibrariesPassword").toString()

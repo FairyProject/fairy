@@ -32,7 +32,7 @@ import java.util.zip.ZipEntry;
 public class FairyPlugin implements Plugin<Project> {
 
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    public static final String REPOSITORY = "https://maven.imanity.dev/repository/imanity-libraries/";
+    public static final String REPOSITORY = "https://repo.imanity.dev/imanity-libraries/";
     public static final String DEPENDENCY_FORMAT = "io.fairyproject:%s:%s";
     public static Queue<Runnable> QUEUE = new ConcurrentLinkedQueue<>();
     public static FairyPlugin INSTANCE;
