@@ -26,7 +26,7 @@ public class WrapperPlayServerMapData extends PacketWrapper<WrapperPlayServerMap
         super(event);
     }
 
-    public WrapperPlayServerMapData(int data, int scale, Collection<Icon> icons, byte[] buffer, byte x, byte z, byte column, byte rows) {
+    public WrapperPlayServerMapData(int data, int scale, Collection<Icon> icons, byte[] buffer, int x, int z, int column, int rows) {
         super(PacketType.Play.Server.MAP_DATA);
         this.data = data;
         this.scale = scale;
@@ -62,6 +62,7 @@ public class WrapperPlayServerMapData extends PacketWrapper<WrapperPlayServerMap
     public void write() {
         this.writeVarInt(this.data);
         this.writeByte(this.scale);
+
         this.writeVarInt(this.icons.size());
         this.icons.forEach(icon -> {
             this.writeByte((icon.getType() & 15) << 4 | icon.getRotation() & 15);

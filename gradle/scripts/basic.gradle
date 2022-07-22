@@ -26,8 +26,7 @@ dependencies {
     compileOnly "org.jetbrains:annotations:19.0.0"
     annotationProcessor "org.jetbrains:annotations:19.0.0"
 
-    compileOnly JacksonCore
-    compileOnly JacksonDataBind
+    compileOnly libs.bundles.jackson
     compileOnly "javax.persistence:javax.persistence-api:2.2"
 
     if (project.name.contains("-")) {

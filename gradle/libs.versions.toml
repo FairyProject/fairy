@@ -1,0 +1,15 @@
+[versions]
+jackson = "2.11.2"
+hikari = "5.0.1"
+
+[libraries]
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
+jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+
+[bundles]
+jackson = ["jackson-core", "jackson-databind", "jackson-annotations", "jackson-datatype-jsr310"]
+
+[plugins]

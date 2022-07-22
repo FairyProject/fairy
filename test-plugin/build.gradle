@@ -9,7 +9,7 @@ buildscript {
 
 plugins {
     id "java"
-    id "io.fairyproject" version "1.1.0b1"
+    id "io.fairyproject" version "1.1.0b3"
 }
 
 repositories {

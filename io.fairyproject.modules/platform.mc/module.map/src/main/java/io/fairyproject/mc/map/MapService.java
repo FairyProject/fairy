@@ -10,11 +10,6 @@ import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.terminable.Terminable;
-import io.netty.buffer.ByteBuf;
-import net.minecraft.server.v1_8_R3.*;
-import net.minecraft.server.v1_8_R3.MapIcon;
-import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -73,25 +68,11 @@ public class MapService {
                             .map(icon -> new WrapperPlayServerMapData.Icon(icon.type(), icon.x(), icon.y(), icon.rotation()))
                             .collect(Collectors.toList()),
                     current.colors(),
-                    (byte) current.x(),
-                    (byte) current.y(),
-                    (byte) current.width(),
-                    (byte) current.height()
+                    current.x(),
+                    current.y(),
+                    current.width(),
+                    current.height()
             ));
-//            final PacketPlayOutMap packet = new PacketPlayOutMap(
-//                    current.id(),
-//                    (byte) 0,
-//                    current.icons().stream()
-//                            .map(icon -> new MapIcon(icon.type(), icon.x(), icon.y(), icon.rotation()))
-//                            .collect(Collectors.toList()),
-//                    current.colors(),
-//                    current.x(),
-//                    current.y(),
-//                    current.width(),
-//                    current.height()
-//            );
-//            ((CraftPlayer) player.as(Player.class)).getHandle().playerConnection.sendPacket(packet);
-            this.debugPacketBytes(current);
         }
 
         this.lock.readLock().lock();
@@ -102,31 +83,6 @@ public class MapService {
             }
         } finally {
             this.lock.readLock().unlock();
-        }
-    }
-
-    private void debugPacketBytes(RenderData current) {
-        try {
-            final WrapperPlayServerMapData wrapperPlayServerMapData = new WrapperPlayServerMapData(
-                    current.id(),
-                    (byte) 0,
-                    current.icons().stream()
-                            .map(icon -> new WrapperPlayServerMapData.Icon(icon.type(), icon.x(), icon.y(), icon.rotation()))
-                            .collect(Collectors.toList()),
-                    current.colors(),
-                    (byte) current.x(),
-                    (byte) current.y(),
-                    (byte) current.width(),
-                    (byte) current.height()
-            );
-
-            wrapperPlayServerMapData.prepareForSend();
-            wrapperPlayServerMapData.readVarInt();
-            final PacketPlayOutMap packetPlayOutMap = new PacketPlayOutMap();
-            packetPlayOutMap.a(new PacketDataSerializer((ByteBuf) wrapperPlayServerMapData.getBuffer()));
-            System.out.println(packetPlayOutMap);
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
         }
     }
 
