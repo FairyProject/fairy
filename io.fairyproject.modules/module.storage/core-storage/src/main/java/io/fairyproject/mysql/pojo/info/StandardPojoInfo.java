@@ -32,12 +32,10 @@ import io.fairyproject.mysql.ImanitySqlException;
 import io.fairyproject.mysql.pojo.CustomSerialize;
 import io.fairyproject.mysql.pojo.Property;
 import io.fairyproject.util.AccessUtil;
-import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.beans.IntrospectionException;
 import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

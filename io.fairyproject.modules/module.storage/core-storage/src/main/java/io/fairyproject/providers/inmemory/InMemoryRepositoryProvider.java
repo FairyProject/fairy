@@ -18,11 +18,11 @@ public class InMemoryRepositoryProvider extends AbstractRepositoryProvider {
 
     @Override
     public void build0() {
-
+        // Nothing to do
     }
 
     @Override
-    public <E, ID extends Serializable> Repository<E, ID> createRepository(Class<E> entityType, String repoId) {
+    public <E, I extends Serializable> Repository<E, I> createRepository(Class<E> entityType, String repoId) {
         return new InMemoryRepository<>(this, entityType, repoId);
     }
 
@@ -33,11 +33,11 @@ public class InMemoryRepositoryProvider extends AbstractRepositoryProvider {
 
     @Override
     public void registerOptions(Map<String, String> map) {
-
+        // Nothing to do
     }
 
     @Override
     public void close() throws Exception {
-
+        // Nothing to do
     }
 }

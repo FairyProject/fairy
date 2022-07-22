@@ -16,6 +16,7 @@ public class StorageServiceTest extends JUnitJupiterBase {
     @Autowired
     private StorageService storageService;
 
+    @SuppressWarnings("unused")
     public static class TestPojo {
 
         @Id

@@ -4,7 +4,6 @@ import io.fairyproject.library.Library;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;
 import java.nio.file.Path;

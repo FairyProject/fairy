@@ -127,7 +127,7 @@ public class MavenUtil {
         }
         return cacheable("isExistingModule", module + "|" + version, Boolean.class, () -> {
             try {
-                final java.net.URL url = new URL(ITEM_URL + "io/fairyproject/" + module + "/" + version);
+                final URL url = new URL(ITEM_URL + "io/fairyproject/" + module + "/" + version);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoInput(true);
                 connection.setRequestMethod("GET");
@@ -193,7 +193,8 @@ public class MavenUtil {
             try {
                 r = valueSupplier.accept();
             } catch (Throwable throwable) {
-                throw new RuntimeException(throwable);
+                SneakyThrow.sneaky(throwable);
+                return null;
             }
             jsonObject.add(key, this.toJson(r));
             return r;
@@ -213,7 +214,8 @@ public class MavenUtil {
         try {
             return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            SneakyThrow.sneaky(e);
+            return null;
         }
     }
 

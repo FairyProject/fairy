@@ -54,9 +54,16 @@ public class PojoPropertyImpl implements PojoProperty {
         final String byName = fieldMethodName("set", name);
         final String byFieldName = fieldMethodName("set", field.getName());
 
-        Method retVal = null;
+        Method retVal = findMethod(type, byName, byFieldName);
+        if (retVal != null) {
+            Method finalRetVal = retVal;
+            ThrowingRunnable.sneaky(() -> AccessUtil.setAccessible(finalRetVal)).run();
+        }
+        return retVal;
+    }
 
-        all: while (type != Object.class) {
+    private Method findMethod(Class<?> type, String byName, String byFieldName) {
+        while (type != Object.class) {
             for (Method method : type.getDeclaredMethods()) {
                 if (!method.getName().equals(byName) && !method.getName().equals(byFieldName)) {
                     continue;
@@ -71,17 +78,11 @@ public class PojoPropertyImpl implements PojoProperty {
                     continue;
                 }
 
-                retVal = method;
-                break all;
+                return method;
             }
             type = type.getSuperclass();
         }
-
-        if (retVal != null) {
-            Method finalRetVal = retVal;
-            ThrowingRunnable.sneaky(() -> AccessUtil.setAccessible(finalRetVal)).run();
-        }
-        return retVal;
+        return null;
     }
 
     private Method findReadMethod() {

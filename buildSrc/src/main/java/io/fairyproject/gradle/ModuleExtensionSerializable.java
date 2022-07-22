@@ -2,9 +2,6 @@ package io.fairyproject.gradle;
 
 import lombok.Builder;
 import lombok.Data;
-import org.gradle.api.provider.ListProperty;
-import org.gradle.api.provider.MapProperty;
-import org.gradle.api.provider.Property;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -19,6 +16,15 @@ import java.util.stream.Collectors;
 public class ModuleExtensionSerializable implements Serializable {
 
     private static final long serialVersionUID = 1L;
+
+    private String name;
+    private String classPath;
+    private boolean abstraction;
+    private List<String> depends;
+    private List<String> subDepends;
+    private List<String> platforms;
+    private List<Lib> libraries;
+    private Map<String, String> exclusives;
 
     public static ModuleExtensionSerializable create(ModuleExtension extension, Map<Lib, Boolean> libraries) {
         return ModuleExtensionSerializable.builder()
@@ -35,15 +41,6 @@ public class ModuleExtensionSerializable implements Serializable {
                 .exclusives(extension.getExclusives().get())
                 .build();
     }
-
-    private String name;
-    private String classPath;
-    private boolean abstraction;
-    private List<String> depends;
-    private List<String> subDepends;
-    private List<String> platforms;
-    private List<Lib> libraries;
-    private Map<String, String> exclusives;
 
     @SuppressWarnings("unused")
     private static void writeObject(ObjectOutputStream s) throws IOException {

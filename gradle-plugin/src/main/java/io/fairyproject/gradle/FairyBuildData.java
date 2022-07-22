@@ -19,24 +19,6 @@ public class FairyBuildData implements Serializable {
 
     private static final long serialVersionUID = 3L;
 
-    public static FairyBuildData create(FairyExtension fairyExtension, Set<Lib> libraries) {
-        return FairyBuildData.builder()
-                .fairyVersion(fairyExtension.getFairyVersion().getOrElse(""))
-                .fairyPlatforms(fairyExtension.getFairyPlatforms().get())
-                .classifier(fairyExtension.getClassifier().get())
-                .mainPackage(fairyExtension.getMainPackage().get())
-                .name(fairyExtension.getName().get())
-                .description(fairyExtension.getDescription().getOrNull())
-                .libraryMode(fairyExtension.getLibraryMode().get())
-                .authors(fairyExtension.getAuthors().get())
-                .fairyIde(fairyExtension.getFairyIde().getOrElse(false))
-                .localRepo(fairyExtension.getLocalRepo().get())
-                .nodes(fairyExtension.getNodes())
-                .fairyModules(fairyExtension.getFairyModules())
-                .libraries(ImmutableList.copyOf(libraries))
-                .build();
-    }
-
     private String fairyVersion;
     private List<PlatformType> fairyPlatforms;
 
@@ -55,6 +37,24 @@ public class FairyBuildData implements Serializable {
 
     private Map<PlatformType, Map<String, String>> nodes;
     private List<String> fairyModules;
+
+    public static FairyBuildData create(FairyExtension fairyExtension, Set<Lib> libraries) {
+        return FairyBuildData.builder()
+                .fairyVersion(fairyExtension.getFairyVersion().getOrElse(""))
+                .fairyPlatforms(fairyExtension.getFairyPlatforms().get())
+                .classifier(fairyExtension.getClassifier().get())
+                .mainPackage(fairyExtension.getMainPackage().get())
+                .name(fairyExtension.getName().get())
+                .description(fairyExtension.getDescription().getOrNull())
+                .libraryMode(fairyExtension.getLibraryMode().get())
+                .authors(fairyExtension.getAuthors().get())
+                .fairyIde(fairyExtension.getFairyIde().getOrElse(false))
+                .localRepo(fairyExtension.getLocalRepo().get())
+                .nodes(fairyExtension.getNodes())
+                .fairyModules(fairyExtension.getFairyModules())
+                .libraries(ImmutableList.copyOf(libraries))
+                .build();
+    }
 
     public Map<String, String> properties(PlatformType type) {
         return this.nodes.computeIfAbsent(type, t -> new HashMap<>(1));

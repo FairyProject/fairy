@@ -1,6 +1,5 @@
 package io.fairyproject.pojo;
 
-import com.google.gson.JsonObject;
 import io.fairyproject.metadata.MetadataMapProxy;
 import io.fairyproject.pojo.impl.PojoMapperImpl;
 import io.fairyproject.pojo.listener.PojoListenerPrimaryKey;

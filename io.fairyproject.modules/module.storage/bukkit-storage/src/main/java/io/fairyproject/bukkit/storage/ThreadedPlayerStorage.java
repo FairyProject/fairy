@@ -26,9 +26,14 @@ package io.fairyproject.bukkit.storage;
 
 import com.google.common.collect.Lists;
 import io.fairyproject.StorageService;
+import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.container.*;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.log.Log;
+import io.fairyproject.storage.DataClosable;
+import io.fairyproject.storage.PlayerStorage;
+import io.fairyproject.task.Task;
 import io.fairyproject.util.AsyncUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -37,12 +42,6 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
-import io.fairyproject.storage.DataClosable;
-import io.fairyproject.storage.PlayerStorage;
-import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.container.object.ContainerObj;
-import io.fairyproject.task.Task;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -52,11 +51,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * Threaded Player Storage
  * It will use Minecraft authentication thread pool for data loading
  * And bukkit async scheduler thread pool for data saving
- *
+ * <p>
  * The reason we used Minecraft authentication thread pool for data loading is because
  * We want to ensure that player wasn't completely login before data were successfully loaded
  * And it will block authentication until data loaded, Which doesn't block main thread still
- *
+ * <p>
  * To use it you need to create a class extends ThreadedPlayerStorage and made it a Service
  *
  * @param <T> the Data Class
@@ -103,7 +102,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
      * Warning: during this process it's still in Pre-Login, no Player Entity were registered
      *
      * @param uuid the UUID of the Player
-     * @param t the Data
+     * @param t    the Data
      */
     protected void onLoadedAsync(UUID uuid, String name, T t) {
 
@@ -113,7 +112,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
      * on Data Successfully loaded in Main Thread
      *
      * @param player the Player
-     * @param t the Data
+     * @param t      the Data
      */
     protected void onLoadedMain(Player player, T t) {
 
@@ -123,7 +122,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
      * on Data unloaded, in Main Thread, process will only run after CompletableFuture finished, will not block main during the process.
      *
      * @param player the Player
-     * @param t the Data
+     * @param t      the Data
      * @return CompletableFuture
      */
     protected CompletableFuture<T> onPreUnload(Player player, T t) {
@@ -184,6 +183,88 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
             return;
         }
 
+        registerAsyncPlayerPreLoginLow(containerObj);
+        registerAsnycPlayerPreLoginMonitor(containerObj);
+        registerPlayerLoginLow(containerObj);
+        registerPlayerLoginMonitor(containerObj);
+        registerPlayerQuit(containerObj);
+    }
+
+    private void registerPlayerQuit(ContainerObj containerObj) {
+        Events.subscribe(PlayerQuitEvent.class)
+                .priority(EventPriority.MONITOR)
+                .listen(event -> {
+                    final Player player = event.getPlayer();
+                    if (!this.storageConfiguration.shouldUnloadOnQuit(player)) {
+                        return;
+                    }
+                    this.unload(player.getUniqueId());
+                })
+                .build(this.getPlugin())
+                .bindWith(containerObj);
+    }
+
+    private void registerPlayerLoginMonitor(ContainerObj containerObj) {
+        Events.subscribe(PlayerLoginEvent.class)
+                .priority(EventPriority.MONITOR)
+                .listen(event -> {
+                    synchronized (this.lock) {
+                        if (this.syncLoginReject.remove(event.getPlayer().getUniqueId())) {
+                            if (event.getResult() == PlayerLoginEvent.Result.ALLOWED) {
+                                Log.warn("Player login were re-allowed for " + event.getPlayer().getUniqueId() + " by plugins. rejecting it once again");
+                                event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "");
+                            }
+                        }
+                    }
+                }).build(this.getPlugin())
+                .bindWith(containerObj);
+    }
+
+    private void registerPlayerLoginLow(ContainerObj containerObj) {
+        Events.subscribe(PlayerLoginEvent.class)
+                .priority(EventPriority.LOWEST)
+                .listen(event -> {
+                    // ensure data is loaded when logging in
+                    Player player = event.getPlayer();
+
+                    if (this.isDebugging()) {
+                        Log.info("Processing login for Player " + player.getUniqueId() + " - " + player.getName());
+                    }
+
+                    final T t = this.find(player.getUniqueId());
+
+                    // It doesn't load for some reason, reject login
+                    if (t == null) {
+                        synchronized (this.lock) {
+                            this.syncLoginReject.add(player.getUniqueId());
+                        }
+
+                        event.disallow(PlayerLoginEvent.Result.KICK_OTHER, this.storageConfiguration.getLoginRejectMessage(player.getUniqueId(), player.getName(), LoginRejectReason.DATA_UNLOADED));
+                        return;
+                    }
+
+                    this.onLoadedMain(player, t);
+                }).build(this.getPlugin())
+                .bindWith(containerObj);
+    }
+
+    private void registerAsnycPlayerPreLoginMonitor(ContainerObj containerObj) {
+        Events.subscribe(AsyncPlayerPreLoginEvent.class)
+                .priority(EventPriority.MONITOR)
+                .listen(event -> {
+                    synchronized (this.lock) {
+                        if (this.asyncLoginReject.remove(event.getUniqueId())) {
+                            if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+                                Log.warn("Player pre-login were re-allowed for " + event.getUniqueId() + " by plugins. rejecting it once again");
+                                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "");
+                            }
+                        }
+                    }
+                }).build(this.getPlugin())
+                .bindWith(containerObj);
+    }
+
+    private void registerAsyncPlayerPreLoginLow(ContainerObj containerObj) {
         Events.subscribe(AsyncPlayerPreLoginEvent.class)
                 .priority(EventPriority.LOW)
                 .listen(event -> {
@@ -224,72 +305,6 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, this.storageConfiguration.getLoginRejectMessage(uuid, name, LoginRejectReason.ERROR));
                     }
                 }).build(this.getPlugin())
-                .bindWith(containerObj);
-
-        Events.subscribe(AsyncPlayerPreLoginEvent.class)
-                .priority(EventPriority.MONITOR)
-                .listen(event -> {
-                    synchronized (this.lock) {
-                        if (this.asyncLoginReject.remove(event.getUniqueId())) {
-                            if (event.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-                                Log.warn("Player pre-login were re-allowed for " + event.getUniqueId() + " by plugins. rejecting it once again");
-                                event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "");
-                            }
-                        }
-                    }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
-
-        Events.subscribe(PlayerLoginEvent.class)
-                .priority(EventPriority.LOWEST)
-                .listen(event -> {
-                    // ensure data is loaded when logging in
-                    Player player = event.getPlayer();
-
-                    if (this.isDebugging()) {
-                        Log.info("Processing login for Player " + player.getUniqueId() + " - " + player.getName());
-                    }
-
-                    final T t = this.find(player.getUniqueId());
-
-                    // It's doesn't loaded for some reason, reject login
-                    if (t == null) {
-                        synchronized (this.lock) {
-                            this.syncLoginReject.add(player.getUniqueId());
-                        }
-
-                        event.disallow(PlayerLoginEvent.Result.KICK_OTHER, this.storageConfiguration.getLoginRejectMessage(player.getUniqueId(), player.getName(), LoginRejectReason.DATA_UNLOADED));
-                        return;
-                    }
-
-                    this.onLoadedMain(player, t);
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
-
-        Events.subscribe(PlayerLoginEvent.class)
-                .priority(EventPriority.MONITOR)
-                .listen(event -> {
-                    synchronized (this.lock) {
-                        if (this.syncLoginReject.remove(event.getPlayer().getUniqueId())) {
-                            if (event.getResult() == PlayerLoginEvent.Result.ALLOWED) {
-                                Log.warn("Player login were re-allowed for " + event.getPlayer().getUniqueId() + " by plugins. rejecting it once again");
-                                event.disallow(PlayerLoginEvent.Result.KICK_OTHER, "");
-                            }
-                        }
-                    }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
-
-        Events.subscribe(PlayerQuitEvent.class)
-                .priority(EventPriority.MONITOR)
-                .listen(event -> {
-                    final Player player = event.getPlayer();
-                    if (!this.storageConfiguration.shouldUnloadOnQuit(player)) {
-                        return;
-                    }
-                    this.unload(player.getUniqueId());
-                })
-                .build(this.getPlugin())
                 .bindWith(containerObj);
     }
 

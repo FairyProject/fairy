@@ -1,6 +1,5 @@
 package io.fairyproject.gradle;
 
-import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
@@ -12,8 +11,6 @@ import org.gradle.jvm.tasks.Jar;
 import java.util.*;
 
 public class ModulePlugin implements Plugin<Project> {
-
-    private static final Gson GSON = new Gson();
     protected static final String MODULE_PREFIX = ":io.fairyproject.modules:";
     protected static final String PLATFORM_PREFIX = ":io.fairyproject.platforms:";
     protected static final String TEST_PREFIX = ":io.fairyproject.tests:";

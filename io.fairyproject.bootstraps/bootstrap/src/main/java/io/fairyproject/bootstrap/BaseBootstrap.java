@@ -9,9 +9,6 @@ public abstract class BaseBootstrap {
 
     private FairyPlatform fairyPlatform;
 
-    public BaseBootstrap() {
-    }
-
     public final boolean preload() {
         if (FairyPlatform.class.getClassLoader() != this.getClass().getClassLoader()) {
             return true;

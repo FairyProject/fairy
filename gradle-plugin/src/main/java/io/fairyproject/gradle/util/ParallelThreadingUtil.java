@@ -9,9 +9,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.jar.JarEntry;
 
 @UtilityClass
 public class ParallelThreadingUtil {
@@ -100,7 +98,7 @@ public class ParallelThreadingUtil {
                         try {
                             asyncConsumer.accept(entry);
                         } catch (Throwable e) {
-                            throw new RuntimeException(e);
+                            SneakyThrow.sneaky(e);
                         }
                         return null;
                     });
@@ -114,7 +112,7 @@ public class ParallelThreadingUtil {
                         try {
                             asyncConsumer.accept(entry);
                         } catch (Throwable e) {
-                            throw new RuntimeException(e);
+                            SneakyThrow.sneaky(e);
                         }
                         return null;
                     });

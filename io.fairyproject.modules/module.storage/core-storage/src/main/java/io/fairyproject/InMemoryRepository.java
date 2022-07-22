@@ -16,9 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class InMemoryRepository<T, ID extends Serializable> extends AbstractRepository<T, ID, InMemoryRepositoryProvider> {
+public class InMemoryRepository<T, I extends Serializable> extends AbstractRepository<T, I, InMemoryRepositoryProvider> {
 
-    private Map<ID, T> map;
+    private Map<I, T> map;
     private PojoMapper<T> pojoMapper;
 
     public InMemoryRepository(InMemoryRepositoryProvider repositoryProvider, Class<T> type, String repoId) {
@@ -38,12 +38,12 @@ public class InMemoryRepository<T, ID extends Serializable> extends AbstractRepo
     }
 
     @Override
-    public Optional<T> findById(ID id) {
+    public Optional<T> findById(I id) {
         return Optional.ofNullable(this.map.get(id));
     }
 
     @Override
-    public boolean existsById(ID id) {
+    public boolean existsById(I id) {
         return false;
     }
 
@@ -53,7 +53,7 @@ public class InMemoryRepository<T, ID extends Serializable> extends AbstractRepo
     }
 
     @Override
-    public Iterable<T> findAllById(List<ID> list) {
+    public Iterable<T> findAllById(List<I> list) {
         return this.map.entrySet().stream()
                 .filter(entry -> list.contains(entry.getKey()))
                 .map(Map.Entry::getValue)
@@ -66,7 +66,7 @@ public class InMemoryRepository<T, ID extends Serializable> extends AbstractRepo
     }
 
     @Override
-    public void deleteById(ID id) {
+    public void deleteById(I id) {
         this.map.remove(id);
     }
 
@@ -75,7 +75,7 @@ public class InMemoryRepository<T, ID extends Serializable> extends AbstractRepo
         this.map.clear();
     }
 
-    private Stream<Map.Entry<ID, T>> byQuery(String query, Object value) {
+    private Stream<Map.Entry<I, T>> byQuery(String query, Object value) {
         final PojoProperty property = this.pojoMapper.getProperty(query);
         ConditionUtils.notNull(property, "Couldn't find property with name " + query);
 
@@ -100,7 +100,7 @@ public class InMemoryRepository<T, ID extends Serializable> extends AbstractRepo
     @Override
     public <S extends T> S save(S pojo) {
         final PojoProperty property = this.pojoMapper.getOrThrow(PojoEx.PRIMARY_KEY);
-        final ID id = (ID) property.get(pojo);
+        final I id = (I) property.get(pojo);
 
         this.map.put(id, pojo);
         return pojo;

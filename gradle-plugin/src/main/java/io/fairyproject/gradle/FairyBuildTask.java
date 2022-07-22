@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -185,10 +184,9 @@ public class FairyBuildTask extends DefaultTask {
         }
 
         for (Map.Entry<String, String> entry : this.exclusions.entries()) {
-            if (jarEntry.getName().startsWith(entry.getKey())) {
-                if (!this.dependModules.contains(entry.getValue())) {
-                    return true;
-                }
+            if (jarEntry.getName().startsWith(entry.getKey()) &&
+                    !this.dependModules.contains(entry.getValue())) {
+                return true;
             }
         }
 
