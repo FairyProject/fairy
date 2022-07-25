@@ -22,11 +22,11 @@ tasks.withType(JavaCompile) {
 }
 
 dependencies {
-    compileOnly "org.projectlombok:lombok:1.18.22"
-    annotationProcessor "org.projectlombok:lombok:1.18.22"
-    compileOnly "org.jetbrains:annotations:19.0.0"
-    annotationProcessor "org.jetbrains:annotations:19.0.0"
-    compileOnly "javax.persistence:javax.persistence-api:2.2"
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+    compileOnly libs.annotations
+    annotationProcessor libs.annotations
+    compileOnly libs.javax.persistence.api
 
     if (project.name.contains("-")) {
         def names = project.name.split("-")
@@ -38,11 +38,11 @@ dependencies {
         compileOnly project(":io.fairyproject.platforms:core-platform")
     }
 
-    compileOnly "com.google.guava:guava:" + findProperty("guava.version")
-    compileOnly "com.google.code.gson:gson:" + findProperty("gson.version")
-    compileOnly "org.yaml:snakeyaml:" + findProperty("yaml.version")
-    compileOnly "org.apache.commons:commons-lang3:3.11"
-    compileOnly "commons-io:commons-io:2.7"
+    compileOnly libs.guava
+    compileOnly libs.gson
+    compileOnly libs.yaml
+    compileOnly libs.common.lang3
+    compileOnly libs.common.io
 
 }
 sourceSets {

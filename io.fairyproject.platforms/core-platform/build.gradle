@@ -25,9 +25,8 @@
 dependencies {
     api "io.github.classgraph:classgraph:4.8.143"
     api "io.github.toolfactory:narcissus:1.0.7"
-    api "javax.persistence:javax.persistence-api:2.2"
+    api libs.javax.persistence.api
 
-    compileOnly "org.mongodb:mongo-java-driver:3.12.7"
     api project(":shared")
 
     implementation libs.bundles.jackson

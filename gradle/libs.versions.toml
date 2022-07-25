@@ -1,6 +1,15 @@
 [versions]
 jackson = "2.11.2"
 hikari = "5.0.1"
+guava = "30.0-jre"
+gson = "2.8.6"
+yaml = "1.26"
+common-lang3 = "3.11"
+common-io = "2.7"
+annotations = "19.0.0"
+lombok = "1.18.24"
+persistence-api = "2.2"
+junit = "5.8.1"
 
 [libraries]
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
@@ -8,6 +17,15 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+yaml = { module = "org.yaml:snakeyaml", version.ref = "yaml" }
+common-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "common-lang3" }
+common-io = { module = "commons-io:commons-io", version.ref = "common-io" }
+annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+javax-persistence-api = { module = "javax.persistence:javax.persistence-api", version.ref = "persistence-api" }
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 
 [bundles]
 jackson = ["jackson-core", "jackson-databind", "jackson-annotations", "jackson-datatype-jsr310"]

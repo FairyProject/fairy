@@ -6,7 +6,7 @@ import io.fairyproject.tests.TestingContext;
 import org.junit.jupiter.api.BeforeAll;
 
 /**
- * @deprecated see {@link io.fairyproject.tests.bukkit.base.BukkitJUnitBase} and {@link io.fairyproject.tests.bukkit.base.BukkitJUnitJupiterBase}
+ * @deprecated see {@link io.fairyproject.tests.bukkit.base.BukkitJUnitJupiterBase}
  */
 @Deprecated
 public abstract class BukkitTestingBase {

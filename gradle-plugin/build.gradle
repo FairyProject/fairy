@@ -2,7 +2,7 @@ repositories {
     gradlePluginPortal()
 }
 
-version = "1.1.0b3"
+version = findProperty("gradle-plugin.version")
 
 apply plugin: "java-gradle-plugin"
 apply plugin: "maven-publish"
@@ -48,21 +48,21 @@ dependencies {
     compileOnly gradleApi()
     compileOnly 'org.codehaus.groovy:groovy-all:3.0.9'
 
-    compileOnly "org.projectlombok:lombok:1.18.22"
-    annotationProcessor "org.projectlombok:lombok:1.18.22"
-    compileOnly "org.jetbrains:annotations:19.0.0"
-    annotationProcessor "org.jetbrains:annotations:19.0.0"
+    compileOnly libs.lombok
+    annotationProcessor libs.lombok
+    compileOnly libs.annotations
+    annotationProcessor libs.annotations
 
-    implementation "com.google.code.gson:gson:" + findProperty("gson.version")
-    implementation 'com.google.guava:guava:31.0.1-jre'
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation libs.gson
+    implementation libs.guava
+    implementation libs.common.lang3
     implementation 'org.ow2.asm:asm:9.2'
     implementation 'org.ow2.asm:asm-commons:9.2'
     implementation 'gradle.plugin.com.github.johnrengelman:shadow:7.1.2'
 
     compileOnly project(":shared")
 
-    testImplementation "org.junit.jupiter:junit-jupiter-engine:5.7.0"
+    testImplementation libs.junit
 }
 
 // Yeah this is hacky... but to prevent gradle from generating a problematic maven pom we have to shade it

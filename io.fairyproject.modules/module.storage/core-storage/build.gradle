@@ -23,8 +23,6 @@
  */
 
 dependencies {
-    compileOnly Mongojack
-    compileOnly MongoDB_driver_sync
     compileOnly libs.hikari.cp
 }
 
