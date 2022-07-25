@@ -1,5 +1,6 @@
 package io.fairyproject.event;
 
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -119,48 +120,7 @@ public interface EventListener<T extends Event> {
 
             final List<Predicate<T>> filters = new ArrayList<>(this.filters);
             final Consumer<T> handler = this.handler;
-            return toEventListeners(ignoreCancelled, expirationCount, hasExpirationCount, expireWhen, filters, handler);
-        }
-
-        @NotNull
-        private EventListener<T> toEventListeners(boolean ignoreCancelled, AtomicInteger expirationCount, boolean hasExpirationCount, Predicate<T> expireWhen, List<Predicate<T>> filters, Consumer<T> handler) {
-            return new EventListener<T>() {
-                @Override
-                public @NotNull Class<T> eventType() {
-                    return eventType;
-                }
-
-                @Override
-                public @NotNull Result run(@NotNull T event) {
-                    // Event cancellation
-                    if (ignoreCancelled && event instanceof Cancellable &&
-                            ((Cancellable) event).isCancelled()) {
-                        return Result.INVALID;
-                    }
-                    // Expiration predicate
-                    if (expireWhen != null && expireWhen.test(event)) {
-                        return Result.EXPIRED;
-                    }
-                    // Filtering
-                    if (!filters.isEmpty()) {
-                        for (Predicate<T> filter : filters) {
-                            if (!filter.test(event)) {
-                                // Cancelled
-                                return Result.INVALID;
-                            }
-                        }
-                    }
-                    // Handler
-                    if (handler != null) {
-                        handler.accept(event);
-                    }
-                    // Expiration count
-                    if (hasExpirationCount && expirationCount.decrementAndGet() == 0) {
-                        return Result.EXPIRED;
-                    }
-                    return Result.SUCCESS;
-                }
-            };
+            return new EventListenerImpl<>(eventType, ignoreCancelled, expirationCount, hasExpirationCount, expireWhen, filters, handler);
         }
     }
 
@@ -169,5 +129,53 @@ public interface EventListener<T extends Event> {
         INVALID,
         EXPIRED,
         EXCEPTION
+    }
+
+    @RequiredArgsConstructor
+    class EventListenerImpl<T extends Event> implements EventListener<T> {
+
+        private final Class<T> eventType;
+        private final boolean ignoreCancelled;
+        private final AtomicInteger expirationCount;
+        private final boolean hasExpirationCount;
+        private final Predicate<T> expireWhen;
+        private final List<Predicate<T>> filters;
+        private final Consumer<T> handler;
+
+        @Override
+        public @NotNull Class<T> eventType() {
+            return eventType;
+        }
+
+        @Override
+        public @NotNull Result run(@NotNull T event) {
+            // Event cancellation
+            if (ignoreCancelled && event instanceof Cancellable &&
+                    ((Cancellable) event).isCancelled()) {
+                return Result.INVALID;
+            }
+            // Expiration predicate
+            if (expireWhen != null && expireWhen.test(event)) {
+                return Result.EXPIRED;
+            }
+            // Filtering
+            if (!filters.isEmpty()) {
+                for (Predicate<T> filter : filters) {
+                    if (!filter.test(event)) {
+                        // Cancelled
+                        return Result.INVALID;
+                    }
+                }
+            }
+            // Handler
+            if (handler != null) {
+                handler.accept(event);
+            }
+            // Expiration count
+            if (hasExpirationCount && expirationCount.decrementAndGet() == 0) {
+                return Result.EXPIRED;
+            }
+            return Result.SUCCESS;
+        }
     }
 }
