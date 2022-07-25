@@ -3,6 +3,7 @@ package io.fairyproject.event;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -150,15 +151,30 @@ public interface EventListener<T extends Event> {
         @Override
         public @NotNull Result run(@NotNull T event) {
             // Event cancellation
-            if (ignoreCancelled && event instanceof Cancellable &&
-                    ((Cancellable) event).isCancelled()) {
+            if (ignoreCancelled && event instanceof Cancellable && ((Cancellable) event).isCancelled())
                 return Result.INVALID;
-            }
+
             // Expiration predicate
-            if (expireWhen != null && expireWhen.test(event)) {
+            if (expireWhen != null && expireWhen.test(event))
                 return Result.EXPIRED;
-            }
+
             // Filtering
+            Result invalid = checkFilters(event);
+            if (invalid != null) return invalid;
+
+            // Handler
+            if (handler != null)
+                handler.accept(event);
+
+            // Expiration count
+            if (hasExpirationCount && expirationCount.decrementAndGet() == 0)
+                return Result.EXPIRED;
+
+            return Result.SUCCESS;
+        }
+
+        @Nullable
+        private Result checkFilters(@NotNull T event) {
             if (!filters.isEmpty()) {
                 for (Predicate<T> filter : filters) {
                     if (!filter.test(event)) {
@@ -167,15 +183,7 @@ public interface EventListener<T extends Event> {
                     }
                 }
             }
-            // Handler
-            if (handler != null) {
-                handler.accept(event);
-            }
-            // Expiration count
-            if (hasExpirationCount && expirationCount.decrementAndGet() == 0) {
-                return Result.EXPIRED;
-            }
-            return Result.SUCCESS;
+            return null;
         }
     }
 }
