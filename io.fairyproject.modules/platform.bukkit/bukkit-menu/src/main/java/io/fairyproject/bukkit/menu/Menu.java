@@ -65,45 +65,6 @@ public abstract class Menu implements TerminableConsumer {
     private static final MetadataKey<Menu> METADATA = MetadataKey.create("imanity:menu", Menu.class);
     private static final Map<Class<? extends Menu>, List<Menu>> MENU_BY_TYPE = new ConcurrentHashMap<>();
 
-    private static void addMenu(Menu menu) {
-        List<Menu> list;
-        final Class<? extends Menu> type = menu.getClass();
-        if (MENU_BY_TYPE.containsKey(type)) {
-            list = MENU_BY_TYPE.get(type);
-        } else {
-            list = new ArrayList<>();
-            MENU_BY_TYPE.put(type, list);
-        }
-
-        list.add(menu);
-    }
-
-    private static void removeMenu(Menu menu) {
-        final Class<? extends Menu> type = menu.getClass();
-        if (!MENU_BY_TYPE.containsKey(type)) {
-            return;
-        }
-
-        final List<Menu> list = MENU_BY_TYPE.get(type);
-        list.remove(menu);
-
-        if (list.isEmpty()) {
-            MENU_BY_TYPE.remove(type);
-        }
-    }
-
-    public static Menu getMenuByUuid(UUID uuid) {
-        return Metadata.provideForPlayer(uuid).getOrNull(METADATA);
-    }
-
-    public static <T extends Menu> List<T> getMenusByType(Class<T> type) {
-        List<T> menuList = new ArrayList<>();
-        for (Menu menu : MENU_BY_TYPE.getOrDefault(type, Collections.emptyList())) {
-            menuList.add(type.cast(menu));
-        }
-        return menuList;
-    }
-
     private Map<Integer, Button> buttonsMap = new HashMap<>();
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
@@ -501,6 +462,45 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     public void onClose(final Player player) {
+    }
+
+    private static void addMenu(Menu menu) {
+        List<Menu> list;
+        final Class<? extends Menu> type = menu.getClass();
+        if (MENU_BY_TYPE.containsKey(type)) {
+            list = MENU_BY_TYPE.get(type);
+        } else {
+            list = new ArrayList<>();
+            MENU_BY_TYPE.put(type, list);
+        }
+
+        list.add(menu);
+    }
+
+    private static void removeMenu(Menu menu) {
+        final Class<? extends Menu> type = menu.getClass();
+        if (!MENU_BY_TYPE.containsKey(type)) {
+            return;
+        }
+
+        final List<Menu> list = MENU_BY_TYPE.get(type);
+        list.remove(menu);
+
+        if (list.isEmpty()) {
+            MENU_BY_TYPE.remove(type);
+        }
+    }
+
+    public static Menu getMenuByUuid(UUID uuid) {
+        return Metadata.provideForPlayer(uuid).getOrNull(METADATA);
+    }
+
+    public static <T extends Menu> List<T> getMenusByType(Class<T> type) {
+        List<T> menuList = new ArrayList<>();
+        for (Menu menu : MENU_BY_TYPE.getOrDefault(type, Collections.emptyList())) {
+            menuList.add(type.cast(menu));
+        }
+        return menuList;
     }
 
 }

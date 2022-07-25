@@ -119,6 +119,11 @@ public interface EventListener<T extends Event> {
 
             final List<Predicate<T>> filters = new ArrayList<>(this.filters);
             final Consumer<T> handler = this.handler;
+            return toEventListeners(ignoreCancelled, expirationCount, hasExpirationCount, expireWhen, filters, handler);
+        }
+
+        @NotNull
+        private EventListener<T> toEventListeners(boolean ignoreCancelled, AtomicInteger expirationCount, boolean hasExpirationCount, Predicate<T> expireWhen, List<Predicate<T>> filters, Consumer<T> handler) {
             return new EventListener<T>() {
                 @Override
                 public @NotNull Class<T> eventType() {

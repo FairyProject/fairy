@@ -90,7 +90,7 @@ public class SerializerFactoryTest extends JUnitJupiterBase {
     }
 
     @Test
-    public void findOrCacheSerializer_shouldCreateIfNotExists() {
+    public void findOrCacheSerializerShouldCreateIfNotExists() {
         final SerializerFactory serializerFactory = Containers.get(SerializerFactory.class);
         final ObjectSerializer<?, ?> cacheSerializer = serializerFactory.findOrCacheSerializer(ObjectSerializerStringStringMock.class);
 
@@ -100,7 +100,7 @@ public class SerializerFactoryTest extends JUnitJupiterBase {
     }
 
     @Test
-    public void findOrCacheSerializer_shouldCacheIfCreated() {
+    public void findOrCacheSerializerShouldCacheIfCreated() {
         final SerializerFactory serializerFactory = Containers.get(SerializerFactory.class);
         final ObjectSerializer<?, ?> cacheSerializer = serializerFactory.findOrCacheSerializer(ObjectSerializerStringStringMock.class);
 
@@ -110,7 +110,7 @@ public class SerializerFactoryTest extends JUnitJupiterBase {
     }
 
     @Test
-    public void findOrCacheSerializer_shouldFindIfExists() {
+    public void findOrCacheSerializerShouldFindIfExists() {
         final SerializerFactory serializerFactory = Containers.get(SerializerFactory.class);
         final ObjectSerializerStringStringMock serializer = new ObjectSerializerStringStringMock();
         serializerFactory.registerSerializer(serializer);

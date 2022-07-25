@@ -27,7 +27,7 @@ public class MockPacketEventsAPI extends PacketEventsAPI<Plugin> {
 
     @Override
     public void init() {
-
+        // do nothing
     }
 
     @Override
@@ -37,7 +37,7 @@ public class MockPacketEventsAPI extends PacketEventsAPI<Plugin> {
 
     @Override
     public void terminate() {
-
+        // do nothing
     }
 
     @Override

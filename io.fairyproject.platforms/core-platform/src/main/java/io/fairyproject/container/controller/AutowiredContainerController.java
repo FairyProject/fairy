@@ -47,7 +47,7 @@ public class AutowiredContainerController implements ContainerController {
 
     @Override
     public void removeContainerObject(ContainerObj containerObj) {
-
+        // do nothing
     }
 
     public void applyObject(Object instance) throws ReflectiveOperationException {

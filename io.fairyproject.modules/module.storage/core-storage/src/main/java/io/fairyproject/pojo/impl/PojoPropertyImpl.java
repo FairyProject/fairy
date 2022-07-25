@@ -56,31 +56,24 @@ public class PojoPropertyImpl implements PojoProperty {
 
         Method retVal = findMethod(type, byName, byFieldName);
         if (retVal != null) {
-            Method finalRetVal = retVal;
-            ThrowingRunnable.sneaky(() -> AccessUtil.setAccessible(finalRetVal)).run();
+            ThrowingRunnable.sneaky(() -> AccessUtil.setAccessible(retVal)).run();
         }
         return retVal;
     }
 
     private Method findMethod(Class<?> type, String byName, String byFieldName) {
-        while (type != Object.class) {
-            for (Method method : type.getDeclaredMethods()) {
-                if (!method.getName().equals(byName) && !method.getName().equals(byFieldName)) {
+        Class<?> trimType = type;
+        while (trimType != Object.class) {
+            for (Method method : trimType.getDeclaredMethods()) {
+                if (!method.getName().equals(byName) && !method.getName().equals(byFieldName))
                     continue;
-                }
-
                 final Class<?>[] parameters = method.getParameterTypes();
-                if (parameters.length != 1) {
+                if (parameters.length != 1)
                     continue;
-                }
-
-                if (!this.type.isAssignableFrom(parameters[0])) {
-                    continue;
-                }
-
-                return method;
+                if (this.type.isAssignableFrom(parameters[0]))
+                    return method;
             }
-            type = type.getSuperclass();
+            trimType = trimType.getSuperclass();
         }
         return null;
     }

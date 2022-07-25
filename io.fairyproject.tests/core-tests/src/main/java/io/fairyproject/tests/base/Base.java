@@ -5,9 +5,7 @@ import io.fairyproject.tests.RuntimeMode;
 import io.fairyproject.tests.TestingContext;
 import io.fairyproject.tests.TestingHandle;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
-import lombok.Getter;
 
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,8 +15,6 @@ abstract class Base {
 
     public final void checkInitRuntime() {
         switch (this.runtimeMode()) {
-            case GLOBAL:
-                break;
             case BEFORE_ALL:
                 final Class<? extends Base> baseClass = this.getClass();
                 if (INITIALIZED_CLASSES.contains(baseClass)) {
@@ -27,6 +23,9 @@ abstract class Base {
                 INITIALIZED_CLASSES.add(baseClass);
             case BEFORE_EACH:
                 this.initRuntime();
+                break;
+            default:
+            case GLOBAL:
                 break;
         }
 

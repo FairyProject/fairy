@@ -27,12 +27,9 @@ public class MCProtocol {
     private PacketSender packetSender;
     private PacketEventsAPI<?> packetEvents;
 
-    private MCProtocol() {
-        INSTANCE = this;
-    }
-
     @PreInitialize
     public void onPreInitialize() {
+        INSTANCE = this;
         PacketEventsBuilder packetEventsBuilder;
         PacketSender packetSender;
 

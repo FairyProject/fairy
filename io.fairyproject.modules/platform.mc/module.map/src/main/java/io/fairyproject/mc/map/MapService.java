@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class MapService {
 
     public static final MetadataKey<RenderData> MAP_CURRENT = MetadataKey.create("fairy:map", RenderData.class);
-    private static final byte[] EMPTY_BYTE_ARRAYS = new byte[Framebuffer.WIDTH * Framebuffer.HEIGHT];
     private static final Framebuffer EMPTY_FRAMEBUFFER = new DirectFramebuffer();
     public static final int MAP_ID = 255;
 

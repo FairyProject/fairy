@@ -2,6 +2,7 @@ package io.fairyproject.event;
 
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.Utility;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.experimental.UtilityClass;
 import lombok.val;
 import org.jetbrains.annotations.NotNull;
@@ -53,12 +54,16 @@ public class EventSubscribeRegistry {
 
         public AnnotatedHandler(Object listener, Method method) {
             this.listener = listener;
+
+            MethodHandle retMethod = null;
             try {
                 method.setAccessible(true);
-                this.method = MethodHandles.lookup().unreflect(method);
+                retMethod = MethodHandles.lookup().unreflect(method);
             } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+                SneakyThrowUtil.sneakyThrow(e);
             }
+
+            this.method = retMethod;
         }
 
         @Override
@@ -66,7 +71,7 @@ public class EventSubscribeRegistry {
             try {
                 this.method.invoke(listener, t);
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                SneakyThrowUtil.sneakyThrow(e);
             }
         }
     }

@@ -23,7 +23,7 @@ public class ParallelThreadingUtil {
                 try {
                     consumer.accept(t);
                 } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                    SneakyThrow.sneaky(e);
                 }
                 return null;
             });

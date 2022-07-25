@@ -36,7 +36,7 @@ public interface LifeCycleHandler extends Function<LifeCycle, CompletableFuture<
     }
 
     default void init() {
-
+        // to be overwritten
     }
 
     default CompletableFuture<?> onConstruct() {

@@ -70,12 +70,12 @@ public interface ContainerObj extends Terminable, TerminableConsumer {
     @Data
     class DependEntry {
 
+        private final Class<?> dependClass;
+        private final ServiceDependencyType dependType;
+
         public static DependEntry of(Class<?> dependClass, ServiceDependencyType dependType) {
             return new DependEntry(dependClass, dependType);
         }
-
-        private final Class<?> dependClass;
-        private final ServiceDependencyType dependType;
 
     }
 

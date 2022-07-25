@@ -1,7 +1,7 @@
 package io.fairyproject.event;
 
 import io.fairyproject.util.ConditionUtils;
-import lombok.AllArgsConstructor;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.Data;
 import lombok.val;
 import lombok.var;
@@ -258,7 +258,6 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
         }
     }
 
-    @AllArgsConstructor
     @Data
     public static class Graph {
 
@@ -267,8 +266,12 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
         private int priority;
         private List<Graph> children;
 
-        {
-            children = children.stream().sorted(Comparator.comparingInt(Graph::getPriority)).collect(Collectors.toList());
+        public Graph(String name, String eventType, int priority, List<Graph> children) {
+            this.name = name;
+            this.eventType = eventType;
+            this.priority = priority;
+            this.children = children;
+            this.children = children.stream().sorted(Comparator.comparingInt(Graph::getPriority)).collect(Collectors.toList());
         }
     }
 
@@ -389,6 +392,11 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
                 // No listener
                 return null;
             }
+            return toConsumer(listenersArray, mappedListener, childrenListeners, predicate, filter, hasPredicate, hasListeners, hasMap, hasChildren);
+        }
+
+        @NotNull
+        private Consumer<E> toConsumer(Consumer<E>[] listenersArray, Consumer<E> mappedListener, Consumer<E>[] childrenListeners, BiPredicate<E, Object> predicate, EventFilter<E, ?> filter, boolean hasPredicate, boolean hasListeners, boolean hasMap, boolean hasChildren) {
             return e -> {
                 // Filtering
                 if (hasPredicate) {
@@ -512,12 +520,16 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
 
         public AnnotatedHandler(Object listener, Method method) {
             this.listener = listener;
+
+            MethodHandle retMethod;
             try {
                 method.setAccessible(true);
-                this.method = MethodHandles.lookup().unreflect(method);
+                retMethod = MethodHandles.lookup().unreflect(method);
             } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+                SneakyThrowUtil.sneakyThrow(e);
+                retMethod = null;
             }
+            this.method = retMethod;
         }
 
         @Override
@@ -525,7 +537,7 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
             try {
                 this.method.invoke(listener, t);
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                SneakyThrowUtil.sneakyThrow(e);
             }
         }
     }

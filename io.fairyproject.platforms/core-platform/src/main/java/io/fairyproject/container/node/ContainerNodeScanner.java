@@ -9,11 +9,10 @@ import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.Obj;
 import io.fairyproject.container.object.resolver.MethodContainerResolver;
-import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.AsyncUtils;
+import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.SimpleTiming;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
-import io.fairyproject.util.exceptionally.ThrowingConsumer;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.thread.BlockingThreadAwaitQueue;
 import io.github.classgraph.ClassGraph;
@@ -120,7 +119,7 @@ public class ContainerNodeScanner {
             queue.await(future::isDone);
             future.get();
         } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException(e);
+            SneakyThrowUtil.sneakyThrow(e);
         }
 
         return this.mainNode;

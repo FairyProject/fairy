@@ -41,10 +41,6 @@ import java.util.Optional;
 public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
 
     private static final CacheLoader<?, MetadataMap> LOADER = new Loader<>();
-    private static <T> CacheLoader<T, MetadataMap> getLoader() {
-        //noinspection unchecked
-        return (CacheLoader) LOADER;
-    }
 
     @Nonnull
     protected final LoadingCache<T, MetadataMap> cache = CacheBuilder.newBuilder().build(getLoader());
@@ -79,6 +75,11 @@ public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
     public void cleanup() {
         // MetadataMap#isEmpty also removes expired values
         this.cache.asMap().values().removeIf(MetadataMap::isEmpty);
+    }
+
+    private static <T> CacheLoader<T, MetadataMap> getLoader() {
+        //noinspection unchecked
+        return (CacheLoader) LOADER;
     }
 
     private static final class Loader<T> extends CacheLoader<T, MetadataMap> {

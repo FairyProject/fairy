@@ -62,79 +62,98 @@ public class FairyPlugin implements Plugin<Project> {
         final Configuration fairyConfiguration = project.getConfigurations().maybeCreate("fairy");
         final FairyBuildTask fairyTask = project.getTasks().create("fairyBuild", FairyBuildTask.class);
 
-        project.afterEvaluate(p -> this.applyInternal(p, fairyConfiguration, fairyTask));
+        project.afterEvaluate(p -> {
+            long start = System.currentTimeMillis();
+            MavenUtil.start(false, project.getBuildFile());
+
+            try {
+                this.applyInternal(p, fairyConfiguration, fairyTask);
+            } finally {
+                MavenUtil.end();
+                System.out.println("Initialized FairyPlugin within " + (System.currentTimeMillis() - start) + "ms.");
+            }
+        });
     }
 
     private void applyInternal(Project project, Configuration fairyConfiguration, FairyBuildTask fairyTask) {
-        long start = System.currentTimeMillis();
+        this.checkIdeIdentityState();
 
-        MavenUtil.start(false, project.getBuildFile());
-        try {
-            this.checkIdeIdentityState();
+        this.addMavenRepository();
+        final List<PlatformType> platformTypes = this.extension.getFairyPlatforms().getOrNull();
+        if (platformTypes == null) {
+            throw new IllegalArgumentException("No platforms found!");
+        }
 
-            if (!IS_IN_IDE) {
-                if (this.extension.getLocalRepo().get()) {
-                    this.project.getRepositories().add(this.project.getRepositories().mavenLocal());
-                } else {
-                    this.project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(REPOSITORY));
-                }
+        final DependencySet dependencies = this.configurePlatforms(project, fairyConfiguration, platformTypes);
+
+        this.extension.getFairyModules().forEach(module -> this.applyModule(project, dependencies, module));
+
+        ShadowJar jar = project.getTasks()
+                .withType(ShadowJar.class)
+                .getByName("shadowJar");
+        jar.finalizedBy(fairyTask);
+
+        if (platformTypes.contains(PlatformType.APP)) {
+            if (!this.extension.getLibraryMode().get()) {
+                jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
             }
-            final List<PlatformType> platformTypes = this.extension.getFairyPlatforms().getOrNull();
-            if (platformTypes == null) {
-                throw new IllegalArgumentException("No platforms found!");
+            jar.getManifest().getAttributes().put("Multi-Release", "true");
+        }
+
+        Set<Lib> libraries = new HashSet<>();
+        List<String> modules = new ArrayList<>();
+        Multimap<String, String> exclusives = HashMultimap.create();
+        for (File file : fairyConfiguration) {
+            this.readFile(libraries, modules, exclusives, file);
+        }
+
+        jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
+        jar.relocate("io.fairyproject", extension.getMainPackage().get() + ".fairy");
+
+        this.configureDependency(project, dependencies, libraries);
+        this.configureFairyTask(fairyTask, jar, libraries, modules, exclusives);
+    }
+
+    @NotNull
+    private DependencySet configurePlatforms(Project project, Configuration fairyConfiguration, List<PlatformType> platformTypes) {
+        final DependencySet dependencies = fairyConfiguration.getDependencies();
+        for (PlatformType platformType : platformTypes) {
+            this.applyPlatform(project, dependencies, platformType);
+        }
+        return dependencies;
+    }
+
+    private void configureDependency(Project project, DependencySet dependencies, Set<Lib> libraries) {
+        for (Dependency dependency : dependencies) {
+            project.getDependencies().add("implementation", dependency);
+            project.getDependencies().add("testImplementation", dependency);
+        }
+
+        libraries.addAll(extension.getLibraries());
+        for (Lib library : libraries) {
+            if (library.getRepository() != null) {
+                project.getRepositories().add(project.getRepositories().maven(repo -> repo.setUrl(library.getRepository())));
             }
+            project.getDependencies().add("compileOnly", library.getDependency());
+            project.getDependencies().add("testImplementation", library.getDependency());
+        }
+    }
 
-            final DependencySet dependencies = fairyConfiguration.getDependencies();
-            for (PlatformType platformType : platformTypes) {
-                this.applyPlatform(project, dependencies, platformType);
+    private void configureFairyTask(FairyBuildTask fairyTask, ShadowJar jar, Set<Lib> libraries, List<String> modules, Multimap<String, String> exclusives) {
+        fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());
+        fairyTask.setClassifier(extension.getClassifier().getOrNull());
+        fairyTask.setExtension(FairyBuildData.create(extension, libraries));
+        fairyTask.setExclusions(exclusives);
+        fairyTask.setDependModules(modules);
+    }
+
+    private void addMavenRepository() {
+        if (!IS_IN_IDE) {
+            if (this.extension.getLocalRepo().get()) {
+                this.project.getRepositories().add(this.project.getRepositories().mavenLocal());
+            } else {
+                this.project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(REPOSITORY));
             }
-
-            this.extension.getFairyModules().forEach(module -> this.applyModule(project, dependencies, module));
-
-            ShadowJar jar = project.getTasks()
-                    .withType(ShadowJar.class)
-                    .getByName("shadowJar");
-            jar.finalizedBy(fairyTask);
-
-            if (platformTypes.contains(PlatformType.APP)) {
-                if (!this.extension.getLibraryMode().get()) {
-                    jar.getManifest().getAttributes().put("Main-Class", extension.getMainPackage().get() + ".fairy.bootstrap.app.AppLauncher");
-                }
-                jar.getManifest().getAttributes().put("Multi-Release", "true");
-            }
-
-            Set<Lib> libraries = new HashSet<>();
-            List<String> modules = new ArrayList<>();
-            Multimap<String, String> exclusives = HashMultimap.create();
-            for (File file : fairyConfiguration) {
-                this.readFile(libraries, modules, exclusives, file);
-            }
-
-            jar.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
-            jar.relocate("io.fairyproject", extension.getMainPackage().get() + ".fairy");
-
-            for (Dependency dependency : dependencies) {
-                project.getDependencies().add("implementation", dependency);
-                project.getDependencies().add("testImplementation", dependency);
-            }
-
-            libraries.addAll(extension.getLibraries());
-            for (Lib library : libraries) {
-                if (library.getRepository() != null) {
-                    project.getRepositories().add(project.getRepositories().maven(repo -> repo.setUrl(library.getRepository())));
-                }
-                project.getDependencies().add("compileOnly", library.getDependency());
-                project.getDependencies().add("testImplementation", library.getDependency());
-            }
-
-            fairyTask.setInJar(fairyTask.getInJar() != null ? fairyTask.getInJar() : jar.getArchiveFile().get().getAsFile());
-            fairyTask.setClassifier(extension.getClassifier().getOrNull());
-            fairyTask.setExtension(FairyBuildData.create(extension, libraries));
-            fairyTask.setExclusions(exclusives);
-            fairyTask.setDependModules(modules);
-        } finally {
-            MavenUtil.end();
-            System.out.println("Initialized FairyPlugin within " + (System.currentTimeMillis() - start) + "ms.");
         }
     }
 

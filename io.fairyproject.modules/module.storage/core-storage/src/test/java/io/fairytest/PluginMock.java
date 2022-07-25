@@ -1,6 +1,5 @@
 package io.fairytest;
 
-import io.fairyproject.library.Library;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;

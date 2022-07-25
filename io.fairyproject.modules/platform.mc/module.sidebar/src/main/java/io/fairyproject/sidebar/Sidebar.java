@@ -32,9 +32,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 import io.fairyproject.Fairy;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.item.ObjectiveDisplaySlot;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;

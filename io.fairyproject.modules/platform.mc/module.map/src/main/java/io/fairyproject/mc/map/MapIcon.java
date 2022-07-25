@@ -9,9 +9,12 @@ import lombok.experimental.Accessors;
 @RequiredArgsConstructor
 @Data
 @Accessors(fluent = true)
+@With
 public class MapIcon {
 
-    @With
-    private final byte x, y, rotation, type;
+    private final byte x;
+    private final byte y;
+    private final byte rotation;
+    private final byte type;
 
 }

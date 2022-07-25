@@ -7,9 +7,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Objects;
 
 public class WrapperPlayServerMapData extends PacketWrapper<WrapperPlayServerMapData> {
 

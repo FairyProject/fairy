@@ -9,7 +9,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -24,14 +23,10 @@ import java.util.stream.Collectors;
  */
 public abstract class Graph<T> {
 
-    private static final AtomicInteger ID_COUNTER = new AtomicInteger();
-
 
     protected final Set<T> objects = new HashSet<>();
     protected final Map<T, List<T>> edges = new HashMap<>();
     private final AtomicBoolean resolved = new AtomicBoolean(false);
-
-    private final int id = ID_COUNTER.getAndIncrement();
     @Getter
     private List<T> nodes;
 

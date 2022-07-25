@@ -73,10 +73,6 @@ public class ContainerContext {
             new SubscribeEventContainerController()
     ).toArray(new ContainerController[0]);
 
-    public static ContainerContext get() {
-        return INSTANCE;
-    }
-
     /**
      * The global node of containers
      */
@@ -175,6 +171,10 @@ public class ContainerContext {
 
     public ContainerNodeScanner scanClasses() {
         return new ContainerNodeScanner();
+    }
+
+    public static ContainerContext get() {
+        return INSTANCE;
     }
 
 }

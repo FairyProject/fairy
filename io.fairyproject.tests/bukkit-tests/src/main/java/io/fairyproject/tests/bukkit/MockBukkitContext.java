@@ -15,13 +15,6 @@ public class MockBukkitContext {
 
     private static MockBukkitContext INSTANCE;
 
-    public static MockBukkitContext get() {
-        if (INSTANCE == null) {
-            INSTANCE = new MockBukkitContext();
-        }
-        return INSTANCE;
-    }
-
     private ServerMock server;
     private MockPlugin plugin;
 
@@ -41,6 +34,13 @@ public class MockBukkitContext {
         FairyBukkitPlatform.PLUGIN = plugin;
         JavaPluginUtil.setCurrentPlugin(plugin);
         FairyBukkitTestingPlatform.patchBukkitPlugin(plugin);
+    }
+
+    public static MockBukkitContext get() {
+        if (INSTANCE == null) {
+            INSTANCE = new MockBukkitContext();
+        }
+        return INSTANCE;
     }
 
 }

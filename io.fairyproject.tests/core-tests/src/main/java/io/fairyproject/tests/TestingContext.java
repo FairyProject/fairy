@@ -24,13 +24,6 @@ public class TestingContext {
 
     private static TestingContext INSTANCE;
 
-    public static TestingContext get() {
-        if (INSTANCE == null) {
-            INSTANCE = new TestingContext();
-        }
-        return INSTANCE;
-    }
-
     private final AtomicBoolean initialized = new AtomicBoolean(false);
     private final Object lock = new Object();
 
@@ -147,5 +140,12 @@ public class TestingContext {
 
     public synchronized boolean isInitialized() {
         return this.initialized.get();
+    }
+
+    public static TestingContext get() {
+        if (INSTANCE == null) {
+            INSTANCE = new TestingContext();
+        }
+        return INSTANCE;
     }
 }

@@ -12,7 +12,7 @@ import java.util.Map;
 public class PojoMapperTest extends JUnitJupiterBase {
 
     @Test
-    public void init_dontAcceptAbstractAndInterfaceClass() {
+    public void initDontAcceptAbstractAndInterfaceClass() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> PojoMapper.create(TestAbstract.class).init());
         Assertions.assertThrows(IllegalArgumentException.class, () -> PojoMapper.create(TestInterface.class).init());
     }
@@ -21,16 +21,17 @@ public class PojoMapperTest extends JUnitJupiterBase {
     public interface TestInterface {}
 
     @Test
-    public void init_dontAcceptClassWithFinalField() {
+    public void initDontAcceptClassWithFinalField() {
         Assertions.assertThrows(IllegalArgumentException.class, () -> PojoMapper.create(TestFinalField.class).init());
     }
 
+    @SuppressWarnings("unused")
     public class TestFinalField {
         private final String a = "";
     }
 
     @Test
-    public void init_allPropertiesShouldBeFound() throws ReflectiveOperationException {
+    public void initAllPropertiesShouldBeFound() throws ReflectiveOperationException {
         final PojoMapper<TestProperties> pojoMapper = PojoMapper.create(TestProperties.class);
         pojoMapper.init();
 
@@ -45,6 +46,7 @@ public class PojoMapperTest extends JUnitJupiterBase {
         Assertions.assertNotNull(pojoMapper.getProperty("c"));
     }
 
+    @SuppressWarnings("unused")
     public static class TestProperties {
         private String a = "";
         private int b = 0;
@@ -53,7 +55,7 @@ public class PojoMapperTest extends JUnitJupiterBase {
     }
 
     @Test
-    public void addListener_shouldAllBeCalled() throws ReflectiveOperationException {
+    public void addListenerShouldAllBeCalled() throws ReflectiveOperationException {
         final boolean[] bools = new boolean[2];
         final PojoMapper<TestProperties> pojoMapper = PojoMapper.create(TestProperties.class);
         pojoMapper.addListener(new PojoListener() {

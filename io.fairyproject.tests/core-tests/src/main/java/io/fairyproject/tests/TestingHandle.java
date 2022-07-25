@@ -16,6 +16,8 @@ public interface TestingHandle {
         return true;
     }
 
-    default void onPreInitialization() {}
+    default void onPreInitialization() {
+        // to be overwritten
+    }
 
 }

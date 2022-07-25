@@ -20,7 +20,7 @@ public class PacketSenderTest extends BukkitJUnitJupiterBase {
     }
 
     @Test
-    public void senderGetPool_shouldReturnPlayersPool() {
+    public void senderGetPoolShouldReturnPlayersPool() {
         final MCPlayer mcPlayer = this.createMCPlayer();
         final PacketPool pool = PacketSenderMock.get().getPool(mcPlayer);
 
@@ -28,7 +28,7 @@ public class PacketSenderTest extends BukkitJUnitJupiterBase {
     }
 
     @Test
-    public void sendPacket_pollShouldReturn() {
+    public void sendPacketPollShouldReturn() {
         MCPlayer mcPlayer = this.createMCPlayer();
         PacketWrapper<?> packet = this.createPacket();
 
@@ -40,7 +40,7 @@ public class PacketSenderTest extends BukkitJUnitJupiterBase {
     }
 
     @Test
-    public void pool_peakShouldNotDeleteElement() {
+    public void poolPeakShouldNotDeleteElement() {
         MCPlayer mcPlayer = this.createMCPlayer();
         PacketWrapper<?> packet = this.createPacket();
 

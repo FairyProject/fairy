@@ -11,8 +11,6 @@ import java.awt.image.DataBufferInt;
  * {@link Framebuffer} that embeds a BufferedImage, allowing for rendering directly via Graphics2D or its pixel array.
  */
 public class Graphics2DFramebuffer extends BaseFramebuffer {
-
-    private final byte[] colors = new byte[WIDTH * HEIGHT];
     private final BufferedImage backingImage = new BufferedImage(WIDTH, HEIGHT, BufferedImage.TYPE_INT_RGB);
     private final Graphics2D renderer;
     private final int[] pixels;
@@ -41,6 +39,7 @@ public class Graphics2DFramebuffer extends BaseFramebuffer {
 
     @Override
     public byte[] toMapColors() {
+        byte[] colors = new byte[WIDTH * HEIGHT];
         // TODO: update subparts only
         for (int x = 0; x < 128; x++) {
             for (int z = 0; z < 128; z++) {

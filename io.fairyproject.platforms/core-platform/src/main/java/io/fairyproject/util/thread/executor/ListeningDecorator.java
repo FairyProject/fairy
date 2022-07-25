@@ -11,10 +11,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ListeningDecorator extends AbstractListeningExecutorService {
 
-    public static ListeningExecutorService create(ExecutorService executorService) {
-        return new ListeningDecorator(executorService);
-    }
-
     private final ExecutorService delegate;
 
     private ListeningDecorator(ExecutorService delegate) {
@@ -49,5 +45,9 @@ public class ListeningDecorator extends AbstractListeningExecutorService {
     @Override
     public final void execute(Runnable command) {
         delegate.execute(command);
+    }
+
+    public static ListeningExecutorService create(ExecutorService executorService) {
+        return new ListeningDecorator(executorService);
     }
 }

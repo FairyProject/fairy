@@ -7,15 +7,19 @@ package io.fairyproject.container.object.lifecycle;
 public interface ILifeCycle {
 
     default void onPreInit() {
+        // to be overwritten
     }
 
     default void onPostInit() {
+        // to be overwritten
     }
 
     default void onPreDestroy() {
+        // to be overwritten
     }
 
     default void onPostDestroy() {
+        // to be overwritten
     }
 
 }

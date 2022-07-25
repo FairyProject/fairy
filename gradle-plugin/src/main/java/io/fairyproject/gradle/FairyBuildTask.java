@@ -66,10 +66,6 @@ public class FairyBuildTask extends DefaultTask {
     @Internal
     private File outputFileInternal;
 
-    public FairyBuildTask() {
-        super();
-    }
-
     @OutputFile
     public File getOutputFile() {
         if (this.outputFileInternal == null) {

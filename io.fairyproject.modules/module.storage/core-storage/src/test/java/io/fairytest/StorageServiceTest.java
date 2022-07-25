@@ -25,7 +25,7 @@ public class StorageServiceTest extends JUnitJupiterBase {
     }
 
     @Test
-    public void createRepository_shouldBeInMemoryInJUnit() {
+    public void createRepositoryShouldBeInMemoryInJUnit() {
         final Repository<TestPojo, Serializable> repository = this.storageService.createRepository("test", TestPojo.class);
 
         Assertions.assertEquals(InMemoryRepository.class, repository.getClass());
