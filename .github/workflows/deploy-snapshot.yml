@@ -9,7 +9,7 @@ name: Deploy Snapshot
 
 on:
   push:
-    branches: [ v5 ]
+    branches: [ v6 ]
 
 jobs:
   build:
