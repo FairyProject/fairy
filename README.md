@@ -21,7 +21,7 @@ Fairy as a universal framework, it mainly built for minecraft server plugins in 
 With the flexibility Fairy had, we also have various platform supported that aren't minecraft related. [Application platform](https://github.com/FairyProject/fairy/tree/v5/io.fairyproject.platforms/app-platform) for independent platform, [Discord module]() built on top of JDA for better experience etc.
 
 ## Project State
-We are currently staying at **`0.5.1`**, the reason why we still have 0 as the major version prefix is because we thought there is missing pieces before we can start with version 1.
+We are currently staying at **`0.6.1`**, the reason why we still have 0 as the major version prefix is because we thought there is missing pieces before we can start with version 1.
 Does not mean it's unusable.
 
 ## Objective
