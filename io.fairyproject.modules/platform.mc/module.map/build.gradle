@@ -6,5 +6,5 @@ module {
 }
 
 dependencies {
-    compileOnly "org.imanity.spigot:TacoSpigot:1.8.8"
+    compileOnly project.spigot()
 }

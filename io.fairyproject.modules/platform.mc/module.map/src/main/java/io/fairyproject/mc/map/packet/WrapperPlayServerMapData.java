@@ -9,6 +9,10 @@ import lombok.RequiredArgsConstructor;
 import java.util.ArrayList;
 import java.util.Collection;
 
+/**
+ * TODO: replace it as official PacketEvents map data wrapper when my PR merged.
+ */
+@Deprecated
 public class WrapperPlayServerMapData extends PacketWrapper<WrapperPlayServerMapData> {
 
     private int data;

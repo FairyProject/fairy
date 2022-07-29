@@ -25,7 +25,7 @@ public class BukkitMapItem {
     public ItemStack create() {
         Material material;
         try {
-            material = Material.MAP;
+            material = Material.FILLED_MAP;
         } catch (NoSuchFieldError ex) {
             material = Material.MAP;
         }
