@@ -1,19 +1,28 @@
 package io.fairyproject.gradle;
 
 import com.google.gson.JsonObject;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
 @Getter
-@RequiredArgsConstructor
-public class Lib {
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@EqualsAndHashCode
+public class Lib implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @NotNull
-    private final String dependency;
+    private String dependency;
     @Nullable
-    private final String repository;
+    private String repository;
 
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
@@ -21,6 +30,17 @@ public class Lib {
         if (this.repository != null)
             jsonObject.addProperty("repository", this.repository);
         return jsonObject;
+    }
+
+    @SuppressWarnings("unused")
+    private static void writeObject(ObjectOutputStream s) throws IOException {
+        s.defaultWriteObject();
+    }
+
+    // Gradle only needs to serialize objects, so this isn't strictly needed
+    @SuppressWarnings("unused")
+    private static void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        s.defaultReadObject();
     }
 
 }

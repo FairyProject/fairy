@@ -34,7 +34,7 @@ import io.fairyproject.bukkit.reflection.ProtocolLibHelper;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.protocol.MCVersion;
 import lombok.Getter;
 import lombok.Setter;
@@ -93,7 +93,7 @@ public class HologramSingle {
 
     protected void sendSpawnPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
-            if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.SPAWN_ENTITY_LIVING);
 
                 packetContainer.getIntegers()
@@ -117,7 +117,7 @@ public class HologramSingle {
 
     protected void sendTeleportPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
-            if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_TELEPORT);
 
                 packetContainer.getIntegers()
@@ -171,7 +171,7 @@ public class HologramSingle {
 
     protected void sendDestroyPacket(Collection<? extends Player> players) {
         players.forEach(player -> {
-            if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
+            if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_8) || SpigotUtil.getProtocolVersion(player) > 5) {
                 PacketContainer packetContainer = new PacketContainer(PacketType.Play.Server.ENTITY_DESTROY);
 
                 packetContainer.getIntegerArrays()

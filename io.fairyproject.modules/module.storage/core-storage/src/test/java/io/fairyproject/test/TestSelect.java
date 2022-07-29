@@ -28,6 +28,7 @@ import io.fairyproject.mysql.connection.file.H2ConnectionFactory;
 import org.junit.jupiter.api.Test;
 
 import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -78,6 +79,7 @@ public class TestSelect {
 	@Table(name="selecttest")
 	public static class Row {
 		@Column(unique=true)
+		@Id
 		public long id;
 		public String name; 
 		public String toString() {

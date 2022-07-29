@@ -32,6 +32,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import io.fairyproject.bukkit.events.player.PlayerClearEvent;
 import io.fairyproject.task.Task;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +42,7 @@ import java.util.stream.Stream;
 @UtilityClass
 public class Players {
 
-    public UUID tryGetUniqueId(Object player) {
+    public UUID tryGetUniqueId(@NotNull Object player) {
         if (player instanceof UUID) {
             return (UUID) player;
         }

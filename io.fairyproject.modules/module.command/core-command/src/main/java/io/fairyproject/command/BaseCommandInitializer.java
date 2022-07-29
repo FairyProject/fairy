@@ -6,6 +6,7 @@ import io.fairyproject.command.argument.ArgProperty;
 import io.fairyproject.command.completion.ArgCompletionHolderList;
 import io.fairyproject.command.completion.ArgCompletionHolderStringArray;
 import io.fairyproject.container.Autowired;
+import io.fairyproject.log.Log;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.reflect.Reflect;
 import lombok.RequiredArgsConstructor;
@@ -110,18 +111,18 @@ public class BaseCommandInitializer {
                 final String[] names = command.value();
                 boolean register = false;
                 if (names.length == 0) {
-                    BaseCommand.LOGGER.error("Command names cannot be empty, but empty on method " + method);
+                    Log.error("Command names cannot be empty, but empty on method " + method);
                 } else {
                     for (String name : names) {
                         if (name.equals("#")) {
                             if (baseCommand.noArgCommand != null) {
-                                BaseCommand.LOGGER.error("Duplicate no arg sub command");
+                                Log.error("Duplicate no arg sub command");
                             } else {
                                 baseCommand.noArgCommand = commandMeta;
                                 register = true;
                             }
                         } else if (baseCommand.subCommands.containsKey(name.toLowerCase())) {
-                            BaseCommand.LOGGER.error("Duplicate sub command name " + name);
+                            Log.error("Duplicate sub command name " + name);
                         } else {
                             baseCommand.subCommands.put(name.toLowerCase(), commandMeta);
                             register = true;
@@ -134,7 +135,7 @@ public class BaseCommandInitializer {
                     baseCommand.requireInputParameterCount = Math.max(commandMeta.getRequireInputParameterCount(), baseCommand.requireInputParameterCount);
                 }
             } catch (IllegalAccessException e) {
-                BaseCommand.LOGGER.error("an error got thrown while registering @Command method", e);
+                Log.error("an error got thrown while registering @Command method", e);
             }
         }
     }
@@ -146,7 +147,7 @@ public class BaseCommandInitializer {
             if (method.getParameterCount() > 0) {
                 hasParameter = true;
                 if (method.getParameterCount() != 1 || !CommandContext.class.isAssignableFrom(method.getParameterTypes()[0])) {
-                    BaseCommand.LOGGER.error("The parameter of @TabCompletion method should be CommandContext.", new UnsupportedOperationException());
+                    Log.error("The parameter of @TabCompletion method should be CommandContext.", new UnsupportedOperationException());
                     return;
                 }
             }
@@ -169,12 +170,12 @@ public class BaseCommandInitializer {
                             completion.value()
                     );
                 } else {
-                    BaseCommand.LOGGER.error("The return type of @TabCompletion method should be String[] or List<String>", new UnsupportedOperationException());
+                    Log.error("The return type of @TabCompletion method should be String[] or List<String>", new UnsupportedOperationException());
                     return;
                 }
                 baseCommand.tabCompletion.put(completion.value(), completionHolder);
             } catch (IllegalAccessException e) {
-                BaseCommand.LOGGER.error("an error got thrown while registering @TabCompletion method", e);
+                Log.error("an error got thrown while registering @TabCompletion method", e);
             }
         }
     }

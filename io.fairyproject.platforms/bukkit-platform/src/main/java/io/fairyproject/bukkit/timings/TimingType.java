@@ -46,9 +46,15 @@ enum TimingType {
         MCTiming newTiming(Plugin plugin, String command, MCTiming parent) {
             try {
                 return new Minecraft18Timing(plugin, command, parent);
-            } catch (InvocationTargetException | IllegalAccessException e) {
+            } catch (Throwable e) {
                 return new EmptyTiming();
             }
+        }
+    },
+    UNIT_TESTING() {
+        @Override
+        MCTiming newTiming(Plugin plugin, String command, MCTiming parent) {
+            return new UnitTestingTiming(plugin, command, parent);
         }
     },
     EMPTY();

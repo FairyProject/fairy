@@ -3,7 +3,7 @@ package io.fairyproject.bukkit.events;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.event.EventBus;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
@@ -40,14 +40,14 @@ public class BukkitEventTransformer {
         return this.bukkitToMC.get(bukkitEvent);
     }
 
-    private <B extends Event, M> void register(Class<B> bukkitClass, Class<M> mcClass, Function<B, M> transformer) {
+    private <B extends Event, M extends io.fairyproject.event.Event> void register(Class<B> bukkitClass, Class<M> mcClass, Function<B, M> transformer) {
         this.bukkitToMC.put(bukkitClass, mcClass);
         Bukkit.getPluginManager().registerEvent(bukkitClass, DUMMY_LISTENER, PRIORITY_REGISTRATION, (listener, event) -> {
             if (!bukkitClass.isInstance(event)) {
                 return;
             }
             final M mcEvent = transformer.apply(bukkitClass.cast(event));
-            EventBus.call(mcEvent);
+            GlobalEventNode.get().call(mcEvent);
         }, FairyBukkitPlatform.PLUGIN);
     }
 

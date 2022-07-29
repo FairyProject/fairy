@@ -15,4 +15,8 @@ public interface BukkitTestingHandle extends TestingHandle {
     @NotNull
     ServerMock createServerMock();
 
+    @Override
+    default void onPreInitialization() {
+        MockBukkitContext.get().initialize();
+    }
 }

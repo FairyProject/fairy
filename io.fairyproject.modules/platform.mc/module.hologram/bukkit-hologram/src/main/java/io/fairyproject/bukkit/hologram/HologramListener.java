@@ -24,12 +24,16 @@
 
 package io.fairyproject.bukkit.hologram;
 
-import io.fairyproject.container.ContainerConstruct;
-import io.fairyproject.container.Component;
+import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.player.movement.MovementListener;
+import io.fairyproject.bukkit.timings.MCTiming;
 import io.fairyproject.bukkit.timings.TimingService;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.object.Obj;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,22 +42,23 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.world.WorldUnloadEvent;
-import io.fairyproject.bukkit.timings.MCTiming;
-import io.fairyproject.ScheduledAtFixedRate;
-import io.fairyproject.bukkit.metadata.Metadata;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-@Component
+@Obj
 public class HologramListener implements Listener {
 
     private final Set<Player> toUpdate = new HashSet<>();
-    private final MCTiming timing;
+    private MCTiming timing;
 
-    @ContainerConstruct
-    public HologramListener(TimingService timingService) {
+    @Autowired
+    private TimingService timingService;
+
+    @PostInitialize
+    public void onPostInitialize() {
+        this.timing = timingService.of(FairyBukkitPlatform.PLUGIN, "Holograms Update");
         Imanity.registerMovementListener(new MovementListener() {
             @Override
             public void handleUpdateLocation(Player player, Location from, Location to) {
@@ -65,12 +70,14 @@ public class HologramListener implements Listener {
 
             }
         }).ignoreSameBlockAndY();
-        this.timing = timingService.of(FairyBukkitPlatform.PLUGIN, "Holograms Update");
         this.runScheduler();
     }
 
-    @ScheduledAtFixedRate(delay = 100, ticks = 20, async = false)
     public void runScheduler() {
+        Fairy.getTaskScheduler().runRepeated(t -> this.tick(), 20L);
+    }
+
+    private void tick() {
         try (MCTiming ignored = this.timing.startTiming()) {
             final Iterator<Player> iterator = toUpdate.iterator();
             while (iterator.hasNext()) {

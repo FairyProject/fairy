@@ -24,9 +24,9 @@
 
 package io.fairyproject.bukkit.util;
 
+import io.fairyproject.log.Log;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
-import io.fairyproject.bukkit.Imanity;
 
 import lombok.Getter;
 
@@ -209,7 +209,7 @@ public final class MinecraftVersion {
                 current = V.v1_3_AND_BELOW;
 
         } catch (final Throwable t) {
-            Imanity.LOGGER.error("Error detecting your Minecraft version. Check your server compatibility.", t);
+            Log.error("Error detecting your Minecraft version. Check your server compatibility.", t);
         }
     }
 }

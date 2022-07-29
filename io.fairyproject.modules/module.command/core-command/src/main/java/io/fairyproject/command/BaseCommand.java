@@ -36,8 +36,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -47,7 +45,6 @@ public abstract class BaseCommand implements ICommand {
 
     @Autowired
     private static CommandService COMMAND_SERVICE;
-    protected static final Logger LOGGER = LogManager.getLogger(BaseCommand.class);
 
     protected final HashMultimap<String, ICommand> subCommands = HashMultimap.create();
     protected final List<ICommand> sortedCommands = new ArrayList<>();

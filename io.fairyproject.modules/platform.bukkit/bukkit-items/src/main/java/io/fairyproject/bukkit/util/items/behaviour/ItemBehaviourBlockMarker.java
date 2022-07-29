@@ -82,8 +82,7 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         if (item == null) {
             return;
         }
-        event.setCancelled(true);
-        block.setType(Material.AIR);
+        event.setDropItems(false);
         final ItemStack itemStack = item.get(player);
         itemStack.setAmount(1);
         player.getWorld().dropItemNaturally(block.getLocation(), itemStack);

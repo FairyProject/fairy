@@ -26,11 +26,13 @@ package io.fairyproject.bukkit.listener.events;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.listener.ListenerSubscription;
+import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.log.Log;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import lombok.experimental.UtilityClass;
-import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -41,9 +43,6 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import io.fairyproject.bukkit.listener.ListenerSubscription;
-import io.fairyproject.bukkit.metadata.Metadata;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -88,7 +87,7 @@ public class Events {
             plugin = FairyBukkitPlatform.PLUGIN;
         }
         if (!plugin.isEnabled()) {
-            LogManager.getLogger(Events.class).error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
+            Log.error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
         }
 
         TerminableConsumer terminable = FairyBukkitPlatform.INSTANCE;

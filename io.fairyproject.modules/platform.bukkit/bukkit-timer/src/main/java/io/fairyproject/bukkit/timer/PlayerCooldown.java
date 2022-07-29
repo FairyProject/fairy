@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.timer;
 
-import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.google.common.cache.RemovalCause;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;

@@ -1,6 +1,9 @@
 package io.fairyproject.discord;
 
-import io.fairyproject.container.*;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -15,17 +18,17 @@ public class DCInitializer {
     @PreInitialize
     public void onPreInitialize() {
         this.listeners = new ArrayList<>();
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(net.dv8tion.jda.api.hooks.EventListener.class)
-                .onEnable(obj -> {
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(net.dv8tion.jda.api.hooks.EventListener.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(net.dv8tion.jda.api.hooks.EventListener.class, obj -> {
                     this.listeners.add(obj);
                     DCBot.all().forEach(bot -> bot.addEventListener(obj));
-                })
-                .onDisable(obj -> {
+                }))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(net.dv8tion.jda.api.hooks.EventListener.class, obj -> {
                     this.listeners.remove(obj);
                     DCBot.all().forEach(bot -> bot.removeEventListener(obj));
-                })
-                .build());
+                }))
+        );
     }
 
 }

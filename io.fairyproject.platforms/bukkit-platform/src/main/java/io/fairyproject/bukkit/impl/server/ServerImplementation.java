@@ -24,11 +24,13 @@
 
 package io.fairyproject.bukkit.impl.server;
 
+import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.bukkit.impl.test.ImplementationFactory;
 import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementation;
-import io.fairyproject.reflect.ReflectLookup;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 import lombok.SneakyThrows;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -48,15 +50,15 @@ public interface ServerImplementation {
 
     @SneakyThrows
     static ServerImplementation load(ContainerContext containerContext) {
-
-        ReflectLookup reflectLookup = new ReflectLookup(
-                Collections.singleton(ServerImplementation.class.getClassLoader()),
-                Collections.singleton("io.fairyproject")
-        );
+        ScanResult scanResult = new ClassGraph()
+                .enableAllInfo()
+                .overrideClassLoaders(ServerImplementation.class.getClassLoader())
+                .acceptPackages(Fairy.getFairyPackage())
+                .scan();
 
         Class<?> lastSuccess = null;
         int priority = Integer.MIN_VALUE;
-        lookup: for (Class<?> type : reflectLookup.findAnnotatedClasses(ServerImpl.class)) {
+        lookup: for (Class<?> type : scanResult.getClassesWithAnnotation(ServerImpl.class).loadClasses()) {
             if (!ServerImplementation.class.isAssignableFrom(type)) {
                 throw new IllegalArgumentException("The type " + type.getName() + " does not implement to ProtocolCheck!");
             }

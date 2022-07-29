@@ -117,19 +117,21 @@ public class Utility {
                 .collect(Collectors.toList());
     }
 
-    public static Collection<Class<?>> getSuperAndInterfaces(Class<?> type) {
-        Set<Class<?>> result = new HashSet<>();
+    public static Set<Class<?>> getSuperClasses(Class<?> type) {
         Set<Class<?>> superclasses = new HashSet<>();
 
-        {
-            Class<?> superclass = type;
-            while (superclass != null && superclass != Object.class) {
-                result.add(superclass);
-                superclasses.add(superclass);
+        Class<?> superclass = type;
+        while (superclass != null && superclass != Object.class) {
+            superclasses.add(superclass);
 
-                superclass = superclass.getSuperclass();
-            }
+            superclass = superclass.getSuperclass();
         }
+
+        return superclasses;
+    }
+    public static Collection<Class<?>> getSuperAndInterfaces(Class<?> type) {
+        Set<Class<?>> superclasses = getSuperClasses(type);
+        Set<Class<?>> result = new HashSet<>(superclasses);
 
         while (superclasses.size() > 0) {
             List<Class<?>> clone = new ArrayList<>(superclasses);
@@ -139,7 +141,7 @@ public class Utility {
                 result.add(superclass);
 
                 Class<?>[] interfaces = superclass.getInterfaces();
-                if (interfaces != null && interfaces.length > 0) {
+                if (interfaces.length > 0) {
                     superclasses.addAll(Arrays.asList(interfaces));
                 }
             }

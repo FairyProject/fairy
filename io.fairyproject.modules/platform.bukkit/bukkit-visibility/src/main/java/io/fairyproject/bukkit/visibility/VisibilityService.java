@@ -24,17 +24,17 @@
 
 package io.fairyproject.bukkit.visibility;
 
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import org.bukkit.entity.Player;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.container.ComponentHolder;
-import io.fairyproject.container.ComponentRegistry;
 import io.fairyproject.container.Service;
 
 import java.util.LinkedList;
 import java.util.List;
 
-@Service(name = "visibility")
+@Service
 public class VisibilityService {
 
     private List<VisibilityAdapter> visibilityAdapters;
@@ -43,25 +43,19 @@ public class VisibilityService {
     public void preInit() {
         this.visibilityAdapters = new LinkedList<>();
 
-        ComponentRegistry.registerComponentHolder(new ComponentHolder() {
-
-            @Override
-            public Object newInstance(Class<?> type) {
-                Object instance = super.newInstance(type);
-                register((VisibilityAdapter) instance);
-
-                return instance;
-            }
-
-            @Override
-            public Class<?>[] type() {
-                return new Class[] { VisibilityAdapter.class };
-            }
-        });
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(VisibilityAdapter.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(VisibilityAdapter.class, this::register))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(VisibilityAdapter.class, this::unregister))
+        );
     }
 
     public void register(VisibilityAdapter visibilityAdapter) {
         this.visibilityAdapters.add(visibilityAdapter);
+    }
+
+    public void unregister(VisibilityAdapter visibilityAdapter) {
+        this.visibilityAdapters.remove(visibilityAdapter);
     }
 
     public boolean isUsed() {

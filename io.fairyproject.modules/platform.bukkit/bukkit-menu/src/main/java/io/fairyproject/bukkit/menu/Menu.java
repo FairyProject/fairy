@@ -28,8 +28,17 @@ import com.cryptomorin.xseries.XMaterial;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.util.BukkitUtil;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.util.CC;
+import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.terminable.TerminableConsumer;
+import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -43,17 +52,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.bukkit.util.BukkitUtil;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.util.CC;
-import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.terminable.TerminableConsumer;
-import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -67,46 +65,7 @@ public abstract class Menu implements TerminableConsumer {
     private static final MetadataKey<Menu> METADATA = MetadataKey.create("imanity:menu", Menu.class);
     private static final Map<Class<? extends Menu>, List<Menu>> MENU_BY_TYPE = new ConcurrentHashMap<>();
 
-    private static void addMenu(Menu menu) {
-        List<Menu> list;
-        final Class<? extends Menu> type = menu.getClass();
-        if (MENU_BY_TYPE.containsKey(type)) {
-            list = MENU_BY_TYPE.get(type);
-        } else {
-            list = new ArrayList<>();
-            MENU_BY_TYPE.put(type, list);
-        }
-
-        list.add(menu);
-    }
-
-    private static void removeMenu(Menu menu) {
-        final Class<? extends Menu> type = menu.getClass();
-        if (!MENU_BY_TYPE.containsKey(type)) {
-            return;
-        }
-
-        final List<Menu> list = MENU_BY_TYPE.get(type);
-        list.remove(menu);
-
-        if (list.isEmpty()) {
-            MENU_BY_TYPE.remove(type);
-        }
-    }
-
-    public static Menu getMenuByUuid(UUID uuid) {
-        return Metadata.provideForPlayer(uuid).getOrNull(METADATA);
-    }
-
-    public static <T extends Menu> List<T> getMenusByType(Class<T> type) {
-        List<T> menuList = new ArrayList<>();
-        for (Menu menu : MENU_BY_TYPE.getOrDefault(type, Collections.emptyList())) {
-            menuList.add(type.cast(menu));
-        }
-        return menuList;
-    }
-
-    private Int2ObjectOpenHashMap<Button> buttonsMap = new Int2ObjectOpenHashMap<>();
+    private Map<Integer, Button> buttonsMap = new HashMap<>();
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
 
     protected Player player;
@@ -248,7 +207,7 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     public Menu clearBetween(int minSlot, int maxSlot) {
-        this.buttonsMap.int2ObjectEntrySet().removeIf(entry -> entry.getIntKey() >= minSlot && entry.getIntKey() <= maxSlot);
+        this.buttonsMap.entrySet().removeIf(entry -> entry.getKey() >= minSlot && entry.getKey() <= maxSlot);
         return this;
     }
 
@@ -433,7 +392,7 @@ public abstract class Menu implements TerminableConsumer {
             recreate = true;
         }
 
-        for (final Map.Entry<Integer, Button> buttonEntry : this.buttonsMap.int2ObjectEntrySet()) {
+        for (final Map.Entry<Integer, Button> buttonEntry : this.buttonsMap.entrySet()) {
             int slot = buttonEntry.getKey();
             Button button = buttonEntry.getValue();
             if (previousButtons == null || previousButtons.get(slot) != button) {
@@ -503,6 +462,45 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     public void onClose(final Player player) {
+    }
+
+    private static void addMenu(Menu menu) {
+        List<Menu> list;
+        final Class<? extends Menu> type = menu.getClass();
+        if (MENU_BY_TYPE.containsKey(type)) {
+            list = MENU_BY_TYPE.get(type);
+        } else {
+            list = new ArrayList<>();
+            MENU_BY_TYPE.put(type, list);
+        }
+
+        list.add(menu);
+    }
+
+    private static void removeMenu(Menu menu) {
+        final Class<? extends Menu> type = menu.getClass();
+        if (!MENU_BY_TYPE.containsKey(type)) {
+            return;
+        }
+
+        final List<Menu> list = MENU_BY_TYPE.get(type);
+        list.remove(menu);
+
+        if (list.isEmpty()) {
+            MENU_BY_TYPE.remove(type);
+        }
+    }
+
+    public static Menu getMenuByUuid(UUID uuid) {
+        return Metadata.provideForPlayer(uuid).getOrNull(METADATA);
+    }
+
+    public static <T extends Menu> List<T> getMenusByType(Class<T> type) {
+        List<T> menuList = new ArrayList<>();
+        for (Menu menu : MENU_BY_TYPE.getOrDefault(type, Collections.emptyList())) {
+            menuList.add(type.cast(menu));
+        }
+        return menuList;
     }
 
 }

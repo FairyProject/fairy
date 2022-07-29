@@ -29,11 +29,11 @@ import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.parameter.ArgTransformer;
 import io.fairyproject.container.*;
+import io.fairyproject.container.collection.ContainerObjCollector;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -60,8 +60,6 @@ public class CommandService {
 
     private PreProcessBatch batch;
 
-    private static final Logger LOGGER = LogManager.getLogger(CommandService.class);
-
     @PreInitialize
     public void preInit() {
         this.batch = PreProcessBatch.create();
@@ -73,59 +71,52 @@ public class CommandService {
         this.listeners = new ArrayList<>();
         this.commands = new ConcurrentHashMap<>();
 
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(CommandListener.class)
-                .onEnable(instance -> this.listeners.add((CommandListener) instance))
-                .onDisable(instance -> this.listeners.remove((CommandListener) instance))
-                .build());
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(ArgCompletionHolder.class)
-                .onEnable(instance -> {
-                    ArgCompletionHolder tabCompletionHolder = (ArgCompletionHolder) instance;
-                    this.tabCompletionHolders.put(tabCompletionHolder.name(), tabCompletionHolder);
-                })
-                .onDisable(instance -> {
-                    ArgCompletionHolder tabCompletionHolder = (ArgCompletionHolder) instance;
-                    this.tabCompletionHolders.remove(tabCompletionHolder.name());
-                })
-                .build());
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(BaseCommand.class)
-                .onEnable(instance -> this.batch.runOrQueue(instance.getClass().getName(), () -> this.registerCommand(instance)))
-                .onDisable(instance -> {
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(CommandListener.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(CommandListener.class, this.listeners::add))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(CommandListener.class, this.listeners::remove))
+        );
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(ArgCompletionHolder.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(ArgCompletionHolder.class, handler -> this.tabCompletionHolders.put(handler.name(), handler)))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(ArgCompletionHolder.class, handler -> this.tabCompletionHolders.remove(handler.name())))
+        );
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(BaseCommand.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(BaseCommand.class, instance -> this.batch.runOrQueue(instance.getClass().getName(), () -> this.registerCommand(instance))))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(BaseCommand.class, instance -> {
                     if (!this.batch.remove(instance.getClass().getName())) {
                         this.unregisterCommand(instance);
                     }
-                })
-                .build()
+                }))
         );
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(ArgTransformer.class)
-                .onEnable(instance -> this.registerParameterHolder((ArgTransformer<?>) instance))
-                .onDisable(instance -> this.unregisterParameterHolder((ArgTransformer<?>) instance))
-                .build());
-        LOGGER.info("Initialized command service...");
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(ArgTransformer.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(ArgTransformer.class, this::registerArgTransformer))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(ArgTransformer.class, this::unregisterArgTransformer))
+        );
+        Log.info("Initialized command service...");
     }
 
     @PostInitialize
     public void init() {
         INSTANCE = this;
-        LOGGER.info("Injecting fairy commands...");
+        Log.info("Injecting fairy commands...");
         this.batch.flushQueue();
-        LOGGER.info("Injected!");
+        Log.info("Injected!");
     }
 
     public void registerDefaultPresenceProvider(PresenceProvider<?> presenceProvider) {
         this.defaultPresenceProviders.put(presenceProvider.type(), presenceProvider);
     }
 
-    public void registerParameterHolder(ArgTransformer<?> parameterHolder) {
+    public void registerArgTransformer(ArgTransformer<?> parameterHolder) {
         for (Class<?> type : parameterHolder.type()) {
             this.parameters.put(type, parameterHolder);
         }
     }
 
-    public void unregisterParameterHolder(ArgTransformer<?> parameterHolder) {
+    public void unregisterArgTransformer(ArgTransformer<?> parameterHolder) {
         for (Class<?> type : parameterHolder.type()) {
             this.parameters.remove(type, parameterHolder);
         }

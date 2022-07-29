@@ -25,12 +25,14 @@
 package io.fairyproject.container;
 
 import io.fairyproject.ObjectSerializer;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.jackson.JacksonService;
+import io.fairyproject.log.Log;
 import io.fairyproject.serializer.AvoidDuplicate;
 import io.fairyproject.serializer.SerializerData;
+import io.fairyproject.util.ConditionUtils;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -48,28 +50,22 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 public class SerializerFactory {
 
-    private static final Logger LOGGER = LogManager.getLogger(SerializerFactory.class);
-
-    private Map<Class<?>, SerializerData> serializers;
+    private Map<Class<?>, SerializerData> serializerByValueType;
+    private Map<Class<?>, SerializerData> serializerBySerializerType;
 
     @Autowired
     private JacksonService jacksonService;
 
     @PreInitialize
     public void onPreInitialize() {
-        this.serializers = new ConcurrentHashMap<>();
+        this.serializerByValueType = new ConcurrentHashMap<>();
+        this.serializerBySerializerType = new ConcurrentHashMap<>();
 
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                        .type(ObjectSerializer.class)
-                        .onEnable(obj -> {
-                            ObjectSerializer<?, ?> serializer = (ObjectSerializer<?, ?>) obj;
-                            this.registerSerializer(serializer);
-                        })
-                        .onDisable(obj -> {
-                            ObjectSerializer<?, ?> serializer = (ObjectSerializer<?, ?>) obj;
-                            this.unregisterSerializer(serializer);
-                        })
-                .build());
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(ObjectSerializer.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(ObjectSerializer.class, this::registerSerializer))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(ObjectSerializer.class, this::unregisterSerializer))
+        );
     }
 
     /**
@@ -78,18 +74,19 @@ public class SerializerFactory {
      */
     public void registerSerializer(@NotNull ObjectSerializer<?, ?> serializer) {
         boolean avoidDuplication = serializer.getClass().isAnnotationPresent(AvoidDuplicate.class);
-        if (serializers.containsKey(serializer.inputClass())) {
+        if (serializerByValueType.containsKey(serializer.inputClass())) {
             if (avoidDuplication) {
                 throw new IllegalArgumentException("The Serializer for " + serializer.inputClass().getName() + " already exists!");
             } else {
-                LOGGER.warn("Serializer with key type " + serializer.inputClass().getName() + " already exists, it is recommended to avoid duplication.");
+                Log.warn("Serializer with key type " + serializer.inputClass().getName() + " already exists, it is recommended to avoid duplication.");
             }
             return;
         }
 
         SerializerData serializerData = new SerializerData(serializer, avoidDuplication);
 
-        this.serializers.put(serializer.inputClass(), serializerData);
+        this.serializerByValueType.put(serializer.inputClass(), serializerData);
+        this.serializerBySerializerType.put(serializer.getClass(), serializerData);
         this.jacksonService.registerJacksonConfigure(new SerializerJacksonConfigure(serializer));
     }
 
@@ -99,7 +96,8 @@ public class SerializerFactory {
      * @return true if unregister success
      */
     public boolean unregisterSerializer(@NotNull ObjectSerializer<?, ?> serializer) {
-        return this.serializers.remove(serializer.inputClass()) != null;
+        this.serializerBySerializerType.remove(serializer.getClass());
+        return this.serializerByValueType.remove(serializer.inputClass()) != null;
     }
 
     /**
@@ -108,7 +106,12 @@ public class SerializerFactory {
      * @return true if unregister success
      */
     public boolean unregisterSerializer(@NotNull Class<?> type) {
-        return this.serializers.remove(type) != null;
+        final SerializerData serializerData = this.serializerByValueType.remove(type);
+        if (serializerData != null) {
+            this.serializerBySerializerType.remove(serializerData.getSerializer().getClass());
+            return true;
+        }
+        return false;
     }
 
     /**
@@ -118,8 +121,27 @@ public class SerializerFactory {
      */
     @Nullable
     public ObjectSerializer<?, ?> findSerializer(@NotNull Class<?> type) {
-        final SerializerData serializerData = this.serializers.get(type);
+        final SerializerData serializerData = this.serializerByValueType.get(type);
         return serializerData != null ? serializerData.getSerializer() : null;
+    }
+
+    /**
+     * Search or new instance and cache the serializer by serializer type.
+     * @param serializerClass the type class of the serializer you are looking for
+     * @return the serializer instance
+     */
+    @NotNull
+    public ObjectSerializer<?, ?> findOrCacheSerializer(@NotNull Class<?> serializerClass) {
+        ConditionUtils.is(ObjectSerializer.class.isAssignableFrom(serializerClass), "Cannot findOrCacheSerializer() by a non-serializer class.");
+        final SerializerData serializerData = this.serializerBySerializerType.get(serializerClass);
+        if (serializerData == null) {
+            ObjectSerializer<?, ?> serializer = ThrowingSupplier
+                    .sneaky(() -> (ObjectSerializer<?, ?>) serializerClass.getDeclaredConstructor().newInstance())
+                    .get();
+            this.registerSerializer(serializer);
+            return serializer;
+        }
+        return serializerData.getSerializer();
     }
 
 }

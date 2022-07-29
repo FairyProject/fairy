@@ -2,11 +2,11 @@ package io.fairytest.mc;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.locale.util.YamlResourceBundle;
-import io.fairyproject.tests.TestingBase;
+import io.fairyproject.tests.base.JUnitJupiterBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class YamlResourceBundleTest extends TestingBase {
+public class YamlResourceBundleTest extends JUnitJupiterBase {
 
     @Test
     public void readStrings() {

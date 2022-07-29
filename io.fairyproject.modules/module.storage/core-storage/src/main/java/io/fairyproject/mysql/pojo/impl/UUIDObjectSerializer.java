@@ -25,11 +25,11 @@
 package io.fairyproject.mysql.pojo.impl;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 
 import java.util.UUID;
 
-@Component
+@Obj
 public class UUIDObjectSerializer implements ObjectSerializer<UUID, String> {
     @Override
     public String serialize(UUID input) {

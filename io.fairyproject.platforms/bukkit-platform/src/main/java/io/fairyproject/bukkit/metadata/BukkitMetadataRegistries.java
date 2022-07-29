@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.metadata;
 
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
 import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;

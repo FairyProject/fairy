@@ -25,6 +25,7 @@
 package io.fairyproject;
 
 import io.fairyproject.library.LibraryHandler;
+import io.fairyproject.plugin.Plugin;
 import lombok.experimental.UtilityClass;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.FastRandom;
@@ -36,6 +37,7 @@ import io.fairyproject.util.FastRandom;
 public class Fairy {
 
     public final String METADATA_PREFIX = "Imanity_";
+    public final String PACKAGE_NAME = "fairy";
     private final FastRandom RANDOM = new FastRandom();
 
     public FastRandom random() {
@@ -44,6 +46,17 @@ public class Fairy {
 
     public boolean isRunning() {
         return FairyPlatform.INSTANCE.isRunning();
+    }
+
+    public Plugin getMainPlugin() {
+        return FairyPlatform.INSTANCE.getMainPlugin();
+    }
+
+    public String getFairyPackage() {
+        if (Debug.UNIT_TEST) {
+            return "io.fairyproject";
+        }
+        return Fairy.getMainPlugin().getDescription().getShadedPackage() + "." + PACKAGE_NAME;
     }
 
     public ITaskScheduler getTaskScheduler() {

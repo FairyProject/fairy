@@ -60,7 +60,10 @@ public abstract class AbstractSqlRepositoryProvider extends AbstractRepositoryPr
 
     @Override
     public void close() throws Exception {
-        this.factory.shutdown();
+        if (this.factory != null) {
+            this.factory.shutdown();
+            this.factory = null;
+        }
     }
 
     @Override

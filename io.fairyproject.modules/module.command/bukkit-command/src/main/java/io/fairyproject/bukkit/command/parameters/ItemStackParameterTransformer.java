@@ -25,8 +25,8 @@
 package io.fairyproject.bukkit.command.parameters;
 
 import com.cryptomorin.xseries.XMaterial;
-import io.fairyproject.container.Component;
 import io.fairyproject.bukkit.command.util.CommandUtil;
+import io.fairyproject.container.object.Obj;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component
+@Obj
 public class ItemStackParameterTransformer extends BukkitArgTransformer<ItemStack> {
 
 	@Override

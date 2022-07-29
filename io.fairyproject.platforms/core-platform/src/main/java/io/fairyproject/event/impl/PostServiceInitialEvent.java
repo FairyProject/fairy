@@ -2,6 +2,5 @@ package io.fairyproject.event.impl;
 
 import io.fairyproject.event.Event;
 
-@Event
-public class PostServiceInitialEvent {
+public class PostServiceInitialEvent implements Event {
 }

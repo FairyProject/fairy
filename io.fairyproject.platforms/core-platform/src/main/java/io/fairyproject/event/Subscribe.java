@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Subscribe {
 
-    int priority() default 0;
+    boolean ignoreCancelled() default false;
 
 }

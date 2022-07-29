@@ -30,12 +30,9 @@ import io.fairyproject.bukkit.player.movement.impl.AbstractMovementImplementatio
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
 import io.fairyproject.bukkit.impl.server.ServerImplementation;
 
 import java.util.List;
@@ -43,8 +40,6 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 @Deprecated // TODO: completely remove this class
 public final class Imanity {
-
-    public static final Logger LOGGER = LogManager.getLogger(Imanity.class);
 
     public static ServerImplementation IMPLEMENTATION;
 

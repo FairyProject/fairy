@@ -24,21 +24,19 @@
 
 package io.fairyproject.util;
 
+import io.fairyproject.log.Log;
 import lombok.experimental.UtilityClass;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
+import java.util.concurrent.ExecutionException;
 
 @UtilityClass
 public class Stacktrace {
 
-    private static final Logger LOGGER = LogManager.getLogger("ImanityFramework-Error");
-
     public void print(Throwable throwable) {
-        LOGGER.error("An error occurs! : " + getStacktrace(throwable));
+        Log.error("An error occurs! : " + getStacktrace(throwable));
     }
 
     public String getStacktrace(Throwable throwable) {
@@ -50,7 +48,9 @@ public class Stacktrace {
 
     public Throwable simplifyStacktrace(Throwable throwable) {
         Throwable t = throwable;
-        while (t instanceof InvocationTargetException || t instanceof RuntimeException) {
+        while (t instanceof InvocationTargetException ||
+                t instanceof RuntimeException ||
+                t instanceof ExecutionException) {
             if (t.getCause() == null) {
                 break;
             }

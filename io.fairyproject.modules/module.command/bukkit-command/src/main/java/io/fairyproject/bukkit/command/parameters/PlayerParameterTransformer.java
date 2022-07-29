@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -33,7 +33,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@Obj
 public class PlayerParameterTransformer extends BukkitArgTransformer<Player> {
 
 	@Override

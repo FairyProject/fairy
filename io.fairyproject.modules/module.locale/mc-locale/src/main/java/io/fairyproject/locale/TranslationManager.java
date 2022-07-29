@@ -5,13 +5,12 @@ import io.fairyproject.container.Autowired;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.ServiceDependency;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.FileUtil;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
 import net.kyori.adventure.translation.TranslationRegistry;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,7 +27,6 @@ public abstract class TranslationManager {
 
     @Autowired
     protected static LocaleService LOCALE_SERVICE;
-    protected static final Logger LOGGER = LogManager.getLogger(TranslationManager.class);
 
     protected final Set<Locale> installed = Sets.newConcurrentHashSet();
     @Getter
@@ -87,7 +85,7 @@ public abstract class TranslationManager {
 
                 loaded.put(result.getKey(), result.getValue());
             } catch (Exception e) {
-                LOGGER.warn("Error loading locale file: " + translationFile.getFileName(), e);
+                Log.warn("Error loading locale file: " + translationFile.getFileName(), e);
             }
         }
 
@@ -130,13 +128,13 @@ public abstract class TranslationManager {
         this.loaded = false;
 
         if (this.translationRegistry != null) {
-            GlobalTranslator.get().removeSource(this.translationRegistry);
+            GlobalTranslator.translator().removeSource(this.translationRegistry);
             this.installed.clear();
         }
     }
 
     protected void addToGlobal() {
-        GlobalTranslator.get().addSource(this.translationRegistry);
+        GlobalTranslator.translator().addSource(this.translationRegistry);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

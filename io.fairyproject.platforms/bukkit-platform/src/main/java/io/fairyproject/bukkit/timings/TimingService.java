@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.timings;
 
+import io.fairyproject.Debug;
 import org.bukkit.plugin.Plugin;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
@@ -39,8 +40,12 @@ public class TimingService {
     private final Map<String, MCTiming> timingCache = new HashMap<>(0);
 
     @PreInitialize
-    public void preInit() {
+    public void onPreInitialize() {
         if (timingType == null) {
+            if (Debug.UNIT_TEST) {
+                timingType = TimingType.UNIT_TESTING;
+                return;
+            }
             try {
                 Class<?> clazz = Class.forName("co.aikar.timings.Timing");
                 Method startTiming = clazz.getMethod("startTiming");

@@ -1,9 +1,8 @@
-version = "0.0.2b1"
-
 dependencies {
     compileOnly project.spigot()
 }
 
 module {
     depend("platform.bukkit:bukkit-xseries")
+    depend("platform.mc:module.protocol")
 }

@@ -24,7 +24,7 @@
 
 package io.fairyproject.metadata;
 
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.LoadingCache;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;

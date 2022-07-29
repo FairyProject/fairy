@@ -1,5 +1,3 @@
-version = "0.0.1b2"
-
 dependencies {
     compileOnly project.spigot()
     compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"

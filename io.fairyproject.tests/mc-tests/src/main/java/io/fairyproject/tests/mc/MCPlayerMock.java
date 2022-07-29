@@ -1,6 +1,5 @@
 package io.fairyproject.tests.mc;
 
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
@@ -11,7 +10,6 @@ import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedList;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -21,7 +19,6 @@ public class MCPlayerMock implements MCPlayer {
     private final String name;
     private final MCVersion version;
     private final Object originalInstance;
-    private final LinkedList<PacketWrapper<?>> packetQueue = new LinkedList<>();
 
     @Nullable
     private Component displayName;
@@ -100,19 +97,6 @@ public class MCPlayerMock implements MCPlayer {
             return playerClass.cast(this.originalInstance);
         }
         throw new IllegalArgumentException();
-    }
-
-    @Override
-    public void sendPacket(PacketWrapper<?> packet) {
-        synchronized (this) {
-            this.packetQueue.add(packet);
-        }
-    }
-
-    public PacketWrapper<?> nextPacket() {
-        synchronized (this) {
-            return this.packetQueue.pop();
-        }
     }
 
 }

@@ -27,6 +27,7 @@ package io.fairyproject.config;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import io.fairyproject.Debug;
 import io.fairyproject.config.annotation.ElementType;
 import lombok.Getter;
 import io.fairyproject.Fairy;
@@ -61,6 +62,7 @@ public class GlobalStorageConfiguration extends YamlConfiguration {
 
     @PostInitialize
     public void onPostInitialize() {
+        if (Debug.UNIT_TEST) return;
         this.loadAndSave();
     }
 

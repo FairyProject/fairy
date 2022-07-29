@@ -36,6 +36,14 @@ public interface ITaskScheduler {
 
     Terminable runAsyncRepeated(TaskRunnable runnable, long delay, long time);
 
+    default Terminable runAsyncRepeated(Runnable runnable, long time) {
+        return this.runAsyncRepeated(t -> runnable.run(), time);
+    }
+
+    default Terminable runAsyncRepeated(Runnable runnable, long delay, long time) {
+        return this.runAsyncRepeated(t -> runnable.run(), delay, time);
+    }
+
     Terminable runSync(Runnable runnable);
 
     Terminable runScheduled(Runnable runnable, long time);
@@ -43,6 +51,14 @@ public interface ITaskScheduler {
     Terminable runRepeated(TaskRunnable runnable, long time);
 
     Terminable runRepeated(TaskRunnable runnable, long delay, long time);
+
+    default Terminable runRepeated(Runnable runnable, long time) {
+        return this.runRepeated(t -> runnable.run(), time);
+    }
+
+    default Terminable runRepeated(Runnable runnable, long delay, long time) {
+        return this.runRepeated(t -> runnable.run(), delay, time);
+    }
 
     default Terminable runSync(Runnable runnable, Object identifier) {
         return this.runSync(runnable);

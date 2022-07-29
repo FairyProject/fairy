@@ -1,17 +1,19 @@
 package io.fairyproject.bootstrap;
 
 import com.google.gson.JsonObject;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
-import org.apache.logging.log4j.LogManager;
+import lombok.Getter;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class BasePluginHolder {
 
+    @Getter
     protected final Plugin plugin;
     protected final ClassLoader classLoader;
     protected final CompletableFuture<Plugin> pluginCompletableFuture = new CompletableFuture<>();
@@ -40,13 +42,13 @@ public abstract class BasePluginHolder {
         }
 
         if (!Plugin.class.isAssignableFrom(mainClass)) {
-            throw new IllegalStateException("Couldn't found no args constructor from " + mainClassPath);
+            throw new IllegalStateException(String.format("%s wasn't implementing Plugin", mainClass));
         }
 
         try {
             return (Plugin) mainClass.getDeclaredConstructor().newInstance();
         } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-            throw new IllegalStateException("Failed to new instance " + mainClassPath + " (Do it has no args constructor in the class?)");
+            throw new IllegalStateException("Failed to new instance " + mainClassPath + " (Does it has no args constructor in the class?)", e);
         }
     }
 
@@ -67,7 +69,7 @@ public abstract class BasePluginHolder {
             plugin.onPluginEnable();
         } catch (Throwable throwable) {
             if (!plugin.isClosed() && !plugin.isForceDisabling()) {
-                LogManager.getLogger(plugin.getClass()).error(throwable);
+                Log.error(throwable);
             }
         }
     }
@@ -77,7 +79,7 @@ public abstract class BasePluginHolder {
             plugin.onPluginDisable();
         } catch (Throwable throwable) {
             if (!plugin.isForceDisabling()) {
-                LogManager.getLogger(plugin.getClass()).error(throwable);
+                Log.error(throwable);
             }
         }
 

@@ -24,45 +24,43 @@
 
 package io.fairyproject.bukkit;
 
-import com.github.retrooper.packetevents.PacketEvents;
 import io.fairyproject.Debug;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.PlatformType;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
 import io.fairyproject.bukkit.impl.BukkitPluginHandler;
 import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
-import io.fairyproject.bukkit.impl.ComponentHolderBukkitListener;
+import io.fairyproject.bukkit.listener.FilteredListener;
+import io.fairyproject.bukkit.listener.ListenerSubscription;
 import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.logger.Log4jLogger;
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
-import io.fairyproject.container.ComponentRegistry;
-import io.fairyproject.library.Library;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.collection.ContainerObjCollector;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCInitializer;
-import io.fairyproject.module.ModuleService;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
-    private static final Logger LOGGER = LogManager.getLogger(FairyBukkitPlatform.class);
-
     public static FairyBukkitPlatform INSTANCE;
-    public static Plugin PLUGIN;
+    public static JavaPlugin PLUGIN = JavaPluginUtil.getProvidingPlugin(FairyBukkitPlatform.class);
     public static BukkitAudiences AUDIENCES;
 
     private final ExtendedClassLoader classLoader;
@@ -80,19 +78,18 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
+
+        PluginManager.initialize(new BukkitPluginHandler());
+        // Use log4j for bukkit platform
+        if (!Debug.UNIT_TEST)
+            Log.set(new Log4jLogger());
     }
 
     @Override
-    public void load() {
-        super.load();
+    public void load(Plugin plugin) {
+        super.load(plugin);
 
-        PluginManager.initialize(new BukkitPluginHandler());
-        ModuleService.init();
         MinecraftReflection.init();
-        if (!Debug.UNIT_TEST) {
-            PacketEvents.setAPI(SpigotPacketEventsBuilder.build(PLUGIN));
-            PacketEvents.getAPI().load();
-        }
         this.createMCInitializer().apply();
     }
 
@@ -101,23 +98,20 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         AUDIENCES = BukkitAudiences.create(PLUGIN);
 
         SpigotUtil.init();
-        if (!Debug.UNIT_TEST) {
-            PacketEvents.getAPI().getSettings().debug(false).bStats(false).checkForUpdates(false);
-            PacketEvents.getAPI().init();
-        }
-        ComponentRegistry.registerComponentHolder(new ComponentHolderBukkitListener());
-
         super.enable();
-        ModuleService.INSTANCE.enable();
     }
 
-    @Override
-    public void disable() {
-        if (!Debug.UNIT_TEST) {
-            PacketEvents.getAPI().terminate();
-        }
+    @PreInitialize
+    public void onPreInitialize() {
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(Listener.class))
+                .withFilter(ContainerObjCollector.inherits(FilteredListener.class).negate())
+                .withAddHandler(containerObj -> {
+                    Listener listener = (Listener) containerObj.instance();
+                    ListenerSubscription subscription = Events.subscribe(listener);
 
-        super.disable();
+                    containerObj.bind(subscription);
+                }));
     }
 
     @Override
@@ -151,7 +145,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
     @Override
     public boolean isRunning() {
-        return true; // TODO
+        return true;
     }
 
     @Override
@@ -165,12 +159,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     }
 
     @Override
-    public Collection<Library> getDependencies() {
-        Set<Library> libraries = new HashSet<>();
-        if (SpigotUtil.SPIGOT_TYPE != SpigotUtil.SpigotType.IMANITY) {
-            libraries.add(Library.FAST_UTIL);
-        }
-//        libraries.add(Library.ADVENTURE_API);
-        return libraries;
+    public PlatformType getPlatformType() {
+        return PlatformType.BUKKIT;
     }
 }

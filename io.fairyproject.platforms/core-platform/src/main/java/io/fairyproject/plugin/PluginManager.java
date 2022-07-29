@@ -58,6 +58,12 @@ public class PluginManager {
         this.listenerAdapters = new TreeSet<>(Collections.reverseOrder(Comparator.comparingInt(PluginListenerAdapter::priority)));
     }
 
+    public void unload() {
+        this.plugins.clear();
+        this.listenerAdapters.clear();
+        INSTANCE = null;
+    }
+
     public Collection<ClassLoader> getClassLoaders() {
         return this.plugins.values()
                 .stream()

@@ -1,39 +1,30 @@
 package io.fairyproject.gradle.file;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.fairyproject.gradle.FairyExtension;
+import io.fairyproject.gradle.FairyBuildData;
+import io.fairyproject.gradle.FairyPlugin;
 import org.apache.commons.lang3.tuple.Pair;
+import org.gradle.api.Project;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.util.List;
 
 public class FileGeneratorFairy implements FileGenerator {
     @Override
-    public Pair<String, byte[]> generate(FairyExtension extension, String mainClass, Map<String, String> otherModules) {
+    public Pair<String, byte[]> generate(Project project, FairyBuildData extension, String mainClass, List<String> otherModules) {
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.addProperty("name", extension.getName().get());
+        jsonObject.addProperty("name", extension.getName());
         if (mainClass != null) {
             jsonObject.addProperty("mainClass", mainClass);
-            jsonObject.addProperty("shadedPackage", extension.getMainPackage().get());
+            jsonObject.addProperty("shadedPackage", extension.getMainPackage());
         }
 
         JsonArray jsonArray = new JsonArray();
-        final Map<String, String> modules = extension.getFairyModules();
-        if (modules != null) {
-            for (Map.Entry<String, String> module : modules.entrySet()) {
-                jsonArray.add(module.getKey() + ":" + module.getValue());
-            }
-        }
-        for (Map.Entry<String, String> entry : otherModules.entrySet()) {
-            jsonArray.add(entry.getKey() + ":" + entry.getValue());
-        }
-        jsonObject.add("modules", jsonArray);
+        extension.getLibraries().forEach(lib -> jsonArray.add(lib.toJsonObject()));
+        jsonObject.add("libraries", jsonArray);
 
-        final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        return Pair.of("fairy.json", gson.toJson(jsonObject).getBytes(StandardCharsets.UTF_8));
+        return Pair.of("fairy.json", FairyPlugin.GSON.toJson(jsonObject).getBytes(StandardCharsets.UTF_8));
     }
 }

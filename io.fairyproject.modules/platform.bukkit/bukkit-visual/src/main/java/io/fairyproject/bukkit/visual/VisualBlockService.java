@@ -39,8 +39,10 @@ import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
 import io.fairyproject.bukkit.visual.type.VisualType;
 import io.fairyproject.bukkit.visual.util.VisualUtil;
+import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.Service;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
@@ -48,8 +50,6 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.Task;
 import io.fairyproject.task.TaskRunnable;
 import io.fairyproject.util.terminable.Terminable;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -67,19 +67,18 @@ import java.util.function.Predicate;
 @Service
 public class VisualBlockService implements TaskRunnable {
 
-    private static final Logger LOGGER = LogManager.getLogger(VisualBlockService.class);
-
     private final Table<UUID, VisualPosition, VisualBlock> table = HashBasedTable.create();
-    private final LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
-    private final Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
+    private LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
+    private Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
     private final Queue<VisualTask> visualTasks = new ConcurrentLinkedQueue<>();
 
-    private final VisualBlockGenerator mainGenerator;
+    private VisualBlockGenerator mainGenerator;
     private final Map<Plugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
 
     private boolean destroyed;
 
-    public VisualBlockService() {
+    @PostInitialize
+    public void onPostInitialize() {
         this.claimPositionTable = HashBasedTable.create();
         this.claimCache = CacheBuilder.newBuilder()
                 .maximumSize(8000)
@@ -182,7 +181,7 @@ public class VisualBlockService implements TaskRunnable {
         }
 
         blockGenerators.add(blockGenerator);
-        LOGGER.info(this.dynamicVisualGenerator.containsKey(plugin));
+        Log.info(String.valueOf(this.dynamicVisualGenerator.containsKey(plugin)));
     }
 
     public void cacheClaim(VisualBlockClaim claim) {

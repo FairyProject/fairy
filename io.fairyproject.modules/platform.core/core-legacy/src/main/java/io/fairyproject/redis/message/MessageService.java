@@ -25,6 +25,7 @@
 package io.fairyproject.redis.message;
 
 import io.fairyproject.container.*;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.redis.RedisService;
 import io.fairyproject.redis.message.annotation.HandleMessage;
 import io.fairyproject.redis.server.ServerHandler;
@@ -53,22 +54,10 @@ public class MessageService {
     public void preInit() {
         this.messageListeners = new ConcurrentHashMap<>(12);
 
-        ComponentRegistry.registerComponentHolder(new ComponentHolder() {
-
-            @Override
-            public Object newInstance(Class<?> type) {
-                Object instance = super.newInstance(type);
-                registerListener((MessageListener) instance);
-
-                return instance;
-            }
-
-            @Override
-            public Class<?>[] type() {
-                return new Class[] {MessageListener.class};
-            }
-
-        });
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(MessageListener.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(MessageListener.class, this::registerListener))
+        );
     }
 
     @PostInitialize

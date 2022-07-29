@@ -25,15 +25,14 @@
 package io.fairyproject.bukkit.impl;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.timings.MCTiming;
 import io.fairyproject.bukkit.timings.TimingService;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.container.Autowired;
+import io.fairyproject.log.Log;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.TaskRunnable;
 import io.fairyproject.util.terminable.Terminable;
-import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitTask;
@@ -184,7 +183,7 @@ public class BukkitTaskScheduler implements ITaskScheduler {
             plugin = FairyBukkitPlatform.PLUGIN;
         }
         if (!plugin.isEnabled()) {
-            LogManager.getLogger(Events.class).error("The plugin hasn't enabled but trying to register listener " + obj.getClass().getSimpleName());
+            Log.error("The plugin hasn't enabled but trying to register listener " + obj.getClass().getSimpleName());
         }
         return plugin;
     }

@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.nametag;
 
+import io.fairyproject.mc.protocol.item.NameTagVisibility;
 import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
@@ -37,11 +38,19 @@ public abstract class NameTagAdapter {
     protected static NameTagService NAMETAG_SERVICE;
 
     public static NameTag createNametag(Component prefix, Component suffix) {
-        return NAMETAG_SERVICE.getOrCreate(prefix, suffix);
+        return createNametag(prefix, suffix, NameTagVisibility.ALWAYS);
     }
 
     public static NameTag createNametag(String legacyPrefix, String legacySuffix) {
-        return NAMETAG_SERVICE.getOrCreate(MCAdventure.LEGACY.deserialize(legacyPrefix), MCAdventure.LEGACY.deserialize(legacySuffix));
+        return createNametag(legacyPrefix, legacySuffix, NameTagVisibility.ALWAYS);
+    }
+
+    public static NameTag createNametag(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
+        return NAMETAG_SERVICE.getOrCreate(prefix, suffix, nameTagVisibility);
+    }
+
+    public static NameTag createNametag(String legacyPrefix, String legacySuffix, NameTagVisibility nameTagVisibility) {
+        return NAMETAG_SERVICE.getOrCreate(MCAdventure.LEGACY.deserialize(legacyPrefix), MCAdventure.LEGACY.deserialize(legacySuffix), nameTagVisibility);
     }
 
     private final String name;

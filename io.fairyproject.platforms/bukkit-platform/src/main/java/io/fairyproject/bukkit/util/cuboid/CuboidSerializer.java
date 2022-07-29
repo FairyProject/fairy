@@ -24,12 +24,12 @@
 
 package io.fairyproject.bukkit.util.cuboid;
 
-import io.fairyproject.container.Component;
 import io.fairyproject.ObjectSerializer;
+import io.fairyproject.container.object.Obj;
 
 import java.util.Map;
 
-@Component
+@Obj
 public class CuboidSerializer implements ObjectSerializer<Cuboid, Map> {
     @Override
     public Map serialize(Cuboid input) {

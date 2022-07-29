@@ -8,8 +8,7 @@ import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.Nullable;
 
-@Event
-public class DCMessageReceivedEvent implements Cancellable {
+public class DCMessageReceivedEvent implements Event, Cancellable {
 
     @Getter
     private final DCBot bot;

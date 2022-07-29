@@ -43,11 +43,11 @@ public final class NameTag {
 
     private Set<String> nameSet;
 
-    protected NameTag(final Component prefix, final Component suffix) {
+    NameTag(final Component prefix, final Component suffix) {
         this(prefix, suffix, NameTagVisibility.ALWAYS);
     }
 
-    protected NameTag(final Component prefix, final Component suffix, NameTagVisibility nameTagVisibility) {
+    NameTag(final Component prefix, final Component suffix, NameTagVisibility nameTagVisibility) {
         this.name = "ImanityTeam-" + TEAM_INDEX.getAndIncrement();
         this.prefix = prefix;
         this.suffix = suffix;

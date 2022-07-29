@@ -11,11 +11,9 @@ import io.fairyproject.gradle.file.ClassModifierCancellable;
 import io.fairyproject.gradle.file.ClassModifierEvent;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -24,7 +22,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
@@ -39,14 +39,14 @@ public class ModuleTask extends DefaultTask {
     );
 
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     private File inJar;
 
     @Input
-    private ModuleExtension extension;
+    private ModuleExtensionSerializable extension;
 
-    @Setter
     @Input
-    private Set<String> modules;
+    private List<Pair<String, String>> exclusives;
 
     @Input
     private boolean snapshot;
@@ -95,26 +95,19 @@ public class ModuleTask extends DefaultTask {
 
             JsonObject jsonObject = new JsonObject();
 
-            jsonObject.addProperty("name", extension.getName().get());
-            jsonObject.addProperty("classPath", extension.getClassPath().get());
-            jsonObject.addProperty("abstraction", extension.getAbstraction().get());
-
-            JsonArray array = new JsonArray();
-            for (String depend : modules) {
-                Project dependProject = getProject().project(ModulePlugin.MODULE_PREFIX + depend);
-                array.add(dependProject.getExtensions().getByType(ModuleExtension.class).getName().get() + ":" + dependProject.getVersion() + (this.snapshot ? "-SNAPSHOT" : ""));
-            }
-
-            jsonObject.add("depends", array);
+            jsonObject.addProperty("name", extension.getName());
+            jsonObject.addProperty("classPath", extension.getClassPath());
+            jsonObject.addProperty("abstraction", extension.isAbstraction());
 
             JsonObject exclusive = new JsonObject();
-            final Map<String, String> map = extension.getExclusives().get();
+            final Map<String, String> map = extension.getExclusives();
             map.forEach(exclusive::addProperty);
+            exclusives.forEach(pair -> exclusive.addProperty(pair.getKey(), pair.getValue()));
 
             jsonObject.add("exclusive", exclusive);
 
-            array = new JsonArray();
-            for (Lib library : extension.getLibraries().getOrElse(Collections.emptyList())) {
+            JsonArray array = new JsonArray();
+            for (Lib library : extension.getLibraries()) {
                 array.add(library.toJsonObject());
             }
             jsonObject.add("libraries", array);

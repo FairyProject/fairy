@@ -24,13 +24,13 @@
 
 package io.fairyproject.command.parameter.impl;
 
-import io.fairyproject.container.Component;
 import io.fairyproject.command.CommandContext;
 import io.fairyproject.command.parameter.ArgTransformer;
+import io.fairyproject.container.object.Obj;
 
 import java.util.UUID;
 
-@Component
+@Obj
 public class UUIDArgTransformer implements ArgTransformer<UUID> {
 
 	@Override

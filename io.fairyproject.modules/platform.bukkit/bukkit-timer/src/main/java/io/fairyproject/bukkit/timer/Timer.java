@@ -33,12 +33,12 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Getter
@@ -47,10 +47,10 @@ public abstract class Timer implements Terminable, TerminableConsumer {
     @Autowired
     protected static TimerService TIMER_SERVICE;
 
-    protected static final IntOpenHashSet COUNTDOWNS;
+    protected static final Set<Integer> COUNTDOWNS;
 
     static {
-        COUNTDOWNS = new IntOpenHashSet(ImmutableSet.of(3200,
+        COUNTDOWNS = ImmutableSet.of(3200,
                 1600,
                 1200,
                 600,
@@ -70,7 +70,7 @@ public abstract class Timer implements Terminable, TerminableConsumer {
                 3,
                 2,
                 1,
-                0));
+                0);
     }
 
     private final long startTime;

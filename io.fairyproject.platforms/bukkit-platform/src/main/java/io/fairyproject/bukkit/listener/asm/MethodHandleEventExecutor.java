@@ -67,7 +67,7 @@ public class MethodHandleEventExecutor implements EventExecutor {
 
     @Override
     @SneakyThrows
-    public void execute(@NonNull Listener listener, @NonNull Event event) throws EventException {
+    public void execute(@NonNull Listener listener, @NonNull Event event) {
         if (eventClass.isInstance(event) && (ignoredFilters || eventList.check(event, this.attributes))) {
             handle.invoke(listener, event);
         }

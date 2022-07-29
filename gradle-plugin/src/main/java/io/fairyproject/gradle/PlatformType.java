@@ -21,7 +21,7 @@ public enum PlatformType {
         }
 
         @Override
-        public void applyDependencies(Project project, FairyExtension extension) throws IOException {
+        public void applyDependencies(Project project, FairyExtension extension) {
             String groupId = "dev.imanity.mockbukkit";
             String version = extension.properties(PlatformType.BUKKIT).getOrDefault("api-version", "1.16");
             String artifactId = "MockBukkit" + version;
@@ -62,24 +62,24 @@ public enum PlatformType {
     }
 
     // name in parameter shouldn't contains platform prefix or "module." for example module.tablist should be tablist in input, bukkit-xseries should be xseries
-    public String searchModuleName(String name) throws IOException {
+    public String searchModuleName(String name, String version) throws IOException {
         String main = this.name().toLowerCase() + "-" + name;
-        if (MavenUtil.isExistingModule(main)) {
+        if (MavenUtil.isExistingModule(main, version)) {
             return main;
         }
         for (PlatformType platformType : this.inherited()) {
             main = platformType.name().toLowerCase() + "-" + name;
-            if (MavenUtil.isExistingModule(main)) {
+            if (MavenUtil.isExistingModule(main, version)) {
                 return main;
             }
         }
         main = "core-" + name;
-        if (MavenUtil.isExistingModule(main)) {
+        if (MavenUtil.isExistingModule(main, version)) {
             return main;
         }
 
         main = "module." + name;
-        if (MavenUtil.isExistingModule(main)) {
+        if (MavenUtil.isExistingModule(main, version)) {
             return main;
         }
         return null;

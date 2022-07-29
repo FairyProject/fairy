@@ -1,5 +1,3 @@
-version = "0.0.1b1"
-
 module {
     platform("mc")
 }

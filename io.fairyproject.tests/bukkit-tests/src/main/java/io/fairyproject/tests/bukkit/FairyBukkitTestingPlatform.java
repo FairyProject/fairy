@@ -3,7 +3,6 @@ package io.fairyproject.tests.bukkit;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.mc.MCInitializer;
-import io.fairyproject.mc.protocol.MCProtocol;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -14,7 +13,7 @@ public abstract class FairyBukkitTestingPlatform extends FairyBukkitPlatform {
     public FairyBukkitTestingPlatform() {
         super(new File("build/tmp/fairy"));
         OBCVersion.forceSet(this.version());
-        MCProtocol.OVERWRITTEN_VERSION = this.version().toMCVersion();
+//        MCProtocol.OVERWRITTEN_VERSION = this.version().toMCVersion(); // TODO
     }
 
     @Override
@@ -24,8 +23,13 @@ public abstract class FairyBukkitTestingPlatform extends FairyBukkitPlatform {
 
     public abstract OBCVersion version();
 
-    public static void patchBukkitPlugin(JavaPlugin plugin) throws ClassNotFoundException, NoSuchFieldException, IllegalAccessException {
-        final Class<?> type = Class.forName("io.fairyproject.bootstrap.bukkit.BukkitPlugin");
+    public static void patchBukkitPlugin(JavaPlugin plugin) throws NoSuchFieldException, IllegalAccessException {
+        final Class<?> type;
+        try {
+            type = Class.forName("io.fairyproject.bootstrap.bukkit.BukkitPlugin");
+        } catch (ClassNotFoundException ex) {
+            return;
+        }
 
         final Field field = type.getDeclaredField("INSTANCE");
         field.setAccessible(true);

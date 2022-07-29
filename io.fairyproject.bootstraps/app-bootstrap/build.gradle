@@ -1,20 +1,6 @@
-import com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer
-
-version = project(":").version
-
 dependencies {
     implementation project(":io.fairyproject.bootstraps:bootstrap")
     compileOnly project(":io.fairyproject.platforms:app-platform")
-
-    implementation "org.jline:jline-terminal-jansi:3.12.1"
-    implementation "net.minecrell:terminalconsoleappender:1.2.0"
-    implementation "org.apache.logging.log4j:log4j-core:" + findProperty("log4j.version")
-    annotationProcessor "org.apache.logging.log4j:log4j-core:" + findProperty("log4j.version")
-    implementation "org.apache.logging.log4j:log4j-iostreams:" + findProperty("log4j.version")
-    implementation "org.apache.logging.log4j:log4j-api:" + findProperty("log4j.version")
-    implementation "net.java.dev.jna:jna:4.5.2"
-    implementation "com.lmax:disruptor:3.4.2"
-    implementation "net.minecrell:terminalconsoleappender:1.2.0"
 }
 
 tasks.jar {
@@ -23,16 +9,5 @@ tasks.jar {
                 "MainClass": "io.fairyproject.bootstrap.app.AppLauncher",
                 "Multi-Release": "true"
         )
-    }
-}
-
-tasks.shadowJar {
-    transform(ModifiedLog4j2PluginsCacheFileTransformer.class)
-}
-
-class ModifiedLog4j2PluginsCacheFileTransformer extends Log4j2PluginsCacheFileTransformer {
-    @Override
-    boolean canTransformResource(FileTreeElement element) {
-        return super.canTransformResource(element) || element.name == "Log4j2Plugins.dat"
     }
 }

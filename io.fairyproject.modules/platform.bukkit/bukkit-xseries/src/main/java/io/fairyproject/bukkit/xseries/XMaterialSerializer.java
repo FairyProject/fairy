@@ -2,9 +2,9 @@ package io.fairyproject.bukkit.xseries;
 
 import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 
-@Component
+@Obj
 public class XMaterialSerializer implements ObjectSerializer<XMaterial, String> {
     @Override
     public String serialize(XMaterial input) {

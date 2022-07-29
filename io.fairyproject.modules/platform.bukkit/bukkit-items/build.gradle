@@ -1,5 +1,3 @@
-version = "0.0.1b6"
-
 dependencies {
     compileOnly project.spigot()
 }
@@ -7,4 +5,5 @@ dependencies {
 module {
     depend("module.locale:mc-locale")
     depend("platform.bukkit:bukkit-xseries")
+    depend("platform.bukkit:bukkit-nbt")
 }

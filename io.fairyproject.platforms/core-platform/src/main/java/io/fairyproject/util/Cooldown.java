@@ -24,25 +24,24 @@
 
 package io.fairyproject.util;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Expiry;
-import com.github.benmanes.caffeine.cache.RemovalCause;
+import com.google.common.cache.RemovalCause;
+import io.fairyproject.task.Task;
+import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 /**
  * The Simple Cooldown Utility for Fairy
  */
 @Getter
-public class Cooldown<T> {
+public class Cooldown<T> implements Terminable {
 
-    private final Cache<T, Long> cache;
+    private final Map<T, Long> cache;
     private final long defaultCooldown;
+    private final Terminable task;
     private BiConsumer<T, RemovalCause> removalListener;
 
     public Cooldown(long defaultCooldown) {
@@ -51,31 +50,17 @@ public class Cooldown<T> {
 
     public Cooldown(long defaultCooldown, BiConsumer<T, RemovalCause> removalListener) {
         this.removalListener = removalListener;
-        this.cache = Caffeine.newBuilder()
-                .expireAfter(new Expiry<T, Long>() {
-                    @Override
-                    public long expireAfterCreate(@NonNull T key, @NonNull Long value, long currentTime) {
-                        return TimeUnit.MILLISECONDS.toNanos(value - System.currentTimeMillis());
-                    }
-
-                    @Override
-                    public long expireAfterUpdate(@NonNull T key, @NonNull Long value, long currentTime, @NonNegative long currentDuration) {
-                        return TimeUnit.MILLISECONDS.toNanos(value - System.currentTimeMillis());
-                    }
-
-                    @Override
-                    public long expireAfterRead(@NonNull T key, @NonNull Long value, long currentTime, @NonNegative long currentDuration) {
-                        return currentDuration;
-                    }
-                })
-                .removalListener((key, value, cause) -> {
-                    if (this.removalListener != null) {
-                        this.removalListener.accept(key, cause);
-                    }
-                })
-                .build();
+        this.cache = new ConcurrentHashMap<>();
 
         this.defaultCooldown = defaultCooldown;
+        this.task = Task.asyncRepeated(t -> {
+            long time = System.currentTimeMillis();
+            for (Map.Entry<T, Long> entry : this.cache.entrySet()) {
+                if (time >= entry.getValue()) {
+                    this.cache.remove(entry.getKey());
+                }
+            }
+        }, 1L);
     }
 
     public void removalListener(BiConsumer<T, RemovalCause> consumer) {
@@ -91,16 +76,25 @@ public class Cooldown<T> {
     }
 
     public long getCooldown(T t) {
-        final Long value = this.cache.getIfPresent(t);
+        final Long value = this.cache.get(t);
         return value != null ? System.currentTimeMillis() - value : -1;
     }
 
     public boolean isCooldown(T t) {
-        return this.cache.getIfPresent(t) != null;
+        return this.cache.get(t) != null;
     }
 
     public void removeCooldown(T t) {
-        this.cache.invalidate(t);
+        this.cache.remove(t);
     }
 
+    @Override
+    public void close() throws Exception {
+        this.task.close();
+    }
+
+    @Override
+    public boolean isClosed() {
+        return this.task.isClosed();
+    }
 }

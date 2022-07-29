@@ -28,7 +28,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
-public abstract class AbstractRepository<T, ID extends Serializable, R extends RepositoryProvider> implements Repository<T, ID> {
+public abstract class AbstractRepository<T, I extends Serializable, R extends RepositoryProvider> implements Repository<T, I> {
 
     protected R repositoryProvider;
     protected Class<T> type;

@@ -24,6 +24,8 @@
 
 package io.fairyproject.util;
 
+import io.github.toolfactory.narcissus.Narcissus;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -53,17 +55,33 @@ public abstract class AccessUtil {
 			Field modifiersField = Field.class.getDeclaredField("modifiers");
 			modifiersField.setAccessible(true);
 			modifiersField.setInt(field, modifiers & ~Modifier.FINAL);
-		} catch (NoSuchFieldException e) {
+		} catch (Throwable e) {
+			if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
+				// Java 16 compatibility
+				final Method method = Narcissus.findMethod(Field.class, "setAccessible0", boolean.class);
+				Narcissus.invokeMethod(field, method, true);
+			}
 			if ("modifiers".equals(e.getMessage()) || (e.getCause() != null && e.getCause().getMessage() != null &&  e.getCause().getMessage().equals("modifiers"))) {
 				// https://github.com/ViaVersion/ViaVersion/blob/e07c994ddc50e00b53b728d08ab044e66c35c30f/bungee/src/main/java/us/myles/ViaVersion/bungee/platform/BungeeViaInjector.java
 				// Java 12 compatibility *this is fine*
-				Method getDeclaredFields0 = Class.class.getDeclaredMethod("getDeclaredFields0", boolean.class);
-				getDeclaredFields0.setAccessible(true);
-				Field[] fields = (Field[]) getDeclaredFields0.invoke(Field.class, false);
+				Field[] fields;
+				if (Narcissus.libraryLoaded) {
+					final Method getDeclaredFields0 = Narcissus.findMethod(Class.class, "getDeclaredFields0", boolean.class);
+					final Object o = Narcissus.invokeObjectMethod(Field.class, getDeclaredFields0, false);
+					fields = (Field[]) o;
+				} else {
+					Method getDeclaredFields0 = Class.class.getDeclaredMethod("getDeclaredFields0", boolean.class);
+					getDeclaredFields0.setAccessible(true);
+					fields = (Field[]) getDeclaredFields0.invoke(Field.class, false);
+				}
 				for (Field classField : fields) {
 					if ("modifiers".equals(classField.getName())) {
-						classField.setAccessible(true);
-						classField.set(field, modifiers & ~Modifier.FINAL);
+						if (Narcissus.libraryLoaded) {
+							Narcissus.setField(field, classField, modifiers & ~Modifier.FINAL);
+						} else {
+							classField.setAccessible(true);
+							classField.set(field, modifiers & ~Modifier.FINAL);
+						}
 						break;
 					}
 				}

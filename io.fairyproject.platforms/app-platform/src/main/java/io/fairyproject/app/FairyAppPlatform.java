@@ -1,22 +1,24 @@
 package io.fairyproject.app;
 
+import io.fairyproject.Debug;
 import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
-import io.fairyproject.library.Library;
-import io.fairyproject.module.ModuleService;
+import io.fairyproject.PlatformType;
+import io.fairyproject.app.logger.TinyLogger;
+import io.fairyproject.log.Log;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
+import org.tinylog.provider.ProviderRegistry;
 
 import java.io.File;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.jar.JarFile;
 
@@ -38,21 +40,21 @@ public class FairyAppPlatform extends FairyPlatform {
         this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
         this.mainThread = Thread.currentThread();
         this.running = true;
+
+        if (!Debug.UNIT_TEST)
+            Log.set(new TinyLogger());
     }
 
     @Override
-    public void load() {
-        super.load();
+    public void load(Plugin plugin) {
+        super.load(plugin);
 
         PluginManager.initialize(new AppPluginHandler());
-        ModuleService.init();
     }
 
     @Override
     public void enable() {
         super.enable();
-
-        ModuleService.INSTANCE.enable();
     }
 
     public void setMainApplication(Application mainApplication) {
@@ -95,16 +97,6 @@ public class FairyAppPlatform extends FairyPlatform {
     }
 
     @Override
-    public Collection<Library> getDependencies() {
-        return Arrays.asList(
-                Library.builder().gradle("commons-io:commons-io:2.7").build(),
-                Library.builder().gradle("com.google.code.gson:gson:2.8.6").build(),
-                Library.builder().gradle("com.google.guava:guava:30.0-jre").build(),
-                Library.builder().gradle("org.yaml:snakeyaml:1.20").build()
-        );
-    }
-
-    @Override
     public void shutdown() {
         synchronized (this.shutdownLock) {
             if (this.shuttingDown) {
@@ -112,13 +104,19 @@ public class FairyAppPlatform extends FairyPlatform {
             }
             this.shuttingDown = true;
         }
-        LOGGER.info("Shutting down...");
+        Log.info("Shutting down...");
 
         if (this.mainApplication != null) {
             try {
                 this.mainApplication.close();
             } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                try {
+                    ProviderRegistry.getLoggingProvider().shutdown();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -139,5 +137,10 @@ public class FairyAppPlatform extends FairyPlatform {
     @Override
     public ITaskScheduler createTaskScheduler() {
         return new AsyncTaskScheduler();
+    }
+
+    @Override
+    public PlatformType getPlatformType() {
+        return PlatformType.APP;
     }
 }
