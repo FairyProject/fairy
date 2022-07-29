@@ -21,7 +21,7 @@ public enum PlatformType {
         }
 
         @Override
-        public void applyDependencies(Project project, FairyExtension extension) throws IOException {
+        public void applyDependencies(Project project, FairyExtension extension) {
             String groupId = "dev.imanity.mockbukkit";
             String version = extension.properties(PlatformType.BUKKIT).getOrDefault("api-version", "1.16");
             String artifactId = "MockBukkit" + version;

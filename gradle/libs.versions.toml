@@ -10,6 +10,7 @@ annotations = "19.0.0"
 lombok = "1.18.24"
 persistence-api = "2.2"
 junit = "5.8.1"
+asm = "9.3"
 
 [libraries]
 jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
@@ -26,8 +27,11 @@ annotations = { module = "org.jetbrains:annotations", version.ref = "annotations
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 javax-persistence-api = { module = "javax.persistence:javax.persistence-api", version.ref = "persistence-api" }
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
+asm-commons = { module = "org.ow2.asm:asm-commons", version.ref = "asm" }
 
 [bundles]
 jackson = ["jackson-core", "jackson-databind", "jackson-annotations", "jackson-datatype-jsr310"]
+asm = ["asm-core", "asm-commons"]
 
 [plugins]

@@ -1,7 +1,6 @@
 package io.fairyproject.gradle;
 
 import io.fairyproject.gradle.util.SneakyThrow;
-import io.fairyproject.gradle.util.MavenUtil;
 import lombok.Getter;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;

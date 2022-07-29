@@ -37,6 +37,7 @@ public class FairyPlugin implements Plugin<Project> {
 
     public static boolean IS_IN_IDE = false;
 
+    @Getter
     private FairyExtension extension;
     @Getter
     private Project project;

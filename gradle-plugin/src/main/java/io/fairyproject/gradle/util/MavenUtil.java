@@ -105,7 +105,7 @@ public class MavenUtil {
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.setRequestMethod("GET");
-            connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+            connection.addRequestProperty("User-Agent", userAgent());
             connection.setConnectTimeout(10000);
             connection.setReadTimeout(10000);
 
@@ -131,7 +131,7 @@ public class MavenUtil {
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoInput(true);
                 connection.setRequestMethod("GET");
-                connection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0");
+                connection.addRequestProperty("User-Agent", userAgent());
 
                 if (connection.getResponseCode() == 200) {
                     final JsonArray jsonObject = new Gson().fromJson(new InputStreamReader(connection.getInputStream()), JsonArray.class);
@@ -143,6 +143,14 @@ public class MavenUtil {
                 throw throwable;
             }
         });
+    }
+
+    private String userAgent() {
+        String fairyVersion = FairyPlugin.INSTANCE.getExtension()
+                .getFairyVersion()
+                .get();
+
+        return String.format("Fairy/%s", fairyVersion);
     }
 
     private <R> R cacheable(String type, String key, Class<R> classType, ThrowingSupplier<R> valueSupplier) {
