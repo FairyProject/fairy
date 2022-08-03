@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -33,6 +34,7 @@ public class FairyPlugin implements Plugin<Project> {
     public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     public static final String REPOSITORY = "https://repo.imanity.dev/imanity-libraries/";
     public static final String DEPENDENCY_FORMAT = "io.fairyproject:%s:%s";
+    public static Queue<Runnable> QUEUE = new ConcurrentLinkedQueue<>();
     public static FairyPlugin INSTANCE;
 
     public static boolean IS_IN_IDE = false;
@@ -78,6 +80,10 @@ public class FairyPlugin implements Plugin<Project> {
 
     private void applyInternal(Project project, Configuration fairyConfiguration, FairyBuildTask fairyTask) {
         this.checkIdeIdentityState();
+        Runnable runnable;
+        while ((runnable = QUEUE.poll()) != null) {
+            runnable.run();
+        }
 
         this.addMavenRepository();
         final List<PlatformType> platformTypes = this.extension.getFairyPlatforms().getOrNull();

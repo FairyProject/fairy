@@ -25,7 +25,6 @@
 package io.fairyproject.bukkit;
 
 import io.fairyproject.Debug;
-import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
@@ -47,6 +46,7 @@ import io.fairyproject.mc.MCInitializer;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -56,6 +56,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.net.URLClassLoader;
 
 public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
@@ -63,7 +64,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     public static JavaPlugin PLUGIN = JavaPluginUtil.getProvidingPlugin(FairyBukkitPlatform.class);
     public static BukkitAudiences AUDIENCES;
 
-    private final ExtendedClassLoader classLoader;
+    private final URLClassLoaderAccess classLoader;
     private final File dataFolder;
     private final CompositeTerminable compositeTerminable;
 
@@ -77,7 +78,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         FairyPlatform.INSTANCE = this;
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
-        this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
+        this.classLoader = URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
 
         PluginManager.initialize(new BukkitPluginHandler());
         // Use log4j for bukkit platform
@@ -129,7 +130,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     }
 
     @Override
-    public ExtendedClassLoader getClassloader() {
+    public URLClassLoaderAccess getClassloader() {
         return this.classLoader;
     }
 

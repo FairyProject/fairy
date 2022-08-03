@@ -30,6 +30,7 @@ import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -112,7 +113,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
      *
      * @return Plugin Class Loader
      */
-    public abstract ExtendedClassLoader getClassloader();
+    public abstract URLClassLoaderAccess getClassloader();
 
     /**
      * get Fairy Folder

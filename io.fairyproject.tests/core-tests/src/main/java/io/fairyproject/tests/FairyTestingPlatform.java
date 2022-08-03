@@ -1,14 +1,15 @@
 package io.fairyproject.tests;
 
-import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
+import io.fairyproject.util.URLClassLoaderAccess;
 
 import java.io.File;
+import java.net.URLClassLoader;
 
 public class FairyTestingPlatform extends FairyPlatform {
 
@@ -36,8 +37,8 @@ public class FairyTestingPlatform extends FairyPlatform {
     }
 
     @Override
-    public ExtendedClassLoader getClassloader() {
-        return new ExtendedClassLoader(this.getClass().getClassLoader());
+    public URLClassLoaderAccess getClassloader() {
+        return URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
     }
 
     @Override

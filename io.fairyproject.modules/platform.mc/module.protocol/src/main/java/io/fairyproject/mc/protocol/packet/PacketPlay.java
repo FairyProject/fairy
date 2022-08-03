@@ -101,59 +101,59 @@ public class PacketPlay {
             }
         }
 
-        @Getter @Setter @Deprecated
-        public static class ScoreboardObjective extends WrapperPlayServerScoreboardObjective {
-            public ScoreboardObjective(String name, ObjectiveMode mode, Component displayName, RenderType display) {
-                super(name, mode, displayName, display);
-            }
-
-            public static Factory builder() {
-                return new Factory();
-            }
-
-            public static class Factory {
-                private String objectiveName;
-                private Component displayName;
-                private ObjectiveRenderType renderType;
-                private Integer method;
-
-                public Factory objectiveName(String objectiveName) {
-                    this.objectiveName = objectiveName;
-                    return this;
-                }
-
-                public Factory displayName(Component displayName) {
-                    this.displayName = displayName;
-                    return this;
-                }
-
-                public Factory renderType(ObjectiveRenderType renderType) {
-                    this.renderType = renderType;
-                    return this;
-                }
-
-                public Factory method(Integer method) {
-                    this.method = method;
-                    return this;
-                }
-
-                public ScoreboardObjective build() {
-                    final ObjectiveMode mode = ObjectiveMode.values()[renderType.ordinal()];
-                    final RenderType method = this.method == null
-                            ? null
-                            : RenderType.values()[this.method];
-
-                    return new ScoreboardObjective(
-                            objectiveName,
-                            mode,
-                            displayName == null
-                                    ? null
-                                    : displayName,
-                            method
-                    );
-                }
-            }
-        }
+//        @Getter @Setter @Deprecated
+//        public static class ScoreboardObjective extends WrapperPlayServerScoreboardObjective {
+//            public ScoreboardObjective(String name, ObjectiveMode mode, Component displayName, RenderType display) {
+//                super(name, mode, displayName, display);
+//            }
+//
+//            public static Factory builder() {
+//                return new Factory();
+//            }
+//
+//            public static class Factory {
+//                private String objectiveName;
+//                private Component displayName;
+//                private ObjectiveRenderType renderType;
+//                private Integer method;
+//
+//                public Factory objectiveName(String objectiveName) {
+//                    this.objectiveName = objectiveName;
+//                    return this;
+//                }
+//
+//                public Factory displayName(Component displayName) {
+//                    this.displayName = displayName;
+//                    return this;
+//                }
+//
+//                public Factory renderType(ObjectiveRenderType renderType) {
+//                    this.renderType = renderType;
+//                    return this;
+//                }
+//
+//                public Factory method(Integer method) {
+//                    this.method = method;
+//                    return this;
+//                }
+//
+//                public ScoreboardObjective build() {
+//                    final ObjectiveMode mode = ObjectiveMode.values()[renderType.ordinal()];
+//                    final RenderType method = this.method == null
+//                            ? null
+//                            : RenderType.values()[this.method];
+//
+//                    return new ScoreboardObjective(
+//                            objectiveName,
+//                            mode,
+//                            displayName == null
+//                                    ? null
+//                                    : displayName,
+//                            method
+//                    );
+//                }
+//            }
+//        }
 
         @Getter @Setter @Deprecated
         public static class Tablist extends WrapperPlayServerPlayerListHeaderAndFooter {

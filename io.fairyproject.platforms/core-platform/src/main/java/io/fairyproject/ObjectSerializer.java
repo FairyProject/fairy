@@ -26,7 +26,7 @@ package io.fairyproject;
 
 /**
  * The serializer that serializes type from I to O.
- * You can register through annotating {@link io.fairyproject.container.Component} or {@link io.fairyproject.container.SerializerFactory#registerSerializer(ObjectSerializer)}
+ * You can register through annotating {@link io.fairyproject.container.object.Obj} or {@link io.fairyproject.container.SerializerFactory#registerSerializer(ObjectSerializer)}
  * @param <I> the input type
  * @param <O> the output type
  */

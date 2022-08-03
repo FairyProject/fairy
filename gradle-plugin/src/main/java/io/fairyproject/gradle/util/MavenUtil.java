@@ -1,15 +1,18 @@
 package io.fairyproject.gradle.util;
 
-import com.google.gson.*;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.fairyproject.gradle.FairyPlugin;
 import io.fairyproject.gradle.IDEDependencyLookup;
 import io.fairyproject.shared.FairyVersion;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -66,6 +69,7 @@ public class MavenUtil {
             } catch (Throwable throwable) {
                 CACHE = null;
                 recreate = true;
+                Files.deleteIfExists(file);
                 System.out.println("An error occurs while reading cache: " + throwable.getClass().getSimpleName() + " : " + throwable.getMessage());
             }
         }
@@ -134,8 +138,11 @@ public class MavenUtil {
                 connection.addRequestProperty("User-Agent", userAgent());
 
                 if (connection.getResponseCode() == 200) {
-                    final JsonArray jsonObject = new Gson().fromJson(new InputStreamReader(connection.getInputStream()), JsonArray.class);
-                    return jsonObject.size() > 0;
+                    final JsonObject jsonObject = new Gson().fromJson(new InputStreamReader(connection.getInputStream()), JsonObject.class);
+                    if (jsonObject.has("status") && !jsonObject.get("status").equals("200")) {
+                        return false;
+                    }
+                    return true;
                 }
                 return false;
             } catch (Throwable throwable) {
@@ -218,7 +225,7 @@ public class MavenUtil {
         R accept() throws Throwable;
     }
 
-    public static MessageDigest createDigest() {
+    public static @NotNull MessageDigest createDigest() {
         try {
             return MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {

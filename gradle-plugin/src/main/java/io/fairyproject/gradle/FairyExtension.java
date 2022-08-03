@@ -66,25 +66,27 @@ public class FairyExtension {
     }
 
     public void module(String name) {
-        FairyPlugin.INSTANCE.checkIdeIdentityState();
-        try {
-            String module = null;
-            for (PlatformType platformType : this.fairyPlatforms.get()) {
-                module = platformType.searchModuleName(name, this.fairyVersion.get());
-                if (module != null) {
-                    break;
+        FairyPlugin.QUEUE.add(() -> {
+            FairyPlugin.INSTANCE.checkIdeIdentityState();
+            try {
+                String module = null;
+                for (PlatformType platformType : this.fairyPlatforms.get()) {
+                    module = platformType.searchModuleName(name, this.fairyVersion.get());
+                    if (module != null) {
+                        break;
+                    }
                 }
+                if (this.localRepo.get() && module == null) {
+                    module = name;
+                }
+                if (module == null) {
+                    throw new IllegalArgumentException("Couldn't find module " + name);
+                }
+                this.getFairyModules().add(module);
+            } catch (Exception ex) {
+                SneakyThrow.sneaky(ex);
             }
-            if (this.localRepo.get() && module == null) {
-                module = name;
-            }
-            if (module == null) {
-                throw new IllegalArgumentException("Couldn't find module " + name);
-            }
-            this.getFairyModules().add(module);
-        } catch (Exception ex) {
-            SneakyThrow.sneaky(ex);
-        }
+        });
     }
 
     public void platform(String platformName) {

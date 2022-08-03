@@ -174,7 +174,7 @@ public class LibraryHandler {
         this.loaded.put(library, files);
         if (addToUCP) {
             for (Path path : files) {
-                Fairy.getPlatform().getClassloader().addJarToClasspath(path);
+                Fairy.getPlatform().getClassloader().addPath(path);
                 for (URLClassLoaderAccess classLoader : this.pluginClassLoaders.values()) {
                     classLoader.addPath(path);
                 }

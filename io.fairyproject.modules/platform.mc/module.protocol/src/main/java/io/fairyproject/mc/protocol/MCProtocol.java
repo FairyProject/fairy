@@ -10,6 +10,7 @@ import io.fairyproject.container.PostDestroy;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.impl.BukkitPacketEventsBuilder;
 import io.fairyproject.mc.protocol.impl.mock.MockPacketEventsBuilder;
@@ -52,6 +53,7 @@ public class MCProtocol {
         this.packetEvents.load();
 
         this.packetSender = packetSender;
+        Log.info("Loaded MCProtocol with PacketEvents version %s on minecraft version %s", packetEvents.getVersion(), packetEvents.getServerManager().getVersion());
     }
 
     @PostInitialize

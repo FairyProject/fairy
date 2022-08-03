@@ -1,7 +1,6 @@
 package io.fairyproject.app;
 
 import io.fairyproject.Debug;
-import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.app.logger.TinyLogger;
@@ -10,6 +9,7 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
+import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
 import org.tinylog.provider.ProviderRegistry;
@@ -18,6 +18,7 @@ import java.io.File;
 import java.net.JarURLConnection;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.jar.JarFile;
@@ -25,7 +26,7 @@ import java.util.jar.JarFile;
 public class FairyAppPlatform extends FairyPlatform {
 
     private final List<Class<?>> appClasses = new ArrayList<>();
-    private final ExtendedClassLoader classLoader;
+    private final URLClassLoaderAccess classLoader;
     private final Thread mainThread;
     private boolean running;
 
@@ -37,7 +38,7 @@ public class FairyAppPlatform extends FairyPlatform {
 
     public FairyAppPlatform() {
         FairyPlatform.INSTANCE = this;
-        this.classLoader = new ExtendedClassLoader(this.getClass().getClassLoader());
+        this.classLoader = URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
         this.mainThread = Thread.currentThread();
         this.running = true;
 
@@ -87,7 +88,7 @@ public class FairyAppPlatform extends FairyPlatform {
     }
 
     @Override
-    public ExtendedClassLoader getClassloader() {
+    public URLClassLoaderAccess getClassloader() {
         return this.classLoader;
     }
 
