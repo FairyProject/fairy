@@ -2,6 +2,7 @@ package io.fairyproject.bootstrap.app;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.fairyproject.bootstrap.internal.FairyInternalIdentityMeta;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -10,6 +11,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Objects;
 
+@FairyInternalIdentityMeta
 public class AppLauncher {
 
     private static final String FAIRY_JSON_PATH = "fairy.json";

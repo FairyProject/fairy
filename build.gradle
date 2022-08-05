@@ -80,14 +80,10 @@ subprojects {
         return
     }
 
-    if (project.name != "gradle-plugin") {
+    if (project.name != "gradle-plugin" && project.name != "bom") {
         version = findProperty("fairy.version")
 
         apply from: "${rootDir}/gradle/scripts/builder.gradle"
-        tasks.create("publishSnapshotDev", PublishSnapshotTask.class).group("fairy")
-        tasks.create("publishSnapshotProduction", PublishSnapshotTask.class).group("fairy")
-        tasks.create("publishSnapshotLocal", PublishSnapshotTask.class).group("fairy")
-
         apply from: "${rootDir}/gradle/scripts/extensions.gradle"
         if (project.name.contains("bootstrap")) {
             apply from: "${rootDir}/gradle/scripts/bootstrap.gradle"

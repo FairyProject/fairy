@@ -107,7 +107,7 @@ initModules()
 initPlatforms()
 initTests()
 
-include "gradle-plugin"
 include "shared"
+include "bom"
 includeDebug()
 

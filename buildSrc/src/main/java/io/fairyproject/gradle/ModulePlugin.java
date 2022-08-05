@@ -20,14 +20,8 @@ public class ModulePlugin implements Plugin<Project> {
     public void apply(Project project) {
         final ModuleExtension extension = project.getExtensions().create("module", ModuleExtension.class);
         final ModuleTask task = project.getTasks().create("module", ModuleTask.class);
-        final PublishSnapshotTask publishSnapshotDevTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotDev");
-        final PublishSnapshotTask publishSnapshotLocalTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotLocal");
-        final PublishSnapshotTask publishSnapshotProductionTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotProduction");
 
         project.afterEvaluate(i -> {
-            publishSnapshotDevTask.setModuleTask(task);
-            publishSnapshotLocalTask.setModuleTask(task);
-            publishSnapshotProductionTask.setModuleTask(task);
 
             Map<Lib, Boolean> libs = new HashMap<>(extension.getLibraries().getOrElse(Collections.emptyMap()));
             List<Pair<String, String>> exclusives = new ArrayList<>();

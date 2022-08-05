@@ -2,37 +2,51 @@ apply plugin: "maven-publish"
 
 project.afterEvaluate {
     def shadowJar = project.tasks.findByName("shadowJar")
+
     publishing {
         publications {
-            production(MavenPublication) { publication ->
+            maven(MavenPublication) { publication ->
                 if (shadowJar != null)
                     from project.shadow.component(publication)
-                else
-                    from components.java
-                pom {
-                    name = "Fairy " + project.name
+                else {
+                    def java = components.findByName("java")
+                    if (java != null)
+                        from java
                 }
-            }
 
-            snapshot(MavenPublication) { publication ->
-                if (shadowJar != null)
-                    from project.shadow.component(publication)
-                else
-                    from components.java
                 pom {
-                    name = "Fairy " + project.name
-                    version = project.version + "-SNAPSHOT"
-                }
-            }
 
-            latest(MavenPublication) { publication ->
-                if (shadowJar != null)
-                    from project.shadow.component(publication)
-                else
-                    from components.java
-                pom {
                     name = "Fairy " + project.name
-                    version = "latest"
+                    description = project.description
+
+                    url = "https://github.com/FairyProject/fairy"
+                    organization {
+                        name = "Fairy Project"
+                        url = "https://github.com/FairyProject/fairy"
+                    }
+                    licenses {
+                        license {
+                            name = "MIT License"
+                            url = "https://www.apache.org/licenses/LICENSE-2.0"
+                            distribution = "repo"
+                        }
+                    }
+                    scm {
+                        url = "https://github.com/FairyProject/fairy"
+                        connection = "scm:git:git://github.com/FairyProject/fairy"
+                        developerConnection = "scm:git:git://github.com/FairyProject/fairy"
+                    }
+                    developers {
+                        developer {
+                            id = "leegod"
+                            name = "LeeGod"
+                            email = "leegod@imanity.dev"
+                        }
+                    }
+                    issueManagement {
+                        system = "GitHub"
+                        url = "https://github.com/FairyProject/fairy/issues"
+                    }
                 }
             }
         }
@@ -73,15 +87,6 @@ project.afterEvaluate {
     } else {
         build.finalizedBy(publishAllPublicationsToDevRepository)
     }
-    def publishSnapshotDev = project.tasks.findByName("publishSnapshotDev")
-    if (publishSnapshotDev != null)
-        publishSnapshotDev.finalizedBy(publishSnapshotPublicationToDevRepository)
-
-    def publishSnapshotProduction = project.tasks.findByName("publishSnapshotProduction")
-    if (publishSnapshotProduction != null)
-        publishSnapshotProduction.finalizedBy(publishSnapshotPublicationToProductionRepository)
-
-    def publishSnapshotLocal = project.tasks.findByName("publishSnapshotLocal")
-    if (publishSnapshotLocal != null)
-        publishSnapshotLocal.finalizedBy(publishSnapshotPublicationToMavenLocal)
 }
+
+

@@ -2,6 +2,7 @@ package io.fairyproject.bootstrap.bukkit;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.fairyproject.bootstrap.internal.FairyInternalIdentityMeta;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -9,6 +10,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+@FairyInternalIdentityMeta
 public final class BukkitPlugin extends JavaPlugin {
 
     private static final String FAIRY_JSON_PATH = "fairy.json";
