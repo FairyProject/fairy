@@ -28,7 +28,6 @@ import io.fairyproject.mysql.Session;
 import io.fairyproject.mysql.config.AbstractSqlRepositoryProvider;
 import io.fairyproject.mysql.connection.AbstractConnectionFactory;
 import io.fairyproject.mysql.pojo.Transaction;
-import org.apache.logging.log4j.LogManager;
 
 import java.io.Serializable;
 import java.util.List;
@@ -36,7 +35,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class SQLRepository<T, ID extends Serializable> extends AbstractRepository<T, ID, AbstractSqlRepositoryProvider> {
+public class SQLRepository<T, I extends Serializable> extends AbstractRepository<T, I, AbstractSqlRepositoryProvider> {
 
     public SQLRepository(AbstractSqlRepositoryProvider repositoryProvider, Class<T> type, String repoId) {
         super(repositoryProvider, type, repoId);
@@ -105,7 +104,7 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
     }
 
     @Override
-    public Optional<T> findById(ID id) {
+    public Optional<T> findById(I id) {
         return Optional.ofNullable(this.supplySession(session -> session.find(this.type(), id)));
     }
 
@@ -115,7 +114,7 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
     }
 
     @Override
-    public boolean existsById(ID id) {
+    public boolean existsById(I id) {
         return this.supplySession(session -> session.find(this.type(), id) != null);
     }
 
@@ -125,7 +124,7 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
     }
 
     @Override
-    public Iterable<T> findAllById(List<ID> ids) {
+    public Iterable<T> findAllById(List<I> ids) {
         return this.supplySession(session -> session.query().byMultipleIds(this.type(), ids).results(this.type()));
     }
 
@@ -135,7 +134,7 @@ public class SQLRepository<T, ID extends Serializable> extends AbstractRepositor
     }
 
     @Override
-    public void deleteById(ID id) {
+    public void deleteById(I id) {
         this.runSession(session -> session.delete(id));
     }
 

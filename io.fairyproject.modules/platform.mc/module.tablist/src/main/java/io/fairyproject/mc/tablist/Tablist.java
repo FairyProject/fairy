@@ -25,6 +25,7 @@
 package io.fairyproject.mc.tablist;
 
 import io.fairyproject.container.Autowired;
+import io.fairyproject.mc.protocol.MCProtocol;
 import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.packet.PacketPlay;
@@ -78,7 +79,7 @@ public class Tablist {
                         .players(LegacyClientUtil.entry(i - 1))
                         .build();
 
-                player.sendPacket(packet);
+                MCProtocol.sendPacket(player, packet);
             }
             currentEntries.add(tabEntry);
         }

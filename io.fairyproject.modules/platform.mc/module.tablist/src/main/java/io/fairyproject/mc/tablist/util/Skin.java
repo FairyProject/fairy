@@ -24,9 +24,9 @@
 
 package io.fairyproject.mc.tablist.util;
 
-import com.github.benmanes.caffeine.cache.CacheLoader;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.fairyproject.mc.MCGameProfile;
@@ -41,12 +41,13 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @Setter
 public class Skin {
 
-    private static final LoadingCache<UUID, Skin> SKIN_CACHE = Caffeine.newBuilder()
+    private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder.newBuilder()
             .expireAfterAccess(60L, TimeUnit.SECONDS)
             .initialCapacity(60)
             .build(new CacheLoader<UUID, Skin>() {
@@ -55,9 +56,7 @@ public class Skin {
                     MCPlayer player = MCPlayer.find(key);
                     if (player != null) {
                         try (ServerThreadLock ignored = ServerThreadLock.obtain()) {
-
                             final MCGameProfile gameProfile = player.gameProfile();
-
                             if (!gameProfile.hasProperty("textures")) {
                                 Property property = gameProfile.getProperties().stream()
                                         .filter(p -> p.getName().equals("textures"))
@@ -68,7 +67,6 @@ public class Skin {
                                 return new Skin(texture, signature);
                             }
                         }
-                        return null;
                     }
 
                     return Skin.download(key);
@@ -111,7 +109,12 @@ public class Skin {
     }
 
     public static Skin fromPlayer(MCPlayer player) {
-        Skin skin = SKIN_CACHE.get(player.getUUID());
+        Skin skin = null;
+        try {
+            skin = SKIN_CACHE.get(player.getUUID());
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
 
         return skin == null ? Skin.GRAY : skin;
     }

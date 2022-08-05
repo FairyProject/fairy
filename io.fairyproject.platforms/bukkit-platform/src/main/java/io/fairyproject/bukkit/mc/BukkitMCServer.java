@@ -2,9 +2,11 @@ package io.fairyproject.bukkit.mc;
 
 import io.fairyproject.Debug;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.protocol.MCVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 
@@ -53,5 +55,10 @@ public class BukkitMCServer implements MCServer {
     @Override
     public MCEntity getEntity(UUID entityUuid) {
         return MCEntity.from(UUID_TO_ENTITY.apply(entityUuid));
+    }
+
+    @Override
+    public MCVersion getVersion() {
+        return OBCVersion.get().toMCVersion();
     }
 }

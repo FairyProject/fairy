@@ -1,5 +1,7 @@
 package io.fairyproject.mc;
 
+import io.fairyproject.mc.protocol.MCVersion;
+
 import java.util.UUID;
 
 public interface MCServer {
@@ -9,6 +11,8 @@ public interface MCServer {
     }
 
     MCEntity getEntity(UUID entityUuid);
+
+    MCVersion getVersion();
 
     class Companion {
 

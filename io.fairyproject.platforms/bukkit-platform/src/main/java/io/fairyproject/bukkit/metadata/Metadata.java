@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.metadata;
 
+import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
@@ -39,7 +40,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.player.PlayerQuitEvent;
-import io.fairyproject.ScheduledAtFixedRate;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -86,11 +86,12 @@ public final class Metadata {
         }
     }
 
-    @ScheduledAtFixedRate(async = true, delay = 20, ticks = 20 * 60)
     private static void scheduleCleanup() {
-        for (MetadataRegistry<?> registry : BukkitMetadataRegistries.values()) {
-            registry.cleanup();
-        }
+        Fairy.getTaskScheduler().runAsyncRepeated(t -> {
+            for (MetadataRegistry<?> registry : BukkitMetadataRegistries.values()) {
+                registry.cleanup();
+            }
+        }, 20 * 60);
     }
 
     /**

@@ -1,106 +1,62 @@
 package io.fairyproject.bootstrap;
 
+import io.fairyproject.FairyPlatform;
 import io.fairyproject.bootstrap.type.PlatformType;
-import io.fairyproject.bootstrap.util.ClassLoaderUtil;
-import io.fairyproject.bootstrap.util.DownloadUtil;
-import org.jetbrains.annotations.NotNull;
+import io.fairyproject.plugin.Plugin;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
 public abstract class BaseBootstrap {
 
-    public static ClassLoader CLASS_LOADER;
-    public static void join(@NotNull Runnable runnable) {
-        assert CLASS_LOADER != null;
+    private FairyPlatform fairyPlatform;
 
-        final ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(CLASS_LOADER);
-        try {
-            runnable.run();
-        } finally {
-            Thread.currentThread().setContextClassLoader(classLoader);
+    public final boolean preload() {
+        if (FairyPlatform.class.getClassLoader() != this.getClass().getClassLoader()) {
+            return true;
         }
-    }
-
-    private BasePlatformBridge platformBridge;
-
-    public final boolean load() {
-        if (this.trySearchBootstraps()) {
+        if (FairyPlatform.INSTANCE != null) {
             return true;
         }
 
         try {
-            final Path directory = this.getBootstrapDirectory();
-            if (!Files.exists(directory)) {
-                Files.createDirectories(directory);
-            }
-
-            Path jarPath = this.getOrDownloadCore();
-            if (!this.loadJar(jarPath)) {
-                return false;
-            }
-
-            BaseBootstrap.join(() -> {
-                this.platformBridge = this.createPlatformBridge();
-                this.platformBridge.load();
-            });
+            this.fairyPlatform = this.createPlatform();
+            this.fairyPlatform.preload();
         } catch (Throwable throwable) {
             this.onFailure(throwable);
             return false;
         }
+
         return true;
     }
 
-    public boolean loadJar(Path jarPath) throws Exception {
-        CLASS_LOADER = ClassLoaderUtil.addURLToClassLoader(jarPath);
-        return true;
+    public final void load(Plugin plugin) {
+        if (this.fairyPlatform == null) {
+            return;
+        }
+        try {
+            this.fairyPlatform.load(plugin);
+        } catch (Throwable throwable) {
+            this.onFailure(throwable);
+        }
     }
 
     public final void enable() {
-        if (this.platformBridge == null) {
+        if (this.fairyPlatform == null) {
             return;
         }
-        BaseBootstrap.join(() -> this.platformBridge.enable());
+        this.fairyPlatform.enable();
     }
 
     public final void disable() {
-        if (this.platformBridge == null) {
+        if (this.fairyPlatform == null) {
             return;
         }
-        BaseBootstrap.join(() -> this.platformBridge.disable());
-    }
-
-    @NotNull
-    private Path getOrDownloadCore() throws IOException {
-        Path directory = this.getBootstrapDirectory();
-        Path file = directory.resolve("fairy.jar");
-        if (Files.exists(file)) {
-            return file;
-        }
-
-        return DownloadUtil.download(file, this.getPlatformType().name().toLowerCase());
+        this.fairyPlatform.disable();
     }
 
     protected abstract void onFailure(@Nullable Throwable throwable);
 
     protected abstract PlatformType getPlatformType();
 
-    protected abstract BasePlatformBridge createPlatformBridge();
-
-    protected abstract Path getBootstrapDirectory();
-
-    protected boolean trySearchBootstraps() {
-        try {
-            final Class<?> fairyClass = Class.forName("io.fairyproject.Fairy");
-            BaseBootstrap.CLASS_LOADER = fairyClass.getClassLoader();
-
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
+    protected abstract FairyPlatform createPlatform();
 
 }

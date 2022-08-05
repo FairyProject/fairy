@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class MongoRepository<T, ID extends Serializable> extends AbstractRepository<T, ID, AbstractMongoRepositoryProvider> {
+public class MongoRepository<T, I extends Serializable> extends AbstractRepository<T, I, AbstractMongoRepositoryProvider> {
 
     @Autowired
     private static JacksonService JACKSON_SERVICE;
@@ -88,7 +88,7 @@ public class MongoRepository<T, ID extends Serializable> extends AbstractReposit
     }
 
     @Override
-    public Optional<T> findById(ID id) {
+    public Optional<T> findById(I id) {
         return Optional.ofNullable(this.supply(() -> this.collection.findOneById(id)));
     }
 
@@ -98,7 +98,7 @@ public class MongoRepository<T, ID extends Serializable> extends AbstractReposit
     }
 
     @Override
-    public boolean existsById(ID id) {
+    public boolean existsById(I id) {
         return this.findById(id).isPresent();
     }
 
@@ -108,7 +108,7 @@ public class MongoRepository<T, ID extends Serializable> extends AbstractReposit
     }
 
     @Override
-    public Iterable<T> findAllById(List<ID> ids) {
+    public Iterable<T> findAllById(List<I> ids) {
         List<T> result = new ArrayList<>();
         this.run(() -> {
             for (T t : this.collection.find(this.collection.createIdInQuery(ids))) {
@@ -125,7 +125,7 @@ public class MongoRepository<T, ID extends Serializable> extends AbstractReposit
     }
 
     @Override
-    public void deleteById(ID id) {
+    public void deleteById(I id) {
         this.run(() -> this.collection.removeById(id));
     }
 

@@ -7,21 +7,28 @@ import org.jetbrains.annotations.Contract;
 public class ConditionUtils {
 
     @Contract("false, _ -> fail")
-    public static void check(final boolean expression, final String message)
+    public static void is(final boolean expression, final String message)
     {
         if (!expression)
             throw new IllegalArgumentException(message);
     }
 
+    @Contract("true, _ -> fail")
+    public static void not(final boolean expression, final String message)
+    {
+        if (expression)
+            throw new IllegalArgumentException(message);
+    }
+
     @Contract("false, _, _ -> fail")
-    public static void check(final boolean expression, final String message, final Object... args)
+    public static void is(final boolean expression, final String message, final Object... args)
     {
         if (!expression)
             throw new IllegalArgumentException(String.format(message, args));
     }
 
     @Contract("false, _, _ -> fail")
-    public static void check(final boolean expression, final String message, final Object arg)
+    public static void is(final boolean expression, final String message, final Object arg)
     {
         if (!expression)
             throw new IllegalArgumentException(String.format(message, arg));

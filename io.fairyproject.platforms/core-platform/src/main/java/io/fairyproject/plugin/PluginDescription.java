@@ -8,7 +8,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.Singular;
-import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,26 +21,16 @@ public class PluginDescription {
     private final String mainClass;
     private final String shadedPackage;
     @Singular
-    private final List<Pair<String, String>> modules;
-    @Singular
     private final List<Library> libraries;
 
     public PluginDescription(JsonObject jsonObject) {
-        ConditionUtils.check(jsonObject.has("name"), "name property could not be found.");
-        ConditionUtils.check(jsonObject.has("mainClass"), "mainClass property could not be found.");
-        ConditionUtils.check(jsonObject.has("shadedPackage"), "shadedPackage property could not be found.");
+        ConditionUtils.is(jsonObject.has("name"), "name property could not be found.");
+        ConditionUtils.is(jsonObject.has("mainClass"), "mainClass property could not be found.");
+        ConditionUtils.is(jsonObject.has("shadedPackage"), "shadedPackage property could not be found.");
 
         this.name = jsonObject.get("name").getAsString();
         this.mainClass = jsonObject.get("mainClass").getAsString();
         this.shadedPackage = jsonObject.get("shadedPackage").getAsString();
-
-        this.modules = new ArrayList<>();
-        if (jsonObject.has("modules")) {
-            for (JsonElement jsonElement : jsonObject.getAsJsonArray("modules")) {
-                final String[] entry = jsonElement.getAsString().split(":");
-                this.modules.add(Pair.of(entry[0], entry[1]));
-            }
-        }
 
         this.libraries = new ArrayList<>();
         if (jsonObject.has("libraries")) {

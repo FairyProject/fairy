@@ -25,10 +25,10 @@
 package io.fairyproject.bukkit.util.sound;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 import org.bukkit.Sound;
 
-@Component
+@Obj
 public class SoundDataSerializer implements ObjectSerializer<SoundData, String> {
     @Override
     public String serialize(SoundData input) {

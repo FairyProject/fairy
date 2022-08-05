@@ -24,17 +24,17 @@
 
 package io.fairyproject;
 
-import io.fairyproject.container.*;
 import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
+import io.fairyproject.container.*;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.jackson.JacksonService;
-import io.fairyproject.library.Library;
+import io.fairyproject.providers.inmemory.InMemoryRepositoryProvider;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -49,35 +49,14 @@ public class StorageService {
 
     @PreInitialize
     public void onPreInitialize() {
-        Fairy.getLibraryHandler().downloadLibraries(true, Arrays.asList(
-                Library.MARIADB_DRIVER,
-                Library.HIKARI,
-                Library.MYSQL_DRIVER,
-                Library.POSTGRESQL_DRIVER,
-                Library.H2_DRIVER,
-                Library.BYTE_BUDDY
-        ));
-        ComponentRegistry.registerComponentHolder(new ComponentHolder() {
-            @Override
-            public Class<?>[] type() {
-                return new Class[] {RepositoryProvider.class};
-            }
-
-            @Override
-            public void onEnable(Object instance) {
-                RepositoryProvider repositoryProvider = (RepositoryProvider) instance;
-
-                registerRepositoryProvider(repositoryProvider);
-                repositoryProvider.build();
-            }
-
-            @Override
-            public void onDisable(Object instance) {
-                RepositoryProvider repositoryProvider = (RepositoryProvider) instance;
-
-                unregisterRepositoryProvider(repositoryProvider);
-            }
-        });
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(RepositoryProvider.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(RepositoryProvider.class, obj -> {
+                    registerRepositoryProvider(obj);
+                    obj.build();
+                }))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(RepositoryProvider.class, this::unregisterRepositoryProvider))
+        );
     }
 
     @PostDestroy
@@ -98,6 +77,9 @@ public class StorageService {
 
     @Nullable
     public RepositoryProvider getRepositoryProvider(String providerId) {
+        if (Debug.UNIT_TEST) {
+            return InMemoryRepositoryProvider.INSTANCE;
+        }
         return this.repositoryProviders.get(providerId);
     }
 
@@ -116,7 +98,7 @@ public class StorageService {
     public <E, ID extends Serializable> Repository<E, ID> createRepository(String providerId, String repoId, Class<E> entityType) {
         final RepositoryProvider repositoryProvider = this.getRepositoryProvider(providerId);
         if (repositoryProvider == null) {
-            throw new NullPointerException("Repository does not exists.");
+            throw new IllegalStateException(String.format("Repository provider %s does not exists.", providerId));
         }
 
         return repositoryProvider.buildRepository(entityType, repoId);

@@ -24,11 +24,11 @@
 
 package io.fairyproject.command.parameter.impl;
 
-import io.fairyproject.container.Component;
 import io.fairyproject.command.CommandContext;
 import io.fairyproject.command.parameter.ArgTransformer;
+import io.fairyproject.container.object.Obj;
 
-@Component
+@Obj
 public class IntegerArgTransformer implements ArgTransformer<Integer> {
 
 	@Override

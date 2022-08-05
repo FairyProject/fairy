@@ -1,12 +1,13 @@
 package io.fairyproject.mc.actionbar;
 
 import io.fairyproject.container.*;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.metadata.PlayerOnlineValue;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
-import net.kyori.adventure.text.Component;
 import io.fairyproject.util.terminable.Terminable;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -27,11 +28,11 @@ public class ActionbarService {
 
     @PreInitialize
     public void onPreInitialize() {
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                        .type(ActionbarAdapter.class)
-                        .onEnable(obj -> this.registerAdapter((ActionbarAdapter) obj))
-                        .onDisable(obj -> this.unregisterAdapter((ActionbarAdapter) obj))
-                .build());
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(ActionbarAdapter.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(ActionbarAdapter.class, this::registerAdapter))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(ActionbarAdapter.class, this::unregisterAdapter))
+        );
     }
 
     @PostInitialize
@@ -77,11 +78,15 @@ public class ActionbarService {
         Component retVal = null;
 
         this.lock.readLock().lock();
-        for (ActionbarAdapter adapter : this.getSortedAdapters()) {
-            retVal = adapter.build(player);
-            if (retVal != null && !retVal.equals(Component.empty())) {
-                break;
+        try {
+            for (ActionbarAdapter adapter : this.getSortedAdapters()) {
+                retVal = adapter.build(player);
+                if (retVal != null && !retVal.equals(Component.empty())) {
+                    break;
+                }
             }
+        } finally {
+            this.lock.readLock().unlock();
         }
 
         return retVal;
@@ -89,12 +94,17 @@ public class ActionbarService {
 
     private int getUpdateTick() {
         int tick = 2;
-        for (ActionbarAdapter adapter : this.getSortedAdapters()) {
-            int adapterTick = adapter.ticks();
-            if (adapterTick != -1) {
-                tick = adapterTick;
-                break;
+        this.lock.readLock().lock();
+        try {
+            for (ActionbarAdapter adapter : this.getSortedAdapters()) {
+                int adapterTick = adapter.ticks();
+                if (adapterTick != -1) {
+                    tick = adapterTick;
+                    break;
+                }
             }
+        } finally {
+            this.lock.readLock().unlock();
         }
 
         return tick;

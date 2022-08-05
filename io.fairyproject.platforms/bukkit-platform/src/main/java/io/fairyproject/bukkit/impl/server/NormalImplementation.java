@@ -37,6 +37,7 @@ import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.*;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.AccessUtil;
@@ -113,7 +114,7 @@ public class NormalImplementation implements ServerImplementation {
                 ));
             } catch (Exception ex) {
 
-                Imanity.LOGGER.error("Having trouble while looking up MultiBlockChange packet (1_16_R2 ?)");
+                Log.error("Having trouble while looking up MultiBlockChange packet (1_16_R2 ?)");
                 // v1_16_R2 changed it for no reason fuck off
                 // PacketPlayOutMultiBlockChange(final SectionPosition sectionposition, final ShortSet shortset, final ChunkSection chunksection, final boolean flag)
 
@@ -124,9 +125,7 @@ public class NormalImplementation implements ServerImplementation {
                 BLOCK_GET_BY_ID_METHOD = new MethodWrapper<>(blockType.getMethod("getById", int.class));
                 FROM_LEGACY_DATA_METHOD = new MethodWrapper<>(blockType.getMethod("fromLegacyData", int.class));
             } catch (Exception ex) {
-
-                Imanity.LOGGER.error("The id of Block doesn't exists in your current version, some feature may not working correctly.");
-
+                Log.error("The id of Block doesn't exists in your current version, some feature may not working correctly.");
             }
 
             Class<?> worldType = CLASS_RESOLVER.resolve("world.level.World", "World");

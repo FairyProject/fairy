@@ -28,7 +28,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Optional;
 
-public interface Repository<T, ID extends Serializable> {
+public interface Repository<T, I extends Serializable> {
 
     void init();
 
@@ -43,19 +43,19 @@ public interface Repository<T, ID extends Serializable> {
         return pojoIterable;
     }
 
-    Optional<T> findById(ID id);
+    Optional<T> findById(I id);
 
     <Q> Optional<T> findByQuery(String query, Q value);
 
-    boolean existsById(ID id);
+    boolean existsById(I id);
 
     Iterable<T> findAll();
 
-    Iterable<T> findAllById(List<ID> ids);
+    Iterable<T> findAllById(List<I> ids);
 
     long count();
 
-    void deleteById(ID id);
+    void deleteById(I id);
 
     <Q> void deleteByQuery(String query, Q value);
 

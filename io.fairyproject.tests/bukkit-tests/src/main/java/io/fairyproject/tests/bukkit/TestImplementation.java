@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class TestImplementation implements ServerImplementation {
     @Override
     public Entity getEntity(UUID uuid) {
-        return BukkitTestingBase.SERVER.getEntity(uuid);
+        return MockBukkitContext.get().getServer().getEntity(uuid);
     }
 
     @Override
@@ -93,7 +93,7 @@ public class TestImplementation implements ServerImplementation {
 
     @Override
     public boolean isServerThread() {
-        return BukkitTestingBase.SERVER.isPrimaryThread();
+        return MockBukkitContext.get().getServer().isPrimaryThread();
     }
 
     @Override

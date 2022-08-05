@@ -25,21 +25,16 @@ import org.apache.tools.ant.filters.ReplaceTokens
 
 dependencies {
     api project(":io.fairyproject.platforms:mc-platform")
-
-    implementation 'io.fairyproject.packetevents:spigot:' + findProperty("packetevents.version")
-    implementation "net.kyori:adventure-platform-bukkit:4.0.1"
+    implementation libs.adventure.platform.bukkit
 
     compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
     compileOnly "com.mojang:authlib:1.5.21"
     compileOnly "io.netty:netty-all:4.1.60.Final"
     compileOnly "com.viaversion:viaversion:4.0.1"
     compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
-//    compileOnly "com.boydti:fawe-api:latest"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
     compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
     compileOnly name: "ProtocolSupport"
-    compileOnly "org.ow2.asm:asm:" + findProperty("asm.version")
-    compileOnly "org.ow2.asm:asm-commons:" + findProperty("asm.version")
 }
 
 repositories {

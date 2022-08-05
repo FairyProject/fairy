@@ -6,7 +6,7 @@ import io.fairyproject.discord.command.CommandPrefix;
 import io.fairyproject.discord.event.DCBotInitializedEvent;
 import io.fairyproject.discord.message.NextMessageReader;
 import io.fairyproject.discord.proxies.ProxyJDA;
-import io.fairyproject.event.EventBus;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.PreProcessBatch;
@@ -115,7 +115,7 @@ public abstract class DCBot implements ProxyJDA {
         this.buttonReader = new ButtonReader();
 
         BOT_BY_ID.put(this.jda.getSelfUser().getIdLong(), this);
-        EventBus.call(new DCBotInitializedEvent(this));
+        GlobalEventNode.get().call(new DCBotInitializedEvent(this));
     }
 
     @PreDestroy

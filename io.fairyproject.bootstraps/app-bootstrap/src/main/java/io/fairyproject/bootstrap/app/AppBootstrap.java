@@ -1,12 +1,10 @@
 package io.fairyproject.bootstrap.app;
 
+import io.fairyproject.FairyPlatform;
+import io.fairyproject.app.FairyAppPlatform;
 import io.fairyproject.bootstrap.BaseBootstrap;
-import io.fairyproject.bootstrap.BasePlatformBridge;
 import io.fairyproject.bootstrap.type.PlatformType;
 import org.jetbrains.annotations.Nullable;
-
-import java.io.File;
-import java.nio.file.Path;
 
 public class AppBootstrap extends BaseBootstrap {
 
@@ -27,12 +25,7 @@ public class AppBootstrap extends BaseBootstrap {
     }
 
     @Override
-    protected BasePlatformBridge createPlatformBridge() {
-        return new AppPlatformBridge();
-    }
-
-    @Override
-    protected Path getBootstrapDirectory() {
-        return new File("fairy").toPath();
+    protected FairyPlatform createPlatform() {
+        return new FairyAppPlatform();
     }
 }

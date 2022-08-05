@@ -2,11 +2,11 @@ package io.fairytest.state;
 
 import io.fairyproject.state.StateBase;
 import io.fairyproject.state.StateSequences;
-import io.fairyproject.tests.TestingBase;
+import io.fairyproject.tests.base.JUnitJupiterBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class StateSequencesTest extends TestingBase {
+public class StateSequencesTest extends JUnitJupiterBase {
 
     @Test
     public void sequenceEndingFirstNaturally() {

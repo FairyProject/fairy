@@ -9,7 +9,7 @@ buildscript {
 
 plugins {
     id "java"
-    id "io.fairyproject" version "1.0.1b5"
+    id "io.fairyproject" version "1.1.0b3"
 }
 
 repositories {
@@ -19,11 +19,12 @@ repositories {
 fairy {
     name = "debugPlugin"
     version = "1.0.0"
-    mainPackage = "io.fairyproject.debug"
+    mainPackage = "io.example.debug"
 
     fairyIde = true
 
     platform("bukkit")
+//    module("locale")
 }
 
 test {

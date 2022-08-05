@@ -24,39 +24,17 @@
 
 package io.fairyproject.library;
 
+import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.library.classloader.IsolatedClassLoader;
-import io.fairyproject.library.relocate.RelocateHandler;
-import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginListenerAdapter;
-import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.log.Log;
+import io.fairyproject.plugin.*;
 import io.fairyproject.util.FairyThreadFactory;
-import io.fairyproject.util.FileUtil;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.URLClassLoaderAccess;
-import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.apache.maven.repository.internal.MavenRepositorySystemUtils;
-import org.eclipse.aether.DefaultRepositorySystemSession;
-import org.eclipse.aether.RepositorySystem;
-import org.eclipse.aether.artifact.Artifact;
-import org.eclipse.aether.collection.CollectRequest;
-import org.eclipse.aether.connector.basic.BasicRepositoryConnectorFactory;
-import org.eclipse.aether.graph.Dependency;
-import org.eclipse.aether.impl.DefaultServiceLocator;
-import org.eclipse.aether.repository.LocalRepository;
-import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.repository.RepositoryPolicy;
-import org.eclipse.aether.resolution.ArtifactResult;
-import org.eclipse.aether.resolution.DependencyRequest;
-import org.eclipse.aether.resolution.DependencyResolutionException;
-import org.eclipse.aether.resolution.DependencyResult;
-import org.eclipse.aether.spi.connector.RepositoryConnectorFactory;
-import org.eclipse.aether.spi.connector.transport.TransporterFactory;
-import org.eclipse.aether.transport.http.HttpTransporterFactory;
 
 import java.io.File;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -69,18 +47,11 @@ import java.util.stream.Stream;
 public class LibraryHandler {
 
     private final Path libFolder;
-    @Getter
-    private final RelocateHandler relocateHandler;
-
-    private final RepositorySystem repository;
-    private final DefaultRepositorySystemSession session;
-    private final List<RemoteRepository> repositories;
 
     private final Map<Library, List<Path>> loaded = new ConcurrentHashMap<>();
     private final Map<Plugin, URLClassLoaderAccess> pluginClassLoaders = new ConcurrentHashMap<>();
     private final Map<Set<Library>, IsolatedClassLoader> loaders = new HashMap<>();
 
-    private final Logger LOGGER = LogManager.getLogger(LibraryHandler.class);
     private final ExecutorService EXECUTOR = Executors.newCachedThreadPool(FairyThreadFactory.builder()
             .daemon(true)
             .name("Library Downloader - <id>")
@@ -95,31 +66,14 @@ public class LibraryHandler {
         }
         this.libFolder = file.toPath();
 
-        DefaultServiceLocator locator = MavenRepositorySystemUtils.newServiceLocator();
-        locator.addService(RepositoryConnectorFactory.class, BasicRepositoryConnectorFactory.class);
-        locator.addService(TransporterFactory.class, HttpTransporterFactory.class);
-
-        this.repository = locator.getService(RepositorySystem.class);
-        this.session = MavenRepositorySystemUtils.newSession();
-
-        session.setChecksumPolicy(RepositoryPolicy.CHECKSUM_POLICY_FAIL);
-        session.setLocalRepositoryManager(repository.newLocalRepositoryManager(session, new LocalRepository(file)));
-        session.setReadOnly();
-        this.repositories = repository.newResolutionRepositories(session, Arrays.asList(
-                new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build()
-        ));
-
-        // ASM
-        this.downloadLibraries(true,
-                Library.ASM,
-                Library.ASM_TREE,
-                Library.ASM_COMMONS,
-                Library.COMMONS_IO
-        );
-
-        this.relocateHandler = new RelocateHandler(this);
         if (PluginManager.isInitialized()) {
             PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
+                @Override
+                public void onPluginPreLoaded(ClassLoader classLoader, PluginDescription description, PluginAction action, CompletableFuture<Plugin> completableFuture) {
+                    if (Debug.UNIT_TEST) return;
+                    downloadLibraries(true, description.getLibraries());
+                }
+
                 @Override
                 public void onPluginInitial(Plugin plugin) {
                     final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) plugin.getPluginClassLoader());
@@ -198,9 +152,10 @@ public class LibraryHandler {
             EXECUTOR.submit(() -> {
                 try {
                     loadLibrary(library, autoLoad);
-                    LOGGER.info("Loaded Library " + library.name() + " v" + library.getVersion());
+                    Log.info("Loaded Library " + library.name() + " v" + library.getVersion());
                 } catch (Throwable throwable) {
-                    LOGGER.warn("Unable to load library " + library.getFileName() + ".", throwable);
+                    Log.warn("Unable to load library " + library.getFileName() + ".", throwable);
+                    future.completeExceptionally(throwable);
                 } finally {
                     future.complete(null);
                 }
@@ -210,50 +165,22 @@ public class LibraryHandler {
         return CompletableFuture.allOf(futures);
     }
 
-    private List<Path> loadLibrary(Library library, boolean addToUCP) throws Exception {
+    private List<Path> loadLibrary(Library library, boolean addToUCP) {
         if (loaded.containsKey(library)) {
             return loaded.get(library);
         }
 
-        List<Path> files = this.remapLibrary(library, this.downloadLibrary(library));
+        List<Path> files = this.downloadLibrary(library);
         this.loaded.put(library, files);
         if (addToUCP) {
             for (Path path : files) {
-                Fairy.getPlatform().getClassloader().addJarToClasspath(path);
+                Fairy.getPlatform().getClassloader().addPath(path);
                 for (URLClassLoaderAccess classLoader : this.pluginClassLoaders.values()) {
                     classLoader.addPath(path);
                 }
             }
         }
         return files;
-    }
-
-    private List<Path> remapLibrary(Library library, List<Path> normalFile) {
-        if (library.getRelocations().isEmpty()) {
-            return normalFile;
-        }
-
-        List<Path> retVal = new ArrayList<>();
-        for (Path path : normalFile) {
-            final String name = path.getFileName().toString();
-            final String fileName = FileUtil.getName(name);
-            final String extension = FileUtil.getExtension(name);
-            Path remappedFile = this.libFolder.resolve(fileName + "-remapped." + extension);
-
-            if (Files.exists(remappedFile)) {
-                retVal.add(remappedFile);
-                continue;
-            }
-
-            try {
-                this.relocateHandler.relocate(path, remappedFile, library.getRelocations());
-                retVal.add(remappedFile);
-            } catch (Throwable throwable) {
-                throw new RuntimeException("Something wrong while relocating library...", throwable);
-            }
-        }
-
-        return retVal;
     }
 
     protected List<Path> downloadLibrary(Library library) {
@@ -263,27 +190,12 @@ public class LibraryHandler {
             return Collections.singletonList(file);
         }
 
-        DependencyResult result;
-        try {
-            List<RemoteRepository> repositories = this.repositories;
-            if (library.getRepository() != null) {
-                repositories = repository.newResolutionRepositories(session, Arrays.asList(
-                        new RemoteRepository.Builder("central", "default", "https://repo.maven.apache.org/maven2").build(),
-                        new RemoteRepository.Builder("custom", "default", library.getRepository().getUrl()).build()
-                ));
-                ;
-            }
-            result = repository.resolveDependencies(session, new DependencyRequest(new CollectRequest((Dependency) null, Collections.singletonList(library.getMavenDependency()), repositories), null));
-        } catch (DependencyResolutionException ex) {
-            throw new RuntimeException("Error resolving libraries", ex);
+        try (InputStream is = library.getUrl(library.getRepository()).openStream()) {
+            Files.copy(is, file);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
         }
 
-        List<Path> paths = new ArrayList<>();
-        for (ArtifactResult artifactResult : result.getArtifactResults()) {
-            final Artifact artifact = artifactResult.getArtifact();
-            paths.add(artifact.getFile().toPath());
-        }
-
-        return paths;
+        return Collections.singletonList(file);
     }
 }

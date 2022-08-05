@@ -27,13 +27,10 @@ package io.fairyproject.reflect;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.gson.annotations.SerializedName;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import io.fairyproject.reflect.asm.AsmAnalyser;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import org.checkerframework.checker.units.qual.A;
-import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
 import sun.misc.Unsafe;
 
 import java.lang.annotation.Annotation;
@@ -42,13 +39,9 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @UtilityClass
 public class Reflect {
-
-    private static final Map<String, List<Field>> CACHED_FIELDS = new ConcurrentHashMap<>();
-    private static final Map<String, List<Method>> CACHE_METHODS = new ConcurrentHashMap<>();
 
     private static final Unsafe UNSAFE;
     private static final MethodHandles.Lookup LOOKUP;
@@ -126,7 +119,7 @@ public class Reflect {
                 methodHandle.bindTo(src).invokeWithArguments(value);
             }
         } catch (Throwable t) {
-            getUnsafe().throwException(t);
+            SneakyThrowUtil.sneakyThrow(t);
         }
     }
 
@@ -150,95 +143,6 @@ public class Reflect {
         }
     }
 
-
-    public static List<Field> getDeclaredFields(Class<?> clazz) {
-        return getDeclaredFields(clazz, 0, true);
-    }
-
-    public static List<Field> getDeclaredFields(String clazz, int excludeModifiers, boolean cache) {
-        try {
-            return getDeclaredFields(Class.forName(clazz), excludeModifiers, cache);
-        } catch (ClassNotFoundException e) {
-            return Collections.emptyList();
-        }
-    }
-
-    public static List<Field> getDeclaredFields(Class<?> clazz, int excludeModifiers, boolean cache) {
-        try {
-            List<Field> fields;
-            if ((fields = CACHED_FIELDS.get(clazz.getName())) != null) {
-                return fields;
-            }
-            ClassReader classReader = new ClassReader(clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class"));
-            AsmAnalyser analyser = new AsmAnalyser(new ClassWriter(ClassWriter.COMPUTE_MAXS), excludeModifiers);
-            classReader.accept(analyser, ClassReader.SKIP_DEBUG);
-            fields = analyser.getFields().stream().map(name -> {
-                try {
-                    return clazz.getDeclaredField(name);
-                } catch (Throwable ignored) {
-                    return null;
-                }
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-            if (cache) {
-                CACHED_FIELDS.putIfAbsent(clazz.getName(), fields);
-            }
-            return fields;
-        } catch (Exception | Error e) {
-            try {
-                List<Field> list = Arrays.stream(clazz.getDeclaredFields())
-                        .filter(field -> (field.getModifiers() & excludeModifiers) == 0).collect(Collectors.toList());
-                CACHED_FIELDS.putIfAbsent(clazz.getName(), list);
-                return list;
-            } catch (Error err) {
-                return Collections.emptyList();
-            }
-        }
-    }
-
-    public static List<Method> getDeclaredMethods(Class<?> clazz) {
-        return getDeclaredMethods(clazz, 0, true);
-    }
-
-    public static List<Method> getDeclaredMethods(String clazz, int excludeModifiers, boolean cache) {
-        try {
-            return getDeclaredMethods(Class.forName(clazz), excludeModifiers, cache);
-        } catch (ClassNotFoundException e) {
-            return Collections.emptyList();
-        }
-    }
-
-    public static List<Method> getDeclaredMethods(Class<?> clazz, int excludeModifiers, boolean cache) {
-        try {
-            List<Method> methods;
-            if ((methods = CACHE_METHODS.get(clazz.getName())) != null) {
-                return methods;
-            }
-            ClassReader classReader = new ClassReader(clazz.getResourceAsStream("/" + clazz.getName().replace('.', '/') + ".class"));
-            AsmAnalyser analyser = new AsmAnalyser(new ClassWriter(ClassWriter.COMPUTE_MAXS), excludeModifiers);
-            classReader.accept(analyser, ClassReader.SKIP_DEBUG);
-            methods = analyser.getMethods().stream().map(name -> {
-                try {
-                    return clazz.getDeclaredMethod(name);
-                } catch (Throwable ignored) {
-                    return null;
-                }
-            }).filter(Objects::nonNull).collect(Collectors.toList());
-            if (cache) {
-                CACHE_METHODS.putIfAbsent(clazz.getName(), methods);
-            }
-            return methods;
-        } catch (Exception | Error e) {
-            try {
-                List<Method> list = Arrays.stream(clazz.getDeclaredMethods())
-                        .filter(field -> (field.getModifiers() & excludeModifiers) == 0).collect(Collectors.toList());
-                CACHE_METHODS.putIfAbsent(clazz.getName(), list);
-                return list;
-            } catch (Error err) {
-                return Collections.emptyList();
-            }
-        }
-    }
-
     public static Optional<Class<?>> getCallerClass(int depth) {
         return Optional.ofNullable(CallerClass.impl.getCallerClass(depth + 1));
     }
@@ -252,7 +156,7 @@ public class Reflect {
     }
 
     public static Optional<Field> getFieldBySerializedName(Class<?> clazz, String name) {
-        for (Field field : Reflect.getDeclaredFields(clazz, 0, false)) {
+        for (Field field : clazz.getDeclaredFields()) {
             if (field.isAnnotationPresent(SerializedName.class)) {
                 if (field.getAnnotation(SerializedName.class).value().equals(name)) {
                     return Optional.of(field);

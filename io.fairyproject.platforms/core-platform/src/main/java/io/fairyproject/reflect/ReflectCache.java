@@ -24,26 +24,34 @@
 
 package io.fairyproject.reflect;
 
-import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import io.fairyproject.util.Utility;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 public class ReflectCache {
 
-    private static final LoadingCache<Class<?>, ReflectCache> CLASS_ACCESSORS = Caffeine.newBuilder()
+    private static final LoadingCache<Class<?>, ReflectCache> CLASS_ACCESSORS = CacheBuilder.newBuilder()
             .expireAfterAccess(5, TimeUnit.MINUTES)
-            .build(ReflectCache::new);
+            .build(new CacheLoader<Class<?>, ReflectCache>() {
+                @Override
+                public ReflectCache load(@NotNull Class<?> key) {
+                    return new ReflectCache(key);
+                }
+            });
 
     public static ReflectCache get(Class<?> parentClass) {
-        return CLASS_ACCESSORS.get(parentClass);
+        return ThrowingSupplier.sneaky(() -> CLASS_ACCESSORS.get(parentClass)).get();
     }
 
     private final Class<?> parentClass;
@@ -65,11 +73,13 @@ public class ReflectCache {
         int currentIndex = 0;
         Method result = null;
 
-        List<Method> toSearch;
+        Method[] toSearch;
         if (query.getModifier() == -1) {
-            toSearch = Reflect.getDeclaredMethods(this.parentClass);
+            toSearch = this.parentClass.getDeclaredMethods();
         } else {
-            toSearch = Reflect.getDeclaredMethods(this.parentClass, query.getModifier(), true);
+            toSearch = Arrays.stream(this.parentClass.getDeclaredMethods())
+                    .filter(field -> (field.getModifiers() & query.getModifier()) == 0)
+                    .toArray(Method[]::new);
         }
 
         for (Method method : toSearch) {
@@ -114,11 +124,12 @@ public class ReflectCache {
         int currentIndex = 0;
         Field result = null;
 
-        List<Field> toSearch;
+        Field[] toSearch;
         if (query.getModifier() == -1) {
-            toSearch = Reflect.getDeclaredFields(this.parentClass);
+            toSearch = this.parentClass.getDeclaredFields();
         } else {
-            toSearch = Reflect.getDeclaredFields(this.parentClass, query.getModifier(), true);
+            toSearch = Arrays.stream(this.parentClass.getDeclaredFields())
+                    .filter(field -> (field.getModifiers() & query.getModifier()) == 0).toArray(Field[]::new);
         }
 
         for (Field field : toSearch) {

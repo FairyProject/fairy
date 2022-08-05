@@ -24,11 +24,11 @@
 
 package io.fairyproject.bukkit.util.items;
 
+import io.fairyproject.container.object.Obj;
 import org.bukkit.inventory.ItemStack;
-import io.fairyproject.container.Component;
 import io.fairyproject.ObjectSerializer;
 
-@Component
+@Obj
 public class ItemSerializer implements ObjectSerializer<ItemStack, String> {
     @Override
     public String serialize(ItemStack input) {

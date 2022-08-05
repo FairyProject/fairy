@@ -24,18 +24,15 @@
 
 package io.fairyproject.state;
 
+import io.fairyproject.log.Log;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.locks.ReentrantLock;
 
 @Getter
 public abstract class StateBase implements State {
-
-    private static final Logger LOGGER = LogManager.getLogger(StateBase.class);
 
     private boolean started = false;
     private boolean ended = false;
@@ -60,7 +57,7 @@ public abstract class StateBase implements State {
         try {
             this.onStart();
         } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onStart() in State", throwable);
+            Log.error("An error occurs while onStart() in State", throwable);
         }
     }
 
@@ -82,7 +79,7 @@ public abstract class StateBase implements State {
         try {
             this.onUpdate();
         } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onUpdate() in State", throwable);
+            Log.error("An error occurs while onUpdate() in State", throwable);
         }
         this.updating = false;
     }
@@ -99,7 +96,7 @@ public abstract class StateBase implements State {
         try {
             this.onEnded();
         } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onEnded() in State", throwable);
+            Log.error("An error occurs while onEnded() in State", throwable);
         }
 
         this.compositeTerminable.closeAndReportException();
@@ -121,7 +118,7 @@ public abstract class StateBase implements State {
         try {
             this.onPause();
         } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onPause() in State", throwable);
+            Log.error("An error occurs while onPause() in State", throwable);
         }
     }
 
@@ -131,7 +128,7 @@ public abstract class StateBase implements State {
         try {
             this.onUnpause();
         } catch (Throwable throwable) {
-            LOGGER.error("An error occurs while onUnpause() in State", throwable);
+            Log.error("An error occurs while onUnpause() in State", throwable);
         }
     }
 

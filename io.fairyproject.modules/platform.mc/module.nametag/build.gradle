@@ -1,5 +1,5 @@
-version = "0.0.1b2"
-
 module {
     platform("mc")
+
+    depend("platform.mc:module.protocol")
 }
