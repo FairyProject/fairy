@@ -24,8 +24,13 @@
 
 package io.fairyproject.state;
 
+import io.fairyproject.state.strategy.StateStrategy;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+import java.util.function.Consumer;
 
 public interface State extends Terminable, TerminableConsumer {
     void start();
@@ -53,4 +58,12 @@ public interface State extends Terminable, TerminableConsumer {
     void onSuspend();
 
     long getStartTimestamp();
+
+    void addStrategy(@NotNull StateStrategy strategy, @NotNull StateStrategy.Type type);
+
+    void removeStrategy(@NotNull StateStrategy strategy, @NotNull StateStrategy.Type type);
+
+    @NotNull Collection<StateStrategy> strategies(@NotNull StateStrategy.Type type);
+
+    void forEachStrategies(@NotNull Consumer<StateStrategy> consumer, @NotNull StateStrategy.Type type);
 }
