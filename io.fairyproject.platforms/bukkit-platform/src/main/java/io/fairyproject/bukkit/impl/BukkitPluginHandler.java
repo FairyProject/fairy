@@ -27,9 +27,9 @@ package io.fairyproject.bukkit.impl;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.plugin.PluginHandler;
+import io.fairyproject.reflect.wrapper.ReflectWrapper;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
-import io.github.toolfactory.narcissus.Narcissus;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
@@ -43,8 +43,8 @@ public class BukkitPluginHandler implements PluginHandler {
     public BukkitPluginHandler() {
         Field field;
         try {
-            final Class<?> pluginClassLoader = Narcissus.findClass("org.bukkit.plugin.java.PluginClassLoader");
-            field = Narcissus.findField(pluginClassLoader, "plugin");
+            final Class<?> pluginClassLoader = ReflectWrapper.get().findClass("org.bukkit.plugin.java.PluginClassLoader");
+            field = ReflectWrapper.get().findField(pluginClassLoader, "plugin");
             AccessUtil.setAccessible(field);
         } catch (Throwable throwable) {
             SneakyThrowUtil.sneakyThrow(throwable);

@@ -24,7 +24,7 @@
 
 package io.fairyproject.util;
 
-import io.github.toolfactory.narcissus.Narcissus;
+import io.fairyproject.reflect.wrapper.ReflectWrapper;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -58,30 +58,19 @@ public abstract class AccessUtil {
 		} catch (Throwable e) {
 			if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
 				// Java 16 compatibility
-				final Method method = Narcissus.findMethod(Field.class, "setAccessible0", boolean.class);
-				Narcissus.invokeMethod(field, method, true);
+				final Method method = ReflectWrapper.get().findMethod(Field.class, "setAccessible0", boolean.class);
+				ReflectWrapper.get().invokeMethod(field, method, true);
 			}
 			if ("modifiers".equals(e.getMessage()) || (e.getCause() != null && e.getCause().getMessage() != null &&  e.getCause().getMessage().equals("modifiers"))) {
 				// https://github.com/ViaVersion/ViaVersion/blob/e07c994ddc50e00b53b728d08ab044e66c35c30f/bungee/src/main/java/us/myles/ViaVersion/bungee/platform/BungeeViaInjector.java
 				// Java 12 compatibility *this is fine*
 				Field[] fields;
-				if (Narcissus.libraryLoaded) {
-					final Method getDeclaredFields0 = Narcissus.findMethod(Class.class, "getDeclaredFields0", boolean.class);
-					final Object o = Narcissus.invokeObjectMethod(Field.class, getDeclaredFields0, false);
-					fields = (Field[]) o;
-				} else {
-					Method getDeclaredFields0 = Class.class.getDeclaredMethod("getDeclaredFields0", boolean.class);
-					getDeclaredFields0.setAccessible(true);
-					fields = (Field[]) getDeclaredFields0.invoke(Field.class, false);
-				}
+				final Method getDeclaredFields0 = ReflectWrapper.get().findMethod(Class.class, "getDeclaredFields0", boolean.class);
+				final Object o = ReflectWrapper.get().invokeMethod(Field.class, getDeclaredFields0, false);
+				fields = (Field[]) o;
 				for (Field classField : fields) {
 					if ("modifiers".equals(classField.getName())) {
-						if (Narcissus.libraryLoaded) {
-							Narcissus.setField(field, classField, modifiers & ~Modifier.FINAL);
-						} else {
-							classField.setAccessible(true);
-							classField.set(field, modifiers & ~Modifier.FINAL);
-						}
+						ReflectWrapper.get().setField(field, classField, modifiers & ~Modifier.FINAL);
 						break;
 					}
 				}
