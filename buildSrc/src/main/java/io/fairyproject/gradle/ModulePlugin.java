@@ -4,7 +4,6 @@ import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.UnknownTaskException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.jvm.tasks.Jar;
 
@@ -19,10 +18,8 @@ public class ModulePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         final ModuleExtension extension = project.getExtensions().create("module", ModuleExtension.class);
-        final ModuleTask task = project.getTasks().create("module", ModuleTask.class);
 
         project.afterEvaluate(i -> {
-
             Map<Lib, Boolean> libs = new HashMap<>(extension.getLibraries().getOrElse(Collections.emptyMap()));
             List<Pair<String, String>> exclusives = new ArrayList<>();
             for (String moduleName : extension.getDepends().get()) {
@@ -77,17 +74,12 @@ public class ModulePlugin implements Plugin<Project> {
                 project.getDependencies().add("testImplementation", dependency);
             }
 
-            Jar jar;
-            try {
-                jar = (Jar) project.getTasks().getByName("shadowJar");
-            } catch (UnknownTaskException ex) {
-                jar = (Jar) project.getTasks().getByName("jar");
-            }
-            jar.finalizedBy(task);
-
-            task.setInJar(task.getInJar() != null ? task.getInJar() : jar.getArchiveFile().get().getAsFile());
-            task.setExtension(ModuleExtensionSerializable.create(extension, libs));
-            task.setExclusives(exclusives);
+            project.getTasks().withType(Jar.class, jar -> {
+                ModuleResourceAction action = project.getObjects().newInstance(ModuleResourceAction.class);
+                action.setExtension(ModuleExtensionSerializable.create(extension, libs));
+                action.setExclusives(exclusives);
+                jar.doLast("moduleResource", action);
+            });
         });
     }
 }
