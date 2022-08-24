@@ -1,10 +1,10 @@
 package io.fairyproject.mc.serializer;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.container.Component;
+import io.fairyproject.container.object.Obj;
 import io.fairyproject.mc.util.Pos;
 
-@Component
+@Obj
 public class PosSerializer implements ObjectSerializer<Pos, String> {
     @Override
     public String serialize(Pos input) {

@@ -1,5 +1,6 @@
 package io.fairyproject.bukkit.mc;
 
+import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;

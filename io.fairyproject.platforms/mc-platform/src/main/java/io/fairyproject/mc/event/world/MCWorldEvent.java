@@ -5,10 +5,9 @@ import io.fairyproject.mc.MCWorld;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Event
 @RequiredArgsConstructor
 @Getter
-public class MCWorldEvent {
+public class MCWorldEvent implements Event {
 
     private final MCWorld world;
 

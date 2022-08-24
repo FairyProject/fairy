@@ -88,11 +88,11 @@ public class BukkitEventTransformer {
         return this.bukkitToMC.get(bukkitEvent);
     }
 
-    private <B extends Event, M> void register(Class<B> bukkitClass, Class<M> mcClass, Function<B, M> transformer) {
+    private <B extends Event, M extends io.fairyproject.event.Event> void register(Class<B> bukkitClass, Class<M> mcClass, Function<B, M> transformer) {
         this.register(bukkitClass, mcClass, transformer, null);
     }
 
-    private <B extends Event, M> void register(Class<B> bukkitClass, Class<M> mcClass, Function<B, M> transformer, BiConsumer<B, M> postProcessing) {
+    private <B extends Event, M extends io.fairyproject.event.Event> void register(Class<B> bukkitClass, Class<M> mcClass, Function<B, M> transformer, BiConsumer<B, M> postProcessing) {
         this.bukkitToMC.put(bukkitClass, mcClass);
         Bukkit.getPluginManager().registerEvent(bukkitClass, DUMMY_LISTENER, PRIORITY_REGISTRATION, (listener, event) -> {
             if (!bukkitClass.isInstance(event)) {

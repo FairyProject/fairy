@@ -1,10 +1,6 @@
 package io.fairyproject.mc;
 
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
-import io.fairyproject.mc.protocol.item.PlayerInfoData;
 import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;

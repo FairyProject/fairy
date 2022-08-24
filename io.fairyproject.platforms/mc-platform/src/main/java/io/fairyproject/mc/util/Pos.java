@@ -46,7 +46,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 /**
- * @since 0.5.3b1-SNAPSHOT
+ * @since 0.6.2b1-SNAPSHOT
  */
 @Getter
 @Setter
