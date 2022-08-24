@@ -26,6 +26,7 @@ package io.fairyproject.mc.hologram;
 
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import io.fairyproject.Fairy;
@@ -65,7 +66,7 @@ public class HologramListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPlayer() == null)
+        if (event.getPlayer() == null || event.getPacketType() != PacketType.Play.Client.INTERACT_ENTITY)
             return;
 
         MCPlayer player = MCPlayer.from(event.getPlayer());

@@ -28,6 +28,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import io.fairyproject.Fairy;
@@ -51,37 +52,6 @@ public class HologramFactory {
     private final Map<Integer, Hologram> entityIdToHolograms = new ConcurrentHashMap<>();
 
     public HologramFactory(MCWorld world) {
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketListener() {
-            @Override
-            public void onPacketReceive(PacketReceiveEvent event) {
-                MCPlayer player = MCPlayer.from(event.getPlayer());
-
-                if (player.getWorld() != world) {
-                    return;
-                }
-
-                WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-                int entityId = packet.getEntityId();
-                Hologram hologram = entityIdToHolograms.get(entityId);
-                if (hologram == null || hologram.getInteractListener() == null) {
-                    return;
-                }
-
-                WrapperPlayClientInteractEntity.InteractAction action = packet.getAction();
-                switch (action) {
-                    case ATTACK:
-                        hologram.getInteractListener().attack(player);
-                        break;
-                    case INTERACT:
-                        hologram.getInteractListener().interact(player);
-                        break;
-                    case INTERACT_AT:
-                        final Vector3f vector = packet.getTarget().orElse(null);
-                        hologram.getInteractListener().interactAt(player, vector);
-                        break;
-                }
-            }
-        }, PacketListenerPriority.MONITOR);
     }
 
     public static HologramFactory from(MCWorld world) {
