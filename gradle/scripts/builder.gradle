@@ -1,5 +1,8 @@
+import io.fairyproject.gradle.ProjectCompilePlugin
+
 apply plugin: "java-library"
 apply plugin: "com.github.johnrengelman.shadow"
+apply plugin: ProjectCompilePlugin
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
