@@ -26,7 +26,6 @@ public class ModuleCompilerAction implements Action<Task> {
 
     @Override
     public void execute(@NotNull Task task) {
-        System.out.println("DODODODODODODOO");
         try {
             doPostCompile((AbstractCompile) task);
         } catch (IOException e) {

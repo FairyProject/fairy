@@ -22,7 +22,7 @@ public class ProjectCompilePlugin implements Plugin<Project> {
         sourceSets.all(sourceSet -> {
             project.getTasks().named(sourceSet.getCompileTaskName(language), AbstractCompile.class, compile -> {
                 ModuleCompilerAction action = project.getObjects().newInstance(ModuleCompilerAction.class);
-                compile.doLast("moduleCompile", action);
+                compile.doLast("extraCompile", action);
             });
         });
     }
