@@ -24,12 +24,12 @@
 
 package io.fairyproject.mc.hologram;
 
-import com.github.retrooper.packetevents.event.PacketListener;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import io.fairyproject.Fairy;
-import io.fairyproject.container.ContainerConstruct;
+import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.object.Obj;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
@@ -44,16 +44,16 @@ import java.util.Iterator;
 import java.util.Set;
 
 @Obj
-public class HologramListener implements PacketListener {
+public class HologramListener extends PacketListenerAbstract {
 
     private final Set<MCPlayer> toUpdate = new HashSet<>();
 
-    @ContainerConstruct
-    public HologramListener() {
-        Fairy.getTaskScheduler().runRepeated(this::runScheduler, 100, 20);
+    @PostInitialize
+    public void onPostInitialize() {
+        Fairy.getTaskScheduler().runRepeated(this::tick, 100, 20);
     }
 
-    public void runScheduler() {
+    private void tick() {
         final Iterator<MCPlayer> iterator = toUpdate.iterator();
         while (iterator.hasNext()) {
             MCPlayer player = iterator.next();
@@ -65,6 +65,9 @@ public class HologramListener implements PacketListener {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPlayer() == null)
+            return;
+
         MCPlayer player = MCPlayer.from(event.getPlayer());
         HologramFactory hologramFactory = Holograms.find(player.getWorld());
         if (hologramFactory == null) {
