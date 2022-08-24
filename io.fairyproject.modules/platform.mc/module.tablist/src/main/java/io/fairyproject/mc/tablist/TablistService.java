@@ -24,32 +24,34 @@
 
 package io.fairyproject.mc.tablist;
 
-import io.fairyproject.container.*;
-import io.fairyproject.mc.tablist.util.TabSlot;
-import io.fairyproject.mc.tablist.util.TablistImpl;
-import io.fairyproject.mc.tablist.util.impl.MainTablistImpl;
+import io.fairyproject.Fairy;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.PreInitialize;
+import io.fairyproject.container.Service;
+import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
-import io.fairyproject.task.Task;
-import io.fairyproject.Fairy;
+import io.fairyproject.mc.tablist.util.TabSlot;
+import io.fairyproject.mc.tablist.util.TablistImpl;
+import io.fairyproject.mc.tablist.util.impl.MainTablistImpl;
 import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.task.Task;
+import io.fairyproject.util.Stacktrace;
 import lombok.Getter;
 import lombok.Setter;
-import io.fairyproject.util.Stacktrace;
-import lombok.extern.log4j.Log4j2;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.*;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Getter
-@Service(name = "tablist")
-@Log4j2
+@Service
 public class TablistService {
 
     public static TablistService INSTANCE;
@@ -69,11 +71,11 @@ public class TablistService {
         INSTANCE = this;
 
         this.adapters = new ArrayList<>();
-        ComponentRegistry.registerComponentHolder(ComponentHolder.builder()
-                .type(TablistAdapter.class)
-                .onEnable(obj -> this.registerAdapter((TablistAdapter) obj))
-                .onDisable(obj -> this.unregisterAdapter((TablistAdapter) obj))
-                .build());
+        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(TablistAdapter.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(TablistAdapter.class, this::registerAdapter))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(TablistAdapter.class, this::unregisterAdapter))
+        );
     }
 
     @PostInitialize

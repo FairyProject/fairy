@@ -3,12 +3,18 @@ package io.fairytest.serializer;
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.container.Containers;
 import io.fairyproject.container.SerializerFactory;
-import io.fairyproject.tests.TestingBase;
+import io.fairyproject.tests.RuntimeMode;
+import io.fairyproject.tests.base.JUnitJupiterBase;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class SerializerFactoryTest extends TestingBase {
+public class SerializerFactoryTest extends JUnitJupiterBase {
+
+    @Override
+    public RuntimeMode runtimeMode() {
+        return RuntimeMode.BEFORE_EACH;
+    }
 
     @AfterEach
     public void afterEach() {
@@ -81,6 +87,37 @@ public class SerializerFactoryTest extends TestingBase {
         Assertions.assertTrue(serializerFactory.unregisterSerializer(a));
         serializerFactory.registerSerializer(b);
         Assertions.assertEquals(b, serializerFactory.findSerializer(TestKey.class));
+    }
+
+    @Test
+    public void findOrCacheSerializerShouldCreateIfNotExists() {
+        final SerializerFactory serializerFactory = Containers.get(SerializerFactory.class);
+        final ObjectSerializer<?, ?> cacheSerializer = serializerFactory.findOrCacheSerializer(ObjectSerializerStringStringMock.class);
+
+        Assertions.assertEquals(ObjectSerializerStringStringMock.class, cacheSerializer.getClass());
+
+        serializerFactory.unregisterSerializer(cacheSerializer); // TODO: fix test
+    }
+
+    @Test
+    public void findOrCacheSerializerShouldCacheIfCreated() {
+        final SerializerFactory serializerFactory = Containers.get(SerializerFactory.class);
+        final ObjectSerializer<?, ?> cacheSerializer = serializerFactory.findOrCacheSerializer(ObjectSerializerStringStringMock.class);
+
+        Assertions.assertEquals(cacheSerializer, serializerFactory.findOrCacheSerializer(ObjectSerializerStringStringMock.class));
+
+        serializerFactory.unregisterSerializer(cacheSerializer); // TODO: fix test
+    }
+
+    @Test
+    public void findOrCacheSerializerShouldFindIfExists() {
+        final SerializerFactory serializerFactory = Containers.get(SerializerFactory.class);
+        final ObjectSerializerStringStringMock serializer = new ObjectSerializerStringStringMock();
+        serializerFactory.registerSerializer(serializer);
+
+        final ObjectSerializer<?, ?> cacheSerializer = serializerFactory.findOrCacheSerializer(ObjectSerializerStringStringMock.class);
+
+        Assertions.assertEquals(serializer, cacheSerializer);
     }
 
     public static class TestKey { }

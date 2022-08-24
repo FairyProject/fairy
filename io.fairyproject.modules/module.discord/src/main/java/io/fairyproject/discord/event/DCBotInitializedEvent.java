@@ -5,10 +5,9 @@ import io.fairyproject.event.Event;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Event
 @RequiredArgsConstructor
 @Getter
-public class DCBotInitializedEvent {
+public class DCBotInitializedEvent implements Event {
 
     private final DCBot bot;
 

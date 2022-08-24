@@ -1,129 +1,93 @@
 package io.fairyproject.gradle;
 
-import com.google.common.collect.ImmutableSet;
-import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.tuple.Pair;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.jvm.tasks.Jar;
 
 import java.util.*;
 
 public class ModulePlugin implements Plugin<Project> {
-
     protected static final String MODULE_PREFIX = ":io.fairyproject.modules:";
     protected static final String PLATFORM_PREFIX = ":io.fairyproject.platforms:";
+    protected static final String TEST_PREFIX = ":io.fairyproject.tests:";
 
+    @SneakyThrows
     @Override
     public void apply(Project project) {
         final ModuleExtension extension = project.getExtensions().create("module", ModuleExtension.class);
         final ModuleTask task = project.getTasks().create("module", ModuleTask.class);
-        final PublishSnapshotTask publishSnapshotDevTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotDev");
-        final PublishSnapshotTask publishSnapshotProductionTask = (PublishSnapshotTask) project.getTasks().getByName("publishSnapshotProduction");
 
-        final Configuration configuration = project.getConfigurations().maybeCreate("module");
-        project.afterEvaluate(p -> {
-            publishSnapshotDevTask.setModuleTask(task);
-            publishSnapshotProductionTask.setModuleTask(task);
+        project.afterEvaluate(i -> {
 
-            p.getConfigurations().getByName("compileClasspath").extendsFrom(configuration);
+            Map<Lib, Boolean> libs = new HashMap<>(extension.getLibraries().getOrElse(Collections.emptyMap()));
+            List<Pair<String, String>> exclusives = new ArrayList<>();
+            for (String moduleName : extension.getDepends().get()) {
+                final Project module = project.project(MODULE_PREFIX + moduleName);
+                project.evaluationDependsOn(MODULE_PREFIX + moduleName);
 
-            Set<String> loaded = new HashSet<>();
-            for (String module : extension.getDepends().get()) {
-                new ModuleReader(p, configuration, loaded).load(module, p.project(MODULE_PREFIX + module), new ArrayList<>());
+                Dependency dependency = project.getDependencies().create(module);
+
+                project.getDependencies().add("implementation", dependency);
+                project.getDependencies().add("testImplementation", dependency);
+
+                final ModuleExtension moduleExtension = module.getExtensions().getByType(ModuleExtension.class);
+                for (Map.Entry<String, String> entry : moduleExtension.getExclusives().get().entrySet()) {
+                    exclusives.add(Pair.of(entry.getKey(), entry.getValue()));
+                }
+
+                libs.putAll(moduleExtension.getLibraries().get());
             }
-            Set<String> actualDepends = ImmutableSet.copyOf(loaded);
 
             for (String module : extension.getSubDepends().get()) {
-                new ModuleReader(p, configuration, loaded).load(module, p.project(MODULE_PREFIX + module), new ArrayList<>());
+                final Dependency dependency = project.getDependencies().create(project.project(MODULE_PREFIX + module));
+
+                project.getDependencies().add("compileOnly", dependency);
+                project.getDependencies().add("testImplementation", dependency);
             }
 
             for (String platform : extension.getPlatforms().get()) {
-                configuration.getDependencies().add(p.getDependencies().create(p.project(PLATFORM_PREFIX + platform + "-platform")));
+                final Dependency dependency = project.getDependencies().create(project.project(PLATFORM_PREFIX + platform + "-platform"));
+                final Dependency testDependency = project.getDependencies().create(project.project(TEST_PREFIX + platform + "-tests"));
+
+                project.getDependencies().add("compileOnly", dependency);
+                project.getDependencies().add("testImplementation", dependency);
+                project.getDependencies().add("testImplementation", testDependency);
+
+                if (platform.equals("bukkit")) {
+                    project.getDependencies().add("testImplementation", "dev.imanity.mockbukkit:MockBukkit1.16:1.0.17");
+                }
             }
 
-            for (Lib library : extension.getLibraries().getOrElse(Collections.emptyList())) {
+            for (Map.Entry<Lib, Boolean> libraryEntry : libs.entrySet()) {
+                final Lib library = libraryEntry.getKey();
+
                 if (library.getRepository() != null) {
-                    p.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
+                    project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
                 }
-                configuration.getDependencies().add(project.getDependencies().create(library.getDependency()));
+                final Dependency dependency = project.getDependencies().create(library.getDependency());
+                if (libraryEntry.getValue()) {
+                    project.getDependencies().add("implementation", dependency);
+                } else {
+                    project.getDependencies().add("compileOnlyApi", dependency);
+                }
+                project.getDependencies().add("testImplementation", dependency);
             }
 
             Jar jar;
             try {
-                jar = (Jar) p.getTasks().getByName("shadowJar");
+                jar = (Jar) project.getTasks().getByName("shadowJar");
             } catch (UnknownTaskException ex) {
-                jar = (Jar) p.getTasks().getByName("jar");
+                jar = (Jar) project.getTasks().getByName("jar");
             }
             jar.finalizedBy(task);
 
             task.setInJar(task.getInJar() != null ? task.getInJar() : jar.getArchiveFile().get().getAsFile());
-            task.setExtension(extension);
-            task.setModules(actualDepends);
+            task.setExtension(ModuleExtensionSerializable.create(extension, libs));
+            task.setExclusives(exclusives);
         });
-    }
-
-    @RequiredArgsConstructor
-    private static class ModuleReader {
-
-        private final Project project;
-        private final Configuration fairyModuleConfiguration;
-        private final Set<String> allLoadedModules;
-
-        public void load(String moduleName, Object dependency, List<String> moduleTree) {
-            if (moduleTree.contains(moduleName)) {
-                moduleTree.add(moduleName);
-
-                StringBuilder stringBuilder = new StringBuilder();
-                final Iterator<String> iterator = moduleTree.iterator();
-
-                while (iterator.hasNext()) {
-                    final String name = iterator.next();
-                    if (name.equals(moduleName)) {
-                        stringBuilder.append("*").append(name).append("*");
-                    } else {
-                        stringBuilder.append(name);
-                    }
-                    if (iterator.hasNext()) {
-                        stringBuilder.append(" -> ");
-                    }
-                }
-                throw new IllegalStateException("Circular dependency: " + stringBuilder);
-            }
-
-            moduleTree.add(moduleName);
-            if (allLoadedModules.contains(moduleName)) {
-                return;
-            }
-
-            allLoadedModules.add(moduleName);
-            fairyModuleConfiguration.getDependencies().add(project.getDependencies().create(dependency));
-
-            // copy for retrieve files
-            for (Pair<String, Object> pair : this.readDependencies(this.project.project(MODULE_PREFIX + moduleName))) {
-                final List<String> tree = new ArrayList<>(moduleTree);
-                this.load(pair.getKey(), pair.getValue(), tree);
-            }
-        }
-
-        private List<Pair<String, Object>> readDependencies(Project project) {
-            List<Pair<String, Object>> list = new ArrayList<>();
-            final ModuleExtension extension = project.getExtensions().findByType(ModuleExtension.class);
-            if (extension != null) {
-                for (Lib library : extension.getLibraries().getOrElse(Collections.emptyList())) {
-                    if (library.getRepository() != null) {
-                        this.project.getRepositories().maven(mavenArtifactRepository -> mavenArtifactRepository.setUrl(library.getRepository()));
-                    }
-                    fairyModuleConfiguration.getDependencies().add(project.getDependencies().create(library.getDependency()));
-                }
-                for (String depend : extension.getDepends().get()) {
-                    list.add(Pair.of(depend, this.project.project(MODULE_PREFIX + depend)));
-                }
-            }
-            return list;
-        }
-
     }
 }

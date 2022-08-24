@@ -4,7 +4,8 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.BukkitPos;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
-import io.fairyproject.event.EventBus;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
@@ -98,7 +99,7 @@ public class BukkitEventTransformer {
                 return;
             }
             final M mcEvent = transformer.apply(bukkitClass.cast(event));
-            EventBus.call(mcEvent);
+            GlobalEventNode.get().call(mcEvent);
             if (postProcessing != null) {
                 postProcessing.accept(bukkitClass.cast(event), mcEvent);
             }

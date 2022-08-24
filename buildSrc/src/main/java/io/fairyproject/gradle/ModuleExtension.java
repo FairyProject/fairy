@@ -19,7 +19,7 @@ public class ModuleExtension {
     private final ListProperty<String> depends;
     private final ListProperty<String> subDepends;
     private final ListProperty<String> platforms;
-    private final ListProperty<Lib> libraries;
+    private final MapProperty<Lib, Boolean> libraries;
     // <module, package>
     private final MapProperty<String, String> exclusives;
 
@@ -31,7 +31,7 @@ public class ModuleExtension {
         this.depends = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.subDepends = objectFactory.listProperty(String.class).convention(Collections.emptyList());
         this.platforms = objectFactory.listProperty(String.class).convention(Collections.emptyList());
-        this.libraries = objectFactory.listProperty(Lib.class).convention(Collections.emptyList());
+        this.libraries = objectFactory.mapProperty(Lib.class, Boolean.class).convention(Collections.emptyMap());
         this.exclusives = objectFactory.mapProperty(String.class, String.class).convention(Collections.emptyMap());
     }
 
@@ -48,11 +48,19 @@ public class ModuleExtension {
     }
 
     public void library(String gradleDependency) {
-        this.libraries.add(new Lib(gradleDependency, null));
+        this.libraries.put(new Lib(gradleDependency, null), true);
     }
 
     public void library(String gradleDependency, String repository) {
-        this.libraries.add(new Lib(gradleDependency, repository));
+        this.libraries.put(new Lib(gradleDependency, repository), true);
+    }
+
+    public void library(String gradleDependency, boolean shade) {
+        this.libraries.put(new Lib(gradleDependency, null), shade);
+    }
+
+    public void library(String gradleDependency, String repository, boolean shade) {
+        this.libraries.put(new Lib(gradleDependency, repository), shade);
     }
 
     public void exclude(String module, String curPackage) {

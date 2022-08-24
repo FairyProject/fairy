@@ -24,23 +24,21 @@
 
 package io.fairyproject.bukkit.visual.type;
 
+import com.cryptomorin.xseries.XMaterial;
+import io.fairyproject.mc.util.BlockPosition;
 import lombok.Builder;
 import lombok.Getter;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import io.fairyproject.mc.util.BlockPosition;
-import io.fairyproject.bukkit.visual.VisualBlockData;
 
 @Getter
 @Builder
 public class MaterialVisualType extends VisualType {
 
-    private final Material material;
-    private final byte data;
+    private final XMaterial material;
 
     @Override
-    public VisualBlockData generate(Player player, BlockPosition blockPosition) {
-        return new VisualBlockData(material, data);
+    public XMaterial generate(Player player, BlockPosition blockPosition) {
+        return this.material;
     }
 
     @Override
@@ -50,14 +48,11 @@ public class MaterialVisualType extends VisualType {
 
         MaterialVisualType that = (MaterialVisualType) o;
 
-        if (data != that.data) return false;
         return material == that.material;
     }
 
     @Override
     public int hashCode() {
-        int result = material != null ? material.hashCode() : 0;
-        result = 31 * result + (int) data;
-        return result;
+        return material != null ? material.hashCode() : 0;
     }
 }

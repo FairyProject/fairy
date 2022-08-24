@@ -1,16 +1,15 @@
 package io.fairyproject.tests;
 
-import io.fairyproject.ExtendedClassLoader;
 import io.fairyproject.FairyPlatform;
-import io.fairyproject.library.Library;
-import io.fairyproject.module.ModuleService;
+import io.fairyproject.PlatformType;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
+import io.fairyproject.util.URLClassLoaderAccess;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
+import java.net.URLClassLoader;
 
 public class FairyTestingPlatform extends FairyPlatform {
 
@@ -28,35 +27,23 @@ public class FairyTestingPlatform extends FairyPlatform {
     }
 
     @Override
-    public void load() {
-        super.load();
-        ModuleService.init();
+    public void load(Plugin plugin) {
+        super.load(plugin);
     }
 
     @Override
     public void enable() {
         super.enable();
-        ModuleService.INSTANCE.enable();
     }
 
     @Override
-    public void loadDependencies() {
-        // We do not need dependencies here
-    }
-
-    @Override
-    public ExtendedClassLoader getClassloader() {
-        return new ExtendedClassLoader(this.getClass().getClassLoader());
+    public URLClassLoaderAccess getClassloader() {
+        return URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
     }
 
     @Override
     public File getDataFolder() {
-        return new File(".");
-    }
-
-    @Override
-    public Collection<Library> getDependencies() {
-        return Collections.emptySet();
+        return new File("build/tmp/fairy");
     }
 
     @Override
@@ -82,5 +69,10 @@ public class FairyTestingPlatform extends FairyPlatform {
     @Override
     public ITaskScheduler createTaskScheduler() {
         return new AsyncTaskScheduler();
+    }
+
+    @Override
+    public PlatformType getPlatformType() {
+        throw new UnsupportedOperationException("Not Implemented.");
     }
 }

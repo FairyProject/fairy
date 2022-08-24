@@ -24,35 +24,34 @@
 
 package io.fairyproject;
 
-import io.fairyproject.aspect.AsyncAspect;
-import io.fairyproject.cache.CacheableAspect;
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.object.SimpleContainerObject;
-import io.fairyproject.library.Library;
 import io.fairyproject.library.LibraryHandler;
+import io.fairyproject.log.Log;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.util.URLClassLoaderAccess;
+import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
+import io.github.classgraph.ClassGraph;
+import io.github.toolfactory.narcissus.Narcissus;
 import lombok.Getter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
-public abstract class FairyPlatform {
-
-    public static final Logger LOGGER = LogManager.getLogger(FairyPlatform.class);
+public abstract class FairyPlatform implements TerminableConsumer {
 
     public static FairyPlatform INSTANCE;
     private final AtomicBoolean loadedDependencies = new AtomicBoolean();
+    private Plugin mainPlugin;
 
     private ITaskScheduler taskScheduler;
     private CompositeTerminable compositeTerminable;
@@ -60,8 +59,18 @@ public abstract class FairyPlatform {
     private LibraryHandler libraryHandler;
     private ContainerContext containerContext;
 
-    public void load() {
-        this.loadDependencies();
+    public FairyPlatform() {
+        if (Narcissus.libraryLoaded) {
+            ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
+        }
+    }
+
+    public void preload() {
+        this.libraryHandler = new LibraryHandler();
+    }
+
+    public void load(Plugin mainPlugin) {
+        this.mainPlugin = mainPlugin;
 
         this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();
@@ -71,7 +80,6 @@ public abstract class FairyPlatform {
         this.loadBindable();
 
         this.containerContext = new ContainerContext();
-        this.containerContext.registerObject(new SimpleContainerObject(this, this.getClass()));
         this.containerContext.init();
     }
 
@@ -87,29 +95,12 @@ public abstract class FairyPlatform {
     }
 
     private void loadBindable() {
-        this.bind(AsyncAspect.EXECUTOR);
 //        this.bind(CacheableAspect.CLEANER_SERVICE);
 //        this.bind(CacheableAspect.UPDATER_SERVICE);
     }
 
-    public void loadDependencies() {
-        if (!this.loadedDependencies.compareAndSet(false, true)) {
-            return;
-        }
-
-        LOGGER.info("Loading Fairy Dependencies...");
-        this.libraryHandler = new LibraryHandler();
-
-        List<Library> dependencies = new ArrayList<>(this.getDependencies());
-        dependencies.add(Library.CAFFEINE);
-        dependencies.add(Library.SPRING_CORE);
-        dependencies.add(Library.SPRING_EL);
-
-        this.libraryHandler.downloadLibraries(true, dependencies);
-
-    }
-
-    public <T extends AutoCloseable> T bind(T t) {
+    @Override
+    public <T extends AutoCloseable> @NotNull T bind(T t) {
         return this.compositeTerminable.bind(t);
     }
 
@@ -122,7 +113,7 @@ public abstract class FairyPlatform {
      *
      * @return Plugin Class Loader
      */
-    public abstract ExtendedClassLoader getClassloader();
+    public abstract URLClassLoaderAccess getClassloader();
 
     /**
      * get Fairy Folder
@@ -130,13 +121,6 @@ public abstract class FairyPlatform {
      * @return Fairy Folder
      */
     public abstract File getDataFolder();
-
-    /**
-     * get Dependencies based on platforms
-     *
-     * @return Dependencies Set
-     */
-    public abstract Collection<Library> getDependencies();
 
     /**
      * on Post Services Initial
@@ -180,7 +164,7 @@ public abstract class FairyPlatform {
 
                 try {
                     if (outFile.exists() && !replace) {
-                        LOGGER.warn("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
+                        Log.warn("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
                     } else {
                         OutputStream out = new FileOutputStream(outFile);
                         byte[] buf = new byte[1024];
@@ -194,7 +178,7 @@ public abstract class FairyPlatform {
                         in.close();
                     }
                 } catch (IOException var10) {
-                    LOGGER.info("Could not save " + outFile.getName() + " to " + outFile, var10);
+                    Log.info("Could not save " + outFile.getName() + " to " + outFile, var10);
                 }
 
             }
@@ -248,5 +232,12 @@ public abstract class FairyPlatform {
      * @return the Task Scheduler
      */
     public abstract ITaskScheduler createTaskScheduler();
+
+    /**
+     * Get the platform type of current platform
+     *
+     * @return the Platform type
+     */
+    public abstract PlatformType getPlatformType();
 
 }

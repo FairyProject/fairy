@@ -31,6 +31,7 @@ import java.util.Set;
 
 @Getter
 public class VisualTask {
+
     private final Player player;
     private final Set<VisualPosition> blockPositions;
 

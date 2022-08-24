@@ -24,25 +24,20 @@
 
 package io.fairyproject.bukkit.util.items;
 
-import org.bukkit.Material;
-import org.bukkit.block.Block;
+import io.fairyproject.Fairy;
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.container.object.Obj;
+import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.metadata.MetadataMap;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.container.Component;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
 
-@Component
+@Obj
 public class ItemListener implements Listener {
 
     private static final MetadataKey<Boolean> METADATA = MetadataKey.createBooleanKey(Fairy.METADATA_PREFIX + "Item");
@@ -72,55 +67,6 @@ public class ItemListener implements Listener {
         item.setItemStack(resultItem);
         Metadata.provide(item).put(METADATA, true);
         event.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        Player player = event.getPlayer();
-        ItemStack itemStack = event.getItem();
-
-        Action action = event.getAction();
-
-        if (action == Action.PHYSICAL) {
-            return;
-        }
-
-        if (itemStack == null || itemStack.getType() == Material.AIR) {
-            return;
-        }
-
-        ImanityItem imanityItem = ImanityItem.getItemFromBukkit(itemStack);
-
-        if (imanityItem == null) {
-            return;
-        }
-
-        if (imanityItem.getClickCallback() != null &&
-                !imanityItem.getClickCallback().onClick(player, itemStack, action, event)) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onBlockPlace(BlockPlaceEvent event) {
-        Player player = event.getPlayer();
-        ItemStack itemStack = event.getItemInHand();
-        Block block = event.getBlock();
-
-        if (itemStack == null || itemStack.getType() == Material.AIR) {
-            return;
-        }
-
-        ImanityItem imanityItem = ImanityItem.getItemFromBukkit(itemStack);
-
-        if (imanityItem == null) {
-            return;
-        }
-
-        if (imanityItem.getPlaceCallback() != null &&
-                !imanityItem.getPlaceCallback().onPlace(player, itemStack, block, event)) {
-            event.setCancelled(true);
-        }
     }
 
 }

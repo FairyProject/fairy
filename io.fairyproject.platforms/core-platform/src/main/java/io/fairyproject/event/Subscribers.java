@@ -104,6 +104,16 @@ public class Subscribers {
         }
     }
 
+    public void clear() {
+        this.lock.writeLock().lock();
+        try {
+            this.subscribers.clear();
+            this.removeBake();
+        } finally {
+            this.lock.writeLock().unlock();
+        }
+    }
+
     private Collection<Subscriber<?>> allInternal() {
         Collection<Subscriber<?>> subscribers;
         this.lock.readLock().lock();

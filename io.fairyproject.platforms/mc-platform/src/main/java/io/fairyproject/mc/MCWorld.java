@@ -22,6 +22,10 @@ public interface MCWorld extends AudienceProxy {
 
     <T> T as(Class<T> worldClass);
 
+    int getMaxY();
+
+    int getMaxSectionY();
+
     String name();
 
     MetadataMap metadata();

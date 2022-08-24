@@ -26,11 +26,13 @@ package io.fairyproject.bukkit.listener.events;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.listener.ListenerSubscription;
+import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.log.Log;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import lombok.experimental.UtilityClass;
-import org.apache.logging.log4j.LogManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -41,9 +43,6 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import io.fairyproject.bukkit.listener.ListenerSubscription;
-import io.fairyproject.bukkit.metadata.Metadata;
 
 import javax.annotation.Nullable;
 import java.util.function.Consumer;
@@ -54,9 +53,6 @@ public class Events {
 
     public final MetadataKey<EventSubscriptionList> SUBSCRIPTION_LIST = MetadataKey.create(Fairy.METADATA_PREFIX + "SubscriptionList", EventSubscriptionList.class);
 
-    public final Consumer<Cancellable> CANCEL = e -> e.setCancelled(true);
-    public final Predicate<Cancellable> IGNORE_CANCELLED = e -> !e.isCancelled();
-    public final Predicate<Cancellable> IGNORE_UNCANCELLED = Cancellable::isCancelled;
     public final Predicate<PlayerLoginEvent> IGNORE_DISALLOWED_LOGIN = e -> e.getResult() == PlayerLoginEvent.Result.ALLOWED;
     public final Predicate<AsyncPlayerPreLoginEvent> IGNORE_DISALLOWED_PRE_LOGIN = e -> e.getLoginResult() == AsyncPlayerPreLoginEvent.Result.ALLOWED;
 
@@ -76,6 +72,18 @@ public class Events {
                     (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4) ||
                     !e.getFrom().getWorld().equals(e.getTo().getWorld());
 
+    public <T extends Cancellable> Consumer<T> cancel() {
+        return event -> event.setCancelled(true);
+    }
+
+    public <T extends Cancellable> Predicate<T> ignoreCancelled() {
+        return e -> !e.isCancelled();
+    }
+
+    public <T extends Cancellable> Predicate<T> ignoreUncancelled() {
+        return Cancellable::isCancelled;
+    }
+
     public ListenerSubscription subscribe(Listener... listeners) {
         if (listeners.length == 0) {
             return null;
@@ -88,7 +96,7 @@ public class Events {
             plugin = FairyBukkitPlatform.PLUGIN;
         }
         if (!plugin.isEnabled()) {
-            LogManager.getLogger(Events.class).error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
+            Log.error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
         }
 
         TerminableConsumer terminable = FairyBukkitPlatform.INSTANCE;

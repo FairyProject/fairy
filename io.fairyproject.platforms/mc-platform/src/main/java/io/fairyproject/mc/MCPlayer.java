@@ -8,7 +8,6 @@ import io.fairyproject.mc.protocol.item.PlayerInfoData;
 import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
-import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -34,7 +33,10 @@ public interface MCPlayer extends MCEntity, Audience {
     }
 
     @NotNull
-    static <T> MCPlayer from(T originalPlayer) {
+    static <T> MCPlayer from(@Nullable T originalPlayer) {
+        if (originalPlayer == null) {
+            throw new IllegalArgumentException("originalPlayer cannot be null.");
+        }
         return CommonMetadataRegistries
                 .provide(Companion.BRIDGE.from(originalPlayer))
                 .getOrPut(METADATA, () -> Companion.BRIDGE.create(originalPlayer));
@@ -107,10 +109,6 @@ public interface MCPlayer extends MCEntity, Audience {
      * @return game profile;
      */
     MCGameProfile gameProfile();
-
-    default PlayerInfoData asInfoData() {
-        return new PlayerInfoData(this.ping(), this.gameProfile(), this.gameMode(), this.getDisplayName());
-    }
 
     /**
      * get metadata map for the player
@@ -214,47 +212,6 @@ public interface MCPlayer extends MCEntity, Audience {
     int getProtocolId();
 
     /**
-     * send packet to the player
-     *
-     * @param packet the packet
-     */
-    default void sendPacket(PacketWrapper<?> packet) {
-        PacketEvents.getAPI().getProtocolManager().sendPacket(this.getChannel(), packet);
-    }
-
-    /**
-     * send raw bytebuf packet to the player
-     *
-     * @param packet the packet
-     */
-    default void sendRawPacket(ByteBuf packet) {
-        this.sendRawPacket(packet, false);
-    }
-
-    /**
-     * send raw bytebuf packet to the player
-     *
-     * @param packet the packet
-     * @param currentThread should write in current thread
-     */
-    default void sendRawPacket(ByteBuf packet, boolean currentThread) {
-        Runnable runnable = () -> {
-            PacketEvents.getAPI().getProtocolManager().sendPacket(this.getChannel(), packet);
-        };
-
-        if (currentThread) {
-            runnable.run();
-        } else {
-            try {
-                this.getChannel().eventLoop().submit(runnable);
-            } catch (Throwable throwable) {
-                packet.release();
-                throwable.printStackTrace();
-            }
-        }
-    }
-
-    /**
      * cast the proxy player to platform specific player instance
      *
      * @param playerClass the platform specific Player class
@@ -273,7 +230,7 @@ public interface MCPlayer extends MCEntity, Audience {
 
     interface Bridge {
 
-        UUID from(Object obj);
+        UUID from(@NotNull Object obj);
 
         MCPlayer find(UUID uuid);
 

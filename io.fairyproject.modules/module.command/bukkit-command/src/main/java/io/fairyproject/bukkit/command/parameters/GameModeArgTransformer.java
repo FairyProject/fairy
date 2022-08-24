@@ -24,8 +24,8 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.container.Component;
-import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.container.object.Obj;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.protocol.MCVersion;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.GameMode;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Component
+@Obj
 public class GameModeArgTransformer extends BukkitArgTransformer<GameMode> {
 
 	private static final Map<String, GameMode> MAP = new HashMap<>();
@@ -52,7 +52,7 @@ public class GameModeArgTransformer extends BukkitArgTransformer<GameMode> {
 		MAP.put("adventure", GameMode.ADVENTURE);
 		MAP.put("2", GameMode.ADVENTURE);
 
-		if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_8)) {
+		if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_8)) {
 			MAP.put("spectator", GameMode.SPECTATOR);
 			MAP.put("3", GameMode.SPECTATOR);
 		}

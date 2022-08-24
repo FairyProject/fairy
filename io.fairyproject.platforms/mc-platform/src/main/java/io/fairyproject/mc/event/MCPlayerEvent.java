@@ -5,10 +5,9 @@ import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-@Event
 @RequiredArgsConstructor
 @Getter
-public class MCPlayerEvent {
+public class MCPlayerEvent implements Event {
 
     private final MCPlayer player;
 

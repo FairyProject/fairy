@@ -45,6 +45,16 @@ public class BukkitMCWorld implements MCWorld {
     }
 
     @Override
+    public int getMaxY() {
+        return this.world.getMaxHeight();
+    }
+
+    @Override
+    public int getMaxSectionY() {
+        return (this.getMaxY() - 1) >> 4;
+    }
+
+    @Override
     public Audience audience() {
         return FairyBukkitPlatform.AUDIENCES.all();
     }

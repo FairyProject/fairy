@@ -27,6 +27,8 @@ package io.fairyproject.bukkit.timings;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -40,24 +42,27 @@ import java.lang.reflect.Method;
  */
 class Minecraft18Timing extends MCTiming {
     private final Object timing;
-    private static Method startTiming;
-    private static Method stopTiming;
-    private static Method of;
+    private static MethodHandle startTiming;
+    private static MethodHandle stopTiming;
+    private static MethodHandle of;
 
     static {
         try {
             Class<?> timing = Class.forName("co.aikar.timings.Timing");
             Class<?> timings = Class.forName("co.aikar.timings.Timings");
-            startTiming = timing.getDeclaredMethod("startTimingIfSync");
-            stopTiming = timing.getDeclaredMethod("stopTimingIfSync");
-            of = timings.getDeclaredMethod("of", Plugin.class, String.class, timing);
-        } catch (ClassNotFoundException | NoSuchMethodException e) {
+            final Method startTimingIfSync = timing.getDeclaredMethod("startTimingIfSync");
+            startTiming = MethodHandles.lookup().unreflect(startTimingIfSync);
+            final Method stopTimingIfSync = timing.getDeclaredMethod("stopTimingIfSync");
+            stopTiming = MethodHandles.lookup().unreflect(stopTimingIfSync);
+            final Method of1 = timings.getDeclaredMethod("of", Plugin.class, String.class, timing);
+            of = MethodHandles.lookup().unreflect(of1);
+        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException e) {
             e.printStackTrace();
             Bukkit.getLogger().severe("Timings18 failed to initialize correctly. Stuff's going to be broken.");
         }
     }
 
-    Minecraft18Timing(Plugin plugin, String name, MCTiming parent) throws InvocationTargetException, IllegalAccessException {
+    Minecraft18Timing(Plugin plugin, String name, MCTiming parent) throws Throwable {
         super();
         this.timing = of.invoke(null, plugin, name, parent instanceof Minecraft18Timing ? ((Minecraft18Timing) parent).timing : null);
     }
@@ -68,7 +73,7 @@ class Minecraft18Timing extends MCTiming {
             if (startTiming != null) {
                 startTiming.invoke(timing);
             }
-        } catch (IllegalAccessException | InvocationTargetException ignored) {}
+        } catch (Throwable ignored) {}
         return this;
     }
 
@@ -78,6 +83,6 @@ class Minecraft18Timing extends MCTiming {
             if (stopTiming != null) {
                 stopTiming.invoke(timing);
             }
-        } catch (IllegalAccessException | InvocationTargetException ignored) {}
+        } catch (Throwable ignored) {}
     }
 }

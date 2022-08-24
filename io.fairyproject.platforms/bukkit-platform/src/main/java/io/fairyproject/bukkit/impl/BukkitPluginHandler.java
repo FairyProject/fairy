@@ -27,12 +27,32 @@ package io.fairyproject.bukkit.impl;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.plugin.PluginHandler;
-import io.fairyproject.reflect.ReflectObject;
+import io.fairyproject.util.AccessUtil;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
+import io.github.toolfactory.narcissus.Narcissus;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Field;
+
 public class BukkitPluginHandler implements PluginHandler {
+
+    private final Field field;
+
+    public BukkitPluginHandler() {
+        Field field;
+        try {
+            final Class<?> pluginClassLoader = Narcissus.findClass("org.bukkit.plugin.java.PluginClassLoader");
+            field = Narcissus.findField(pluginClassLoader, "plugin");
+            AccessUtil.setAccessible(field);
+        } catch (Throwable throwable) {
+            SneakyThrowUtil.sneakyThrow(throwable);
+            field = null;
+        }
+
+        this.field = field;
+    }
 
     @Override
     public @Nullable String getPluginByClass(Class<?> type) {
@@ -45,9 +65,8 @@ public class BukkitPluginHandler implements PluginHandler {
 
         try {
             ClassLoader classLoader = type.getClassLoader();
-            ReflectObject reflectObject = new ReflectObject(classLoader);
 
-            Plugin plugin = reflectObject.get("plugin");
+            final Plugin plugin = (Plugin) this.field.get(classLoader);
             return plugin.getName();
         } catch (Throwable ignored) {
             return FairyBukkitPlatform.PLUGIN.getName();

@@ -25,6 +25,7 @@
 package io.fairyproject.state;
 
 import com.google.common.collect.Lists;
+import io.fairyproject.state.strategy.StateStrategy;
 
 import java.util.List;
 
@@ -89,7 +90,9 @@ public class StateSequences extends StateCollection {
             final boolean readyToEnd = currentState.isReadyToEnd();
             if (readyToEnd && !currentState.isPaused() || skipping) {
                 if (this.skipping && !readyToEnd) {
+                    this.forEachStrategies(StateStrategy::onSuspend, StateStrategy.Type.BEFORE);
                     currentState.onSuspend();
+                    this.forEachStrategies(StateStrategy::onSuspend, StateStrategy.Type.AFTER);
                 }
 
                 if (this.index == curIndex || !this.skippingWithoutNotifyOthers) {

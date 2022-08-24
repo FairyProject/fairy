@@ -33,7 +33,6 @@ import io.fairyproject.Fairy;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.item.ObjectiveDisplaySlot;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
@@ -58,20 +57,17 @@ public class Sidebar {
         final WrapperPlayServerScoreboardObjective objective = new WrapperPlayServerScoreboardObjective(
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.CREATE,
-                Optional.of(MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_7)
-                        ? MCAdventure.asLegacyString(Component.empty(), player.getLocale())
-                        : MCAdventure.asJsonString(Component.empty(), player.getLocale())),
-                Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
+                Component.empty(),
+                WrapperPlayServerScoreboardObjective.RenderType.INTEGER
         );
-        player.sendPacket(objective);
+        MCProtocol.sendPacket(player, objective);
 
         final WrapperPlayServerDisplayScoreboard scoreboard = new WrapperPlayServerDisplayScoreboard(
                 ObjectiveDisplaySlot.SIDEBAR.getSerializeId(),
                 player.getName()
         );
 
-        player.sendPacket(scoreboard);
-
+        MCProtocol.sendPacket(player, scoreboard);
     }
 
     public void setTitle(Component title) {
@@ -81,15 +77,11 @@ public class Sidebar {
 
         this.title = title;
 
-        player.sendPacket(new WrapperPlayServerScoreboardObjective(
+        MCProtocol.sendPacket(player, new WrapperPlayServerScoreboardObjective(
                 player.getName(),
                 WrapperPlayServerScoreboardObjective.ObjectiveMode.UPDATE,
-                Optional.of(
-                        MCProtocol.INSTANCE.version().isOrBelow(MCVersion.V1_12)
-                        ? MCAdventure.asLegacyString(title, player.getLocale())
-                        : MCAdventure.asJsonString(title, player.getLocale())
-                ),
-                Optional.of(WrapperPlayServerScoreboardObjective.HealthDisplay.INTEGER)
+                title,
+                WrapperPlayServerScoreboardObjective.RenderType.INTEGER
         ));
     }
 
@@ -118,7 +110,7 @@ public class Sidebar {
             return;
         }
 
-        final Object channel = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getChannel(player.getName());
+        final Object channel = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getChannel(player.getUUID());
         final ClientVersion version = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getClientVersion(channel);
         final WrapperPlayServerTeams packet = getOrRegisterTeam(line);
 
@@ -174,7 +166,7 @@ public class Sidebar {
 
         teams[line] = component;
         packet.setTeamInfo(Optional.of(info));
-        this.player.sendPacket(packet);
+        MCProtocol.sendPacket(player, packet);
     }
 
     public void clear(int line) {
@@ -190,8 +182,8 @@ public class Sidebar {
 
             teams[line] = null;
 
-            player.sendPacket(packetA);
-            player.sendPacket(packetB);
+            MCProtocol.sendPacket(player, packetA);
+            MCProtocol.sendPacket(player, packetB);
         }
     }
 
@@ -217,7 +209,7 @@ public class Sidebar {
                     player.getName(),
                     Optional.of(line)
             );
-            this.player.sendPacket(score);
+            MCProtocol.sendPacket(player, score);
 
             return new WrapperPlayServerTeams(
                     "-sb" + line,

@@ -26,6 +26,9 @@ pluginManagement {
     repositories {
         mavenLocal()
         gradlePluginPortal()
+        maven {
+            url file("$rootDir/libs/local")
+        }
     }
 }
 
@@ -60,12 +63,15 @@ void initModules() {
     include "io.fairyproject.modules:platform.bukkit:bukkit-xseries"
     include "io.fairyproject.modules:platform.bukkit:bukkit-visibility"
     include "io.fairyproject.modules:platform.bukkit:bukkit-visual"
+    include "io.fairyproject.modules:platform.bukkit:bukkit-nbt"
 
     include "io.fairyproject.modules:platform.mc:module.hologram"
     include "io.fairyproject.modules:platform.mc:module.sidebar"
     include "io.fairyproject.modules:platform.mc:module.tablist"
     include "io.fairyproject.modules:platform.mc:module.actionbar"
     include "io.fairyproject.modules:platform.mc:module.bossbar:bukkit-bossbar"
+    include "io.fairyproject.modules:platform.mc:module.protocol"
+    include "io.fairyproject.modules:platform.mc:module.map"
 
     include "io.fairyproject.modules:module.discord"
     include "io.fairyproject.modules:module.config"
@@ -101,7 +107,7 @@ initModules()
 initPlatforms()
 initTests()
 
-include "gradle-plugin"
 include "shared"
+include "bom"
 includeDebug()
 

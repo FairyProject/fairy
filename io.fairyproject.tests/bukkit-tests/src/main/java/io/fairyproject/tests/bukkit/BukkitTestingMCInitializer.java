@@ -4,6 +4,7 @@ import io.fairyproject.bukkit.mc.BukkitMCInitializer;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCVersion;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -15,7 +16,7 @@ public class BukkitTestingMCInitializer extends BukkitMCInitializer {
         final MCPlayer.Bridge playerBridge = super.createPlayerBridge();
         return new MCPlayer.Bridge() {
             @Override
-            public UUID from(Object obj) {
+            public UUID from(@NotNull Object obj) {
                 return playerBridge.from(obj);
             }
 

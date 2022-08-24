@@ -26,19 +26,20 @@ package io.fairyproject.bukkit.locale;
 
 import io.fairyproject.Repository;
 import io.fairyproject.Storage;
-import io.fairyproject.container.*;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorage;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorageConfiguration;
 import io.fairyproject.bukkit.storage.ThreadedPlayerStorageConfigurationRepository;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.object.Obj;
 import io.fairyproject.locale.LocaleData;
 import io.fairyproject.locale.LocaleService;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
-@Service
-@ServiceDependency(value = LocaleService.class)
+@Obj
 public class BukkitLocaleStorage extends ThreadedPlayerStorage<LocaleData> {
 
     private Repository<LocaleData, UUID> localeRepository;

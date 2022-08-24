@@ -1,5 +1,0 @@
-name: Fairy
-main: io.fairyproject.bukkit.plugin.FairyInternalPlugin
-version: @version@
-description: Fairy is a compat & open-sourced Java Framework with useful features
-api-version: 1.13

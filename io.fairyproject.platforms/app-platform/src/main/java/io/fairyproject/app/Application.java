@@ -1,7 +1,9 @@
 package io.fairyproject.app;
 
+import io.fairyproject.internal.FairyInternalIdentityMeta;
 import io.fairyproject.plugin.Plugin;
 
+@FairyInternalIdentityMeta
 public abstract class Application extends Plugin {
 
     @Override

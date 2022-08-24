@@ -24,12 +24,12 @@
 
 package io.fairyproject.command.parameter.impl;
 
-import io.fairyproject.container.Component;
 import io.fairyproject.command.CommandContext;
 import io.fairyproject.command.parameter.ArgTransformer;
+import io.fairyproject.container.object.Obj;
 
-@Component
-public class FloatArgTransformer implements ArgTransformer<Float> {
+@Obj
+class FloatArgTransformer implements ArgTransformer<Float> {
 
 	@Override
 	public Class[] type() {

@@ -39,9 +39,6 @@ import java.util.Properties;
 
 public class H2ConnectionFactory extends FileConnectionFactory {
 
-    private static boolean LIBRARY_LOADED = false;
-    private static IsolatedClassLoader CLASS_LOADER;
-
     private final Driver driver;
     private NonClosableConnection connection;
 
@@ -59,9 +56,7 @@ public class H2ConnectionFactory extends FileConnectionFactory {
                 this.driver = (Driver) loadMethod.invoke(null);
                 return;
             }
-            Class<?> driverClass = Fairy.getLibraryHandler()
-                    .obtainClassLoaderWith(Library.H2_DRIVER)
-                    .loadClass("org.h2.Driver");
+            Class<?> driverClass = Class.forName("org.h2.Driver");
             Method loadMethod = driverClass.getMethod("load");
             this.driver = (Driver) loadMethod.invoke(null);
         } catch (InvocationTargetException | NoSuchMethodException | IllegalAccessException | ClassNotFoundException ex) {
