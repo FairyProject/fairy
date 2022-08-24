@@ -1,11 +1,5 @@
 package io.fairyproject.mc;
 
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.fairyproject.container.ComponentRegistry;
-import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.component.PacketListenerComponentHolder;
-import io.fairyproject.mc.protocol.netty.NettyInjector;
-
 public interface MCInitializer {
 
     default void apply() {
@@ -16,8 +10,6 @@ public interface MCInitializer {
         MCWorld.Companion.BRIDGE = this.createWorldBridge();
         MCPlayer.Companion.BRIDGE = this.createPlayerBridge();
         MCGameProfile.Companion.BRIDGE = this.createGameProfileBridge();
-
-        ComponentRegistry.registerComponentHolder(new PacketListenerComponentHolder());
     }
 
     MCAdventure.AdventureHook createAdventure();

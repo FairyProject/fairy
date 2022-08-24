@@ -28,8 +28,9 @@ import com.github.retrooper.packetevents.event.PacketListener;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import io.fairyproject.container.Component;
+import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerConstruct;
+import io.fairyproject.container.object.Obj;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
@@ -37,23 +38,21 @@ import io.fairyproject.mc.event.MCPlayerMoveEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.event.world.MCWorldUnloadEvent;
 import io.fairyproject.mc.util.Pos;
-import io.fairyproject.ScheduledAtFixedRate;
 
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-@Component
+@Obj
 public class HologramListener implements PacketListener {
 
     private final Set<MCPlayer> toUpdate = new HashSet<>();
 
     @ContainerConstruct
     public HologramListener() {
-        this.runScheduler();
+        Fairy.getTaskScheduler().runRepeated(this::runScheduler, 100, 20);
     }
 
-    @ScheduledAtFixedRate(delay = 100, ticks = 20, async = false)
     public void runScheduler() {
         final Iterator<MCPlayer> iterator = toUpdate.iterator();
         while (iterator.hasNext()) {

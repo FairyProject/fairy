@@ -30,6 +30,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.google.common.collect.ImmutableList;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.hologram.api.ViewHandler;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCEntity;
@@ -116,7 +117,7 @@ public class SingleHologram {
                     this.buildDataWatcher(player)
             );
 
-            player.sendPacket(packet);
+            MCProtocol.sendPacket(player, packet);
         });
     }
 
@@ -133,7 +134,7 @@ public class SingleHologram {
                     this.getLocation().getPitch(),
                     false
             );
-            player.sendPacket(packet);
+            MCProtocol.sendPacket(player, packet);
         });
     }
 
@@ -143,13 +144,13 @@ public class SingleHologram {
                     this.armorStandId,
                     this.buildDataWatcher(player)
             );
-            player.sendPacket(packet);
+            MCProtocol.sendPacket(player, packet);
         });
     }
 
     protected List<EntityData> buildDataWatcher(MCPlayer player) {
         EntityData displayName;
-        if (MCProtocol.INSTANCE.version().isOrAbove(MCVersion.V1_13)) {
+        if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_13)) {
             displayName = new EntityData(2, EntityDataTypes.COMPONENT, this.getViewHandler().view(player));
         } else {
             displayName = new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.getViewHandler().view(player), player.getLocale()));
@@ -172,7 +173,7 @@ public class SingleHologram {
     protected void sendDestroyPacket(Collection<? extends MCPlayer> players) {
         players.forEach(player -> {
             WrapperPlayServerDestroyEntities packet = new WrapperPlayServerDestroyEntities(this.armorStandId);
-            player.sendPacket(packet);
+            MCProtocol.sendPacket(player, packet);
         });
     }
 
@@ -184,14 +185,14 @@ public class SingleHologram {
                         this.hologram.getAttachedTo().getId(),
                         false
                 );
-                player.sendPacket(packet);
+                MCProtocol.sendPacket(player, packet);
             } else {
                 WrapperPlayServerAttachEntity packet = new WrapperPlayServerAttachEntity(
                         this.armorStandId,
                         -1,
                         false
                 );
-                player.sendPacket(packet);
+                MCProtocol.sendPacket(player, packet);
             }
         });
     }

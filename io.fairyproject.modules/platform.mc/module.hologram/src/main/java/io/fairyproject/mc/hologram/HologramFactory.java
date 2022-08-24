@@ -81,7 +81,7 @@ public class HologramFactory {
                         break;
                 }
             }
-        }, PacketListenerPriority.MONITOR, false, true);
+        }, PacketListenerPriority.MONITOR);
     }
 
     public static HologramFactory from(MCWorld world) {
