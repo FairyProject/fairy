@@ -4,7 +4,6 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.BukkitPos;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
@@ -55,8 +54,8 @@ public class BukkitEventTransformer {
                 return;
             }
 
-            if (mcEvent.isChanged()) {
-                event.setTo(BukkitPos.toBukkitLocation(mcEvent.getToPos()));
+            if (mcEvent.changed()) {
+                event.setTo(BukkitPos.toBukkitLocation(mcEvent.toPos()));
             }
         });
         this.register(PlayerTeleportEvent.class, MCPlayerTeleportEvent.class, event -> {
@@ -70,8 +69,8 @@ public class BukkitEventTransformer {
                 return;
             }
 
-            if (mcEvent.isChanged()) {
-                event.setTo(BukkitPos.toBukkitLocation(mcEvent.getToPos()));
+            if (mcEvent.changed()) {
+                event.setTo(BukkitPos.toBukkitLocation(mcEvent.toPos()));
             }
         });
         this.register(WorldUnloadEvent.class, MCWorldUnloadEvent.class,

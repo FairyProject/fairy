@@ -2,19 +2,23 @@ package io.fairyproject.mc.event;
 
 import io.fairyproject.event.Cancellable;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.event.trait.MCPlayerEvent;
 import io.fairyproject.mc.util.Pos;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 
 @Getter
-public class MCPlayerMoveEvent extends MCPlayerEvent implements Cancellable {
+@Accessors(fluent = true)
+public class MCPlayerMoveEvent implements MCPlayerEvent, Cancellable {
 
+    private final MCPlayer player;
     private final Pos fromPos;
     private Pos toPos;
 
     private boolean changed;
 
     public MCPlayerMoveEvent(MCPlayer player, Pos fromPos, Pos toPos) {
-        super(player);
+        this.player = player;
         this.fromPos = fromPos;
         this.toPos = toPos;
     }

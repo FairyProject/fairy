@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.fairyproject.Fairy;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.util.math.CoordinateUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -232,6 +233,18 @@ public class Pos implements Cloneable {
 
 	public int getBlockZ() {
 		return locToBlock(z);
+	}
+
+	public int getChunkX() {
+		return CoordinateUtil.worldToChunk(this.getBlockX());
+	}
+
+	public int getChunkY() {
+		return CoordinateUtil.worldToChunk(this.getBlockY());
+	}
+
+	public int getChunkZ() {
+		return CoordinateUtil.worldToChunk(this.getBlockZ());
 	}
 
 	public void teleport(MCPlayer player, double range) {

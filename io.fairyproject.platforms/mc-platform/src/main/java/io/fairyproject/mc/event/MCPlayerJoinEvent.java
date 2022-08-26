@@ -1,10 +1,15 @@
 package io.fairyproject.mc.event;
 
-import io.fairyproject.event.Cancellable;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.event.trait.MCPlayerEvent;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 
-public class MCPlayerJoinEvent extends MCPlayerEvent implements Cancellable {
-    public MCPlayerJoinEvent(MCPlayer player) {
-        super(player);
-    }
+@Getter
+@Accessors(fluent = true)
+@RequiredArgsConstructor
+public class MCPlayerJoinEvent implements MCPlayerEvent {
+
+    private final MCPlayer player;
 }

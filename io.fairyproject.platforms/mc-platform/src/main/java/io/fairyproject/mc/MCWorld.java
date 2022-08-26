@@ -1,10 +1,14 @@
 package io.fairyproject.mc;
 
 import io.fairyproject.mc.util.AudienceProxy;
+import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.world.MCChunk;
 import io.fairyproject.metadata.MetadataMap;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public interface MCWorld extends AudienceProxy {
 
@@ -31,6 +35,11 @@ public interface MCWorld extends AudienceProxy {
     MetadataMap metadata();
 
     List<MCPlayer> players();
+
+    // chunks
+    List<MCChunk> chunks();
+
+    MCChunk getChunkAt(int x, int z);
 
     @UtilityClass
     class Companion {

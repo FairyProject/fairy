@@ -2,17 +2,17 @@ package io.fairyproject.mc.protocol;
 
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
-import com.github.retrooper.packetevents.event.PacketListener;
-import com.github.retrooper.packetevents.event.PacketListenerAbstract;
-import com.github.retrooper.packetevents.event.PacketListenerCommon;
-import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.*;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.*;
 import io.fairyproject.container.collection.ContainerObjCollector;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
+import io.fairyproject.mc.protocol.event.MCPlayerPacketSendEvent;
 import io.fairyproject.mc.protocol.impl.BukkitPacketEventsBuilder;
 import io.fairyproject.mc.protocol.impl.mock.MockPacketEventsBuilder;
 import io.fairyproject.mc.protocol.packet.PacketSender;
@@ -60,6 +60,39 @@ public class MCProtocol {
         this.packetSender = packetSender;
 
         // automatically register PacketListener that are obj
+        this.registerPacketListenerObjectCollector();
+        this.registerMCEventTransformer();
+
+        Log.info("Loaded MCProtocol with PacketEvents version %s on minecraft version %s", packetEvents.getVersion(), packetEvents.getServerManager().getVersion());
+    }
+
+    private void registerMCEventTransformer() {
+        this.packetEvents.getEventManager().registerListener(new PacketListener() {
+
+            @Override
+            public void onPacketReceive(PacketReceiveEvent event) {
+                Object player = event.getPlayer();
+                if (player == null)
+                    return;
+
+                MCPlayer mcPlayer = MCPlayer.from(player);
+                GlobalEventNode.get().call(new MCPlayerPacketReceiveEvent(mcPlayer, event));
+            }
+
+            @Override
+            public void onPacketSend(PacketSendEvent event) {
+                Object player = event.getPlayer();
+                if (player == null)
+                    return;
+
+                MCPlayer mcPlayer = MCPlayer.from(player);
+                GlobalEventNode.get().call(new MCPlayerPacketSendEvent(mcPlayer, event));
+            }
+
+        }, PacketListenerPriority.LOWEST);
+    }
+
+    private void registerPacketListenerObjectCollector() {
         ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(PacketListener.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(PacketListener.class, obj -> {
@@ -84,8 +117,6 @@ public class MCProtocol {
                     }
                 }))
         );
-
-        Log.info("Loaded MCProtocol with PacketEvents version %s on minecraft version %s", packetEvents.getVersion(), packetEvents.getServerManager().getVersion());
     }
 
     @PostInitialize
