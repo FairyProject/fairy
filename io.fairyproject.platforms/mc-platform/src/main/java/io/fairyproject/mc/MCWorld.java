@@ -1,5 +1,7 @@
 package io.fairyproject.mc;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.mc.event.trait.MCWorldEvent;
 import io.fairyproject.mc.util.AudienceProxy;
 import io.fairyproject.metadata.MetadataMap;
 import lombok.experimental.UtilityClass;
@@ -27,6 +29,8 @@ public interface MCWorld extends AudienceProxy {
     int getMaxSectionY();
 
     String name();
+
+    EventNode<MCWorldEvent> eventNode();
 
     MetadataMap metadata();
 

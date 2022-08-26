@@ -2,9 +2,19 @@ package io.fairyproject.mc.event.world;
 
 import io.fairyproject.event.Cancellable;
 import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.event.trait.MCWorldEvent;
+import org.jetbrains.annotations.NotNull;
 
-public class MCWorldUnloadEvent extends MCWorldEvent implements Cancellable {
+public class MCWorldUnloadEvent implements MCWorldEvent, Cancellable {
+
+    private final MCWorld world;
+
     public MCWorldUnloadEvent(MCWorld world) {
-        super(world);
+        this.world = world;
+    }
+
+    @Override
+    public @NotNull MCWorld world() {
+        return this.world;
     }
 }

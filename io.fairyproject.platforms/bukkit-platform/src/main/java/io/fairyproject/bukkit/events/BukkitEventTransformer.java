@@ -7,20 +7,14 @@ import io.fairyproject.container.Service;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
-import io.fairyproject.mc.event.MCPlayerJoinEvent;
-import io.fairyproject.mc.event.MCPlayerMoveEvent;
-import io.fairyproject.mc.event.MCPlayerQuitEvent;
-import io.fairyproject.mc.event.MCPlayerTeleportEvent;
+import io.fairyproject.mc.event.*;
 import io.fairyproject.mc.event.world.MCWorldUnloadEvent;
 import io.fairyproject.mc.util.Pos;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.world.WorldUnloadEvent;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,6 +74,9 @@ public class BukkitEventTransformer {
                         event.setCancelled(true);
                     }
                 });
+        this.register(PlayerChangedWorldEvent.class, MCPlayerChangedWorldEvent.class,
+                event -> new MCPlayerChangedWorldEvent(MCPlayer.from(event.getPlayer()), MCWorld.from(event.getFrom()), MCWorld.from(event.getPlayer().getWorld()))
+        );
     }
 
     @Nullable

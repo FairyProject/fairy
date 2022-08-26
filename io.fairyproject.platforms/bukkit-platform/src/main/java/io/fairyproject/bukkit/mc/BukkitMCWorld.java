@@ -2,8 +2,12 @@ package io.fairyproject.bukkit.mc;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.event.EventNode;
+import io.fairyproject.event.GlobalEventNode;
+import io.fairyproject.mc.MCEventFilter;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.event.trait.MCWorldEvent;
 import io.fairyproject.metadata.MetadataMap;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.World;
@@ -14,14 +18,21 @@ import java.util.stream.Collectors;
 public class BukkitMCWorld implements MCWorld {
 
     private final World world;
+    private final EventNode<MCWorldEvent> eventNode;
 
     public BukkitMCWorld(World world) {
         this.world = world;
+        this.eventNode = GlobalEventNode.get().map(this, MCEventFilter.WORLD);
     }
 
     @Override
     public String name() {
         return this.world.getName();
+    }
+
+    @Override
+    public EventNode<MCWorldEvent> eventNode() {
+        return this.eventNode;
     }
 
     @Override

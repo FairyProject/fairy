@@ -1,8 +1,10 @@
 package io.fairyproject.bukkit.mc;
 
+import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
+import io.fairyproject.metadata.MetadataKey;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -49,12 +51,16 @@ public class BukkitMCInitializer implements MCInitializer {
     @Override
     public MCWorld.Bridge createWorldBridge() {
         return new MCWorld.Bridge() {
+
+            private final MetadataKey<MCWorld> KEY = MetadataKey.create("fairy:mc-world", MCWorld.class);
+
             @Override
-            public MCWorld from(Object world) {
-                if (!(world instanceof org.bukkit.World)) {
+            public MCWorld from(Object worldObj) {
+                if (!(worldObj instanceof org.bukkit.World)) {
                     throw new UnsupportedOperationException();
                 }
-                return new BukkitMCWorld((org.bukkit.World) world);
+                org.bukkit.World world = (org.bukkit.World) worldObj;
+                return Metadata.provideForWorld(world).getOrPut(KEY, () -> new BukkitMCWorld(world));
             }
 
             @Override

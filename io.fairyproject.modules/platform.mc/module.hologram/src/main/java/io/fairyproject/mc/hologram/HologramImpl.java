@@ -10,6 +10,8 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.fairyproject.event.EventListener;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.*;
+import io.fairyproject.mc.event.MCPlayerChangedWorldEvent;
+import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerMoveEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.event.trait.MCPlayerEvent;
@@ -149,9 +151,37 @@ public class HologramImpl implements Hologram {
                 return;
             this.spawned = true;
         }
+
         this.updateEntities();
-        if (this.autoViewable)
+        if (this.autoViewable) {
             this.nearby().forEach(this::addViewer);
+
+            EventNode<MCPlayerEvent> eventNode = EventNode.type("hologram:nearby", MCEventFilter.PLAYER);
+            // add player when player is nearby on join
+            eventNode.addListener(MCPlayerJoinEvent.class, event -> {
+                MCPlayer player = event.player();
+                if (this.isViewer(player))
+                    return;
+
+                if (this.chunkDistanceTo(player.pos()) <= this.viewDistance)
+                    this.addViewer(player);
+            });
+
+            // add nearby non-viewer player to be viewed
+            eventNode.addListener(EventListener.builder(MCPlayerMoveEvent.class)
+                    .ignoreCancelled(true)
+                    .filter(event -> !this.isViewer(event.player()))
+                    .filter(MCEventFilter.DIFFERENT_CHUNK)
+                    .handler(event -> {
+                        MCPlayer player = event.player();
+
+                        if (this.chunkDistanceTo(event.toPos()) <= this.viewDistance)
+                            this.addViewer(player);
+                    })
+                    .build()
+            );
+            this.world.eventNode().addChild(eventNode);
+        }
     }
 
     @Override
@@ -257,6 +287,8 @@ public class HologramImpl implements Hologram {
                 .build());
         // remove from viewing whenever player quits
         eventNode.addListener(MCPlayerQuitEvent.class, event -> this.removeViewer(event.player()));
+        // remove from viewing whenever player changes world
+        eventNode.addListener(MCPlayerChangedWorldEvent.class, event -> this.removeViewer(event.player()));
         // listen packet for interaction detection
         eventNode.addListener(MCPlayerPacketReceiveEvent.class, event -> {
             if (event.packetType() != PacketType.Play.Client.INTERACT_ENTITY)
@@ -357,7 +389,7 @@ public class HologramImpl implements Hologram {
                     this.entityId,
                     this.entityUuid,
                     EntityTypes.ARMOR_STAND,
-                    new Vector3d(pos.getX(), pos.getY(), pos.getZ()),
+                    this.packetPosition(),
                     pos.getYaw(),
                     pos.getPitch(),
                     0,
@@ -373,7 +405,7 @@ public class HologramImpl implements Hologram {
             // teleport packet
             WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(
                     this.entityId,
-                    new Vector3d(pos.getX(), pos.getY(), pos.getZ()),
+                    this.packetPosition(),
                     pos.getYaw(),
                     pos.getPitch(),
                     false
@@ -401,6 +433,10 @@ public class HologramImpl implements Hologram {
             // remove entity packet
             WrapperPlayServerDestroyEntities packet = new WrapperPlayServerDestroyEntities(this.entityId);
             MCProtocol.sendPacket(player, packet);
+        }
+
+        private Vector3d packetPosition() {
+            return new Vector3d(pos.getX(), pos.getY() + y, pos.getZ());
         }
 
         private List<EntityData> createEntityData(MCPlayer player) {
