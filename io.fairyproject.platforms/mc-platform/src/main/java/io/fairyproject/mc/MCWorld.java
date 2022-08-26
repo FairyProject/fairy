@@ -36,11 +36,6 @@ public interface MCWorld extends AudienceProxy {
 
     List<MCPlayer> players();
 
-    // chunks
-    List<MCChunk> chunks();
-
-    MCChunk getChunkAt(int x, int z);
-
     @UtilityClass
     class Companion {
         public Bridge BRIDGE;
