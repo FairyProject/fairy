@@ -56,10 +56,10 @@ public class BukkitMCInitializer implements MCInitializer {
 
             @Override
             public MCWorld from(Object worldObj) {
-                if (!(worldObj instanceof org.bukkit.World)) {
+                if (!(worldObj instanceof World)) {
                     throw new UnsupportedOperationException();
                 }
-                org.bukkit.World world = (org.bukkit.World) worldObj;
+                World world = (World) worldObj;
                 return Metadata.provideForWorld(world).getOrPut(KEY, () -> new BukkitMCWorld(world));
             }
 
