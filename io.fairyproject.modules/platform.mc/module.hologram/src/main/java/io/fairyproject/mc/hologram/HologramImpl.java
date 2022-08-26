@@ -274,6 +274,8 @@ public class HologramImpl implements Hologram {
                 case INTERACT_AT:
                     this.interactHandlers.forEach(consumer -> consumer.accept(player));
                     break;
+                default:
+                    throw new IllegalStateException("packet action is null");
             }
         });
         // add node as child to player's event node
