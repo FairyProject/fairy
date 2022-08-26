@@ -1,14 +1,10 @@
 package io.fairyproject.mc;
 
 import io.fairyproject.mc.util.AudienceProxy;
-import io.fairyproject.mc.util.Pos;
-import io.fairyproject.mc.world.MCChunk;
 import io.fairyproject.metadata.MetadataMap;
 import lombok.experimental.UtilityClass;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public interface MCWorld extends AudienceProxy {
 
