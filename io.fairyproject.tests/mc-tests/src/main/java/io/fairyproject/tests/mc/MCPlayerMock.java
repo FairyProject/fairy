@@ -1,13 +1,18 @@
 package io.fairyproject.tests.mc;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.GameMode;
+import io.fairyproject.mc.MCEventFilter;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.event.trait.MCEntityEvent;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.netty.channel.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
@@ -30,6 +35,7 @@ public abstract class MCPlayerMock implements MCPlayer {
     private int ping = 0;
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
+    private final EventNode<MCEntityEvent> eventNode = GlobalEventNode.get().map(this, MCEventFilter.ENTITY);
 
     @Override
     public UUID getUUID() {
@@ -54,6 +60,11 @@ public abstract class MCPlayerMock implements MCPlayer {
     @Override
     public Component getDisplayName() {
         return this.displayName == null ? Component.text(this.name) : this.displayName;
+    }
+
+    @Override
+    public @NotNull EventNode<MCEntityEvent> eventNode() {
+        return this.eventNode;
     }
 
     @Override
