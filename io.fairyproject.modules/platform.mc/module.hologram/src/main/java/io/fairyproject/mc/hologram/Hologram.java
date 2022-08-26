@@ -1,264 +1,174 @@
-/*
- * MIT License
- *
- * Copyright (c) 2021 Imanity
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package io.fairyproject.mc.hologram;
 
-import com.github.retrooper.packetevents.util.Vector3f;
-import io.fairyproject.mc.hologram.api.TextViewHandler;
-import io.fairyproject.mc.hologram.api.ViewHandler;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.Viewable;
+import io.fairyproject.mc.hologram.line.HologramLine;
 import io.fairyproject.mc.util.Pos;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.Setter;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.function.Consumer;
 
-@Getter
-@Setter
-public class Hologram {
+public interface Hologram extends Viewable {
 
-    private static final float Y_PER_LINE = 0.25F;
-    private static int NEW_ID = 0;
-
-    private HologramFactory hologramFactory;
-
-    private int id;
-    private Pos position;
-    private boolean spawned;
-
-    private MCEntity attachedTo;
-    private InteractListener interactListener;
-
-    private List<SingleHologram> lines = new ArrayList<>();
-    private List<MCPlayer> renderedPlayers = Collections.synchronizedList(new ArrayList<>());
-
-    public Hologram(Pos position, HologramFactory hologramFactory) {
-        this.id = NEW_ID++;
-        this.position = position;
-        this.hologramFactory = hologramFactory;
+    static @NotNull Hologram create(Pos pos) {
+        return new HologramImpl(pos);
     }
 
-    public double getX() {
-        return this.position.getX();
-    }
+    /**
+     * Allow the hologram to automatically be displayed to players.
+     *
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withAutoViewable(boolean autoViewable);
 
-    public double getY() {
-        return this.position.getY();
-    }
+    /**
+     * Set the view distance that this hologram can be viewed.
+     * This is only useful if it's auto viewable.
+     *
+     * @param viewDistance the view distance
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withViewDistance(int viewDistance);
 
-    public double getZ() {
-        return this.position.getZ();
-    }
+    /**
+     * Set the handler whenever player attacks the hologram entity.
+     *
+     * @param attackHandler the handler
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withAttackHandler(Consumer<MCPlayer> attackHandler);
 
-    public MCWorld getWorld() {
-        return this.position.getMCWorld();
-    }
+    /**
+     * Set the handler whenever player interacts the hologram entity.
+     *
+     * @param interactHandler the handler
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withInteractHandler(Consumer<MCPlayer> interactHandler);
 
-    public void addText(String text) {
-        this.addView(new TextViewHandler(text));
-    }
+    /**
+     * Replace the lines to display for the hologram.
+     *
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withLines(@NotNull List<HologramLine> lines);
 
-    public void addView(ViewHandler viewHandler) {
-        this.setView(this.lines.size(), viewHandler);
-    }
+    /**
+     * Append a line to display for the hologram.
+     *
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withLine(@NotNull HologramLine line);
 
-    public void setText(int index, String text) {
-        this.setView(index, new TextViewHandler(text));
-    }
+    /**
+     * Append a line at certain index to display for the hologram.
+     *
+     * @return this
+     */
+    @Contract("_, _ -> this")
+    Hologram withLine(int index, @NotNull HologramLine line);
 
-    public void update() {
-        this.validateMainThread();
-        this.lines.forEach(hologram -> hologram.sendNamePackets(this.renderedPlayers));
-    }
+    /**
+     * Set the position of the hologram.
+     *
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withPos(@NotNull Pos pos);
 
-    public void setView(int index, ViewHandler viewHandler) {
-        this.validateMainThread();
-        if (index >= this.lines.size()) {
-            SingleHologram single = new SingleHologram(this, viewHandler, -Y_PER_LINE * index, index);
-            this.lines.add(index, single);
-            this.hologramFactory.registerEntityId(single.getHorseId(), this);
-            this.hologramFactory.registerEntityId(single.getArmorStandId(), this);
+    /**
+     * Set the vertical spacing between each line.
+     *
+     * @param verticalSpacing the spacing
+     * @return this
+     */
+    Hologram withVerticalSpacing(double verticalSpacing);
 
-            if (this.isSpawned()) {
-                single.send(this.renderedPlayers);
-            }
-        } else {
-            SingleHologram single = this.lines.get(index);
-            if (single.getIndex() != index) {
-                this.lines.add(index, single);
-            }
+    /**
+     * Attach the hologram to an entity.
+     *
+     * @return this
+     */
+    @Contract("_ -> this")
+    Hologram withAttached(@Nullable MCEntity entity);
 
-            single.setViewHandler(viewHandler);
-            single.sendNamePackets(this.renderedPlayers);
-        }
+    /**
+     * Remove a line from a certain index.
+     */
+    void removeLine(int index);
 
-    }
+    /**
+     * Clear every line of the hologram.
+     */
+    void clear();
 
-    public void removeView(int index) {
-        this.validateMainThread();
-        if (lines.size() > index) {
-            SingleHologram single = this.lines.get(index);
-            single.sendRemove(this.renderedPlayers);
-            this.lines.remove(index);
+    /**
+     * Spawn the hologram.
+     */
+    void spawn();
 
-            this.hologramFactory.unregisterEntityId(single.getHorseId());
-            this.hologramFactory.unregisterEntityId(single.getArmorStandId());
-        }
-    }
+    /**
+     * Remove the hologram.
+     */
+    void remove();
 
-    public void setPosition(Pos position) {
-        this.move(position);
-    }
+    /**
+     * Check if the hologram were spawned.
+     *
+     * @return true if spawned
+     */
+    boolean isSpawned();
 
-    private void move(@NonNull Pos location) {
-        this.validateMainThread();
-        if (this.position.equals(location)) {
-            return;
-        }
+    /**
+     * Check if this hologram are automatically be displayed to players.
+     *
+     * @return true if auto viewable
+     */
+    boolean isAutoViewable();
 
-        if (!this.position.getWorld().equals(location.getWorld())) {
-            throw new IllegalArgumentException("cannot move to different world");
-        }
+    /**
+     * Get the view distance of the hologram.
+     *
+     * @return the view distance
+     */
+    int viewDistance();
 
-        this.position = location;
-        if (this.isSpawned()) {
-            List<MCPlayer> players = this.position.getMCWorld().players();
-            this.lines.forEach(hologram -> hologram.sendTeleportPacket(players));
-        }
-    }
+    /**
+     * Get the entity that are attached by this hologram.
+     *
+     * @return entity
+     */
+    @Nullable MCEntity attached();
 
-    public boolean isAttached() {
-        return attachedTo != null;
-    }
+    /**
+     * Get the current position of the hologram.
+     *
+     * @return the hologram
+     */
+    @NotNull Pos pos();
 
-    public void spawnPlayer(MCPlayer player) {
-        this.validateMainThread();
-        this.lines.forEach(hologram -> hologram.send(Collections.singleton(player)));
-        this.renderedPlayers.add(player);
-    }
+    /**
+     * Get the vertical spacing between each line of the hologram.
+     *
+     * @return the vertical spacing
+     */
+    double verticalSpacing();
 
-    protected List<MCPlayer> getNearbyPlayers() {
-        this.validateMainThread();
-        return this.position.getMCWorld().players()
-                .stream()
-                .filter(player -> player.pos().distanceTo(this.position) < HologramFactory.DISTANCE_TO_RENDER)
-                .collect(Collectors.toList());
-    }
-
-    public void spawn() {
-        this.validateMainThread();
-        this.validateDespawned();
-
-        this.getNearbyPlayers()
-                .forEach(this.hologramFactory::update);
-
-        this.spawned = true;
-    }
-
-    public void removePlayer(MCPlayer player) {
-        this.validateMainThread();
-        this.lines.forEach(hologram -> hologram.sendRemove(Collections.singleton(player)));
-        this.renderedPlayers.remove(player);
-    }
-
-    public boolean remove() {
-        this.validateMainThread();
-        this.validateSpawned();
-
-        for (MCPlayer player : new ArrayList<>(this.renderedPlayers)) {
-            HologramRenderer holograms = this.hologramFactory.renderer(player);
-            holograms.removeHologram(player, this);
-        }
-        this.renderedPlayers.clear();
-        this.hologramFactory.remove(this);
-
-        for (SingleHologram line : this.lines) {
-            this.hologramFactory.unregisterEntityId(line.getHorseId());
-            this.hologramFactory.unregisterEntityId(line.getArmorStandId());
-        }
-
-        this.spawned = false;
-        return true;
-    }
-
-    public double distanceTo(MCPlayer player) {
-        return Math.sqrt(Math.pow(this.getPosition().getX() - player.pos().getX(), 2)
-                + Math.pow(this.getPosition().getZ() - player.pos().getZ(), 2));
-    }
-
-    private void validateSpawned() {
-        if (!this.spawned)
-            throw new IllegalStateException("Not spawned");
-    }
-
-    private void validateDespawned() {
-        if (this.spawned)
-            throw new IllegalStateException("Already spawned");
-    }
-
-    private void validateMainThread() {
-        if (MCServer.current().isMainThread()) {
-            throw new IllegalStateException("Hologram doesn't support async");
-        }
-    }
-
-    public interface InteractListener {
-
-        /**
-         * The method that will be called when the hologram being attack by a player
-         *
-         * @param player the Player
-         */
-        default void attack(MCPlayer player) {
-            // Can be overwritten
-        }
-
-        /**
-         * The method that will be called when the hologram being right-clicked by a player
-         *
-         * @param player the Player
-         */
-        default void interact(MCPlayer player) {
-            // Can be overwritten
-        }
-
-        /**
-         * The method that will be called when the hologram being right-clicked by a player with a pos
-         *
-         * @param player the Player
-         */
-        default void interactAt(MCPlayer player, Vector3f vector) {
-            // Can be overwritten
-        }
-
-    }
+    /**
+     * Get the lines of the hologram.
+     *
+     * @return the lines
+     */
+    @NotNull List<HologramLine> lines();
 
 }
