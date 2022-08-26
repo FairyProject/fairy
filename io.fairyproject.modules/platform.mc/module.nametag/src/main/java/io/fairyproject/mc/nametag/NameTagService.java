@@ -73,13 +73,13 @@ public class NameTagService {
     @Subscribe
     public void onPlayerJoin(MCPlayerJoinEvent event) {
         for (NameTag tagInfo : this.nametags.values()) {
-            this.sendPacket(event.getPlayer(), tagInfo);
+            this.sendPacket(event.player(), tagInfo);
         }
     }
 
     @Subscribe
     public void onPlayerQuit(MCPlayerQuitEvent event) {
-        final String name = event.getPlayer().getName();
+        final String name = event.player().getName();
         Task.runAsync(() -> MCPlayer.all().forEach(other -> {
             if (other.getName().equals(name) || !other.isOnline()) {
                 return;

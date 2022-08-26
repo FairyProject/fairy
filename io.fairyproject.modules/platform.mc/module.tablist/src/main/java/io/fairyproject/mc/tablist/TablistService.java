@@ -128,12 +128,12 @@ public class TablistService {
 
     @Subscribe
     public void onPlayerJoin(MCPlayerJoinEvent event) {
-        this.registerPlayerTablist(event.getPlayer());
+        this.registerPlayerTablist(event.player());
     }
 
     @Subscribe
     public void onPlayerQuit(MCPlayerQuitEvent event) {
-        this.removePlayerTablist(event.getPlayer());
+        this.removePlayerTablist(event.player());
     }
 
     private void registerImplementation() {

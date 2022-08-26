@@ -72,12 +72,12 @@ public class SidebarService implements TaskRunnable {
 
     @Subscribe
     public void onPlayerJoin(MCPlayerJoinEvent event) {
-        this.getOrCreateScoreboard(event.getPlayer());
+        this.getOrCreateScoreboard(event.player());
     }
 
     @Subscribe
     public void onPlayerQuit(MCPlayerQuitEvent event) {
-        this.remove(event.getPlayer());
+        this.remove(event.player());
     }
 
     public void addAdapter(SidebarAdapter adapter) {
