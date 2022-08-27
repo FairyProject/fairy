@@ -41,6 +41,9 @@ public class HologramImpl implements Hologram {
     private double verticalSpacing;
     private int viewDistance;
 
+    @Nullable
+    private EventNode<MCPlayerEvent> eventNode;
+
     private final Map<MCPlayer, EventNode<MCPlayerEvent>> viewers;
     private final Set<Consumer<MCPlayer>> attackHandlers;
     private final Set<Consumer<MCPlayer>> interactHandlers;
@@ -181,6 +184,7 @@ public class HologramImpl implements Hologram {
                     .build()
             );
             this.world.eventNode().addChild(eventNode);
+            this.eventNode = eventNode;
         }
 
         return this;
@@ -195,6 +199,10 @@ public class HologramImpl implements Hologram {
         }
         this.viewers.keySet().forEach(this::hide);
         this.viewers.clear();
+        if (this.eventNode != null) {
+            this.world.eventNode().removeChild(this.eventNode);
+            this.eventNode = null;
+        }
     }
 
     private synchronized void updateEntities() {
