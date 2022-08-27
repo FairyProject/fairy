@@ -197,7 +197,7 @@ public class HologramImpl implements Hologram {
                 return;
             this.spawned = false;
         }
-        this.viewers.keySet().forEach(this::hide);
+        this.viewers.keySet().forEach(this::removeViewer);
         this.viewers.clear();
         if (this.eventNode != null) {
             this.world.eventNode().removeChild(this.eventNode);
