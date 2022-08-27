@@ -114,8 +114,11 @@ public interface Hologram extends Viewable {
 
     /**
      * Spawn the hologram.
+     *
+     * @return this
      */
-    void spawn();
+    @Contract(" -> this")
+    Hologram spawn();
 
     /**
      * Remove the hologram.

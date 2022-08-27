@@ -145,10 +145,10 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public void spawn() {
+    public Hologram spawn() {
         synchronized (this) {
             if (this.spawned)
-                return;
+                return this;
             this.spawned = true;
         }
 
@@ -182,6 +182,8 @@ public class HologramImpl implements Hologram {
             );
             this.world.eventNode().addChild(eventNode);
         }
+
+        return this;
     }
 
     @Override
