@@ -94,9 +94,6 @@ public enum OBCVersion {
             } catch (Exception e) {
                 SneakyThrowUtil.sneakyThrow(e);
             }
-            if (VERSION != null) {
-                System.out.println("[Fairy] Version is " + VERSION);
-            }
         }
         return VERSION;
     }

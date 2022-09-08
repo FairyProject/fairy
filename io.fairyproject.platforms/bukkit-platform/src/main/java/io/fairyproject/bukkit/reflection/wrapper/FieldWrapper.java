@@ -32,6 +32,7 @@ public class FieldWrapper<R> extends WrapperAbstract {
 
 	public FieldWrapper(Field field) {
 		this.field = field;
+		this.field.setAccessible(true);
 	}
 
 	@Override
