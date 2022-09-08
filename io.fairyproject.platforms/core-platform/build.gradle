@@ -25,6 +25,7 @@
 dependencies {
     api "io.github.classgraph:classgraph:4.8.143"
     api "io.github.toolfactory:narcissus:1.0.7"
+    api "javax.annotation:javax.annotation-api:1.3.2"
     api libs.javax.persistence.api
 
     api project(":shared")

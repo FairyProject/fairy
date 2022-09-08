@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.reflection.resolver;
 
 import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
 import io.fairyproject.util.AccessUtil;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -64,7 +65,7 @@ public class FieldResolver extends MemberResolver<Field> {
 	}
 
 	public FieldWrapper resolveWrapper(String... names) {
-		return new FieldWrapper<>(resolveSilent(names));
+		return ThrowingSupplier.sneaky(() -> new FieldWrapper<>(resolve(names))).get();
 	}
 
 	public Field resolveSilent(String... names) {

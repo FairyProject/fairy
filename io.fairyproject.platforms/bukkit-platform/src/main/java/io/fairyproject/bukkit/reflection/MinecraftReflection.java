@@ -26,7 +26,6 @@ package io.fairyproject.bukkit.reflection;
 
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.impl.annotation.ProviderTestImpl;
 import io.fairyproject.bukkit.impl.test.ImplementationFactory;
 import io.fairyproject.bukkit.reflection.annotation.ProtocolImpl;
@@ -57,6 +56,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 
@@ -64,12 +64,11 @@ import java.util.regex.Pattern;
  * Helper class to access minecraft/bukkit specific objects
  */
 public class MinecraftReflection {
-    public static final Pattern NUMERIC_VERSION_PATTERN = Pattern.compile("v([0-9])_([0-9]*)_R([0-9])");
 
     public static String NETTY_PREFIX;
 
-    private static NMSClassResolver NMS_CLASS_RESOLVER = new NMSClassResolver();
-    private static OBCClassResolver OBC_CLASS_RESOLVER = new OBCClassResolver();
+    private static final NMSClassResolver NMS_CLASS_RESOLVER = new NMSClassResolver();
+    private static final OBCClassResolver OBC_CLASS_RESOLVER = new OBCClassResolver();
     private static Class<?> NMS_ENTITY;
     private static Class<?> CRAFT_ENTITY;
 
@@ -115,6 +114,10 @@ public class MinecraftReflection {
 
     private static ProtocolCheck PROTOCOL_CHECK;
 
+    private static Function<Integer, Integer> ENTITY_ID_RESOLVER;
+
+    private static FieldWrapper<Integer> PING_FIELD;
+
     public static MCVersion getProtocol(Player player) {
         return MCVersion.getVersionFromRaw(PROTOCOL_CHECK.getVersion(player));
     }
@@ -156,10 +159,9 @@ public class MinecraftReflection {
         }
 
         try {
-            Class<?> entityHumanType = NMS_CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman");
-            Class<?> entityPlayerType = NMS_CLASS_RESOLVER.resolve("server.level.EntityPlayer", "EntityPlayer");
-            Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("server.network.PlayerConnection", "PlayerConnection");
-            Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.NetworkManager", "NetworkManager");
+            Class<?> entityPlayerType = NMS_CLASS_RESOLVER.resolve("server.level.ServerPlayer", "server.level.EntityPlayer", "EntityPlayer");
+            Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("server.network.ServerGamePacketListenerImpl", "server.network.PlayerConnection", "PlayerConnection");
+            Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.Connection", "network.NetworkManager", "NetworkManager");
 
             Class<?> craftPlayerType = OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer");
 
@@ -170,7 +172,7 @@ public class MinecraftReflection {
 
             Class<?> packetClass = NMS_CLASS_RESOLVER.resolve("network.protocol.Packet", "Packet");
 
-            MinecraftReflection.METHOD_SEND_PACKET = new MethodWrapper(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
+            MinecraftReflection.METHOD_SEND_PACKET = new MethodWrapper<>(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
 
             MinecraftReflection.FIELD_NETWORK_MANAGER = new FieldResolver(playerConnectionType)
                     .resolveByFirstTypeWrapper(networkManagerType);
@@ -261,21 +263,29 @@ public class MinecraftReflection {
         MinecraftReflection.METHOD_SEND_PACKET.invoke(playerConnection, packet);
     }
 
-    private static FieldWrapper<Integer> ENTITY_ID_RESOLVER;
-
     public static int getNewEntityId() {
         return MinecraftReflection.setEntityId(1);
     }
 
     public static int setEntityId(int newIds) {
         if (ENTITY_ID_RESOLVER == null) {
-            ENTITY_ID_RESOLVER = new FieldResolver(NMS_CLASS_RESOLVER.resolveSilent("world.entity.Entity", "Entity"))
-                    .resolveWrapper("entityCount");
+            Class<?> entityClass = NMS_CLASS_RESOLVER.resolveSilent("world.entity.Entity", "Entity");
+            try {
+                FieldWrapper fieldWrapper = new FieldResolver(entityClass).resolveWrapper("entityCount");
+                ENTITY_ID_RESOLVER = n -> {
+                    int id = (int) fieldWrapper.get(null);
+                    fieldWrapper.set(null, id + n);
+                    return id + n;
+                };
+            } catch (Throwable throwable) {
+                FieldWrapper fieldWrapper = new FieldResolver(entityClass).resolveWrapper("ENTITY_COUNTER");
+                AtomicInteger id = (AtomicInteger) fieldWrapper.get(null);
+
+                ENTITY_ID_RESOLVER = id::addAndGet;
+            }
         }
 
-        int id = ENTITY_ID_RESOLVER.get(null);
-        ENTITY_ID_RESOLVER.setSilent(null, id + newIds);
-        return id;
+        return ENTITY_ID_RESOLVER.apply(newIds);
     }
 
     public static void sendPacket(Player player, PacketWrapper packetWrapper) {
@@ -310,12 +320,10 @@ public class MinecraftReflection {
         return null;
     }
 
-    private static FieldWrapper<Integer> PING_FIELD;
-
     public static int getPing(Player player) {
         if (PING_FIELD == null) {
             try {
-                Class<?> type = NMS_CLASS_RESOLVER.resolve("server.level.EntityPlayer", "EntityPlayer");
+                Class<?> type = NMS_CLASS_RESOLVER.resolve("server.level.ServerPlayer", "server.level.EntityPlayer", "EntityPlayer");
                 PING_FIELD = new FieldResolver(type).resolveWrapper("ping");
             } catch (Throwable throwable) {
                 throw new RuntimeException(throwable);
