@@ -106,16 +106,12 @@ public interface ServerImplementation {
 
     void showDyingNPC(Player player);
 
+    @Deprecated
     Object toBlockNMS(MaterialData materialData);
 
     List<Player> getPlayerRadius(Location location, double radius);
 
-    void setFakeBlocks(Player player, Map<BlockPosition, MaterialData> positions, List<BlockPosition> toRemove, boolean send);
-
-    void clearFakeBlocks(Player player, boolean send);
-
-    void sendActionBar(Player player, String message);
-
+    @Deprecated
     float getBlockSlipperiness(Material material);
 
     void sendEntityTeleport(Player player, Location location, int id);

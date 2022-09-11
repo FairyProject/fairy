@@ -50,7 +50,7 @@ public abstract class URLClassLoaderAccess {
     public abstract void addURL(@Nonnull URL url);
 
     public void addPath(@Nonnull Path path) {
-        ThrowingRunnable.unchecked(() -> this.addURL(path.toUri().toURL())).run();
+        ThrowingRunnable.sneaky(() -> this.addURL(path.toUri().toURL())).run();
     }
 
     /**
