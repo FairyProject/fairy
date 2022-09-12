@@ -1,11 +1,13 @@
 package io.fairyproject.mc;
 
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
 import io.fairyproject.mc.util.Pos;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface MCEntity {
@@ -27,6 +29,8 @@ public interface MCEntity {
     boolean teleport(Pos pos);
 
     <T> T as(Class<T> entityClass);
+
+    @NotNull List<EntityData> data();
 
     @UtilityClass
     class Companion {

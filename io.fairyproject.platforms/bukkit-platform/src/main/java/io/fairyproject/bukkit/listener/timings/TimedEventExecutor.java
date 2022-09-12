@@ -24,17 +24,17 @@
 
 package io.fairyproject.bukkit.listener.timings;
 
-import java.lang.reflect.Method;
-
-import io.fairyproject.container.Autowired;
-import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.bukkit.timings.MCTiming;
 import io.fairyproject.bukkit.timings.TimingService;
+import io.fairyproject.container.Autowired;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventException;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
-import io.fairyproject.bukkit.timings.MCTiming;
+
+import java.lang.reflect.Method;
 
 public class TimedEventExecutor implements EventExecutor {
 
@@ -63,7 +63,7 @@ public class TimedEventExecutor implements EventExecutor {
     }
 
     public void execute(Listener listener, Event event) throws EventException {
-        if (!event.isAsynchronous() && Imanity.IMPLEMENTATION.isServerThread()) {
+        if (!event.isAsynchronous() && Bukkit.isPrimaryThread()) {
             try (MCTiming ignored = this.timings.startTiming()) {
                 this.executor.execute(listener, event);
             }

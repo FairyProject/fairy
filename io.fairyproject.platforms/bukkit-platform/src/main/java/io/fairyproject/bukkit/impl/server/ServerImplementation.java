@@ -104,25 +104,5 @@ public interface ServerImplementation {
         return null;
     }
 
-    void showDyingNPC(Player player);
-
-    @Deprecated
-    Object toBlockNMS(MaterialData materialData);
-
-    List<Player> getPlayerRadius(Location location, double radius);
-
-    @Deprecated
-    float getBlockSlipperiness(Material material);
-
-    void sendEntityTeleport(Player player, Location location, int id);
-
-    void sendEntityAttach(Player player, int type, int toAttach, int attachTo);
-
-    void setSkullGameProfile(ItemMeta itemMeta, Player player);
-
-    boolean isServerThread();
-
-    boolean callMoveEvent(Player player, Location from, Location to);
-
     AbstractMovementImplementation movement(MovementListener movementListener);
 }
