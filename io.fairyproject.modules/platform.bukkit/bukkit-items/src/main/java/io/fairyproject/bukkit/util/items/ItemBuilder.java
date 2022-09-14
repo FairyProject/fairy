@@ -35,6 +35,7 @@ import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
 import io.fairyproject.util.AccessUtil;
+import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.filter.FilterUnit;
@@ -168,12 +169,18 @@ public class ItemBuilder implements Listener, Cloneable {
 	}
 
 	public ItemBuilder enchantment(final XEnchantment enchantment, final int level) {
-		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), level);
+		Enchantment enchant = enchantment.getEnchant();
+		ConditionUtils.notNull(enchant, enchantment.name() + " doesn't seems to be supported in current version.");
+
+		itemStack.addUnsafeEnchantment(enchant, level);
 		return this;
 	}
 
 	public ItemBuilder enchantment(final XEnchantment enchantment) {
-		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), 1);
+		Enchantment enchant = enchantment.getEnchant();
+		ConditionUtils.notNull(enchant, enchantment.name() + " doesn't seems to be supported in current version.");
+
+		itemStack.addUnsafeEnchantment(enchant, 1);
 		return this;
 	}
 

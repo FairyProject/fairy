@@ -11,7 +11,7 @@ lombok = "1.18.24"
 persistence-api = "2.2"
 junit = "5.8.1"
 asm = "9.3"
-packetevents = "2.0.8-SNAPSHOT"
+packetevents = "2.0.9-SNAPSHOT"
 
 # Adventure
 adventure = "4.10.1"
