@@ -43,7 +43,6 @@ dependencies {
     compileOnly libs.yaml
     compileOnly libs.common.lang3
     compileOnly libs.common.io
-
 }
 sourceSets {
     test.compileClasspath += configurations.compileOnly
