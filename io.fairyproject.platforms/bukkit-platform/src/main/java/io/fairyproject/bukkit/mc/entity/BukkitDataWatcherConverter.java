@@ -11,6 +11,7 @@ import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.ConstructorWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
+import io.fairyproject.util.AccessUtil;
 import io.netty.buffer.ByteBuf;
 import lombok.experimental.UtilityClass;
 import org.bukkit.entity.Entity;
@@ -33,7 +34,7 @@ public class BukkitDataWatcherConverter {
             Class<?> packetDataSerializerClass = getPacketDataSerializerClass();
 
             Field field = new FieldResolver(entityClass).resolveByFirstType(dataWatcherClass);
-            field.setAccessible(true);
+            AccessUtil.setAccessible(field);
             DATA_WATCHER_FIELD = new FieldWrapper<>(field);
 
             DATA_WATCHER_WRITE_METHOD = new MethodResolver(dataWatcherClass).resolve(0, packetDataSerializerClass);
