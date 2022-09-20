@@ -33,6 +33,7 @@ public class TimeoutStateHandler<S, T> implements StateHandler<S, T> {
 
     @Override
     public void onStop(@NotNull StateMachine<S, T> stateMachine, @NotNull S state, @Nullable Trigger<T> trigger) {
+        // do nothing
     }
 
     public static <T> Trigger<T> trigger() {

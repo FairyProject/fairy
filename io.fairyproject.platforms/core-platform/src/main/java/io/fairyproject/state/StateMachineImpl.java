@@ -43,12 +43,10 @@ public class StateMachineImpl<S, T> implements StateMachine<S, T> {
 
     @Override
     public @NotNull StateMachine<S, T> start(@NotNull S state, @Nullable Trigger<T> trigger) {
-        if (trigger == null)
-            trigger = Trigger.start();
+        @Nullable Trigger<T> t = trigger == null ? Trigger.start() : trigger;
 
         this.current = state;
         State<S, T> currentState = this.states.get(this.current);
-        @Nullable Trigger<T> t = trigger;
         currentState.handlers().forEach(handler -> handler.onStart(this, this.current, t));
 
         this.compositeTerminable = CompositeTerminable.create();
@@ -91,12 +89,10 @@ public class StateMachineImpl<S, T> implements StateMachine<S, T> {
 
     @Override
     public @NotNull StateMachine<S, T> stop(@Nullable Trigger<T> trigger) {
-        if (trigger == null)
-            trigger = Trigger.end();
+        Trigger<T> t = trigger == null ? Trigger.end() : trigger;
 
         if (this.current != null) {
             State<S, T> currentState = this.states.get(this.current);
-            @Nullable Trigger<T> t = trigger;
             currentState.handlers().forEach(handler -> handler.onStop(this, this.current, t));
         }
 
