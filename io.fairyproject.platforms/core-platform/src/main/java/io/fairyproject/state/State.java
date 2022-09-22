@@ -1,69 +1,141 @@
-/*
- * MIT License
- *
- * Copyright (c) 2021 Imanity
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package io.fairyproject.state;
 
-import io.fairyproject.state.strategy.StateStrategy;
-import io.fairyproject.util.terminable.Terminable;
-import io.fairyproject.util.terminable.TerminableConsumer;
+import io.fairyproject.state.trigger.Trigger;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
-public interface State extends Terminable, TerminableConsumer {
-    void start();
+/**
+ * The state system from fairy framework
+ *
+ * @param <S> the state type
+ * @param <T> the trigger type
+ */
+public interface State<S, T> {
 
-    void update();
+    /**
+     * The state machine of the state
+     *
+     * @return the state machine
+     */
+    @NotNull StateMachine<S, T> machine();
 
-    void end();
+    /**
+     * Add a new handler to the state
+     *
+     * @param handler the handler
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull State<S, T> handler(@NotNull StateHandler<S, T> handler);
 
-    long getTimePast();
+    /**
+     * The handlers of the state
+     *
+     * @return the handlers
+     */
+    @NotNull List<StateHandler<S, T>> handlers();
 
-    boolean isReadyToEnd();
+    /**
+     * Handle the start of the state
+     *
+     * @param runnable the runnable
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull default State<S, T> handleStart(@NotNull Runnable runnable) {
+        return handler(StateHandler.<S, T>builder()
+                .onStart(runnable)
+                .build());
+    }
 
-    void pause();
+    /**
+     * Handle the ticking of the state
+     *
+     * @param runnable the runnable
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull default State<S, T> handleTick(@NotNull Runnable runnable) {
+        return handler(StateHandler.<S, T>builder()
+                .onTick(runnable)
+                .build());
+    }
 
-    void unpause();
+    /**
+     * Handle the end of the state
+     *
+     * @param runnable the runnable
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull default State<S, T> handleStop(@NotNull Runnable runnable) {
+        return handler(StateHandler.<S, T>builder()
+                .onStop(runnable)
+                .build());
+    }
 
-    boolean isStarted();
+    /**
+     * Handle the start of the state
+     * @param consumer the consumer
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull default State<S, T> handleStart(@NotNull Consumer<Trigger<T>> consumer) {
+        return handler(StateHandler.<S, T>builder()
+                .onStart(consumer)
+                .build());
+    }
 
-    boolean isEnded();
+    /**
+     * Handle the end of the state
+     *
+     * @param consumer the consumer
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull default State<S, T> handleStop(@NotNull Consumer<Trigger<T>> consumer) {
+        return handler(StateHandler.<S, T>builder()
+                .onStop(consumer)
+                .build());
+    }
 
-    boolean isPaused();
+    /**
+     * Handle a trigger of the state
+     *
+     * @param t the trigger
+     * @param config configuration of the trigger
+     * @return this
+     */
+    @Contract("_, _ -> this")
+    @NotNull default State<S, T> when(@NotNull T t, @NotNull Consumer<TriggerTask<S, T>> config) {
+        return this.when(Trigger.of(t), config);
+    }
 
-    boolean isUpdating();
+    /**
+     * Handle a trigger of the state
+     *
+     * @param trigger the trigger
+     * @param config configuration of the trigger
+     * @return this
+     */
+    @Contract("_, _ -> this")
+    @NotNull State<S, T> when(@NotNull Trigger<T> trigger, @NotNull Consumer<TriggerTask<S, T>> config);
 
-    void onSuspend();
+    /**
+     * Listen to unhandled triggers
+     *
+     * @param consumer the consumer
+     */
+    void unhandled(@NotNull Consumer<Trigger<T>> consumer);
 
-    long getStartTimestamp();
+    /**
+     * Fire a trigger
+     *
+     * @param trigger the trigger
+     */
+    void fire(@NotNull Trigger<T> trigger);
 
-    void addStrategy(@NotNull StateStrategy strategy, @NotNull StateStrategy.Type type);
-
-    void removeStrategy(@NotNull StateStrategy strategy, @NotNull StateStrategy.Type type);
-
-    @NotNull Collection<StateStrategy> strategies(@NotNull StateStrategy.Type type);
-
-    void forEachStrategies(@NotNull Consumer<StateStrategy> consumer, @NotNull StateStrategy.Type type);
 }
