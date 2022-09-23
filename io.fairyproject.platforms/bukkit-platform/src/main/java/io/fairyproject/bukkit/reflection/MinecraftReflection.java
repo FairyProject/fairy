@@ -159,9 +159,10 @@ public class MinecraftReflection {
         }
 
         try {
-            Class<?> entityPlayerType = NMS_CLASS_RESOLVER.resolve("server.level.ServerPlayer", "server.level.EntityPlayer", "EntityPlayer");
-            Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("server.network.ServerGamePacketListenerImpl", "server.network.PlayerConnection", "PlayerConnection");
-            Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.Connection", "network.NetworkManager", "NetworkManager");
+            Class<?> entityHumanType = NMS_CLASS_RESOLVER.resolve("world.entity.player.EntityHuman", "EntityHuman");
+            Class<?> entityPlayerType = NMS_CLASS_RESOLVER.resolve("server.level.EntityPlayer", "EntityPlayer");
+            Class<?> playerConnectionType = NMS_CLASS_RESOLVER.resolve("server.network.PlayerConnection", "PlayerConnection");
+            Class<?> networkManagerType = NMS_CLASS_RESOLVER.resolve("network.NetworkManager", "NetworkManager");
 
             Class<?> craftPlayerType = OBC_CLASS_RESOLVER.resolve("entity.CraftPlayer");
 
@@ -172,7 +173,7 @@ public class MinecraftReflection {
 
             Class<?> packetClass = NMS_CLASS_RESOLVER.resolve("network.protocol.Packet", "Packet");
 
-            MinecraftReflection.METHOD_SEND_PACKET = new MethodWrapper<>(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
+            MinecraftReflection.METHOD_SEND_PACKET = new MethodWrapper(playerConnectionType.getDeclaredMethod("sendPacket", packetClass));
 
             MinecraftReflection.FIELD_NETWORK_MANAGER = new FieldResolver(playerConnectionType)
                     .resolveByFirstTypeWrapper(networkManagerType);
@@ -323,7 +324,7 @@ public class MinecraftReflection {
     public static int getPing(Player player) {
         if (PING_FIELD == null) {
             try {
-                Class<?> type = NMS_CLASS_RESOLVER.resolve("server.level.ServerPlayer", "server.level.EntityPlayer", "EntityPlayer");
+                Class<?> type = NMS_CLASS_RESOLVER.resolve("server.level.EntityPlayer", "EntityPlayer");
                 PING_FIELD = new FieldResolver(type).resolveWrapper("ping");
             } catch (Throwable throwable) {
                 throw new RuntimeException(throwable);
