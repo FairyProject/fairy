@@ -20,6 +20,7 @@ import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
 import io.fairyproject.mc.util.Position;
+import io.fairyproject.util.ConditionUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -154,6 +155,7 @@ public class HologramImpl implements Hologram {
                 return this;
             this.spawned = true;
         }
+        ConditionUtils.notNull(this.pos, "hologram position");
 
         this.updateEntities();
         if (this.autoViewable) {
