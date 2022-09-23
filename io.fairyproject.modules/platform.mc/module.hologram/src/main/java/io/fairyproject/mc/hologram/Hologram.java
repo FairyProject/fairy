@@ -4,7 +4,7 @@ import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.Viewable;
 import io.fairyproject.mc.hologram.line.HologramLine;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +14,7 @@ import java.util.function.Consumer;
 
 public interface Hologram extends Viewable {
 
-    static @NotNull Hologram create(Pos pos) {
+    static @NotNull Hologram create(Position pos) {
         return new HologramImpl(pos);
     }
 
@@ -84,7 +84,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withPos(@NotNull Pos pos);
+    Hologram withPos(@NotNull Position pos);
 
     /**
      * Set the vertical spacing between each line.
@@ -158,7 +158,7 @@ public interface Hologram extends Viewable {
      *
      * @return the hologram
      */
-    @NotNull Pos pos();
+    @NotNull Position pos();
 
     /**
      * Get the vertical spacing between each line of the hologram.

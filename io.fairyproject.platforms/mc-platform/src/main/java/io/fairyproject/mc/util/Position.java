@@ -53,9 +53,9 @@ import java.util.StringJoiner;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonSerialize(using = Pos.Serializer.class)
-@JsonDeserialize(using = Pos.Deserializer.class)
-public class Pos implements Cloneable {
+@JsonSerialize(using = Position.Serializer.class)
+@JsonDeserialize(using = Position.Deserializer.class)
+public class Position implements Cloneable {
 
 	private String world = "world";
 
@@ -66,26 +66,26 @@ public class Pos implements Cloneable {
 	private float yaw = 0.0F;
 	private float pitch = 0.0F;
 
-	public Pos(final double x, final double y, final double z) {
+	public Position(final double x, final double y, final double z) {
 		this(x, y, z, 0.0F, 0.0F);
 	}
 
-	public Pos(final String world, final double x, final double y, final double z) {
+	public Position(final String world, final double x, final double y, final double z) {
 		this(world, x, y, z, 0.0F, 0.0F);
 	}
 
-	public Pos(final double x, final double y, final double z, final float yaw, final float pitch) {
+	public Position(final double x, final double y, final double z, final float yaw, final float pitch) {
 		this("world", x, y, z, yaw, pitch);
 	}
 
-	public static Pos fromString(final String string) {
+	public static Position fromString(final String string) {
 		final String[] split = string.split(", ");
 
 		final double x = Double.parseDouble(split[0]);
 		final double y = Double.parseDouble(split[1]);
 		final double z = Double.parseDouble(split[2]);
 
-		final Pos pos = new Pos(x, y, z);
+		final Position pos = new Position(x, y, z);
 
 		if (split.length == 4) {
 			pos.setWorld(split[3]);
@@ -100,11 +100,11 @@ public class Pos implements Cloneable {
 		return pos;
 	}
 
-	public double groundDistanceTo(final Pos location) {
+	public double groundDistanceTo(final Position location) {
 		return Math.sqrt(Math.pow(this.x - location.x, 2) + Math.pow(this.z - location.z, 2));
 	}
 
-	public double distanceTo(final Pos location) {
+	public double distanceTo(final Position location) {
 		return Math.sqrt(Math.pow(this.x - location.x, 2) + Math.pow(this.y - location.y, 2) + Math.pow(this.z - location.z, 2));
 	}
 
@@ -115,56 +115,56 @@ public class Pos implements Cloneable {
 			return MCWorld.getByName(this.world);
 	}
 
-	public Pos add(double x, double y, double z) {
+	public Position add(double x, double y, double z) {
 		this.x += x;
 		this.y += y;
 		this.z += z;
 		return this;
 	}
 
-	public Pos subtract(double x, double y, double z) {
+	public Position subtract(double x, double y, double z) {
 		this.x -= x;
 		this.y -= y;
 		this.z -= z;
 		return this;
 	}
 
-	public Pos multiply(double x, double y, double z) {
+	public Position multiply(double x, double y, double z) {
 		this.x *= x;
 		this.y *= y;
 		this.z *= z;
 		return this;
 	}
 
-	public Pos divide(double x, double y, double z) {
+	public Position divide(double x, double y, double z) {
 		this.x /= x;
 		this.y /= y;
 		this.z /= z;
 		return this;
 	}
 
-	public Pos add(Pos pos) {
+	public Position add(Position pos) {
 		this.x += pos.x;
 		this.y += pos.y;
 		this.z += pos.z;
 		return this;
 	}
 
-	public Pos subtract(Pos pos) {
+	public Position subtract(Position pos) {
 		this.x -= pos.x;
 		this.y -= pos.y;
 		this.z -= pos.z;
 		return this;
 	}
 
-	public Pos multiply(Pos pos) {
+	public Position multiply(Position pos) {
 		this.x *= pos.x;
 		this.y *= pos.y;
 		this.z *= pos.z;
 		return this;
 	}
 
-	public Pos divide(Pos location) {
+	public Position divide(Position location) {
 		this.x /= location.x;
 		this.y /= location.y;
 		this.z /= location.z;
@@ -176,7 +176,7 @@ public class Pos implements Cloneable {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		Pos location = (Pos) o;
+		Position location = (Position) o;
 
 		if (Double.compare(location.x, x) != 0) return false;
 		if (Double.compare(location.y, y) != 0) return false;
@@ -257,8 +257,8 @@ public class Pos implements Cloneable {
 	}
 
 	@Override
-	public Pos clone() {
-		return new Pos(
+	public Position clone() {
+		return new Position(
 				this.world,
 				this.x,
 				this.y,
@@ -268,27 +268,27 @@ public class Pos implements Cloneable {
 		);
 	}
 
-	public static class Serializer extends StdSerializer<Pos> {
+	public static class Serializer extends StdSerializer<Position> {
 
 		protected Serializer() {
-			super(Pos.class);
+			super(Position.class);
 		}
 
 		@Override
-		public void serialize(Pos customLocation, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+		public void serialize(Position customLocation, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
 			jsonGenerator.writeString(customLocation.toString());
 		}
 	}
 
-	public static class Deserializer extends StdDeserializer<Pos> {
+	public static class Deserializer extends StdDeserializer<Position> {
 
 		protected Deserializer() {
-			super(Pos.class);
+			super(Position.class);
 		}
 
 		@Override
-		public Pos deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-			return Pos.fromString(jsonParser.getValueAsString());
+		public Position deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+			return Position.fromString(jsonParser.getValueAsString());
 		}
 	}
 

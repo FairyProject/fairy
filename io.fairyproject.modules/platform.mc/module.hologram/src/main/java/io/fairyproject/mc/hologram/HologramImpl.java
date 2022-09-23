@@ -19,7 +19,7 @@ import io.fairyproject.mc.hologram.line.HologramLine;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +34,7 @@ public class HologramImpl implements Hologram {
 
 
     private final MCWorld world;
-    private Pos pos;
+    private Position pos;
     private MCEntity attached;
     private boolean spawned;
     private boolean autoViewable;
@@ -50,7 +50,7 @@ public class HologramImpl implements Hologram {
     private final List<HologramLine> lines;
     private final List<HologramEntity> entities;
 
-    public HologramImpl(@NotNull Pos pos) {
+    public HologramImpl(@NotNull Position pos) {
         this.world = pos.getMCWorld();
         this.pos = pos;
         this.autoViewable = true;
@@ -116,7 +116,7 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public Hologram withPos(@NotNull Pos pos) {
+    public Hologram withPos(@NotNull Position pos) {
         if (this.pos.getMCWorld() != this.world)
             throw new IllegalArgumentException("hologram doesn't support cross world teleportation.");
         this.pos = pos;
@@ -261,7 +261,7 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public @NotNull Pos pos() {
+    public @NotNull Position pos() {
         return this.pos;
     }
 
@@ -374,7 +374,7 @@ public class HologramImpl implements Hologram {
                 .filter(player -> this.chunkDistanceTo(player.pos()) <= this.viewDistance);
     }
 
-    private double chunkDistanceTo(Pos target) {
+    private double chunkDistanceTo(Position target) {
         int hologramChunkX = this.pos.getChunkX();
         int hologramChunkZ = this.pos.getChunkZ();
 

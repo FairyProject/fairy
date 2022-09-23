@@ -2,23 +2,23 @@ package io.fairyproject.mc.serializer;
 
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.container.object.Obj;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 
 @Obj
-public class PosSerializer implements ObjectSerializer<Pos, String> {
+public class PosSerializer implements ObjectSerializer<Position, String> {
     @Override
-    public String serialize(Pos input) {
+    public String serialize(Position input) {
         return input.toString();
     }
 
     @Override
-    public Pos deserialize(String output) {
-        return Pos.fromString(output);
+    public Position deserialize(String output) {
+        return Position.fromString(output);
     }
 
     @Override
-    public Class<Pos> inputClass() {
-        return Pos.class;
+    public Class<Position> inputClass() {
+        return Position.class;
     }
 
     @Override

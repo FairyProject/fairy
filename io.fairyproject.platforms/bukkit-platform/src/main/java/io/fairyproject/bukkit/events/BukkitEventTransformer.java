@@ -9,7 +9,7 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.event.*;
 import io.fairyproject.mc.event.world.MCWorldUnloadEvent;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
@@ -38,8 +38,8 @@ public class BukkitEventTransformer {
         this.register(PlayerJoinEvent.class, MCPlayerJoinEvent.class, event -> new MCPlayerJoinEvent(MCPlayer.from(event.getPlayer())));
         this.register(PlayerQuitEvent.class, MCPlayerQuitEvent.class, event -> new MCPlayerQuitEvent(MCPlayer.from(event.getPlayer())));
         this.register(PlayerMoveEvent.class, MCPlayerMoveEvent.class, event -> {
-            Pos fromPos = BukkitPos.toMCPos(event.getFrom());
-            Pos toPos = BukkitPos.toMCPos(event.getTo());
+            Position fromPos = BukkitPos.toMCPos(event.getFrom());
+            Position toPos = BukkitPos.toMCPos(event.getTo());
 
             return new MCPlayerMoveEvent(MCPlayer.from(event.getPlayer()), fromPos, toPos);
         }, (event, mcEvent) -> {
@@ -53,8 +53,8 @@ public class BukkitEventTransformer {
             }
         });
         this.register(PlayerTeleportEvent.class, MCPlayerTeleportEvent.class, event -> {
-            Pos fromPos = BukkitPos.toMCPos(event.getFrom());
-            Pos toPos = BukkitPos.toMCPos(event.getTo());
+            Position fromPos = BukkitPos.toMCPos(event.getFrom());
+            Position toPos = BukkitPos.toMCPos(event.getTo());
 
             return new MCPlayerTeleportEvent(MCPlayer.from(event.getPlayer()), fromPos, toPos);
         }, (event, mcEvent) -> {

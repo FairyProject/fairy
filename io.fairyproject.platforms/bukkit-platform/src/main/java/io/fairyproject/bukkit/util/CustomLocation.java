@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.fairyproject.Fairy;
+import io.fairyproject.mc.util.Position;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,7 +51,7 @@ import java.util.StringJoiner;
 
 
 /**
- * @deprecated {@link io.fairyproject.mc.util.Pos}
+ * @deprecated {@link Position}
  */
 @Getter
 @Setter

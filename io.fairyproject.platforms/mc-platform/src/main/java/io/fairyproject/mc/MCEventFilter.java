@@ -5,7 +5,7 @@ import io.fairyproject.mc.event.MCPlayerMoveEvent;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
 import io.fairyproject.mc.event.trait.MCPlayerEvent;
 import io.fairyproject.mc.event.trait.MCWorldEvent;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import io.fairyproject.mc.util.math.CoordinateUtil;
 import lombok.experimental.UtilityClass;
 
@@ -20,8 +20,8 @@ public class MCEventFilter {
     public static final EventFilter<MCWorldEvent, MCWorld> WORLD = EventFilter.from(MCWorldEvent.class, MCWorld.class, MCWorldEvent::world);
 
     public static final Predicate<MCPlayerMoveEvent> DIFFERENT_CHUNK = event -> {
-            Pos from = event.fromPos();
-            Pos to = event.toPos();
+            Position from = event.fromPos();
+            Position to = event.toPos();
 
             int oldChunkX = CoordinateUtil.worldToChunk(from.getBlockX());
             int oldChunkZ = CoordinateUtil.worldToChunk(from.getBlockZ());

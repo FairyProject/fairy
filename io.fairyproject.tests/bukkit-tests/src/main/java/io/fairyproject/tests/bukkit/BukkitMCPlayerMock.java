@@ -3,7 +3,7 @@ package io.fairyproject.tests.bukkit;
 import io.fairyproject.bukkit.util.BukkitPos;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.protocol.MCVersion;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import io.fairyproject.tests.mc.MCPlayerMock;
 import org.bukkit.entity.Player;
 
@@ -24,12 +24,12 @@ public class BukkitMCPlayerMock extends MCPlayerMock {
     }
 
     @Override
-    public Pos pos() {
+    public Position pos() {
         return BukkitPos.toMCPos(this.player.getLocation());
     }
 
     @Override
-    public boolean teleport(Pos pos) {
+    public boolean teleport(Position pos) {
         return this.player.teleport(BukkitPos.toBukkitLocation(pos));
     }
 }
