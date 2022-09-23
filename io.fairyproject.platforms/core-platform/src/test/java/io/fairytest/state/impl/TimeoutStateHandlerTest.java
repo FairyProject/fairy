@@ -24,7 +24,7 @@ public class TimeoutStateHandlerTest extends JUnitJupiterBase {
         StateMachine<ExampleState, ExampleTrigger> stateMachine = StateMachine.create();
 
         stateMachine.state(ExampleState.A)
-                .handler(TimeoutStateHandler.of(Duration.ofSeconds(1)))
+                .handler(TimeoutStateHandler.of(Duration.ofMillis(500)))
                 .when(TimeoutStateHandler.trigger(), t -> t.to(ExampleState.B));
         stateMachine.state(ExampleState.B);
         stateMachine.interval(Duration.ofMillis(50L));
@@ -32,7 +32,7 @@ public class TimeoutStateHandlerTest extends JUnitJupiterBase {
 
         long l = System.currentTimeMillis();
         while (stateMachine.current() != ExampleState.B) {
-            Thread.sleep(1000L);
+            Thread.sleep(100L);
             if (System.currentTimeMillis() - l > 2000L) {
                 Assertions.fail("Timeout");
             }
