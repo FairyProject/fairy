@@ -26,24 +26,24 @@ public class BukkitMCWorld implements MCWorld {
     }
 
     @Override
-    public String name() {
+    public String getName() {
         return this.world.getName();
     }
 
     @Override
-    public EventNode<MCWorldEvent> eventNode() {
+    public EventNode<MCWorldEvent> getEventNode() {
         return this.eventNode;
     }
 
     @Override
-    public List<MCPlayer> players() {
+    public List<MCPlayer> getPlayers() {
         return this.world.getPlayers().stream()
                 .map(MCPlayer::from)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public MetadataMap metadata() {
+    public MetadataMap getMetadata() {
         return Metadata.provideForWorld(this.world);
     }
 

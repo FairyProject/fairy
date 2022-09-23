@@ -6,6 +6,6 @@ import org.jetbrains.annotations.NotNull;
 
 public interface MCWorldEvent extends Event {
 
-    @NotNull MCWorld world();
+    @NotNull MCWorld getWorld();
 
 }

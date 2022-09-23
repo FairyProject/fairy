@@ -9,7 +9,7 @@ public class MCPlayerPacketReceiveEvent extends MCPlayerProtocolPacketEvent {
     }
 
     @Override
-    public PacketReceiveEvent event() {
-        return (PacketReceiveEvent) super.event();
+    public PacketReceiveEvent getEvent() {
+        return (PacketReceiveEvent) super.getEvent();
     }
 }

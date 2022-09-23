@@ -9,7 +9,6 @@ import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 @Getter
-@Accessors(fluent = true)
 public class MCPlayerChangedWorldEvent implements MCPlayerEvent {
 
     private final MCPlayer player;

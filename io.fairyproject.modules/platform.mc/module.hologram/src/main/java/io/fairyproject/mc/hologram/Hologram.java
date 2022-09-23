@@ -24,7 +24,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withAutoViewable(boolean autoViewable);
+    Hologram autoViewable(boolean autoViewable);
 
     /**
      * Set the view distance that this hologram can be viewed.
@@ -34,7 +34,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withViewDistance(int viewDistance);
+    Hologram viewDistance(int viewDistance);
 
     /**
      * Set the handler whenever player attacks the hologram entity.
@@ -43,7 +43,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withAttackHandler(Consumer<MCPlayer> attackHandler);
+    Hologram attackHandler(Consumer<MCPlayer> attackHandler);
 
     /**
      * Set the handler whenever player interacts the hologram entity.
@@ -52,7 +52,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withInteractHandler(Consumer<MCPlayer> interactHandler);
+    Hologram interactHandler(Consumer<MCPlayer> interactHandler);
 
     /**
      * Replace the lines to display for the hologram.
@@ -60,7 +60,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withLines(@NotNull List<HologramLine> lines);
+    Hologram lines(@NotNull List<HologramLine> lines);
 
     /**
      * Append a line to display for the hologram.
@@ -68,7 +68,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withLine(@NotNull HologramLine line);
+    Hologram line(@NotNull HologramLine line);
 
     /**
      * Append a line at certain index to display for the hologram.
@@ -76,7 +76,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_, _ -> this")
-    Hologram withLine(int index, @NotNull HologramLine line);
+    Hologram line(int index, @NotNull HologramLine line);
 
     /**
      * Set the position of the hologram.
@@ -84,7 +84,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withPos(@NotNull Position pos);
+    Hologram position(@NotNull Position pos);
 
     /**
      * Set the vertical spacing between each line.
@@ -92,7 +92,7 @@ public interface Hologram extends Viewable {
      * @param verticalSpacing the spacing
      * @return this
      */
-    Hologram withVerticalSpacing(double verticalSpacing);
+    Hologram verticalSpacing(double verticalSpacing);
 
     /**
      * Attach the hologram to an entity.
@@ -100,7 +100,7 @@ public interface Hologram extends Viewable {
      * @return this
      */
     @Contract("_ -> this")
-    Hologram withAttached(@Nullable MCEntity entity);
+    Hologram attach(@Nullable MCEntity entity);
 
     /**
      * Remove a line from a certain index.
@@ -144,34 +144,34 @@ public interface Hologram extends Viewable {
      *
      * @return the view distance
      */
-    int viewDistance();
+    int getViewDistance();
 
     /**
      * Get the entity that are attached by this hologram.
      *
      * @return entity
      */
-    @Nullable MCEntity attached();
+    @Nullable MCEntity getAttached();
 
     /**
      * Get the current position of the hologram.
      *
      * @return the hologram
      */
-    @NotNull Position pos();
+    @NotNull Position getPosition();
 
     /**
      * Get the vertical spacing between each line of the hologram.
      *
      * @return the vertical spacing
      */
-    double verticalSpacing();
+    double getVerticalSpacing();
 
     /**
      * Get the lines of the hologram.
      *
      * @return the lines
      */
-    @NotNull List<HologramLine> lines();
+    @NotNull List<HologramLine> getLines();
 
 }

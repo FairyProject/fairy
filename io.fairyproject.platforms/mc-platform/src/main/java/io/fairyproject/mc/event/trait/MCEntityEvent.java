@@ -7,10 +7,10 @@ import org.jetbrains.annotations.NotNull;
 public interface MCEntityEvent extends MCWorldEvent {
 
     @Override
-    default @NotNull MCWorld world() {
-        return this.entity().getWorld();
+    default @NotNull MCWorld getWorld() {
+        return this.getEntity().getWorld();
     }
 
-    @NotNull MCEntity entity();
+    @NotNull MCEntity getEntity();
 
 }

@@ -18,11 +18,11 @@ public interface MCEntity {
 
     UUID getUUID();
 
-    Position pos();
+    Position getPosition();
 
     int getId();
 
-    @NotNull EventNode<MCEntityEvent> eventNode();
+    @NotNull EventNode<MCEntityEvent> getEventNode();
 
     boolean teleport(Position pos);
 

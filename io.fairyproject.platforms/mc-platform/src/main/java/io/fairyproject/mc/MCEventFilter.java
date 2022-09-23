@@ -14,10 +14,10 @@ import java.util.function.Predicate;
 @UtilityClass
 public class MCEventFilter {
 
-    public static final EventFilter<MCEntityEvent, MCEntity> ENTITY = EventFilter.from(MCEntityEvent.class, MCEntity.class, MCEntityEvent::entity);
-    public static final EventFilter<MCPlayerEvent, MCPlayer> PLAYER = EventFilter.from(MCPlayerEvent.class, MCPlayer.class, MCPlayerEvent::player);
+    public static final EventFilter<MCEntityEvent, MCEntity> ENTITY = EventFilter.from(MCEntityEvent.class, MCEntity.class, MCEntityEvent::getEntity);
+    public static final EventFilter<MCPlayerEvent, MCPlayer> PLAYER = EventFilter.from(MCPlayerEvent.class, MCPlayer.class, MCPlayerEvent::getPlayer);
 
-    public static final EventFilter<MCWorldEvent, MCWorld> WORLD = EventFilter.from(MCWorldEvent.class, MCWorld.class, MCWorldEvent::world);
+    public static final EventFilter<MCWorldEvent, MCWorld> WORLD = EventFilter.from(MCWorldEvent.class, MCWorld.class, MCWorldEvent::getWorld);
 
     public static final Predicate<MCPlayerMoveEvent> DIFFERENT_CHUNK = event -> {
             Position from = event.fromPos();

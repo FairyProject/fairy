@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 
 @Getter
-@Accessors(fluent = true)
 public class MCPlayerMoveEvent implements MCPlayerEvent, Cancellable {
 
     private final MCPlayer player;

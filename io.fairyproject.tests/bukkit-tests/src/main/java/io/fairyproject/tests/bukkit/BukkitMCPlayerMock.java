@@ -24,7 +24,7 @@ public class BukkitMCPlayerMock extends MCPlayerMock {
     }
 
     @Override
-    public Position pos() {
+    public Position getPosition() {
         return BukkitPos.toMCPos(this.player.getLocation());
     }
 

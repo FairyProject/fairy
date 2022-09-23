@@ -28,13 +28,13 @@ public interface MCWorld extends AudienceProxy {
 
     int getMaxSectionY();
 
-    String name();
+    String getName();
 
-    EventNode<MCWorldEvent> eventNode();
+    EventNode<MCWorldEvent> getEventNode();
 
-    MetadataMap metadata();
+    MetadataMap getMetadata();
 
-    List<MCPlayer> players();
+    List<MCPlayer> getPlayers();
 
     @UtilityClass
     class Companion {

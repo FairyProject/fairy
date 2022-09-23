@@ -14,7 +14,7 @@ public class MCWorldUnloadEvent implements MCWorldEvent, Cancellable {
     }
 
     @Override
-    public @NotNull MCWorld world() {
+    public @NotNull MCWorld getWorld() {
         return this.world;
     }
 }

@@ -45,12 +45,12 @@ public class BukkitMCEntity implements MCEntity {
     }
 
     @Override
-    public @NotNull EventNode<MCEntityEvent> eventNode() {
+    public @NotNull EventNode<MCEntityEvent> getEventNode() {
         return this.eventNode;
     }
 
     @Override
-    public Position pos() {
+    public Position getPosition() {
         return BukkitPos.toMCPos(this.entity.getLocation());
     }
 

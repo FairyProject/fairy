@@ -114,17 +114,17 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
     }
 
     @Override
-    public int ping() {
+    public int getPing() {
         return PING.apply(this.player);
     }
 
     @Override
-    public GameMode gameMode() {
+    public GameMode getGameMode() {
         return GameMode.valueOf(this.player.getGameMode().name());
     }
 
     @Override
-    public MCGameProfile gameProfile() {
+    public MCGameProfile getGameProfile() {
         return GAME_PROFILE.apply(this.player);
     }
 
