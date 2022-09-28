@@ -48,8 +48,8 @@ public class BukkitEventTransformer {
                 return;
             }
 
-            if (mcEvent.changed()) {
-                event.setTo(BukkitPos.toBukkitLocation(mcEvent.toPos()));
+            if (mcEvent.isChanged()) {
+                event.setTo(BukkitPos.toBukkitLocation(mcEvent.getToPos()));
             }
         });
         this.register(PlayerTeleportEvent.class, MCPlayerTeleportEvent.class, event -> {
@@ -63,8 +63,8 @@ public class BukkitEventTransformer {
                 return;
             }
 
-            if (mcEvent.changed()) {
-                event.setTo(BukkitPos.toBukkitLocation(mcEvent.toPos()));
+            if (mcEvent.isChanged()) {
+                event.setTo(BukkitPos.toBukkitLocation(mcEvent.getToPos()));
             }
         });
         this.register(WorldUnloadEvent.class, MCWorldUnloadEvent.class,
