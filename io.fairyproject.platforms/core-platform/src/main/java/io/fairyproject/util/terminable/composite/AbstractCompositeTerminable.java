@@ -63,6 +63,11 @@ public class AbstractCompositeTerminable implements CompositeTerminable {
     }
 
     @Override
+    public boolean isClosed() {
+        return this.closeables.stream().allMatch(closable -> closable instanceof Terminable && ((Terminable) closable).isClosed());
+    }
+
+    @Override
     public void cleanup() {
         this.closeables.removeIf(ac -> {
             if (!(ac instanceof Terminable)) {

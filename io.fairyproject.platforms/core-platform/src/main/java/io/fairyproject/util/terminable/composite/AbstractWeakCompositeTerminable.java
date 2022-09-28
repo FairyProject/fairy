@@ -72,6 +72,14 @@ public class AbstractWeakCompositeTerminable implements CompositeTerminable {
     }
 
     @Override
+    public boolean isClosed() {
+        return this.closeables.stream()
+                .map(WeakReference::get)
+                .filter(Objects::nonNull)
+                .allMatch(closable -> closable instanceof Terminable && ((Terminable) closable).isClosed());
+    }
+
+    @Override
     public void cleanup() {
         this.closeables.removeIf(ref -> {
             AutoCloseable ac = ref.get();
