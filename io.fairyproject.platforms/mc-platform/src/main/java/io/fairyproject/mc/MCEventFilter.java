@@ -20,8 +20,8 @@ public class MCEventFilter {
     public static final EventFilter<MCWorldEvent, MCWorld> WORLD = EventFilter.from(MCWorldEvent.class, MCWorld.class, MCWorldEvent::getWorld);
 
     public static final Predicate<MCPlayerMoveEvent> DIFFERENT_CHUNK = event -> {
-            Position from = event.fromPos();
-            Position to = event.toPos();
+            Position from = event.getFromPos();
+            Position to = event.getToPos();
 
             int oldChunkX = CoordinateUtil.worldToChunk(from.getBlockX());
             int oldChunkZ = CoordinateUtil.worldToChunk(from.getBlockZ());
