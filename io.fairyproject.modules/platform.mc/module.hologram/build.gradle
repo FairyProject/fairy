@@ -1,0 +1,5 @@
+module {
+    platform("mc")
+
+    depend("platform.mc:module.protocol")
+}

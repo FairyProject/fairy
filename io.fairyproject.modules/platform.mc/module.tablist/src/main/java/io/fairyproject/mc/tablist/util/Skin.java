@@ -56,7 +56,7 @@ public class Skin {
                     MCPlayer player = MCPlayer.find(key);
                     if (player != null) {
                         try (ServerThreadLock ignored = ServerThreadLock.obtain()) {
-                            final MCGameProfile gameProfile = player.gameProfile();
+                            final MCGameProfile gameProfile = player.getGameProfile();
                             if (!gameProfile.hasProperty("textures")) {
                                 Property property = gameProfile.getProperties().stream()
                                         .filter(p -> p.getName().equals("textures"))

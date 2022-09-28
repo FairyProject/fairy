@@ -12,6 +12,8 @@ public interface MCServer {
 
     MCEntity getEntity(UUID entityUuid);
 
+    boolean isMainThread();
+
     MCVersion getVersion();
 
     class Companion {

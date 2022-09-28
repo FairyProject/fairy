@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util;
+package io.fairyproject.mc.util;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
@@ -34,33 +34,28 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.fairyproject.Fairy;
-import io.fairyproject.mc.util.Position;
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.util.math.CoordinateUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
-import org.bukkit.util.NumberConversions;
 
 import java.io.IOException;
 import java.util.Objects;
 import java.util.StringJoiner;
 
-
 /**
- * @deprecated {@link Position}
+ * @since 0.6.2b1-SNAPSHOT
  */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonSerialize(using = CustomLocation.Serializer.class)
-@JsonDeserialize(using = CustomLocation.Deserializer.class)
-@Deprecated
-public class CustomLocation {
+@JsonSerialize(using = Position.Serializer.class)
+@JsonDeserialize(using = Position.Deserializer.class)
+public class Position implements Cloneable {
 
 	private String world = "world";
 
@@ -71,110 +66,105 @@ public class CustomLocation {
 	private float yaw = 0.0F;
 	private float pitch = 0.0F;
 
-	public CustomLocation(final double x, final double y, final double z) {
+	public Position(final double x, final double y, final double z) {
 		this(x, y, z, 0.0F, 0.0F);
 	}
 
-	public CustomLocation(final String world, final double x, final double y, final double z) {
+	public Position(final String world, final double x, final double y, final double z) {
 		this(world, x, y, z, 0.0F, 0.0F);
 	}
 
-	public CustomLocation(final double x, final double y, final double z, final float yaw, final float pitch) {
+	public Position(final double x, final double y, final double z, final float yaw, final float pitch) {
 		this("world", x, y, z, yaw, pitch);
 	}
 
-	public static CustomLocation fromBukkitLocation(final Location location) {
-		return new CustomLocation(location.getWorld().getName(), location.getX(), location.getY(), location.getZ(),
-				location.getYaw(), location.getPitch());
-	}
-
-	public static CustomLocation stringToLocation(final String string) {
+	public static Position fromString(final String string) {
 		final String[] split = string.split(", ");
 
 		final double x = Double.parseDouble(split[0]);
 		final double y = Double.parseDouble(split[1]);
 		final double z = Double.parseDouble(split[2]);
 
-		final CustomLocation customLocation = new CustomLocation(x, y, z);
+		final Position pos = new Position(x, y, z);
 
 		if (split.length == 4) {
-			customLocation.setWorld(split[3]);
+			pos.setWorld(split[3]);
 		} else if (split.length >= 5) {
-			customLocation.setYaw(Float.parseFloat(split[3]));
-			customLocation.setPitch(Float.parseFloat(split[4]));
+			pos.setYaw(Float.parseFloat(split[3]));
+			pos.setPitch(Float.parseFloat(split[4]));
 
 			if (split.length >= 6) {
-				customLocation.setWorld(split[5]);
+				pos.setWorld(split[5]);
 			}
 		}
-		return customLocation;
+		return pos;
 	}
 
-	public static String locationToString(final CustomLocation loc) {
-		final StringJoiner joiner = new StringJoiner(", ");
-		joiner.add(Double.toString(loc.getX()));
-		joiner.add(Double.toString(loc.getY()));
-		joiner.add(Double.toString(loc.getZ()));
-		if (loc.getYaw() == 0.0f && loc.getPitch() == 0.0f) {
-			if (loc.getWorld().equals("world"))
-				return joiner.toString();
-			else {
-				joiner.add(loc.getWorld());
-				return joiner.toString();
-			}
-		} else {
-			joiner.add(Float.toString(loc.getYaw()));
-			joiner.add(Float.toString(loc.getPitch()));
-			if (loc.getWorld().equals("world"))
-				return joiner.toString();
-			else {
-				joiner.add(loc.getWorld());
-				return joiner.toString();
-			}
-		}
-	}
-
-	public Location toBukkitLocation() {
-		return new Location(this.toBukkitWorld(), this.x, this.y, this.z, this.yaw, this.pitch);
-	}
-
-	public double getGroundDistanceTo(final CustomLocation location) {
+	public double groundDistanceTo(final Position location) {
 		return Math.sqrt(Math.pow(this.x - location.x, 2) + Math.pow(this.z - location.z, 2));
 	}
 
-	public double getDistanceTo(final CustomLocation location) {
+	public double distanceTo(final Position location) {
 		return Math.sqrt(Math.pow(this.x - location.x, 2) + Math.pow(this.y - location.y, 2) + Math.pow(this.z - location.z, 2));
 	}
 
-	public World toBukkitWorld() {
+	public MCWorld getMCWorld() {
 		if (this.world == null)
-			return Bukkit.getServer().getWorlds().get(0);
+			return MCWorld.all().get(0);
 		else
-			return Bukkit.getServer().getWorld(this.world);
+			return MCWorld.getByName(this.world);
 	}
 
-	public CustomLocation add(CustomLocation location) {
-		this.x += location.x;
-		this.y += location.y;
-		this.z += location.z;
+	public Position add(double x, double y, double z) {
+		this.x += x;
+		this.y += y;
+		this.z += z;
 		return this;
 	}
 
-	public CustomLocation subtract(CustomLocation location) {
-		this.x -= location.x;
-		this.y -= location.y;
-		this.z -= location.z;
+	public Position subtract(double x, double y, double z) {
+		this.x -= x;
+		this.y -= y;
+		this.z -= z;
 		return this;
 	}
 
-	public CustomLocation multiply(CustomLocation location) {
-		this.x *= location.x;
-		this.y *= location.y;
-		this.z *= location.z;
+	public Position multiply(double x, double y, double z) {
+		this.x *= x;
+		this.y *= y;
+		this.z *= z;
 		return this;
 	}
 
-	public CustomLocation divide(CustomLocation location) {
+	public Position divide(double x, double y, double z) {
+		this.x /= x;
+		this.y /= y;
+		this.z /= z;
+		return this;
+	}
+
+	public Position add(Position pos) {
+		this.x += pos.x;
+		this.y += pos.y;
+		this.z += pos.z;
+		return this;
+	}
+
+	public Position subtract(Position pos) {
+		this.x -= pos.x;
+		this.y -= pos.y;
+		this.z -= pos.z;
+		return this;
+	}
+
+	public Position multiply(Position pos) {
+		this.x *= pos.x;
+		this.y *= pos.y;
+		this.z *= pos.z;
+		return this;
+	}
+
+	public Position divide(Position location) {
 		this.x /= location.x;
 		this.y /= location.y;
 		this.z /= location.z;
@@ -186,7 +176,7 @@ public class CustomLocation {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
 
-		CustomLocation location = (CustomLocation) o;
+		Position location = (Position) o;
 
 		if (Double.compare(location.x, x) != 0) return false;
 		if (Double.compare(location.y, y) != 0) return false;
@@ -214,11 +204,23 @@ public class CustomLocation {
 
 	@Override
 	public String toString() {
-		return CustomLocation.locationToString(this);
+		final StringJoiner joiner = new StringJoiner(", ");
+		joiner.add(Double.toString(this.getX()));
+		joiner.add(Double.toString(this.getY()));
+		joiner.add(Double.toString(this.getZ()));
+		if (this.getYaw() == 0.0f && this.getPitch() == 0.0f) {
+			joiner.add(this.getWorld());
+			return joiner.toString();
+		} else {
+			joiner.add(Float.toString(this.getYaw()));
+			joiner.add(Float.toString(this.getPitch()));
+			joiner.add(this.getWorld());
+			return joiner.toString();
+		}
 	}
 
 	public static int locToBlock(final double loc) {
-		return NumberConversions.floor(loc);
+		return (int) Math.floor(loc);
 	}
 
 	public int getBlockX() {
@@ -233,36 +235,60 @@ public class CustomLocation {
 		return locToBlock(z);
 	}
 
-	public void teleport(Player player, double range) {
+	public int getChunkX() {
+		return CoordinateUtil.worldToChunk(this.getBlockX());
+	}
+
+	public int getChunkY() {
+		return CoordinateUtil.worldToChunk(this.getBlockY());
+	}
+
+	public int getChunkZ() {
+		return CoordinateUtil.worldToChunk(this.getBlockZ());
+	}
+
+	public void teleport(MCPlayer player, double range) {
 		this.teleport(player, range, true);
 	}
 
-	public void teleport(Player player, double range, boolean safe) {
+	public void teleport(MCPlayer player, double range, boolean safe) {
 		double rand = -range + (range * 2) * Fairy.random().nextDouble();
-		player.teleport(this.toBukkitLocation().add(rand, safe ? 1.5D : 0.0D, rand));
+		player.teleport(this.clone().add(rand, safe ? 1.5D : 0.0D, rand));
 	}
 
-	public static class Serializer extends StdSerializer<CustomLocation> {
+	@Override
+	public Position clone() {
+		return new Position(
+				this.world,
+				this.x,
+				this.y,
+				this.z,
+				this.yaw,
+				this.pitch
+		);
+	}
+
+	public static class Serializer extends StdSerializer<Position> {
 
 		protected Serializer() {
-			super(CustomLocation.class);
+			super(Position.class);
 		}
 
 		@Override
-		public void serialize(CustomLocation customLocation, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+		public void serialize(Position customLocation, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
 			jsonGenerator.writeString(customLocation.toString());
 		}
 	}
 
-	public static class Deserializer extends StdDeserializer<CustomLocation> {
+	public static class Deserializer extends StdDeserializer<Position> {
 
 		protected Deserializer() {
-			super(CustomLocation.class);
+			super(Position.class);
 		}
 
 		@Override
-		public CustomLocation deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-			return CustomLocation.stringToLocation(jsonParser.getValueAsString());
+		public Position deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
+			return Position.fromString(jsonParser.getValueAsString());
 		}
 	}
 

@@ -17,7 +17,7 @@ public class PlayerInfoData {
     private final Component component;
 
     public static PlayerInfoData create(MCPlayer mcPlayer) {
-        return new PlayerInfoData(mcPlayer.ping(), mcPlayer.gameProfile(), mcPlayer.gameMode(), mcPlayer.getDisplayName());
+        return new PlayerInfoData(mcPlayer.getPing(), mcPlayer.getGameProfile(), mcPlayer.getGameMode(), mcPlayer.getDisplayName());
     }
 
 }

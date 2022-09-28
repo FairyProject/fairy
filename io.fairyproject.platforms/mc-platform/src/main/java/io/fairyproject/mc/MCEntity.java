@@ -1,6 +1,10 @@
 package io.fairyproject.mc;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.mc.event.trait.MCEntityEvent;
+import io.fairyproject.mc.util.Position;
 import lombok.experimental.UtilityClass;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -12,11 +16,17 @@ public interface MCEntity {
 
     MCWorld getWorld();
 
-    UUID getUuid();
+    UUID getUUID();
+
+    Position getPosition();
 
     int getId();
 
-    <T> T as(Class<T> playerClass);
+    @NotNull EventNode<MCEntityEvent> getEventNode();
+
+    boolean teleport(Position pos);
+
+    <T> T as(Class<T> entityClass);
 
     @UtilityClass
     class Companion {
@@ -26,6 +36,8 @@ public interface MCEntity {
     interface Bridge {
 
         MCEntity from(Object entity);
+
+        int newEntityId();
 
     }
 

@@ -18,6 +18,7 @@ final class EventNodeLazyImpl<E extends Event> extends EventNodeImpl<E> {
         super(owner.toString(), filter, null);
         this.holder = holder;
         this.owner = new WeakReference<>(owner);
+        this.mapped = new AtomicBoolean();
     }
 
     @Override

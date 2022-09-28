@@ -1,6 +1,0 @@
-dependencies {
-    compileOnly project.spigot()
-    compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
-}
-
-module {}
