@@ -180,7 +180,7 @@ public class HologramImpl implements Hologram {
                     .handler(event -> {
                         MCPlayer player = event.getPlayer();
 
-                        if (this.chunkDistanceTo(event.toPos()) <= this.viewDistance)
+                        if (this.chunkDistanceTo(event.getToPos()) <= this.viewDistance)
                             this.addViewer(player);
                     })
                     .build()

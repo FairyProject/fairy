@@ -5,7 +5,6 @@ import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.event.trait.MCPlayerEvent;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 
 @RequiredArgsConstructor
 @Getter

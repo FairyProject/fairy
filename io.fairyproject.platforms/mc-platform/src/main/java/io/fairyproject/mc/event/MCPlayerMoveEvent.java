@@ -5,7 +5,6 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.trait.MCPlayerEvent;
 import io.fairyproject.mc.util.Position;
 import lombok.Getter;
-import lombok.experimental.Accessors;
 
 @Getter
 public class MCPlayerMoveEvent implements MCPlayerEvent, Cancellable {
