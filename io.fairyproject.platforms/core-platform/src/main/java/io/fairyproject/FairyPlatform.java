@@ -25,6 +25,8 @@
 package io.fairyproject;
 
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.event.GlobalEventNode;
+import io.fairyproject.internal.InternalProcessManager;
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
@@ -58,6 +60,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
 
     private LibraryHandler libraryHandler;
     private ContainerContext containerContext;
+    private GlobalEventNode eventNode;
 
     public FairyPlatform() {
         if (Narcissus.libraryLoaded) {
@@ -79,8 +82,9 @@ public abstract class FairyPlatform implements TerminableConsumer {
     public void enable() {
         this.loadBindable();
 
-        this.containerContext = new ContainerContext();
-        this.containerContext.init();
+        this.containerContext = InternalProcessManager.get().register(new ContainerContext());
+        this.eventNode = InternalProcessManager.get().register(new GlobalEventNode());
+        InternalProcessManager.get().init();
     }
 
     public void disable() {
@@ -90,7 +94,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
             ex.printStackTrace();
         }
 
-        this.containerContext.stop();
+        InternalProcessManager.get().destroy();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
     }
 

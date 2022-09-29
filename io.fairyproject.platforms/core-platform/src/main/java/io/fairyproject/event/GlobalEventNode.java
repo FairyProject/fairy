@@ -1,15 +1,12 @@
 package io.fairyproject.event;
 
-import io.fairyproject.container.Autowired;
-import io.fairyproject.container.Service;
+import io.fairyproject.Fairy;
+import io.fairyproject.internal.InternalProcess;
 
-@Service
-public class GlobalEventNode extends EventNodeImpl<Event> {
+public class GlobalEventNode extends EventNodeImpl<Event> implements InternalProcess {
 
-    @Autowired
-    private static GlobalEventNode INSTANCE;
     public static EventNode<Event> get() {
-        return INSTANCE;
+        return Fairy.getGlobalEventNode();
     }
 
     public GlobalEventNode() {

@@ -24,6 +24,7 @@
 
 package io.fairyproject;
 
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.plugin.Plugin;
 import lombok.experimental.UtilityClass;
@@ -57,6 +58,10 @@ public class Fairy {
             return "io.fairyproject";
         }
         return Fairy.getMainPlugin().getDescription().getShadedPackage() + "." + PACKAGE_NAME;
+    }
+
+    public GlobalEventNode getGlobalEventNode() {
+        return FairyPlatform.INSTANCE.getEventNode();
     }
 
     public ITaskScheduler getTaskScheduler() {

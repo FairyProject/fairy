@@ -41,6 +41,7 @@ import io.fairyproject.container.object.lifecycle.LifeCycleHandlerRegistry;
 import io.fairyproject.container.object.lifecycle.impl.annotation.FairyLifeCycleAnnotationProcessor;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
+import io.fairyproject.internal.InternalProcess;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.Stacktrace;
@@ -57,7 +58,7 @@ import java.util.concurrent.Executors;
 import static io.fairyproject.Debug.log;
 
 @Accessors(fluent = true)
-public class ContainerContext {
+public class ContainerContext implements InternalProcess {
     private static ContainerContext INSTANCE;
     public static boolean SINGLE_THREADED = Runtime.getRuntime().availableProcessors() < 2 || Boolean.getBoolean("fairy.singlethreaded");
     public static ListeningExecutorService EXECUTOR = ListeningDecorator.create(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
@@ -128,7 +129,7 @@ public class ContainerContext {
         GlobalEventNode.get().call(new PostServiceInitialEvent());
     }
 
-    public void stop() {
+    public void destroy() {
         try {
             this.node.closeAndReportException();
         } finally {
