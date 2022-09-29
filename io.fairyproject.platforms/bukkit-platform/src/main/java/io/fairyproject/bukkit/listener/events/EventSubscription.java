@@ -183,6 +183,11 @@ public class EventSubscription<T extends Event> implements Listener, EventExecut
     }
 
     @Override
+    public boolean isClosed() {
+        return !this.active.get();
+    }
+
+    @Override
     public void close() throws Exception {
         this.unregister();
     }
