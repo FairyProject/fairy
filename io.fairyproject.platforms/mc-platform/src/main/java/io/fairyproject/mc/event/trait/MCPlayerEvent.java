@@ -7,10 +7,10 @@ import org.jetbrains.annotations.NotNull;
 public interface MCPlayerEvent extends MCEntityEvent {
 
     @Override
-    default @NotNull MCEntity entity() {
-        return this.player();
+    default @NotNull MCEntity getEntity() {
+        return this.getPlayer();
     }
 
-    @NotNull MCPlayer player();
+    @NotNull MCPlayer getPlayer();
 
 }

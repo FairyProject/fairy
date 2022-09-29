@@ -9,8 +9,8 @@ import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCEventFilter;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
-import io.fairyproject.mc.util.Pos;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
+import io.fairyproject.mc.util.Position;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,17 +43,17 @@ public class BukkitMCEntity implements MCEntity {
     }
 
     @Override
-    public boolean teleport(Pos pos) {
+    public boolean teleport(Position pos) {
         return this.entity.teleport(BukkitPos.toBukkitLocation(pos));
     }
 
     @Override
-    public @NotNull EventNode<MCEntityEvent> eventNode() {
+    public @NotNull EventNode<MCEntityEvent> getEventNode() {
         return this.eventNode;
     }
 
     @Override
-    public Pos pos() {
+    public Position getPosition() {
         return BukkitPos.toMCPos(this.entity.getLocation());
     }
 

@@ -20,7 +20,7 @@ public class MCPlayerProtocolPacketEvent implements MCPlayerEvent, Cancellable {
     }
 
     @Override
-    public @NotNull MCPlayer player() {
+    public @NotNull MCPlayer getPlayer() {
         return this.player;
     }
 
@@ -36,7 +36,7 @@ public class MCPlayerProtocolPacketEvent implements MCPlayerEvent, Cancellable {
         return this.event.getPacketType();
     }
 
-    public ProtocolPacketEvent<?> event() {
+    public ProtocolPacketEvent<?> getEvent() {
         return event;
     }
 

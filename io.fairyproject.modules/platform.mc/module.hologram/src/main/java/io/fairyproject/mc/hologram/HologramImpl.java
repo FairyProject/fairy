@@ -19,7 +19,8 @@ import io.fairyproject.mc.hologram.line.HologramLine;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
+import io.fairyproject.util.ConditionUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -34,7 +35,7 @@ public class HologramImpl implements Hologram {
 
 
     private final MCWorld world;
-    private Pos pos;
+    private Position pos;
     private MCEntity attached;
     private boolean spawned;
     private boolean autoViewable;
@@ -50,7 +51,7 @@ public class HologramImpl implements Hologram {
     private final List<HologramLine> lines;
     private final List<HologramEntity> entities;
 
-    public HologramImpl(@NotNull Pos pos) {
+    public HologramImpl(@NotNull Position pos) {
         this.world = pos.getMCWorld();
         this.pos = pos;
         this.autoViewable = true;
@@ -64,31 +65,31 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public Hologram withAutoViewable(boolean autoViewable) {
+    public Hologram autoViewable(boolean autoViewable) {
         this.autoViewable = autoViewable;
         return this;
     }
 
     @Override
-    public Hologram withViewDistance(int viewDistance) {
+    public Hologram viewDistance(int viewDistance) {
         this.viewDistance = viewDistance;
         return this;
     }
 
     @Override
-    public Hologram withAttackHandler(Consumer<MCPlayer> attackHandler) {
+    public Hologram attackHandler(Consumer<MCPlayer> attackHandler) {
         this.attackHandlers.add(attackHandler);
         return this;
     }
 
     @Override
-    public Hologram withInteractHandler(Consumer<MCPlayer> interactHandler) {
+    public Hologram interactHandler(Consumer<MCPlayer> interactHandler) {
         this.interactHandlers.add(interactHandler);
         return this;
     }
 
     @Override
-    public Hologram withLines(@NotNull List<HologramLine> lines) {
+    public Hologram lines(@NotNull List<HologramLine> lines) {
         synchronized (this) {
             this.lines.clear();
             this.lines.addAll(lines);
@@ -98,7 +99,7 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public Hologram withLine(@NotNull HologramLine line) {
+    public Hologram line(@NotNull HologramLine line) {
         synchronized (this) {
             this.lines.add(line);
         }
@@ -107,7 +108,7 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public Hologram withLine(int index, @NotNull HologramLine line) {
+    public Hologram line(int index, @NotNull HologramLine line) {
         synchronized (this) {
             this.lines.set(index, line);
         }
@@ -116,7 +117,7 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public Hologram withPos(@NotNull Pos pos) {
+    public Hologram position(@NotNull Position pos) {
         if (this.pos.getMCWorld() != this.world)
             throw new IllegalArgumentException("hologram doesn't support cross world teleportation.");
         this.pos = pos;
@@ -125,13 +126,13 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public Hologram withVerticalSpacing(double verticalSpacing) {
+    public Hologram verticalSpacing(double verticalSpacing) {
         this.verticalSpacing = verticalSpacing;
         return this;
     }
 
     @Override
-    public Hologram withAttached(@Nullable MCEntity entity) {
+    public Hologram attach(@Nullable MCEntity entity) {
         this.attached = entity;
         this.viewers.keySet().forEach(this::update);
         return this;
@@ -154,6 +155,7 @@ public class HologramImpl implements Hologram {
                 return this;
             this.spawned = true;
         }
+        ConditionUtils.notNull(this.pos, "hologram position");
 
         this.updateEntities();
         if (this.autoViewable) {
@@ -162,28 +164,28 @@ public class HologramImpl implements Hologram {
             EventNode<MCPlayerEvent> eventNode = EventNode.type("hologram:nearby", MCEventFilter.PLAYER);
             // add player when player is nearby on join
             eventNode.addListener(MCPlayerJoinEvent.class, event -> {
-                MCPlayer player = event.player();
+                MCPlayer player = event.getPlayer();
                 if (this.isViewer(player))
                     return;
 
-                if (this.chunkDistanceTo(player.pos()) <= this.viewDistance)
+                if (this.chunkDistanceTo(player.getPosition()) <= this.viewDistance)
                     this.addViewer(player);
             });
 
             // add nearby non-viewer player to be viewed
             eventNode.addListener(EventListener.builder(MCPlayerMoveEvent.class)
                     .ignoreCancelled(true)
-                    .filter(event -> !this.isViewer(event.player()))
+                    .filter(event -> !this.isViewer(event.getPlayer()))
                     .filter(MCEventFilter.DIFFERENT_CHUNK)
                     .handler(event -> {
-                        MCPlayer player = event.player();
+                        MCPlayer player = event.getPlayer();
 
-                        if (this.chunkDistanceTo(event.toPos()) <= this.viewDistance)
+                        if (this.chunkDistanceTo(event.getToPos()) <= this.viewDistance)
                             this.addViewer(player);
                     })
                     .build()
             );
-            this.world.eventNode().addChild(eventNode);
+            this.world.getEventNode().addChild(eventNode);
             this.eventNode = eventNode;
         }
 
@@ -200,7 +202,7 @@ public class HologramImpl implements Hologram {
         this.viewers.keySet().forEach(this::removeViewer);
         this.viewers.clear();
         if (this.eventNode != null) {
-            this.world.eventNode().removeChild(this.eventNode);
+            this.world.getEventNode().removeChild(this.eventNode);
             this.eventNode = null;
         }
     }
@@ -251,27 +253,27 @@ public class HologramImpl implements Hologram {
     }
 
     @Override
-    public int viewDistance() {
+    public int getViewDistance() {
         return this.viewDistance;
     }
 
     @Override
-    public @Nullable MCEntity attached() {
+    public @Nullable MCEntity getAttached() {
         return this.attached;
     }
 
     @Override
-    public @NotNull Pos pos() {
+    public @NotNull Position getPosition() {
         return this.pos;
     }
 
     @Override
-    public double verticalSpacing() {
+    public double getVerticalSpacing() {
         return this.verticalSpacing;
     }
 
     @Override
-    public @NotNull List<HologramLine> lines() {
+    public @NotNull List<HologramLine> getLines() {
         return Collections.unmodifiableList(this.lines);
     }
 
@@ -290,21 +292,21 @@ public class HologramImpl implements Hologram {
                 .ignoreCancelled(true)
                 .filter(MCEventFilter.DIFFERENT_CHUNK)
                 .handler(event -> {
-                    if (this.chunkDistanceTo(player.pos()) <= this.viewDistance)
+                    if (this.chunkDistanceTo(player.getPosition()) <= this.viewDistance)
                         return;
                     this.removeViewer(player);
                 })
                 .build());
         // remove from viewing whenever player quits
-        eventNode.addListener(MCPlayerQuitEvent.class, event -> this.removeViewer(event.player()));
+        eventNode.addListener(MCPlayerQuitEvent.class, event -> this.removeViewer(event.getPlayer()));
         // remove from viewing whenever player changes world
-        eventNode.addListener(MCPlayerChangedWorldEvent.class, event -> this.removeViewer(event.player()));
+        eventNode.addListener(MCPlayerChangedWorldEvent.class, event -> this.removeViewer(event.getPlayer()));
         // listen packet for interaction detection
         eventNode.addListener(MCPlayerPacketReceiveEvent.class, event -> {
             if (event.packetType() != PacketType.Play.Client.INTERACT_ENTITY)
                 return;
 
-            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event.event());
+            WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event.getEvent());
             if (!this.isEntity(packet.getEntityId()))
                 return;
 
@@ -321,7 +323,7 @@ public class HologramImpl implements Hologram {
             }
         });
         // add node as child to player's event node
-        player.eventNode().addChild(eventNode);
+        player.getEventNode().addChild(eventNode);
         return eventNode;
     }
 
@@ -357,7 +359,7 @@ public class HologramImpl implements Hologram {
 
         EventNode<MCPlayerEvent> eventNode = this.viewers.remove(player);
         if (eventNode != null) {
-            player.eventNode().removeChild(eventNode);
+            player.getEventNode().removeChild(eventNode);
             return true;
         }
         return false;
@@ -370,11 +372,11 @@ public class HologramImpl implements Hologram {
 
     private Stream<MCPlayer> nearby() {
         return this.world
-                .players().stream()
-                .filter(player -> this.chunkDistanceTo(player.pos()) <= this.viewDistance);
+                .getPlayers().stream()
+                .filter(player -> this.chunkDistanceTo(player.getPosition()) <= this.viewDistance);
     }
 
-    private double chunkDistanceTo(Pos target) {
+    private double chunkDistanceTo(Position target) {
         int hologramChunkX = this.pos.getChunkX();
         int hologramChunkZ = this.pos.getChunkZ();
 

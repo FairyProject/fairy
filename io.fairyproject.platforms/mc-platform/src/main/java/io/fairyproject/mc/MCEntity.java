@@ -3,7 +3,7 @@ package io.fairyproject.mc;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,13 +20,13 @@ public interface MCEntity {
 
     UUID getUUID();
 
-    Pos pos();
+    Position getPosition();
 
     int getId();
 
-    @NotNull EventNode<MCEntityEvent> eventNode();
+    @NotNull EventNode<MCEntityEvent> getEventNode();
 
-    boolean teleport(Pos pos);
+    boolean teleport(Position pos);
 
     <T> T as(Class<T> entityClass);
 

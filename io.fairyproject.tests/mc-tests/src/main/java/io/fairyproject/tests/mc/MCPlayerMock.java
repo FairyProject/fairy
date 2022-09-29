@@ -63,7 +63,7 @@ public abstract class MCPlayerMock implements MCPlayer {
     }
 
     @Override
-    public @NotNull EventNode<MCEntityEvent> eventNode() {
+    public @NotNull EventNode<MCEntityEvent> getEventNode() {
         return this.eventNode;
     }
 
@@ -78,17 +78,17 @@ public abstract class MCPlayerMock implements MCPlayer {
     }
 
     @Override
-    public int ping() {
+    public int getPing() {
         return this.ping;
     }
 
     @Override
-    public GameMode gameMode() {
+    public GameMode getGameMode() {
         return this.gameMode;
     }
 
     @Override
-    public MCGameProfile gameProfile() {
+    public MCGameProfile getGameProfile() {
         return MCGameProfile.create(this.uuid, this.name);
     }
 
