@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSp
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import io.fairyproject.task.Task;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,8 +18,8 @@ public class FakeEntityDeathAnimation extends AbstractFakeEntityAnimation {
 
     @Override
     public void start() {
-        MCEntity entity = this.entity();
-        Pos pos = entity.pos();
+        MCEntity entity = this.getEntity();
+        Position pos = entity.getPosition();
 
         int entityID = MCEntity.Companion.BRIDGE.newEntityId();
         if (entity instanceof MCPlayer) {

@@ -2,7 +2,7 @@ package io.fairyproject.mc.entity.animation;
 
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.util.Pos;
+import io.fairyproject.mc.util.Position;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -41,13 +41,13 @@ public abstract class AbstractFakeEntityAnimation implements FakeEntityAnimation
 
     private Stream<MCPlayer> nearby(int viewDistance) {
         return this.entity.getWorld()
-                .players().stream()
-                .filter(player -> this.chunkDistanceTo(player.pos()) <= viewDistance);
+                .getPlayers().stream()
+                .filter(player -> this.chunkDistanceTo(player.getPosition()) <= viewDistance);
     }
 
-    private double chunkDistanceTo(Pos target) {
-        int hologramChunkX = this.entity.pos().getChunkX();
-        int hologramChunkZ = this.entity.pos().getChunkZ();
+    private double chunkDistanceTo(Position target) {
+        int hologramChunkX = this.entity.getPosition().getChunkX();
+        int hologramChunkZ = this.entity.getPosition().getChunkZ();
 
         int targetChunkX = target.getChunkX();
         int targetChunkZ = target.getChunkZ();
@@ -56,7 +56,7 @@ public abstract class AbstractFakeEntityAnimation implements FakeEntityAnimation
     }
 
     @Override
-    public @NotNull MCEntity entity() {
+    public @NotNull MCEntity getEntity() {
         return this.entity;
     }
 }

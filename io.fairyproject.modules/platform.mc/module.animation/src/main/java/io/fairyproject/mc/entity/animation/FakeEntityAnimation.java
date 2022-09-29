@@ -10,7 +10,7 @@ public interface FakeEntityAnimation extends Viewable {
         return new FakeEntityDeathAnimation(entity);
     }
 
-    @NotNull MCEntity entity();
+    @NotNull MCEntity getEntity();
 
     /**
      * add nearby players into viewer
