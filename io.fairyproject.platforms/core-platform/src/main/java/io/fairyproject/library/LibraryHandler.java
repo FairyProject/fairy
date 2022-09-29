@@ -40,6 +40,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
@@ -191,7 +192,7 @@ public class LibraryHandler {
         }
 
         try (InputStream is = library.getUrl(library.getRepository()).openStream()) {
-            Files.copy(is, file);
+            Files.copy(is, file, StandardCopyOption.REPLACE_EXISTING);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
         }

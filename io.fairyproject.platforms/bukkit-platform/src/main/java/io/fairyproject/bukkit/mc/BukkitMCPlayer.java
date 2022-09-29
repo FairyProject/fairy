@@ -12,8 +12,7 @@ import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.util.AudienceProxy;
-import io.fairyproject.util.trial.TrialBiConsumers;
-import io.fairyproject.util.trial.TrialFunctions;
+import io.fairyproject.util.filter.FilterUnit;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 import net.kyori.adventure.audience.Audience;
@@ -36,32 +35,36 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
 
     static {
         try {
-            PING = TrialFunctions.<Player, Integer>create()
-                    .trial(() -> Player.class.getMethod("getPing"), NoSuchMethodException.class, player -> player.getPing())
-                    .find(MinecraftReflection::getPing)
-                    .unchecked();
+            PING = FilterUnit.<Function<Player, Integer>>create()
+                    .add(player -> player.getPing(), FilterUnit.test(t -> Player.class.getMethod("getPing"), NoSuchMethodException.class))
+                    .add(MinecraftReflection::getPing)
+                    .find()
+                    .orElseThrow(() -> new IllegalStateException("No valid get ping can be found."));
 
-            GAME_PROFILE = TrialFunctions.<Player, MCGameProfile>create()
-                    .trial(() -> Player.class.getMethod("getPlayerProfile"), NoSuchMethodException.class, player -> new io.fairyproject.bukkit.mc.PaperMCGameProfile(player.getPlayerProfile()))
-                    .find(player -> MCGameProfile.from(MinecraftReflection.getGameProfile(player)))
-                    .unchecked();
+            GAME_PROFILE = FilterUnit.<Function<Player, MCGameProfile>>create()
+                    .add(player -> new io.fairyproject.bukkit.mc.PaperMCGameProfile(player.getPlayerProfile()), FilterUnit.test(t -> Player.class.getMethod("getPlayerProfile"), NoSuchMethodException.class))
+                    .add(player -> MCGameProfile.from(MinecraftReflection.getGameProfile(player)))
+                    .find()
+                    .orElseThrow(() -> new IllegalStateException("No valid get game profile can be found."));
 
-            GET_DISPLAY_NAME = TrialFunctions.<Player, Component>create()
-                    .trial(() -> Player.class.getMethod("displayName"), NoSuchMethodException.class, player -> player.displayName())
-                    .find(player -> MCAdventure.LEGACY.deserialize(player.getDisplayName()))
-                    .unchecked();
+            GET_DISPLAY_NAME = FilterUnit.<Function<Player, Component>>create()
+                    .add(player -> player.displayName(), FilterUnit.test(t -> Player.class.getMethod("displayName"), NoSuchMethodException.class))
+                    .add(player -> MCAdventure.LEGACY.deserialize(player.getDisplayName()))
+                    .find()
+                    .orElseThrow(() -> new IllegalStateException("No valid get display name can be found."));
 
-            SET_DISPLAY_NAME = TrialBiConsumers.<MCPlayer, Component>create()
-                    .trial(() -> Player.class.getMethod("displayName", Component.class), NoSuchMethodException.class, (player, component) -> player.as(Player.class).displayName(component))
-                    .find((player, component) -> player.as(Player.class).setDisplayName(MCAdventure.asLegacyString(component, player.getLocale())))
-                    .unchecked();
+            SET_DISPLAY_NAME = FilterUnit.<BiConsumer<MCPlayer, Component>>create()
+                    .add((player, component) -> player.as(Player.class).displayName(component), FilterUnit.test(t -> Player.class.getMethod("displayName", Component.class), NoSuchMethodException.class))
+                    .add((player, component) -> player.as(Player.class).setDisplayName(MCAdventure.asLegacyString(component, player.getLocale())))
+                    .find()
+                    .orElseThrow(() -> new IllegalStateException("No valid set display name can be found."));
 
             AttributeKey<Object> attributeKey;
             try {
                 attributeKey = AttributeKey.valueOf("protocol");
             } catch (IllegalArgumentException ex) {
                 NMSClassResolver classResolver = new NMSClassResolver();
-                final Class<?> networkManagerClass = classResolver.resolve("NetworkManager");
+                final Class<?> networkManagerClass = classResolver.resolve("network.NetworkManager", "NetworkManager");
                 attributeKey = (AttributeKey<Object>) new FieldResolver(networkManagerClass).resolveByFirstType(AttributeKey.class).get(null);
             }
 

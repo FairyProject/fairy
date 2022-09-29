@@ -29,6 +29,16 @@ import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.bukkit.nbt.NBTKey;
 import io.fairyproject.bukkit.nbt.NBTModifier;
+import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
+import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
+import io.fairyproject.util.AccessUtil;
+import io.fairyproject.util.ConditionUtils;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
+import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import io.fairyproject.util.filter.FilterUnit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -40,13 +50,50 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import io.fairyproject.bukkit.Imanity;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiConsumer;
 
+/**
+ * TODO:
+ * refactor all of these mass
+ */
 public class ItemBuilder implements Listener, Cloneable {
+
+	private static Field GAME_PROFILE_FIELD;
+	private static MethodWrapper<?> GET_PROFILE_ENTITY_HUMAN_METHOD;
+	private static final BiConsumer<SkullMeta, Player> SET_SKULL_WITH_PLAYER = FilterUnit.<BiConsumer<SkullMeta, Player>>create()
+			// modern 1.12+
+			.add(FilterUnit.Item.<BiConsumer<SkullMeta, Player>>create((skullMeta, player) -> skullMeta.setOwningPlayer(player))
+					.predicate(FilterUnit.test(t -> SkullMeta.class.getDeclaredMethod("setOwningPlayer"), NoSuchMethodException.class)))
+			// legacy
+			.add((skullMeta, player) -> {
+				if (GAME_PROFILE_FIELD == null) {
+					ThrowingRunnable.sneaky(() -> {
+						Class<?> entityHumanClass = new NMSClassResolver().resolve("world.entity.player.EntityHuman", "EntityHuman");
+						Class<?> craftMetaSkullClass = new OBCClassResolver().resolve("inventory.CraftMetaSkull");
+
+						final Field field = craftMetaSkullClass.getDeclaredField("profile");
+						AccessUtil.setAccessible(field);
+						GAME_PROFILE_FIELD = field;
+
+						GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodResolver(entityHumanClass).resolve(MinecraftReflection.GAME_PROFILE_TYPE, 0);
+					}).run();
+				}
+
+				Object handle = MinecraftReflection.getHandleSilent(player);
+				Object gameProfile = GET_PROFILE_ENTITY_HUMAN_METHOD.invokeSilent(handle);
+				try {
+					GAME_PROFILE_FIELD.set(skullMeta, gameProfile);
+				} catch (IllegalAccessException e) {
+					SneakyThrowUtil.sneakyThrow(e);
+				}
+			})
+			.find()
+			.orElseThrow(() -> new IllegalStateException("No valid set skull with player can be found."));
 
 	private ItemStack itemStack;
 
@@ -122,12 +169,18 @@ public class ItemBuilder implements Listener, Cloneable {
 	}
 
 	public ItemBuilder enchantment(final XEnchantment enchantment, final int level) {
-		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), level);
+		Enchantment enchant = enchantment.getEnchant();
+		ConditionUtils.notNull(enchant, enchantment.name() + " doesn't seems to be supported in current version.");
+
+		itemStack.addUnsafeEnchantment(enchant, level);
 		return this;
 	}
 
 	public ItemBuilder enchantment(final XEnchantment enchantment) {
-		itemStack.addUnsafeEnchantment(enchantment.parseEnchantment(), 1);
+		Enchantment enchant = enchantment.getEnchant();
+		ConditionUtils.notNull(enchant, enchantment.name() + " doesn't seems to be supported in current version.");
+
+		itemStack.addUnsafeEnchantment(enchant, 1);
 		return this;
 	}
 
@@ -175,7 +228,7 @@ public class ItemBuilder implements Listener, Cloneable {
 	public ItemBuilder skull(Player owner) {
 		if (XMaterial.PLAYER_HEAD.isSimilar(itemStack)) {
 			SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
-			Imanity.IMPLEMENTATION.setSkullGameProfile(skullMeta, owner);
+			SET_SKULL_WITH_PLAYER.accept(skullMeta, owner);
 			itemStack.setItemMeta(skullMeta);
 			return this;
 		} else {
