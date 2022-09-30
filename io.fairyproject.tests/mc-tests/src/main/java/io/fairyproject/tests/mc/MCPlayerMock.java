@@ -1,19 +1,24 @@
 package io.fairyproject.tests.mc;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.GameMode;
+import io.fairyproject.mc.MCEventFilter;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.event.trait.MCEntityEvent;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.netty.channel.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
 @RequiredArgsConstructor
-public class MCPlayerMock implements MCPlayer {
+public abstract class MCPlayerMock implements MCPlayer {
 
     private final UUID uuid;
     private final String name;
@@ -30,10 +35,16 @@ public class MCPlayerMock implements MCPlayer {
     private int ping = 0;
     @Setter
     private GameMode gameMode = GameMode.SURVIVAL;
+    private final EventNode<MCEntityEvent> eventNode = GlobalEventNode.get().map(this, MCEventFilter.ENTITY);
 
     @Override
     public UUID getUUID() {
         return this.uuid;
+    }
+
+    @Override
+    public int getId() {
+        return 0;
     }
 
     @Override
@@ -52,6 +63,11 @@ public class MCPlayerMock implements MCPlayer {
     }
 
     @Override
+    public @NotNull EventNode<MCEntityEvent> getEventNode() {
+        return this.eventNode;
+    }
+
+    @Override
     public void setDisplayName(Component component) {
         this.displayName = component;
     }
@@ -62,17 +78,17 @@ public class MCPlayerMock implements MCPlayer {
     }
 
     @Override
-    public int ping() {
+    public int getPing() {
         return this.ping;
     }
 
     @Override
-    public GameMode gameMode() {
+    public GameMode getGameMode() {
         return this.gameMode;
     }
 
     @Override
-    public MCGameProfile gameProfile() {
+    public MCGameProfile getGameProfile() {
         return MCGameProfile.create(this.uuid, this.name);
     }
 

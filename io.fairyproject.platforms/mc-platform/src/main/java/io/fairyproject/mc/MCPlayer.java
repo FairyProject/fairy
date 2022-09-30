@@ -20,7 +20,7 @@ import java.util.function.Function;
 /**
  * A proxy player class for cross-platform purposes
  */
-public interface MCPlayer extends Audience {
+public interface MCPlayer extends MCEntity, Audience {
 
     MetadataKey<MCPlayer> METADATA = MetadataKey.create("proxy:player", MCPlayer.class);
 
@@ -90,21 +90,21 @@ public interface MCPlayer extends Audience {
      *
      * @return ping
      */
-    int ping();
+    int getPing();
 
     /**
      * get player's game mode
      *
      * @return game mode
      */
-    GameMode gameMode();
+    GameMode getGameMode();
 
     /**
      * get player's game profile
      *
      * @return game profile;
      */
-    MCGameProfile gameProfile();
+    MCGameProfile getGameProfile();
 
     /**
      * get metadata map for the player

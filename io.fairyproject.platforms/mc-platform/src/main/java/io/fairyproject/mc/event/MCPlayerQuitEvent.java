@@ -1,9 +1,13 @@
 package io.fairyproject.mc.event;
 
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.event.trait.MCPlayerEvent;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-public class MCPlayerQuitEvent extends MCPlayerEvent {
-    public MCPlayerQuitEvent(MCPlayer player) {
-        super(player);
-    }
+@Getter
+@RequiredArgsConstructor
+public class MCPlayerQuitEvent implements MCPlayerEvent {
+
+    private final MCPlayer player;
 }

@@ -3,7 +3,6 @@ package io.fairyproject.tests.bukkit;
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCVersion;
-import io.fairyproject.tests.mc.MCPlayerMock;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +28,7 @@ public class BukkitTestingMCInitializer extends BukkitMCInitializer {
             @Override
             public MCPlayer create(Object obj) {
                 final Player player = (Player) obj;
-                return new MCPlayerMock(player.getUniqueId(), player.getName(), MCVersion.V1_8, player); // version customize?
+                return new BukkitMCPlayerMock(player.getUniqueId(), player.getName(), MCVersion.V1_8, player); // version customize?
             }
 
             @Override

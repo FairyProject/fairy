@@ -34,6 +34,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.fairyproject.Fairy;
+import io.fairyproject.mc.util.Position;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -49,12 +50,16 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 
+/**
+ * @deprecated {@link Position}
+ */
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonSerialize(using = CustomLocation.Serializer.class)
 @JsonDeserialize(using = CustomLocation.Deserializer.class)
+@Deprecated
 public class CustomLocation {
 
 	private String world = "world";

@@ -104,29 +104,5 @@ public interface ServerImplementation {
         return null;
     }
 
-    void showDyingNPC(Player player);
-
-    Object toBlockNMS(MaterialData materialData);
-
-    List<Player> getPlayerRadius(Location location, double radius);
-
-    void setFakeBlocks(Player player, Map<BlockPosition, MaterialData> positions, List<BlockPosition> toRemove, boolean send);
-
-    void clearFakeBlocks(Player player, boolean send);
-
-    void sendActionBar(Player player, String message);
-
-    float getBlockSlipperiness(Material material);
-
-    void sendEntityTeleport(Player player, Location location, int id);
-
-    void sendEntityAttach(Player player, int type, int toAttach, int attachTo);
-
-    void setSkullGameProfile(ItemMeta itemMeta, Player player);
-
-    boolean isServerThread();
-
-    boolean callMoveEvent(Player player, Location from, Location to);
-
     AbstractMovementImplementation movement(MovementListener movementListener);
 }

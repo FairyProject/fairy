@@ -3,4 +3,5 @@ dependencies {
 
     // Adventure, for user-interface
     api libs.bundles.adventure
+    api libs.packetevents.api
 }

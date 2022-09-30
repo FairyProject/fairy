@@ -1,5 +1,6 @@
 package io.fairyproject.util;
 
+import io.fairyproject.log.Log;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.github.toolfactory.narcissus.Narcissus;
 import org.jetbrains.annotations.NotNull;
@@ -25,12 +26,16 @@ public abstract class URLClassLoaderAccess {
      */
     public static URLClassLoaderAccess create(URLClassLoader classLoader) {
         if (Reflection.isSupported()) {
+            Log.info("Using Reflection URL class loader access");
             return new Reflection(classLoader);
         } else if (NarcissusUnsafe.isSupported()) {
+            Log.info("Using Narcissus Unsafe URL class loader access");
             return new NarcissusUnsafe(classLoader);
         } else if (Unsafe.isSupported()) {
+            Log.info("Using Unsafe URL class loader access");
             return new Unsafe(classLoader);
         } else {
+            Log.info("Using NoOp URL class loader access");
             return Noop.INSTANCE;
         }
     }
@@ -50,7 +55,7 @@ public abstract class URLClassLoaderAccess {
     public abstract void addURL(@Nonnull URL url);
 
     public void addPath(@Nonnull Path path) {
-        ThrowingRunnable.unchecked(() -> this.addURL(path.toUri().toURL())).run();
+        ThrowingRunnable.sneaky(() -> this.addURL(path.toUri().toURL())).run();
     }
 
     /**

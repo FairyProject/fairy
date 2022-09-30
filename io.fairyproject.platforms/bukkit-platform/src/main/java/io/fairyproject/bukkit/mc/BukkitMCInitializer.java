@@ -1,13 +1,18 @@
 package io.fairyproject.bukkit.mc;
 
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.*;
+import io.fairyproject.metadata.MetadataKey;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -35,18 +40,43 @@ public class BukkitMCInitializer implements MCInitializer {
                 }
                 return new BukkitMCEntity((org.bukkit.entity.Entity) entity);
             }
+
+            @Override
+            public int newEntityId() {
+                return MinecraftReflection.getNewEntityId();
+            }
         };
     }
 
     @Override
     public MCWorld.Bridge createWorldBridge() {
         return new MCWorld.Bridge() {
+
+            private final MetadataKey<MCWorld> KEY = MetadataKey.create("fairy:mc-world", MCWorld.class);
+
             @Override
-            public MCWorld from(Object world) {
-                if (!(world instanceof org.bukkit.World)) {
+            public MCWorld from(Object worldObj) {
+                if (!(worldObj instanceof World)) {
                     throw new UnsupportedOperationException();
                 }
-                return new BukkitMCWorld((org.bukkit.World) world);
+                World world = (World) worldObj;
+                return Metadata.provideForWorld(world).getOrPut(KEY, () -> new BukkitMCWorld(world));
+            }
+
+            @Override
+            public MCWorld getByName(String name) {
+                final World world = Bukkit.getWorld(name);
+                if (world == null) {
+                    return null;
+                }
+                return this.from(world);
+            }
+
+            @Override
+            public List<MCWorld> all() {
+                return Bukkit.getWorlds().stream()
+                        .map(this::from)
+                        .collect(Collectors.toList());
             }
         };
     }
