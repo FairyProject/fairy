@@ -26,6 +26,7 @@ package io.fairyproject.library;
 
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
+import io.fairyproject.internal.Process;
 import io.fairyproject.library.classloader.IsolatedClassLoader;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.*;
@@ -45,9 +46,9 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Stream;
 
-public class LibraryHandler {
+public class LibraryHandler implements Process {
 
-    private final Path libFolder;
+    private Path libFolder;
 
     private final Map<Library, List<Path>> loaded = new ConcurrentHashMap<>();
     private final Map<Plugin, URLClassLoaderAccess> pluginClassLoaders = new ConcurrentHashMap<>();
@@ -60,38 +61,37 @@ public class LibraryHandler {
             .priority(Thread.NORM_PRIORITY - 1)
             .build());
 
-    public LibraryHandler() {
+    @Override
+    public void preload() {
         File file = new File(Fairy.getPlatform().getDataFolder(), "libs");
         if (!file.exists()) {
             file.mkdirs();
         }
         this.libFolder = file.toPath();
 
-        if (PluginManager.isInitialized()) {
-            PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
-                @Override
-                public void onPluginPreLoaded(ClassLoader classLoader, PluginDescription description, PluginAction action, CompletableFuture<Plugin> completableFuture) {
-                    if (Debug.UNIT_TEST) return;
-                    downloadLibraries(true, description.getLibraries());
-                }
+        Fairy.getPluginManager().registerListener(new PluginListenerAdapter() {
+            @Override
+            public void onPluginPreLoaded(ClassLoader classLoader, PluginDescription description, PluginAction action, CompletableFuture<Plugin> completableFuture) {
+                if (Debug.UNIT_TEST) return;
+                downloadLibraries(true, description.getLibraries());
+            }
 
-                @Override
-                public void onPluginInitial(Plugin plugin) {
-                    final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) plugin.getPluginClassLoader());
-                    pluginClassLoaders.put(plugin, classLoader);
-                    for (List<Path> paths : loaded.values()) {
-                        for (Path path : paths) {
-                            classLoader.addPath(path);
-                        }
+            @Override
+            public void onPluginInitial(Plugin plugin) {
+                final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) plugin.getPluginClassLoader());
+                pluginClassLoaders.put(plugin, classLoader);
+                for (List<Path> paths : loaded.values()) {
+                    for (Path path : paths) {
+                        classLoader.addPath(path);
                     }
                 }
+            }
 
-                @Override
-                public void onPluginDisable(Plugin plugin) {
-                    pluginClassLoaders.remove(plugin);
-                }
-            });
-        }
+            @Override
+            public void onPluginDisable(Plugin plugin) {
+                pluginClassLoaders.remove(plugin);
+            }
+        });
     }
 
     public IsolatedClassLoader obtainClassLoaderWith(Collection<Library> libraries) {

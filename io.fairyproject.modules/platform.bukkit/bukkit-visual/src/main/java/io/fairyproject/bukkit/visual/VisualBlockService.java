@@ -30,15 +30,16 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import io.fairyproject.bukkit.Imanity;
+import io.fairyproject.Fairy;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.player.movement.MovementListener;
 import io.fairyproject.bukkit.util.CoordXZ;
 import io.fairyproject.bukkit.util.CoordinatePair;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
 import io.fairyproject.bukkit.visual.type.VisualType;
 import io.fairyproject.bukkit.visual.util.VisualUtil;
+import io.fairyproject.container.Containers;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.Service;
@@ -46,7 +47,6 @@ import io.fairyproject.log.Log;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
-import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.Task;
 import io.fairyproject.task.TaskRunnable;
 import io.fairyproject.util.terminable.Terminable;
@@ -56,6 +56,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -94,14 +96,13 @@ public class VisualBlockService implements TaskRunnable {
                         }
                     }
                 });
-        Task.asyncRepeated(this, 1L);
-        Imanity.registerMovementListener(new MovementListener() {
-            @Override
-            public void handleUpdateLocation(Player player, Location from, Location to) {
-                handlePositionChanged(player, to);
-            }
-        })
-        .ignoreSameBlock();
+        Containers.bindWith(this, Task.asyncRepeated(this, 1L));
+        Events.subscribe(PlayerMoveEvent.class)
+                .priority(EventPriority.MONITOR)
+                .filter(event -> !event.isCancelled())
+                .filter(event -> event.getTo() != null && (event.getFrom().getBlockX() != event.getTo().getBlockX() || event.getFrom().getBlockZ() != event.getTo().getBlockZ()))
+                .listen(event -> this.handlePositionChanged(event.getPlayer(), event.getTo()))
+                .build(FairyBukkitPlatform.PLUGIN);
 
         this.mainGenerator = (player, location, positions) -> {
             final int minHeight = location.getBlockY() - 5;
@@ -153,7 +154,7 @@ public class VisualBlockService implements TaskRunnable {
             }
         };
 
-        PluginManager.INSTANCE.registerListener(new PluginListenerAdapter() {
+        Fairy.getPluginManager().registerListener(new PluginListenerAdapter() {
             @Override
             public void onPluginDisable(Plugin plugin) {
                 dynamicVisualGenerator.remove(plugin);
@@ -167,7 +168,7 @@ public class VisualBlockService implements TaskRunnable {
     }
 
     public void registerGenerator(VisualBlockGenerator blockGenerator) {
-        Plugin plugin = PluginManager.INSTANCE.getPluginByClass(blockGenerator.getClass());
+        Plugin plugin = Fairy.getPluginManager().getPluginByClass(blockGenerator.getClass());
 
         if (plugin == null) {
             throw new IllegalArgumentException("Not a Plugin?");

@@ -1,11 +1,11 @@
 package io.fairyproject.bootstrap;
 
 import com.google.gson.JsonObject;
+import io.fairyproject.Fairy;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
-import io.fairyproject.plugin.PluginManager;
 import lombok.Getter;
 
 import java.lang.reflect.InvocationTargetException;
@@ -22,7 +22,7 @@ public abstract class BasePluginHolder {
         PluginDescription pluginDescription = new PluginDescription(jsonObject);
 
         this.classLoader = this.getClassLoader();
-        PluginManager.INSTANCE.onPluginPreLoaded(this.classLoader, pluginDescription, this.getPluginAction(), this.pluginCompletableFuture);
+        Fairy.getPluginManager().onPluginPreLoaded(this.classLoader, pluginDescription, this.getPluginAction(), this.pluginCompletableFuture);
 
         this.plugin = this.findMainClass(pluginDescription.getMainClass());
         this.plugin.initializePlugin(pluginDescription, this.getPluginAction(), this.classLoader);
@@ -53,8 +53,8 @@ public abstract class BasePluginHolder {
     }
 
     public void onLoad() {
-        PluginManager.INSTANCE.addPlugin(plugin);
-        PluginManager.INSTANCE.onPluginInitial(plugin);
+        Fairy.getPluginManager().addPlugin(plugin);
+        Fairy.getPluginManager().onPluginInitial(plugin);
 
         plugin.onInitial();
     }
@@ -64,7 +64,7 @@ public abstract class BasePluginHolder {
         if (plugin.isClosed()) {
             return;
         }
-        PluginManager.INSTANCE.onPluginEnable(plugin);
+        Fairy.getPluginManager().onPluginEnable(plugin);
         try {
             plugin.onPluginEnable();
         } catch (Throwable throwable) {
@@ -84,7 +84,7 @@ public abstract class BasePluginHolder {
         }
 
         plugin.getCompositeTerminable().closeAndReportException();
-        PluginManager.INSTANCE.onPluginDisable(plugin);
+        Fairy.getPluginManager().onPluginDisable(plugin);
     }
 
 }

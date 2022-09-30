@@ -27,6 +27,7 @@ package io.fairyproject;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginManager;
 import lombok.experimental.UtilityClass;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.FastRandom;
@@ -70,6 +71,10 @@ public class Fairy {
 
     public LibraryHandler getLibraryHandler() {
         return FairyPlatform.INSTANCE.getLibraryHandler();
+    }
+
+    public PluginManager getPluginManager() {
+        return FairyPlatform.INSTANCE.getPluginManager();
     }
 
     public FairyPlatform getPlatform() {

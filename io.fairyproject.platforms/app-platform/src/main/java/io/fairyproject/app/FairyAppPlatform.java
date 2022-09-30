@@ -6,6 +6,7 @@ import io.fairyproject.PlatformType;
 import io.fairyproject.app.logger.TinyLogger;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginHandler;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
@@ -44,13 +45,6 @@ public class FairyAppPlatform extends FairyPlatform {
 
         if (!Debug.UNIT_TEST)
             Log.set(new TinyLogger());
-    }
-
-    @Override
-    public void load(Plugin plugin) {
-        super.load(plugin);
-
-        PluginManager.initialize(new AppPluginHandler());
     }
 
     @Override
@@ -138,6 +132,11 @@ public class FairyAppPlatform extends FairyPlatform {
     @Override
     public ITaskScheduler createTaskScheduler() {
         return new AsyncTaskScheduler();
+    }
+
+    @Override
+    public PluginHandler createPluginHandler() {
+        return new AppPluginHandler();
     }
 
     @Override

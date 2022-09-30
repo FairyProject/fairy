@@ -24,9 +24,13 @@
 
 package io.fairyproject.util;
 
+import io.fairyproject.FairyPlatform;
+import io.fairyproject.log.Log;
 import lombok.experimental.UtilityClass;
 
 import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.stream.Stream;
@@ -61,5 +65,63 @@ public class IOUtil {
         writer.write(string);
 
         writer.close();
+    }
+
+    public void saveResource(FairyPlatform platform, String name, boolean replace) {
+        if (name != null && !name.equals("")) {
+            name = name.replace('\\', '/');
+            InputStream in = getResource(platform, name);
+            if (in == null) {
+                throw new IllegalArgumentException("The embedded resource '" + name + "' cannot be found");
+            } else {
+                File outFile = new File(platform.getDataFolder(), name);
+                int lastIndex = name.lastIndexOf(47);
+                File outDir = new File(platform.getDataFolder(), name.substring(0, Math.max(lastIndex, 0)));
+                if (!outDir.exists()) {
+                    outDir.mkdirs();
+                }
+
+                try {
+                    if (outFile.exists() && !replace) {
+                        Log.warn("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
+                    } else {
+                        OutputStream out = new FileOutputStream(outFile);
+                        byte[] buf = new byte[1024];
+
+                        int len;
+                        while((len = in.read(buf)) > 0) {
+                            out.write(buf, 0, len);
+                        }
+
+                        out.close();
+                        in.close();
+                    }
+                } catch (IOException var10) {
+                    Log.info("Could not save " + outFile.getName() + " to " + outFile, var10);
+                }
+
+            }
+        } else {
+            throw new IllegalArgumentException("ResourcePath cannot be null or empty");
+        }
+    }
+
+    public InputStream getResource(FairyPlatform platform, String filename) {
+        if (filename == null) {
+            throw new IllegalArgumentException("Filename cannot be null");
+        } else {
+            try {
+                URL url = platform.getClass().getClassLoader().getResource(filename);
+                if (url == null) {
+                    return null;
+                } else {
+                    URLConnection connection = url.openConnection();
+                    connection.setUseCaches(false);
+                    return connection.getInputStream();
+                }
+            } catch (IOException var4) {
+                return null;
+            }
+        }
     }
 }

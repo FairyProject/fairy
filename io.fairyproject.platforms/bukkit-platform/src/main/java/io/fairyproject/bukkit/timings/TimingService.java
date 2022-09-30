@@ -25,22 +25,20 @@
 package io.fairyproject.bukkit.timings;
 
 import io.fairyproject.Debug;
+import io.fairyproject.internal.Process;
 import org.bukkit.plugin.Plugin;
-import io.fairyproject.container.PreInitialize;
-import io.fairyproject.container.Service;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-@Service(name = "timings")
-public class TimingService {
+public class TimingService implements Process {
 
     private TimingType timingType;
     private final Map<String, MCTiming> timingCache = new HashMap<>(0);
 
-    @PreInitialize
-    public void onPreInitialize() {
+    @Override
+    public void enable() {
         if (timingType == null) {
             if (Debug.UNIT_TEST) {
                 timingType = TimingType.UNIT_TESTING;

@@ -25,13 +25,17 @@
 package io.fairyproject;
 
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.event.GlobalEventNode;
-import io.fairyproject.internal.InternalProcessManager;
+import io.fairyproject.internal.Process;
+import io.fairyproject.internal.ProcessManager;
+import io.fairyproject.jackson.JacksonService;
 import io.fairyproject.library.LibraryHandler;
-import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginHandler;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.util.IOUtil;
 import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
@@ -42,9 +46,8 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-import java.io.*;
-import java.net.URL;
-import java.net.URLConnection;
+import java.io.File;
+import java.io.InputStream;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -58,8 +61,10 @@ public abstract class FairyPlatform implements TerminableConsumer {
     private ITaskScheduler taskScheduler;
     private CompositeTerminable compositeTerminable;
 
+    private PluginManager pluginManager;
     private LibraryHandler libraryHandler;
     private ContainerContext containerContext;
+    private JacksonService jacksonService;
     private GlobalEventNode eventNode;
 
     public FairyPlatform() {
@@ -69,22 +74,34 @@ public abstract class FairyPlatform implements TerminableConsumer {
     }
 
     public void preload() {
-        this.libraryHandler = new LibraryHandler();
+        this.containerContext = ProcessManager.get().register(new ContainerContext());
+        this.eventNode = ProcessManager.get().register(new GlobalEventNode());
+        this.pluginManager = ProcessManager.get().register(new PluginManager(this.createPluginHandler()));
+        this.jacksonService = ProcessManager.get().register(new JacksonService());
+        this.taskScheduler = ProcessManager.get().register(this.createTaskScheduler());
+        this.libraryHandler = ProcessManager.get().register(new LibraryHandler());
+        this.loadProcesses();
+
+        ProcessManager.get().preload();
     }
 
     public void load(Plugin mainPlugin) {
         this.mainPlugin = mainPlugin;
 
-        this.taskScheduler = this.createTaskScheduler();
+
+
+        ProcessManager.get().load();
         this.compositeTerminable = CompositeTerminable.create();
     }
 
     public void enable() {
-        this.loadBindable();
+        ProcessManager.get().enable();
+        // register all the processes to container node
 
-        this.containerContext = InternalProcessManager.get().register(new ContainerContext());
-        this.eventNode = InternalProcessManager.get().register(new GlobalEventNode());
-        InternalProcessManager.get().init();
+    }
+
+    protected void loadProcesses() {
+        // Load processes
     }
 
     public void disable() {
@@ -94,13 +111,8 @@ public abstract class FairyPlatform implements TerminableConsumer {
             ex.printStackTrace();
         }
 
-        InternalProcessManager.get().destroy();
-        PluginManager.INSTANCE.callFrameworkFullyDisable();
-    }
-
-    private void loadBindable() {
-//        this.bind(CacheableAspect.CLEANER_SERVICE);
-//        this.bind(CacheableAspect.UPDATER_SERVICE);
+        ProcessManager.get().destroy();
+        Fairy.getPluginManager().callFrameworkFullyDisable();
     }
 
     @Override
@@ -131,7 +143,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
      *
      */
     public void onPostServicesInitial() {
-
+        // to be overwritten
     }
 
     /**
@@ -153,61 +165,11 @@ public abstract class FairyPlatform implements TerminableConsumer {
      * @param replace should Replace File
      */
     public void saveResource(String name, boolean replace) {
-        if (name != null && !name.equals("")) {
-            name = name.replace('\\', '/');
-            InputStream in = this.getResource(name);
-            if (in == null) {
-                throw new IllegalArgumentException("The embedded resource '" + name + "' cannot be found");
-            } else {
-                File outFile = new File(this.getDataFolder(), name);
-                int lastIndex = name.lastIndexOf(47);
-                File outDir = new File(this.getDataFolder(), name.substring(0, Math.max(lastIndex, 0)));
-                if (!outDir.exists()) {
-                    outDir.mkdirs();
-                }
-
-                try {
-                    if (outFile.exists() && !replace) {
-                        Log.warn("Could not save " + outFile.getName() + " to " + outFile + " because " + outFile.getName() + " already exists.");
-                    } else {
-                        OutputStream out = new FileOutputStream(outFile);
-                        byte[] buf = new byte[1024];
-
-                        int len;
-                        while((len = in.read(buf)) > 0) {
-                            out.write(buf, 0, len);
-                        }
-
-                        out.close();
-                        in.close();
-                    }
-                } catch (IOException var10) {
-                    Log.info("Could not save " + outFile.getName() + " to " + outFile, var10);
-                }
-
-            }
-        } else {
-            throw new IllegalArgumentException("ResourcePath cannot be null or empty");
-        }
+        IOUtil.saveResource(this, name, replace);
     }
 
     public InputStream getResource(String filename) {
-        if (filename == null) {
-            throw new IllegalArgumentException("Filename cannot be null");
-        } else {
-            try {
-                URL url = this.getClass().getClassLoader().getResource(filename);
-                if (url == null) {
-                    return null;
-                } else {
-                    URLConnection connection = url.openConnection();
-                    connection.setUseCaches(false);
-                    return connection.getInputStream();
-                }
-            } catch (IOException var4) {
-                return null;
-            }
-        }
+        return IOUtil.getResource(this, filename);
     }
 
     /**
@@ -236,6 +198,13 @@ public abstract class FairyPlatform implements TerminableConsumer {
      * @return the Task Scheduler
      */
     public abstract ITaskScheduler createTaskScheduler();
+
+    /**
+     * Create a plugin handler for the platform
+     *
+     * @return the plugin handler
+     */
+    public abstract PluginHandler createPluginHandler();
 
     /**
      * Get the platform type of current platform

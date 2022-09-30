@@ -24,9 +24,10 @@
 
 package io.fairyproject.task;
 
+import io.fairyproject.internal.Process;
 import io.fairyproject.util.terminable.Terminable;
 
-public interface ITaskScheduler {
+public interface ITaskScheduler extends Process {
 
     Terminable runAsync(Runnable runnable);
 

@@ -24,10 +24,10 @@
 
 package io.fairyproject.bukkit.timer.impl;
 
-import org.bukkit.entity.Player;
-import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.timer.TimerBase;
 import io.fairyproject.bukkit.timer.TimerList;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.Collection;
 
@@ -50,6 +50,6 @@ public class ServerTimer extends TimerBase {
 
     @Override
     public Collection<? extends Player> getReceivers() {
-        return Imanity.getPlayers();
+        return Bukkit.getOnlinePlayers();
     }
 }

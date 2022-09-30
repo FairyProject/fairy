@@ -25,18 +25,18 @@
 package io.fairyproject.bukkit.bossbar;
 
 import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.player.movement.MovementListener;
-import org.bukkit.Location;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.util.CC;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.Imanity;
-import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.util.CC;
 
 public class BossBarHandler implements Runnable {
 
@@ -55,19 +55,14 @@ public class BossBarHandler implements Runnable {
     public BossBarHandler(BossBarAdapter adapter) {
         this.adapter = adapter;
 
-        Imanity.registerMovementListener(new MovementListener() {
-            @Override
-            public void handleUpdateLocation(Player player, Location from, Location to) {
-                BossBar bossBar = getOrCreate(player);
-                bossBar.getMoved().set(true);
-            }
-
-            @Override
-            public void handleUpdateRotation(Player player, Location from, Location to) {
-                BossBar bossBar = getOrCreate(player);
-                bossBar.getMoved().set(true);
-            }
-        }).ignoreSameBlock();
+        Events.subscribe(PlayerMoveEvent.class)
+                .filter(Events.ignoreCancelled())
+                .filter(event -> event.getTo().getBlockX() != event.getFrom().getBlockX() || event.getTo().getBlockZ() != event.getFrom().getBlockZ())
+                .listen(event -> {
+                    BossBar bossBar = getOrCreate(event.getPlayer());
+                    bossBar.getMoved().set(true);
+                })
+                .build(FairyBukkitPlatform.PLUGIN);
 
         Events.subscribe(new Listener() {
             @EventHandler
@@ -127,7 +122,7 @@ public class BossBarHandler implements Runnable {
     private void tick() {
         long now = System.currentTimeMillis();
 
-        for (Player player : Imanity.getPlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             BossBar bossBar = this.getOrCreate(player);
 
             if (now - bossBar.getLastUpdate() < this.getUpdateTick(bossBar)) {

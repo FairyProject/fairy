@@ -1,6 +1,7 @@
 package io.fairyproject.tests;
 
 import io.fairyproject.Debug;
+import io.fairyproject.Fairy;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
@@ -78,7 +79,7 @@ public class TestingContext {
             fairyPlatform.preload();
 
             CompletableFuture<Plugin> completableFuture = new CompletableFuture<>();
-            PluginManager.INSTANCE.onPluginPreLoaded(testingHandle.getClass().getClassLoader(), description, pluginAction, completableFuture);
+            Fairy.getPluginManager().onPluginPreLoaded(testingHandle.getClass().getClassLoader(), description, pluginAction, completableFuture);
             completableFuture.complete(plugin);
 
             fairyPlatform.load(plugin);
@@ -86,13 +87,13 @@ public class TestingContext {
             if (testingHandle.shouldInitialize()) {
                 plugin.initializePlugin(description, pluginAction, plugin.getClass().getClassLoader());
             }
-            PluginManager.INSTANCE.addPlugin(plugin);
-            PluginManager.INSTANCE.onPluginInitial(plugin);
+            Fairy.getPluginManager().addPlugin(plugin);
+            Fairy.getPluginManager().onPluginInitial(plugin);
             plugin.onInitial();
 
             fairyPlatform.enable();
             plugin.onPreEnable();
-            PluginManager.INSTANCE.onPluginEnable(plugin);
+            Fairy.getPluginManager().onPluginEnable(plugin);
             plugin.onPluginEnable();
         }
     }
@@ -108,9 +109,8 @@ public class TestingContext {
             }
 
             this.plugin.onPluginDisable();
-            PluginManager.INSTANCE.onPluginDisable(this.plugin);
+            Fairy.getPluginManager().onPluginDisable(this.plugin);
             FairyPlatform.INSTANCE.disable();
-            PluginManager.INSTANCE.unload();
             this.plugin.onFrameworkFullyDisable();
         }
     }

@@ -21,13 +21,10 @@ public class StateMachineTest extends JUnitJupiterBase {
         StateMachine<ExampleState, ExampleTrigger> stateMachine = StateMachine.create();
 
         stateMachine.state(ExampleState.A)
-                .handleStart(t -> System.out.println("A"))
                 .when(ExampleTrigger.T1, trigger -> trigger.to(ExampleState.B));
         stateMachine.state(ExampleState.B)
-                .handleStart(t -> System.out.println("B"))
                 .when(ExampleTrigger.T2, trigger -> trigger.to(ExampleState.C));
         stateMachine.state(ExampleState.C)
-                .handleStart(t -> System.out.println("C"))
                 .when(ExampleTrigger.T3, TriggerTask::end);
 
         // Start at A, current state should be A

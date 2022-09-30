@@ -3,7 +3,7 @@ package io.fairyproject.tests;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.plugin.PluginHandler;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.async.AsyncTaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
@@ -16,14 +16,6 @@ public class FairyTestingPlatform extends FairyPlatform {
     private final Thread thread;
     public FairyTestingPlatform() {
         this.thread = Thread.currentThread();
-        if (!PluginManager.isInitialized()) {
-            PluginManager.initialize(type -> {
-                if (type.getName().startsWith("io.fairytest")) {
-                    return "test";
-                }
-                return null;
-            });
-        }
     }
 
     @Override
@@ -69,6 +61,16 @@ public class FairyTestingPlatform extends FairyPlatform {
     @Override
     public ITaskScheduler createTaskScheduler() {
         return new AsyncTaskScheduler();
+    }
+
+    @Override
+    public PluginHandler createPluginHandler() {
+        return type -> {
+            if (type.getName().startsWith("io.fairytest")) {
+                return "test";
+            }
+            return null;
+        };
     }
 
     @Override

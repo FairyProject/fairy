@@ -33,21 +33,21 @@ import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
+import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.version.protocol.ProtocolCheck;
-import io.fairyproject.bukkit.reflection.wrapper.ChatComponentWrapper;
-import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
-import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
-import io.fairyproject.bukkit.reflection.wrapper.PacketWrapper;
+import io.fairyproject.bukkit.reflection.wrapper.*;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.EquivalentConverter;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -56,6 +56,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
@@ -70,6 +71,9 @@ public class MinecraftReflection {
     private static final OBCClassResolver OBC_CLASS_RESOLVER = new OBCClassResolver();
     private static Class<?> NMS_ENTITY;
     private static Class<?> CRAFT_ENTITY;
+
+    private static ObjectWrapper MINECRAFT_SERVER;
+    private static MethodWrapper<?> GET_ENTITY_BY_ID_METHOD;
 
     /**
      * The CraftPlayer.getHandle method
@@ -124,6 +128,20 @@ public class MinecraftReflection {
     public static void init() {
         if (Debug.UNIT_TEST) {
             return;
+        }
+        try {
+            Class<?> minecraftServerType = NMS_CLASS_RESOLVER.resolve("server.MinecraftServer", "MinecraftServer");
+            Object minecraftServer = Bukkit.getServer().getClass().getMethod("getServer").invoke(Bukkit.getServer());
+            MINECRAFT_SERVER = new ObjectWrapper(minecraftServer, minecraftServerType);
+
+            Class<?> worldType = NMS_CLASS_RESOLVER.resolve("world.level.World", "World");
+            MethodResolver methodResolver = new MethodResolver(worldType);
+            GET_ENTITY_BY_ID_METHOD = methodResolver.resolveWrapper(
+                    new ResolverQuery("getEntity", int.class),
+                    new ResolverQuery("a", int.class)
+            );
+        } catch (Throwable throwable) {
+            throw new RuntimeException(throwable);
         }
 
         try {
@@ -224,7 +242,8 @@ public class MinecraftReflection {
 
         try {
             PROTOCOL_CHECK = (ProtocolCheck) lastSuccess.getDeclaredConstructor().newInstance();
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
+                 InvocationTargetException e) {
             throw new RuntimeException(e);
         }
         Log.info("Initialized Protocol Check with " + lastSuccess.getSimpleName());
@@ -266,6 +285,23 @@ public class MinecraftReflection {
         Object entityPlayer = MinecraftReflection.PLAYER_GET_HANDLE.invoke(player);
         Object playerConnection = MinecraftReflection.FIELD_PLAYER_CONNECTION.get(entityPlayer);
         MinecraftReflection.METHOD_SEND_PACKET.invoke(playerConnection, packet);
+    }
+
+    public Entity getEntity(UUID uuid) {
+        try {
+            return MinecraftReflection.getBukkitEntity(MINECRAFT_SERVER.invoke("a", uuid));
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public Entity getEntity(World world, int id) {
+        try {
+            Object worldHandle = MinecraftReflection.getHandle(world);
+            return MinecraftReflection.getBukkitEntity(GET_ENTITY_BY_ID_METHOD.invoke(worldHandle, id));
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static int getNewEntityId() {
@@ -368,7 +404,7 @@ public class MinecraftReflection {
 
     public static Class<?> getIChatBaseComponentClass() {
         try {
-            return NMS_CLASS_RESOLVER.resolve("network.chat.IChatBaseComponent","IChatBaseComponent");
+            return NMS_CLASS_RESOLVER.resolve("network.chat.IChatBaseComponent", "IChatBaseComponent");
         } catch (ClassNotFoundException ex) {
             try {
                 return OBC_CLASS_RESOLVER
@@ -383,7 +419,7 @@ public class MinecraftReflection {
 
     public static Class<?> getChatModifierClass() {
         try {
-            return NMS_CLASS_RESOLVER.resolve("network.chat.ChatModifier","ChatModifier");
+            return NMS_CLASS_RESOLVER.resolve("network.chat.ChatModifier", "ChatModifier");
         } catch (Throwable throwable) {
             try {
                 return NMS_CLASS_RESOLVER.resolveSubClass(getIChatBaseComponentClass(), "ChatModifier");

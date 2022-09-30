@@ -28,8 +28,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fairyproject.container.PreInitialize;
-import io.fairyproject.container.Service;
+import io.fairyproject.internal.Process;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -38,8 +37,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
-@Service(name = "jackson")
-public class JacksonService {
+public class JacksonService implements Process {
 
     public static JacksonService INSTANCE;
 
@@ -48,8 +46,8 @@ public class JacksonService {
     private Map<String, ObjectMapper> registeredMappers;
     private List<JacksonConfigure> jacksonConfigures;
 
-    @PreInitialize
-    public void preInit() {
+    @Override
+    public void load() {
         INSTANCE = this;
 
         this.registeredMappers = new ConcurrentHashMap<>();

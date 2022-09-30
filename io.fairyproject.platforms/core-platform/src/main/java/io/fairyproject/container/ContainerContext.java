@@ -41,9 +41,9 @@ import io.fairyproject.container.object.lifecycle.LifeCycleHandlerRegistry;
 import io.fairyproject.container.object.lifecycle.impl.annotation.FairyLifeCycleAnnotationProcessor;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
-import io.fairyproject.internal.InternalProcess;
+import io.fairyproject.internal.Process;
+import io.fairyproject.internal.ProcessManager;
 import io.fairyproject.log.Log;
-import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.thread.executor.ListeningDecorator;
 import lombok.Getter;
@@ -58,7 +58,7 @@ import java.util.concurrent.Executors;
 import static io.fairyproject.Debug.log;
 
 @Accessors(fluent = true)
-public class ContainerContext implements InternalProcess {
+public class ContainerContext implements Process {
     private static ContainerContext INSTANCE;
     public static boolean SINGLE_THREADED = Runtime.getRuntime().availableProcessors() < 2 || Boolean.getBoolean("fairy.singlethreaded");
     public static ListeningExecutorService EXECUTOR = ListeningDecorator.create(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
@@ -86,7 +86,8 @@ public class ContainerContext implements InternalProcess {
     @Getter
     private ContainerObjCollectorRegistry objectCollectorRegistry;
 
-    public void init() {
+    @Override
+    public void enable() {
         INSTANCE = this;
 
         this.lifeCycleHandlerRegistry = new LifeCycleHandlerRegistry();
@@ -100,6 +101,11 @@ public class ContainerContext implements InternalProcess {
         platform.addLifeCycleHandler(new FairyLifeCycleAnnotationProcessor(platform));
         this.node.addObj(platform);
         log("FairyPlatform has been registered as ContainerObject.");
+
+        // register all the processes to container node
+        for (Process process : ProcessManager.get().getProcesses()) {
+            this.node().addObj(ContainerObj.of(process.getClass(), process));
+        }
 
         try {
             ContainerNodeScanner scanner = new ContainerNodeScanner();
@@ -120,15 +126,13 @@ public class ContainerContext implements InternalProcess {
             return;
         }
 
-        if (PluginManager.isInitialized()) {
-            log("Find PluginManager, attempt to register Plugin Listeners");
-            PluginManager.INSTANCE.registerListener(new ContainerPluginListener(this));
-        }
+        Fairy.getPluginManager().registerListener(new ContainerPluginListener(this));
 
         Fairy.getPlatform().onPostServicesInitial();
         GlobalEventNode.get().call(new PostServiceInitialEvent());
     }
 
+    @Override
     public void destroy() {
         try {
             this.node.closeAndReportException();

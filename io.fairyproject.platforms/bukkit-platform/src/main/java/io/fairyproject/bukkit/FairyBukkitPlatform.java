@@ -36,19 +36,22 @@ import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.timings.TimingService;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.collection.ContainerObjCollector;
+import io.fairyproject.internal.ProcessManager;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCInitializer;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.plugin.PluginHandler;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
+import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
@@ -68,6 +71,9 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     private final File dataFolder;
     private final CompositeTerminable compositeTerminable;
 
+    @Getter
+    private TimingService timingService;
+
     @NotNull
     @Override
     public <T extends AutoCloseable> T bind(@NotNull T terminable) {
@@ -75,12 +81,12 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     }
 
     public FairyBukkitPlatform(File dataFolder) {
+        FairyBukkitPlatform.INSTANCE = this;
         FairyPlatform.INSTANCE = this;
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
         this.classLoader = URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
 
-        PluginManager.initialize(new BukkitPluginHandler());
         // Use log4j for bukkit platform
         if (!Debug.UNIT_TEST)
             Log.set(new Log4jLogger());
@@ -100,6 +106,11 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
         SpigotUtil.init();
         super.enable();
+    }
+
+    @Override
+    protected void loadProcesses() {
+        this.timingService = ProcessManager.get().register(new TimingService());
     }
 
     @PreInitialize
@@ -157,6 +168,11 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @Override
     public ITaskScheduler createTaskScheduler() {
         return new BukkitTaskScheduler();
+    }
+
+    @Override
+    public PluginHandler createPluginHandler() {
+        return new BukkitPluginHandler();
     }
 
     @Override

@@ -26,9 +26,7 @@ package io.fairyproject.bukkit.impl;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.timings.MCTiming;
-import io.fairyproject.bukkit.timings.TimingService;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
-import io.fairyproject.container.Autowired;
 import io.fairyproject.log.Log;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.TaskRunnable;
@@ -41,9 +39,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class BukkitTaskScheduler implements ITaskScheduler {
-
-    @Autowired
-    private static TimingService TIMING_SERVICE;
 
     @Override
     public Terminable runAsync(Runnable runnable) {
@@ -205,6 +200,7 @@ public class BukkitTaskScheduler implements ITaskScheduler {
             name += " (Single)";
         }
 
-        return TIMING_SERVICE.of(plugin, name);
+        System.out.println(FairyBukkitPlatform.INSTANCE);
+        return FairyBukkitPlatform.INSTANCE.getTimingService().of(plugin, name);
     }
 }
