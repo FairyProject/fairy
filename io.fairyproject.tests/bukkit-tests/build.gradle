@@ -1,6 +1,6 @@
 dependencies {
     compileOnly project(":io.fairyproject.platforms:bukkit-platform")
-    api libs.paper
+    api libs.spigot
 
     api project(":io.fairyproject.tests:mc-tests")
     compileOnly "dev.imanity.mockbukkit:MockBukkit1.16:1.0.1"

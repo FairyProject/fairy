@@ -126,6 +126,7 @@ public class MCProtocol {
                 .bStats(false)
                 .checkForUpdates(false);
         this.packetEvents.init();
+
     }
 
     @PostDestroy

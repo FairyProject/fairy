@@ -6,5 +6,5 @@ module {
 }
 
 dependencies {
-    compileOnly libs.paper
+    compileOnly libs.spigot
 }

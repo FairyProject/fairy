@@ -12,7 +12,7 @@ persistence-api = "2.2"
 junit = "5.8.1"
 asm = "9.3"
 packetevents = "2.0.9-SNAPSHOT"
-paper = "1.16.5-R0.1-SNAPSHOT"
+bukkit-api = "1.16.5-R0.1-SNAPSHOT"
 
 # Adventure
 adventure = "4.11.0"
@@ -25,7 +25,8 @@ jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ver
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
 
-paper = { module = "com.destroystokyo.paper:paper-api", version.ref = "paper" }
+spigot = { module = "org.spigotmc:spigot-api", version.ref = "bukkit-api" }
+paper = { module = "com.destroystokyo.paper:paper-api", version.ref = "bukkit-api" }
 
 hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }

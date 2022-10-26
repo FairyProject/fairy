@@ -2,5 +2,5 @@ dependencies {
     implementation project(":io.fairyproject.bootstraps:bootstrap")
     compileOnly project(":io.fairyproject.platforms:bukkit-platform")
 
-    compileOnly libs.paper
+    compileOnly libs.spigot
 }

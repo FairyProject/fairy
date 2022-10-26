@@ -1,7 +1,7 @@
 dependencies {
     api "com.github.cryptomorin:XSeries:9.0.0"
 
-    compileOnly(libs.paper)
+    compileOnly(libs.spigot)
 }
 
 module {}
