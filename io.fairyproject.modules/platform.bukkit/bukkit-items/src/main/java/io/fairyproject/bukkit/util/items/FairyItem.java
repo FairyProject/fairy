@@ -3,6 +3,7 @@ package io.fairyproject.bukkit.util.items;
 import io.fairyproject.bukkit.util.BukkitUtil;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
 import io.fairyproject.bukkit.util.items.impl.FairyItemImpl;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.terminable.Terminable;
@@ -20,7 +21,7 @@ import java.util.function.Function;
 public interface FairyItem extends Terminable {
 
     static Builder builder(@NotNull String name) {
-        Plugin plugin = BukkitUtil.getCurrentPlugin(5);
+        Plugin plugin = BukkitUtil.getCurrentPlugin(4);
 
         return new Builder(name)
                 .plugin(plugin);
@@ -71,6 +72,10 @@ public interface FairyItem extends Terminable {
     }
 
     class Builder {
+
+        @Autowired
+        private static FairyItemRegistry REGISTRY;
+
         private final String name;
         private Plugin plugin;
         private Function<MCPlayer, ItemBuilder> itemProvider;
@@ -105,7 +110,10 @@ public interface FairyItem extends Terminable {
         }
 
         public FairyItem build() {
-            return new FairyItemImpl(this.name, this.plugin, this.metadataMap, this.behaviours, this.itemProvider);
+            FairyItem fairyItem = new FairyItemImpl(this.name, this.plugin, this.metadataMap, this.behaviours, this.itemProvider);
+            REGISTRY.register(fairyItem);
+
+            return fairyItem;
         }
     }
 

@@ -37,6 +37,7 @@ public class FairyItemImpl implements FairyItem {
         this.metadataMap = metadataMap;
         this.behaviours = behaviours;
         this.itemProvider = itemProvider;
+        this.closed = true;
     }
 
     @Override
