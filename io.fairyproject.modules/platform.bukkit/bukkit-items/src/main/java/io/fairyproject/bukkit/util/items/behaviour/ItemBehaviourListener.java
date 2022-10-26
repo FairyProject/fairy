@@ -24,18 +24,17 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
-import io.fairyproject.bukkit.util.items.ImanityItem;
-import org.bukkit.event.Listener;
 import io.fairyproject.bukkit.listener.ListenerSubscription;
 import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.util.items.FairyItem;
+import org.bukkit.event.Listener;
 
 public abstract class ItemBehaviourListener extends ItemBehaviour implements Listener {
 
     private ListenerSubscription listenerSubscription;
 
     @Override
-    public void init(ImanityItem item) {
-        super.init(item);
+    public void onInit(FairyItem item) {
         this.listenerSubscription = Events.subscribe(this);
     }
 

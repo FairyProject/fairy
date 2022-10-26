@@ -26,7 +26,9 @@ package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.container.object.Obj;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 import org.bukkit.entity.Item;
@@ -42,6 +44,9 @@ public class ItemListener implements Listener {
 
     private static final MetadataKey<Boolean> METADATA = MetadataKey.createBooleanKey(Fairy.METADATA_PREFIX + "Item");
 
+    @Autowired
+    private FairyItemRegistry fairyItemRegistry;
+
     @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
         Player player = event.getPlayer();
@@ -53,18 +58,17 @@ public class ItemListener implements Listener {
             return;
         }
 
-        ItemStack itemStack = item.getItemStack();
-        ImanityItem imanityItem = ImanityItem.getItemFromBukkit(itemStack);
-
-        if (imanityItem == null) {
+        ItemStack pickupItemStack = item.getItemStack();
+        FairyItem fairyItem = this.fairyItemRegistry.get(pickupItemStack);
+        if (fairyItem == null)
             return;
-        }
 
-        ItemStack resultItem = imanityItem.get(player);
-        resultItem.setAmount(itemStack.getAmount());
-        resultItem.setDurability(itemStack.getDurability());
+        ItemStack itemStack = fairyItem.provide(MCPlayer.from(player))
+                .amount(pickupItemStack.getAmount())
+                .durability(pickupItemStack.getDurability())
+                .build();
 
-        item.setItemStack(resultItem);
+        item.setItemStack(itemStack);
         Metadata.provide(item).put(METADATA, true);
         event.setCancelled(true);
     }

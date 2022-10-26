@@ -26,6 +26,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 dependencies {
     api project(":io.fairyproject.platforms:mc-platform")
     implementation libs.adventure.platform.bukkit
+    api libs.adventure.platform.text.serializer.bungee
 
     compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
     compileOnly "com.mojang:authlib:1.5.21"

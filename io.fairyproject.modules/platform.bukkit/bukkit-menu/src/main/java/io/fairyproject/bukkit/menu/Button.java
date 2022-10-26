@@ -26,7 +26,7 @@ package io.fairyproject.bukkit.menu;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
-import io.fairyproject.bukkit.util.items.ItemBuilder;
+import io.fairyproject.bukkit.util.items.impl.ItemBuilderImpl;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
@@ -34,7 +34,7 @@ import org.bukkit.inventory.ItemStack;
 public abstract class Button {
 
 	public static Button placeholder(final XMaterial material, String title) {
-		return ButtonBuilder.of(new ItemBuilder(material.parseItem())
+		return ButtonBuilder.of(new ItemBuilderImpl(material.parseItem())
 				.name(title)
 				.build()
 		).cancel().build();

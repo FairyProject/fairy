@@ -1,5 +1,5 @@
 dependencies {
-    compileOnly project.spigot()
+    compileOnly libs.paper
 }
 
 module {

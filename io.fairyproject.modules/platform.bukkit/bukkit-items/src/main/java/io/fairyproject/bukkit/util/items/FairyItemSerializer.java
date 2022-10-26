@@ -25,23 +25,28 @@
 package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.ObjectSerializer;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.container.object.Obj;
 
 @Obj
-public class ImanityItemSerializer implements ObjectSerializer<ImanityItem, String> {
+public class FairyItemSerializer implements ObjectSerializer<FairyItem, String> {
+
+    @Autowired
+    private FairyItemRegistry fairyItemRegistry;
+
     @Override
-    public String serialize(ImanityItem input) {
-        return input.getId();
+    public String serialize(FairyItem input) {
+        return input.getName();
     }
 
     @Override
-    public ImanityItem deserialize(String output) {
-        return ImanityItem.getItem(output);
+    public FairyItem deserialize(String output) {
+        return this.fairyItemRegistry.get(output);
     }
 
     @Override
-    public Class<ImanityItem> inputClass() {
-        return ImanityItem.class;
+    public Class<FairyItem> inputClass() {
+        return FairyItem.class;
     }
 
     @Override

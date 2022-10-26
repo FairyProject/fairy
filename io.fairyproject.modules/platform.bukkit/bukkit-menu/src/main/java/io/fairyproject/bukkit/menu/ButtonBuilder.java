@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.menu;
 
-import io.fairyproject.bukkit.util.items.ItemBuilder;
+import io.fairyproject.bukkit.util.items.impl.ItemBuilderImpl;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
@@ -58,11 +58,11 @@ public class ButtonBuilder {
         this.itemStackFunction = player -> itemStack;
     }
 
-    public ButtonBuilder(ItemBuilder itemBuilder) {
+    public ButtonBuilder(ItemBuilderImpl itemBuilder) {
         this(itemBuilder.build());
     }
 
-    public ButtonBuilder item(ItemBuilder itemBuilder) {
+    public ButtonBuilder item(ItemBuilderImpl itemBuilder) {
         return this.item(itemBuilder.build());
     }
 

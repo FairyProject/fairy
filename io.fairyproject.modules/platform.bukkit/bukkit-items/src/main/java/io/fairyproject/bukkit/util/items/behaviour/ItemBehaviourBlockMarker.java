@@ -24,10 +24,14 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
-import io.fairyproject.bukkit.util.items.ImanityItem;
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.util.items.FairyItem;
+import io.fairyproject.bukkit.util.items.FairyItemRef;
+import io.fairyproject.bukkit.util.items.FairyItemRegistry;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -35,19 +39,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
-import io.fairyproject.bukkit.metadata.Metadata;
 
 public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
 
-    private static final MetadataKey<String> METADATA = MetadataKey.createStringKey("fairy:block-marker");
+    @Autowired
+    private static FairyItemRegistry REGISTRY;
 
-    @Override
-    public void init(ImanityItem item) {
-        if (!item.getType().isBlock()) {
-            throw new IllegalArgumentException("Material " + item.getType() + " is not block! but it's trying to register place event!");
-        }
-        super.init(item);
-    }
+    private static final MetadataKey<String> METADATA = MetadataKey.createStringKey("fairy:block-marker");
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
@@ -59,10 +57,10 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
             return;
         }
 
-        final String itemKey = ImanityItem.getItemKeyFromBukkit(itemInHand);
-        if (itemKey == null || !itemKey.equals(this.item.getId())) {
+        final String itemKey = FairyItemRef.get(itemInHand).getName();
+        if (itemKey == null || !itemKey.equals(this.item.getName()))
             return;
-        }
+
         Metadata.provideForBlock(block).put(METADATA, itemKey);
     }
 
@@ -73,18 +71,19 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
 
         final MetadataMap metadataMap = Metadata.provideForBlock(block);
         final String itemKey = metadataMap.getOrNull(METADATA);
-        if (itemKey == null || !itemKey.equals(this.item.getId())) {
+        if (itemKey == null || !itemKey.equals(this.item.getName())) {
             return;
         }
 
         metadataMap.remove(METADATA);
-        final ImanityItem item = ImanityItem.getItem(itemKey);
-        if (item == null) {
+        final FairyItem item = REGISTRY.get(itemKey);
+        if (item == null)
             return;
-        }
+
         event.setDropItems(false);
-        final ItemStack itemStack = item.get(player);
-        itemStack.setAmount(1);
+        final ItemStack itemStack = item.provide(MCPlayer.from(player))
+                .amount(1)
+                .build();
         player.getWorld().dropItemNaturally(block.getLocation(), itemStack);
     }
 
