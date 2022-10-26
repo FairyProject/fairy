@@ -6,6 +6,7 @@ import io.fairyproject.bukkit.util.items.impl.FairyItemImpl;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.terminable.Terminable;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
@@ -35,6 +36,18 @@ public interface FairyItem extends Terminable {
 
     @NotNull ItemBuilder provide(@NotNull MCPlayer mcPlayer);
 
+    default @NotNull ItemBuilder provide(@NotNull Player player) {
+        return this.provide(MCPlayer.from(player));
+    }
+
+    default @NotNull ItemStack provideItemStack(@NotNull MCPlayer mcPlayer) {
+        return this.provide(mcPlayer).build();
+    }
+
+    default @NotNull ItemStack provideItemStack(@NotNull Player player) {
+        return this.provideItemStack(MCPlayer.from(player));
+    }
+
     boolean isSimilar(@NotNull ItemStack itemStack);
 
     @ApiStatus.Internal
@@ -55,10 +68,6 @@ public interface FairyItem extends Terminable {
     @Override
     default void closeAndReportException() {
         Terminable.super.closeAndReportException();
-    }
-
-    default @NotNull ItemStack provideItemStack(@NotNull MCPlayer mcPlayer) {
-        return this.provide(mcPlayer).build();
     }
 
     class Builder {
