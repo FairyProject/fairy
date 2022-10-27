@@ -53,9 +53,11 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
 import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @Getter
@@ -446,11 +448,30 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     public final <T> List<Button> transformToButtons(Iterable<T> list,
-                                                       Function<T, Button> function) {
+                                                       Function<T, @Nullable Button> function) {
         final ImmutableList.Builder<Button> listBuilder = new ImmutableList.Builder<>();
 
         for (T t : list) {
-            listBuilder.add(function.apply(t));
+            Button button = function.apply(t);
+            if (button == null)
+                continue;
+            listBuilder.add(button);
+        }
+
+        return listBuilder.build();
+    }
+
+    public final <T> List<Button> transformToButtonsWithIndex(Iterable<T> list,
+                                                              BiFunction<T, Integer, @Nullable Button> function) {
+        final ImmutableList.Builder<Button> listBuilder = new ImmutableList.Builder<>();
+
+        int index = 0;
+        for (T t : list) {
+            Button button = function.apply(t, index);
+            if (button == null)
+                continue;
+            listBuilder.add(button);
+            index++;
         }
 
         return listBuilder.build();
