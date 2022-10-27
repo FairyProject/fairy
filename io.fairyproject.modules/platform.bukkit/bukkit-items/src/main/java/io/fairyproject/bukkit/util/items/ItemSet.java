@@ -25,7 +25,6 @@
 
 package io.fairyproject.bukkit.util.items;
 
-import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
 import org.apache.commons.lang3.ArrayUtils;
@@ -33,9 +32,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public class ItemSet implements Cloneable {
-
-    @Autowired
-    private static FairyItemRegistry REGISTRY;
 
     private static final int CONTENT_SIZE = 36;
 
