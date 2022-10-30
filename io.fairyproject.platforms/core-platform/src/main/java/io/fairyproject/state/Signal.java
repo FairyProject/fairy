@@ -24,14 +24,17 @@
 
 package io.fairyproject.state;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.state.impl.SignalImpl;
+import org.jetbrains.annotations.NotNull;
 
-public interface State {
+public interface Signal {
 
-    static State of(String name) {
-        return new StateImpl(name);
+    Signal UNDEFINED = Signal.of("undefined");
+
+    static Signal of(String name) {
+        return new SignalImpl(name);
     }
 
-    String name();
-    
+    @NotNull String name();
+
 }

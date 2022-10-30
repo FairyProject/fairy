@@ -22,16 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairytest.state;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.state.Signal;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-public interface State {
+public class SignalTest {
 
-    static State of(String name) {
-        return new StateImpl(name);
+    @Test
+    public void signalWithSameNameShouldBeEqual() {
+        Signal a = Signal.of("signal");
+        Signal b = Signal.of("signal");
+
+        Assertions.assertEquals(a, b);
     }
 
-    String name();
-    
 }

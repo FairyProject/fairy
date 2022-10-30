@@ -22,16 +22,24 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairyproject.state.impl;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.state.Signal;
+import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 
-public interface State {
+@Data
+public class SignalImpl implements Signal {
 
-    static State of(String name) {
-        return new StateImpl(name);
+    private final String name;
+
+    public SignalImpl(String name) {
+        this.name = name;
     }
 
-    String name();
-    
+    @Override
+    public @NotNull String name() {
+        return name;
+    }
+
 }

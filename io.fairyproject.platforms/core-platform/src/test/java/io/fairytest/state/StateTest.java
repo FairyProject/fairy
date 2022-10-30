@@ -1,25 +1,40 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 Fairy Project
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package io.fairytest.state;
 
-import io.fairyproject.state.StateMachine;
-import io.fairyproject.tests.base.JUnitJupiterBase;
+import io.fairyproject.state.State;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-public class StateTest extends JUnitJupiterBase {
+public class StateTest {
 
     @Test
-    public void unhandledTrigger() {
-        AtomicBoolean unhandledCalled = new AtomicBoolean(false);
-        StateMachine<Integer, Integer> stateMachine = StateMachine.create();
-        stateMachine.state(1)
-                .when(1, t -> t.to(2))
-                .unhandled(t -> unhandledCalled.set(true));
-        stateMachine.start(1, null);
-        stateMachine.fire(2); // call an unhandled trigger
+    public void stateWithSameNameShouldBeEqual() {
+        State a = State.of("state");
+        State b = State.of("state");
 
-        Assertions.assertTrue(unhandledCalled.get());
+        Assertions.assertEquals(a, b);
     }
-
 }

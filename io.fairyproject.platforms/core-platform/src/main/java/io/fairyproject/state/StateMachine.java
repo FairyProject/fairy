@@ -1,9 +1,10 @@
 package io.fairyproject.state;
 
-import io.fairyproject.state.trigger.Trigger;
+import io.fairyproject.event.EventNode;
+import io.fairyproject.state.event.StateMachineEvent;
+import io.fairyproject.state.impl.StateMachineBuilderImpl;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,109 +12,69 @@ import java.time.Duration;
 
 /**
  * The state machine system from fairy framework
- *
- * @param <S> the state type
- * @param <T> the trigger type
  */
-public interface StateMachine<S, T> extends Terminable, TerminableConsumer {
+public interface StateMachine extends Terminable, TerminableConsumer {
 
     /**
-     * Create a new state machine
+     * Create a new state machine builder
      *
-     * @return the state machine
-     * @param <S> the state type
-     * @param <T> the trigger type
+     * @return the state machine builder
      */
-    static <S, T> StateMachine<S, T> create() {
-        return new StateMachineImpl<>();
+    static StateMachineBuilder builder() {
+        return new StateMachineBuilderImpl();
     }
-
-    /**
-     * Create a new state from the state machine
-     *
-     * @param state the state entity
-     * @return the state implementation
-     */
-    @NotNull State<S, T> state(@NotNull S state);
 
     /**
      * The current state of the state machine
      *
      * @return the current state
      */
-    @Nullable S current();
+    @Nullable State getCurrentState();
 
     /**
-     * Set the interval of the state machine
+     * Transition to a new state
      *
-     * @param interval the interval
-     * @return this
+     * @param state the state
+     * @return the previous state, null if there was no previous state
      */
-    @Contract("_ -> this")
-    @NotNull StateMachine<S, T> interval(Duration interval);
+    @Nullable default State transform(State state) {
+        return transform(state, Signal.UNDEFINED);
+    }
 
     /**
-     * Start the state machine
+     * Transition to a new state
      *
-     * @param state the state to start
-     * @param trigger the trigger
-     * @return this
+     * @param state the state to transform
+     * @return the previous state, null if there was no previous state
      */
-    @Contract("_, _ -> this")
-    @NotNull StateMachine<S, T> start(@NotNull S state, @Nullable Trigger<T> trigger);
-
-    /**
-     * Swap the state of the state machine
-     *
-     * @param state the state to swap
-     * @param trigger the trigger
-     * @return previous state if have
-     */
-    @Contract("_, _ -> this")
-    @Nullable S swap(S state, Trigger<T> trigger);
+    @Nullable State transform(State state, Signal signal);
 
     /**
      * Tick the state machine
-     *
-     * @return this
      */
-    @Contract("-> this")
-    @NotNull StateMachine<S, T> tick();
+    void tick();
 
     /**
      * Stop the state machine
      *
-     * @param trigger the trigger
-     * @return this
+     * @param signal the signal
      */
-    @Contract("_ -> this")
-    @NotNull StateMachine<S, T> stop(@Nullable Trigger<T> trigger);
+    void stop(Signal signal);
+
+    /**
+     * Fire a signal to the state machine
+     *
+     * @param signal the signal
+     */
+    void signal(@NotNull Signal signal);
 
     /**
      * The interval of the state machine ticking
      *
      * @return the interval
      */
-    @NotNull Duration interval();
+    @NotNull Duration getInterval();
 
-    /**
-     * Fire a trigger to the state machine
-     *
-     * @param trigger the trigger
-     * @return this
-     */
-    @Contract("_ -> this")
-    @NotNull StateMachine<S, T> fire(@NotNull Trigger<T> trigger);
-
-    /**
-     * Fire a trigger to the state machine
-     *
-     * @param trigger the trigger
-     * @return this
-     */
-    @Contract("_ -> this")
-    @NotNull default StateMachine<S, T> fire(@NotNull T trigger) {
-        return fire(Trigger.of(trigger));
-    }
+    EventNode<StateMachineEvent> getEventNode();
 
 }
