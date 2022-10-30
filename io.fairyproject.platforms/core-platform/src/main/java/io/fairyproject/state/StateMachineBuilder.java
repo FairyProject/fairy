@@ -24,14 +24,51 @@
 
 package io.fairyproject.state;
 
-import io.fairyproject.state.impl.StateImpl;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
-public interface State {
+import java.time.Duration;
 
-    static State of(String name) {
-        return new StateImpl(name);
-    }
+public interface StateMachineBuilder {
 
-    String name();
-    
+    /**
+     * Create a new state from the state machine
+     *
+     * @param state the state entity
+     * @return the state implementation
+     */
+    @NotNull StateConfigBuilder state(@NotNull State state);
+
+    /**
+     * Set the interval of the state machine tick
+     *
+     * @param interval the interval
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull StateMachineBuilder interval(@NotNull Duration interval);
+
+    /**
+     * Set the initial state of the state machine
+     *
+     * @param state the state
+     * @return this
+     */
+    @Contract("_ -> this")
+    @NotNull StateMachineBuilder initialState(@NotNull State state);
+
+    /**
+     * Transition builder for the state machine
+     *
+     * @return the transition builder
+     */
+    @NotNull StateMachineTransitionBuilder transition();
+
+    /**
+     * Build the state machine
+     *
+     * @return the state machine
+     */
+    @NotNull StateMachine build();
+
 }

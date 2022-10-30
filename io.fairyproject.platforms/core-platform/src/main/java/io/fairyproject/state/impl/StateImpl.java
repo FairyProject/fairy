@@ -22,16 +22,23 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairyproject.state.impl;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.state.State;
+import lombok.Data;
 
-public interface State {
+@Data
+public class StateImpl implements State {
 
-    static State of(String name) {
-        return new StateImpl(name);
+    private final String name;
+
+    public StateImpl(String name) {
+        this.name = name;
     }
 
-    String name();
-    
+    @Override
+    public String name() {
+        return name;
+    }
+
 }

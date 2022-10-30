@@ -22,16 +22,30 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairyproject.state.impl;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.state.*;
+import org.jetbrains.annotations.NotNull;
 
-public interface State {
+import java.util.ArrayList;
+import java.util.List;
 
-    static State of(String name) {
-        return new StateImpl(name);
+public class StateConfigBuilderImpl implements StateConfigBuilder {
+
+    private final State state;
+    private final List<StateHandler> handlers = new ArrayList<>();
+
+    public StateConfigBuilderImpl(@NotNull State state) {
+        this.state = state;
     }
 
-    String name();
-    
+    @Override
+    public @NotNull StateConfigBuilder handler(@NotNull StateHandler handler) {
+        this.handlers.add(handler);
+        return this;
+    }
+
+    public StateConfig build(StateMachine stateMachine) {
+        return new StateConfigImpl(this.state, stateMachine, this.handlers);
+    }
 }

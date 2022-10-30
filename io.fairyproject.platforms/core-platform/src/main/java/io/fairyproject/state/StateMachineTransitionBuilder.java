@@ -24,14 +24,29 @@
 
 package io.fairyproject.state;
 
-import io.fairyproject.state.impl.StateImpl;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 
-public interface State {
+import java.util.function.Consumer;
 
-    static State of(String name) {
-        return new StateImpl(name);
-    }
+public interface StateMachineTransitionBuilder extends TransitionBuilder {
 
-    String name();
-    
+    @Override
+    @NotNull StateMachineTransitionBuilder when(@NotNull Signal signal, @NotNull TransitionHandle handle);
+
+    @Override
+    @NotNull StateMachineTransitionBuilder when(@NotNull Signal signal, @NotNull Consumer<TransitionHandle> handle);
+
+    @Override
+    @NotNull StateMachineTransitionBuilder when(@NotNull Signal signal, @NotNull Runnable runnable);
+
+    /**
+     * Handle transitions for a specific state
+     *
+     * @param state the state
+     * @return the builder for the state
+     */
+    @Contract("_ -> new")
+    @NotNull TransitionBuilder on(@NotNull State state);
+
 }
