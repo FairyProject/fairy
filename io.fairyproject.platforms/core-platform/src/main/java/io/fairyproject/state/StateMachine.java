@@ -3,7 +3,6 @@ package io.fairyproject.state;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.state.event.StateMachineEvent;
 import io.fairyproject.state.impl.StateMachineBuilderImpl;
-import io.fairyproject.state.impl.StateMachineImpl;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import org.jetbrains.annotations.NotNull;
