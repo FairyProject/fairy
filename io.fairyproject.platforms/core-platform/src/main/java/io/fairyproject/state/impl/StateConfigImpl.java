@@ -50,8 +50,12 @@ public class StateConfigImpl implements StateConfig {
         this.stateMachine = stateMachine;
         this.handlers = handlers.toArray(new StateHandler[0]);
         this.eventNode = eventNode;
+    }
 
-        stateMachine.getEventNode().addChild(eventNode);
+    @NotNull
+    @Override
+    public EventNode<StateEvent> getEventNode() {
+        return eventNode;
     }
 
     @Override

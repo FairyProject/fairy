@@ -1,12 +1,22 @@
 package io.fairytest.state;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.state.Signal;
 import io.fairyproject.state.State;
 import io.fairyproject.state.StateMachine;
 import io.fairyproject.state.StateMachineBuilder;
+import io.fairyproject.state.event.StateMachineEvent;
+import io.fairyproject.state.event.StateMachineStartEvent;
+import io.fairyproject.state.event.StateMachineStopEvent;
+import io.fairyproject.state.event.StateMachineTransitionEvent;
 import io.fairyproject.tests.base.JUnitJupiterBase;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class StateMachineTest extends JUnitJupiterBase {
 
@@ -19,15 +29,22 @@ public class StateMachineTest extends JUnitJupiterBase {
     }
 
     @Test
+    public void noInitialStateShouldThrowException() {
+        StateMachineBuilder builder = StateMachine.builder();
+        builder.state(ExampleState.A);
+        builder.state(ExampleState.B);
+        builder.state(ExampleState.C);
+
+        Assertions.assertThrows(IllegalArgumentException.class, builder::build);
+    }
+
+    @Test
     public void stateMachineTriggerShouldTransform() {
         StateMachineBuilder builder = StateMachine.builder();
         builder.initialState(ExampleState.A);
-        builder.state(ExampleState.A)
-                .handleStart(() -> System.out.println("A"));
-        builder.state(ExampleState.B)
-                .handleStart(() -> System.out.println("B"));
-        builder.state(ExampleState.C)
-                .handleStart(() -> System.out.println("C"));
+        builder.state(ExampleState.A);
+        builder.state(ExampleState.B);
+        builder.state(ExampleState.C);
 
         builder.transition()
                 .when(ExampleSignal.T1)
@@ -59,12 +76,9 @@ public class StateMachineTest extends JUnitJupiterBase {
     public void transitionSpecificState() {
         StateMachineBuilder builder = StateMachine.builder();
         builder.initialState(ExampleState.A);
-        builder.state(ExampleState.A)
-                .handleStart(() -> System.out.println("A"));
-        builder.state(ExampleState.B)
-                .handleStart(() -> System.out.println("B"));
-        builder.state(ExampleState.C)
-                .handleStart(() -> System.out.println("C"));
+        builder.state(ExampleState.A);
+        builder.state(ExampleState.B);
+        builder.state(ExampleState.C);
 
         // when state is B and T1 is fired, state should be C
         builder.transition()
@@ -84,6 +98,67 @@ public class StateMachineTest extends JUnitJupiterBase {
 
         // now state is B, T2 should be handled
         Assertions.assertEquals(ExampleState.C, stateMachine.getCurrentState());
+    }
+
+    @Test
+    public void eventNode() {
+        AtomicBoolean eventCalled = new AtomicBoolean(false);
+        StateMachineBuilder builder = StateMachine.builder()
+                .initialState(ExampleState.A);
+        builder.state(ExampleState.A);
+        builder.eventNode()
+                .addListener(ExampleStateMachineEvent.class, event -> eventCalled.set(true));
+
+        StateMachine stateMachine = builder.build();
+        GlobalEventNode.get().call(new ExampleStateMachineEvent(stateMachine));
+
+        Assertions.assertTrue(eventCalled.get());
+
+        stateMachine.stop(Signal.UNDEFINED);
+        eventCalled.set(false);
+        GlobalEventNode.get().call(new ExampleStateMachineEvent(stateMachine));
+
+        Assertions.assertFalse(eventCalled.get());
+    }
+
+    @Test
+    public void basicEvents() {
+        StateMachineBuilder builder = StateMachine.builder();
+        builder.initialState(ExampleState.A);
+        builder.state(ExampleState.A);
+        builder.state(ExampleState.B);
+
+        AtomicBoolean startCalled = new AtomicBoolean(false);
+        AtomicBoolean transitionCalled = new AtomicBoolean(false);
+        AtomicBoolean stopCalled = new AtomicBoolean(false);
+
+        EventNode<StateMachineEvent> eventNode = builder.eventNode();
+        eventNode.addListener(StateMachineStartEvent.class, event -> startCalled.set(true));
+        eventNode.addListener(StateMachineTransitionEvent.class, event -> transitionCalled.set(true));
+        eventNode.addListener(StateMachineStopEvent.class, event -> stopCalled.set(true));
+
+        StateMachine stateMachine = builder.build();
+
+        Assertions.assertTrue(startCalled.get());
+        Assertions.assertFalse(transitionCalled.get());
+        Assertions.assertFalse(stopCalled.get());
+
+        stateMachine.transform(ExampleState.B);
+
+        Assertions.assertTrue(transitionCalled.get());
+        Assertions.assertFalse(stopCalled.get());
+
+        stateMachine.stop(Signal.UNDEFINED);
+
+        Assertions.assertTrue(stopCalled.get());
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    public static class ExampleStateMachineEvent implements StateMachineEvent {
+
+        private final StateMachine stateMachine;
+
     }
 
 }

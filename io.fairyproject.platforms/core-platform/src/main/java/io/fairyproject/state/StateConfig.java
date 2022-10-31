@@ -1,5 +1,7 @@
 package io.fairyproject.state;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.state.event.StateEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,6 +30,13 @@ public interface StateConfig {
      * @return the handlers
      */
     @NotNull StateHandler[] getHandlers();
+
+    /**
+     * The event node of the state
+     *
+     * @return the event node
+     */
+    @NotNull EventNode<StateEvent> getEventNode();
 
     /**
      * Get the state handler by the class
