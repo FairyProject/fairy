@@ -22,43 +22,44 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state.impl;
+package io.fairyproject.state.event;
 
-import io.fairyproject.event.EventNode;
-import io.fairyproject.state.*;
-import io.fairyproject.state.event.StateEvent;
-import io.fairyproject.state.event.StateEventFilter;
+import io.fairyproject.event.Cancellable;
+import io.fairyproject.state.Signal;
+import io.fairyproject.state.State;
+import io.fairyproject.state.StateMachine;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
+public class StateMachineTransitionEvent implements StateEvent, Cancellable {
 
-public class StateConfigBuilderImpl implements StateConfigBuilder {
-
-    private final State state;
-    private final EventNode<StateEvent> eventNode;
-    private final List<StateHandler> handlers = new ArrayList<>();
-
-    public StateConfigBuilderImpl(@NotNull State state) {
-        this.state = state;
-        this.eventNode = EventNode
-                .type("state", StateEventFilter.STATE)
-                .map(state, StateEventFilter.STATE);
-    }
-
+    private final StateMachine stateMachine;
+    @Getter
+    @Nullable
+    private final State from;
+    @Getter
     @NotNull
-    @Override
-    public EventNode<StateEvent> eventNode() {
-        return eventNode;
+    private final State to;
+
+    @Getter
+    @NotNull
+    private final Signal signal;
+
+    public StateMachineTransitionEvent(StateMachine stateMachine, @Nullable State from, @NotNull State to, @NotNull Signal signal) {
+        this.stateMachine = stateMachine;
+        this.from = from;
+        this.to = to;
+        this.signal = signal;
     }
 
     @Override
-    public @NotNull StateConfigBuilder handler(@NotNull StateHandler handler) {
-        this.handlers.add(handler);
-        return this;
+    public @NotNull State getState() {
+        return this.to;
     }
 
-    public StateConfig build(StateMachine stateMachine) {
-        return new StateConfigImpl(this.state, stateMachine, this.handlers, this.eventNode);
+    @Override
+    public @NotNull StateMachine getStateMachine() {
+        return this.stateMachine;
     }
 }

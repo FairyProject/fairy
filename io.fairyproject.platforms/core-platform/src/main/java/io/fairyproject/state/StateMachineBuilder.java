@@ -24,6 +24,8 @@
 
 package io.fairyproject.state;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.state.event.StateMachineEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,6 +65,13 @@ public interface StateMachineBuilder {
      * @return the transition builder
      */
     @NotNull StateMachineTransitionBuilder transition();
+
+    /**
+     * The event node of the state machine
+     *
+     * @return the event node
+     */
+    @NotNull EventNode<StateMachineEvent> eventNode();
 
     /**
      * Build the state machine

@@ -22,43 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state.impl;
+package io.fairyproject.state.event;
 
-import io.fairyproject.event.EventNode;
-import io.fairyproject.state.*;
-import io.fairyproject.state.event.StateEvent;
-import io.fairyproject.state.event.StateEventFilter;
-import org.jetbrains.annotations.NotNull;
+import io.fairyproject.state.Signal;
+import io.fairyproject.state.State;
+import io.fairyproject.state.StateMachine;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
+@RequiredArgsConstructor
+@Getter
+public class StateStopEvent implements StateEvent {
 
-public class StateConfigBuilderImpl implements StateConfigBuilder {
-
+    private final StateMachine stateMachine;
     private final State state;
-    private final EventNode<StateEvent> eventNode;
-    private final List<StateHandler> handlers = new ArrayList<>();
+    private final Signal signal;
 
-    public StateConfigBuilderImpl(@NotNull State state) {
-        this.state = state;
-        this.eventNode = EventNode
-                .type("state", StateEventFilter.STATE)
-                .map(state, StateEventFilter.STATE);
-    }
-
-    @NotNull
-    @Override
-    public EventNode<StateEvent> eventNode() {
-        return eventNode;
-    }
-
-    @Override
-    public @NotNull StateConfigBuilder handler(@NotNull StateHandler handler) {
-        this.handlers.add(handler);
-        return this;
-    }
-
-    public StateConfig build(StateMachine stateMachine) {
-        return new StateConfigImpl(this.state, stateMachine, this.handlers, this.eventNode);
-    }
 }

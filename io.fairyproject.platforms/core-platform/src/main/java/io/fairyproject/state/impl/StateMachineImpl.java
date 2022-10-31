@@ -25,11 +25,10 @@
 package io.fairyproject.state.impl;
 
 import io.fairyproject.Fairy;
-import io.fairyproject.event.EventFilter;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.state.*;
-import io.fairyproject.state.event.StateMachineEvent;
+import io.fairyproject.state.event.*;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StateMachineImpl implements StateMachine {
 
     private final Map<State, StateConfig> states;
-    private final EventNode<StateMachineEvent> eventNode;
+    private EventNode<StateMachineEvent> eventNode;
 
     private CompositeTerminable compositeTerminable;
     @Setter
@@ -55,8 +54,6 @@ public class StateMachineImpl implements StateMachine {
 
     public StateMachineImpl() {
         this.states = new ConcurrentHashMap<>();
-        this.eventNode = EventNode.type("state-machine", EventFilter.from(StateMachineEvent.class, null, null));
-        GlobalEventNode.get().addChild(this.eventNode);
     }
 
     @Override
@@ -73,12 +70,16 @@ public class StateMachineImpl implements StateMachine {
         this.states.put(state, stateConfig);
     }
 
-    public void start(State state) {
+    public void start(State state, EventNode<StateMachineEvent> eventNode) {
         this.current = state;
+        this.eventNode = eventNode;
+
+        GlobalEventNode.get().addChild(this.eventNode);
+
         StateConfig config = this.states.get(this.current);
-        for (StateHandler handler : config.getHandlers()) {
-            handler.onStart(this, this.current, Signal.UNDEFINED);
-        }
+        if (config == null)
+            throw new IllegalStateException("State " + this.current + " is not registered");
+        this.onStateStart(config, Signal.UNDEFINED);
 
         this.compositeTerminable = CompositeTerminable.create();
         this.running = true;
@@ -88,25 +89,25 @@ public class StateMachineImpl implements StateMachine {
             int ticks = (int) (this.interval.toMillis() / 50);
             this.bind(Fairy.getTaskScheduler().runRepeated(this::tick, 50, ticks));
         }
+
+        GlobalEventNode.get().call(new StateMachineStartEvent(this, state));
     }
 
     @Override
     public @Nullable State transform(@NotNull State state, @NotNull Signal signal) {
         State previous = this.current;
 
-        if (previous != null) {
-            StateConfig previousConfig = this.states.get(previous);
-            for (StateHandler handler : previousConfig.getHandlers()) {
-                handler.onStop(this, previous, signal);
+        StateMachineTransitionEvent event = new StateMachineTransitionEvent(this, previous, state, signal);
+        GlobalEventNode.get().callCancellable(event, () -> {
+            if (previous != null) {
+                StateConfig previousConfig = this.states.get(previous);
+                this.onStateStop(previousConfig, signal);
             }
-        }
 
-        this.current = state;
-        StateConfig current = this.states.get(state);
-        for (StateHandler handler : current.getHandlers()) {
-            handler.onStart(this, state, signal);
-        }
-
+            this.current = state;
+            StateConfig current = this.states.get(state);
+            this.onStateStart(current, signal);
+        });
         return previous;
     }
 
@@ -116,24 +117,46 @@ public class StateMachineImpl implements StateMachine {
         if (config == null)
             throw new IllegalArgumentException("State " + this.current + " does not exist");
 
-        for (StateHandler handler : config.getHandlers()) {
-            handler.onTick(this, this.current);
-        }
+        this.onStateTick(config);
     }
 
     @Override
     public void stop(Signal signal) {
+        State state = this.current;
+
         if (this.current != null) {
-            StateConfig currentState = this.states.get(this.current);
-            for (StateHandler handler : currentState.getHandlers()) {
-                handler.onStop(this, this.current, signal);
-            }
+            StateConfig config = this.states.get(this.current);
+            this.onStateStop(config, signal);
         }
 
         this.running = false;
         this.current = null;
         this.compositeTerminable.closeAndReportException();
+
+        GlobalEventNode.get().call(new StateMachineStopEvent(this, state, signal));
         GlobalEventNode.get().removeChild(this.eventNode);
+    }
+
+    private void onStateStart(StateConfig stateConfig, Signal signal) {
+        for (StateHandler handler : stateConfig.getHandlers()) {
+            handler.onStart(this, this.current, signal);
+        }
+
+        GlobalEventNode.get().call(new StateStartEvent(this, this.current, signal));
+    }
+
+    private void onStateTick(StateConfig stateConfig) {
+        for (StateHandler handler : stateConfig.getHandlers()) {
+            handler.onTick(this, this.current);
+        }
+    }
+
+    private void onStateStop(StateConfig stateConfig, Signal signal) {
+        for (StateHandler handler : stateConfig.getHandlers()) {
+            handler.onStop(this, this.current, signal);
+        }
+
+        GlobalEventNode.get().call(new StateStopEvent(this, this.current, signal));
     }
 
     @Override
