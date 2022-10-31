@@ -28,6 +28,7 @@ import io.fairyproject.event.EventNode;
 import io.fairyproject.state.*;
 import io.fairyproject.state.event.StateEvent;
 import io.fairyproject.state.event.StateEventFilter;
+import io.fairyproject.state.event.StateMachineEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -39,11 +40,9 @@ public class StateConfigBuilderImpl implements StateConfigBuilder {
     private final EventNode<StateEvent> eventNode;
     private final List<StateHandler> handlers = new ArrayList<>();
 
-    public StateConfigBuilderImpl(@NotNull State state) {
+    public StateConfigBuilderImpl(@NotNull State state, @NotNull EventNode<StateMachineEvent> eventNode) {
         this.state = state;
-        this.eventNode = EventNode
-                .type("state", StateEventFilter.STATE)
-                .map(state, StateEventFilter.STATE);
+        this.eventNode = eventNode.map(state, StateEventFilter.STATE);
     }
 
     @NotNull

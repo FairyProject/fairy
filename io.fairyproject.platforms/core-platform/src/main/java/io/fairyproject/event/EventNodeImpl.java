@@ -230,14 +230,14 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
         return createStringGraph(createGraph());
     }
 
-    Graph createGraph() {
+    public Graph createGraph() {
         synchronized (GLOBAL_CHILD_LOCK) {
             List<Graph> children = this.children.stream().map(EventNodeImpl::createGraph).collect(Collectors.toList());
             return new Graph(getName(), getEventType().getSimpleName(), getPriority(), children);
         }
     }
 
-    static String createStringGraph(Graph graph) {
+    public static String createStringGraph(Graph graph) {
         StringBuilder buffer = new StringBuilder();
         genToStringTree(buffer, "", "", graph);
         return buffer.toString();

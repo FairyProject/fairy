@@ -41,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StateMachineImpl implements StateMachine {
 
     private final Map<State, StateConfig> states;
+    @Setter
     private EventNode<StateMachineEvent> eventNode;
 
     private CompositeTerminable compositeTerminable;
@@ -70,9 +71,8 @@ public class StateMachineImpl implements StateMachine {
         this.states.put(state, stateConfig);
     }
 
-    public void start(State state, EventNode<StateMachineEvent> eventNode) {
+    public void start(State state) {
         this.current = state;
-        this.eventNode = eventNode;
 
         GlobalEventNode.get().addChild(this.eventNode);
 
@@ -134,6 +134,7 @@ public class StateMachineImpl implements StateMachine {
         this.compositeTerminable.closeAndReportException();
 
         GlobalEventNode.get().call(new StateMachineStopEvent(this, state, signal));
+        this.states.keySet().forEach(this.eventNode::unmap);
         GlobalEventNode.get().removeChild(this.eventNode);
     }
 

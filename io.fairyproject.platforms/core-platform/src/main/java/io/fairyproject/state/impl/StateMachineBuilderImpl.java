@@ -25,9 +25,11 @@
 package io.fairyproject.state.impl;
 
 import io.fairyproject.event.EventNode;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.state.*;
 import io.fairyproject.state.event.StateEventFilter;
 import io.fairyproject.state.event.StateMachineEvent;
+import io.fairyproject.util.ConditionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -41,9 +43,7 @@ public class StateMachineBuilderImpl implements StateMachineBuilder {
     private final StateMachineImpl stateMachine = new StateMachineImpl();
     private Duration interval;
     private State initialState;
-    private final EventNode<StateMachineEvent> eventNode = EventNode
-            .type("state-machine", StateEventFilter.STATE_MACHINE)
-            .map(this.stateMachine, StateEventFilter.STATE_MACHINE);
+    private final EventNode<StateMachineEvent> eventNode = EventNode.value("state-machine", StateEventFilter.STATE_MACHINE, v -> v == this.stateMachine);
 
     @Override
     public @NotNull EventNode<StateMachineEvent> eventNode() {
@@ -52,7 +52,7 @@ public class StateMachineBuilderImpl implements StateMachineBuilder {
 
     @Override
     public @NotNull StateConfigBuilder state(@NotNull State state) {
-        return this.states.computeIfAbsent(state, StateConfigBuilderImpl::new);
+        return this.states.computeIfAbsent(state, s -> new StateConfigBuilderImpl(s, this.eventNode));
     }
 
     @Override
@@ -74,6 +74,9 @@ public class StateMachineBuilderImpl implements StateMachineBuilder {
 
     @Override
     public @NotNull StateMachine build() {
+        ConditionUtils.notNull(this.initialState, "initialState");
+
+        stateMachine.setEventNode(this.eventNode);
         Transition transition = this.transitionBuilder.build(stateMachine);
         stateMachine.setTransition(transition);
 
@@ -86,7 +89,7 @@ public class StateMachineBuilderImpl implements StateMachineBuilder {
             stateMachine.setInterval(this.interval);
         }
 
-        stateMachine.start(this.initialState, this.eventNode);
+        stateMachine.start(this.initialState);
         return stateMachine;
     }
 }
