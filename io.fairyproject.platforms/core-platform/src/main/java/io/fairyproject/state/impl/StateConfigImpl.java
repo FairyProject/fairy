@@ -24,10 +24,12 @@
 
 package io.fairyproject.state.impl;
 
+import io.fairyproject.event.EventNode;
 import io.fairyproject.state.State;
 import io.fairyproject.state.StateConfig;
 import io.fairyproject.state.StateHandler;
 import io.fairyproject.state.StateMachine;
+import io.fairyproject.state.event.StateEvent;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,18 +41,22 @@ public class StateConfigImpl implements StateConfig {
     @Getter
     private final State state;
     @NotNull
-    private final StateMachine machine;
+    private final StateMachine stateMachine;
     private final StateHandler[] handlers;
+    private final EventNode<StateEvent> eventNode;
 
-    public StateConfigImpl(@NotNull State state, @NotNull StateMachine machine, @NotNull List<StateHandler> handlers) {
+    public StateConfigImpl(@NotNull State state, @NotNull StateMachine stateMachine, @NotNull List<StateHandler> handlers, @NotNull EventNode<StateEvent> eventNode) {
         this.state = state;
-        this.machine = machine;
+        this.stateMachine = stateMachine;
         this.handlers = handlers.toArray(new StateHandler[0]);
+        this.eventNode = eventNode;
+
+        stateMachine.getEventNode().addChild(eventNode);
     }
 
     @Override
     public @NotNull StateMachine getStateMachine() {
-        return this.machine;
+        return this.stateMachine;
     }
 
     @Override

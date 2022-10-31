@@ -24,12 +24,21 @@
 
 package io.fairyproject.state;
 
+import io.fairyproject.event.EventNode;
+import io.fairyproject.state.event.StateEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 
 public interface StateConfigBuilder {
+
+    /**
+     * The event node of the state
+     *
+     * @return the event node
+     */
+    @NotNull EventNode<StateEvent> eventNode();
 
     /**
      * Add a new handler to the state
