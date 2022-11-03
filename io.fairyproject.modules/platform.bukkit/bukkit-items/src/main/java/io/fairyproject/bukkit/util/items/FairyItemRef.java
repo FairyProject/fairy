@@ -4,6 +4,7 @@ import io.fairyproject.bukkit.nbt.NBTKey;
 import io.fairyproject.bukkit.nbt.NBTModifier;
 import io.fairyproject.container.Autowired;
 import lombok.experimental.UtilityClass;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -21,7 +22,7 @@ public class FairyItemRef {
     }
 
     public FairyItem get(@Nullable ItemStack itemStack) {
-        if (itemStack == null)
+        if (itemStack == null || itemStack.getType() == Material.AIR)
             return null;
         String key = NBTModifier.get().getString(itemStack, FAIRY_ITEM);
         return key == null ? null : REGISTRY.get(key);
