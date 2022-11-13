@@ -26,9 +26,9 @@ public class BukkitMCServer implements MCServer {
             };
         } else {
             try {
-                Bukkit.getEntity(UUID.randomUUID());
+                Bukkit.class.getDeclaredMethod("getEntity", UUID.class);
                 uuidToEntity = Bukkit::getEntity;
-            } catch (NoSuchMethodError ex) {
+            } catch (NoSuchMethodException ex) {
                 try {
                     NMSClassResolver classResolver = new NMSClassResolver();
                     final Class<?> minecraftServer = classResolver.resolve("server.MinecraftServer","MinecraftServer");

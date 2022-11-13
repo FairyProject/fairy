@@ -24,8 +24,8 @@
 
 package io.fairyproject.bukkit.util.items;
 
+import com.cryptomorin.xseries.XMaterial;
 import lombok.experimental.UtilityClass;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -46,7 +46,7 @@ public class ItemUtil {
             return "null";
         }
 
-        String type = item.getType().name();
+        String type = XMaterial.matchXMaterial(item).name();
         builder.append("t@").append(type);
 
         if (item.getDurability() != 0) {
@@ -96,7 +96,7 @@ public class ItemUtil {
             boolean applyMeta = false;
 
             if (in.equals("null")) {
-                return new ItemStack(Material.AIR);
+                return XMaterial.AIR.parseItem();
             }
 
             String[] split = in.split(":");
@@ -107,7 +107,10 @@ public class ItemUtil {
 
                 switch (s2) {
                     case "t": {
-                        item = new ItemStack(Material.getMaterial(itemAttribute[1].toUpperCase()));
+                        XMaterial material = XMaterial.matchXMaterial(itemAttribute[1]).orElse(null);
+                        if (material == null)
+                            throw new IllegalArgumentException("Invalid material: " + itemAttribute[1]);
+                        item = material.parseItem();
                         meta = item.getItemMeta();
                         break;
                     }

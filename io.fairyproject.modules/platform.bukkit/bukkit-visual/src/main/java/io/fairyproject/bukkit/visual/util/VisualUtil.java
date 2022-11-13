@@ -21,6 +21,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 @UtilityClass
@@ -169,17 +170,30 @@ public class VisualUtil {
         static {
             MethodWrapper<?> blockGetById;
             MethodWrapper<?> fromLegacyData;
-            MethodWrapper<?> fromId;
+            MethodWrapper<?> fromId = null;
             Object blockRegistry;
 
             try {
                 final NMSClassResolver CLASS_RESOLVER = new NMSClassResolver();
                 final Class<?> blockType = CLASS_RESOLVER.resolve("Block");
-                final Class<?> registryID = CLASS_RESOLVER.resolve("RegistryID");
+                Class<?> registryID;
+                try {
+                    registryID = CLASS_RESOLVER.resolve("RegistryBlockID");
+                } catch (ClassNotFoundException ex) {
+                    registryID = CLASS_RESOLVER.resolve("RegistryID");
+                }
                 blockGetById = new MethodWrapper<>(blockType.getMethod("getById", int.class));
                 fromLegacyData = new MethodWrapper<>(blockType.getMethod("fromLegacyData", int.class));
                 blockRegistry = new FieldResolver(blockType).resolve(registryID, 0).get(0);
-                fromId = new MethodResolver(registryID).resolveWrapper(new ResolverQuery(int.class, 0));
+                for (Method method : registryID.getDeclaredMethods()) {
+                    if (method.getReturnType() == int.class && method.getParameterCount() == 1) {
+                        fromId = new MethodWrapper<>(method);
+                        break;
+                    }
+                }
+
+                if (fromId == null)
+                    throw new IllegalArgumentException("Cannot find method 'fromId' in " + registryID.getName());
 
                 System.out.println("Initialized OldData for Visual module.");
             } catch (Exception ex) {
