@@ -5,7 +5,9 @@ import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
 import io.fairyproject.bukkit.util.items.impl.FairyItemImpl;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.metadata.TransientValue;
 import io.fairyproject.util.terminable.Terminable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public interface FairyItem extends Terminable {
@@ -106,6 +109,21 @@ public interface FairyItem extends Terminable {
 
         public Builder item(@NotNull Function<MCPlayer, ItemBuilder> itemProvider) {
             this.itemProvider = itemProvider;
+            return this;
+        }
+
+        public Builder transformMeta(@NotNull Consumer<MetadataMap> consumer) {
+            consumer.accept(this.metadataMap);
+            return this;
+        }
+
+        public <T> Builder put(@NotNull MetadataKey<T> metadataKey, @NotNull T value) {
+            this.metadataMap.put(metadataKey, value);
+            return this;
+        }
+
+        public <T> Builder put(@NotNull MetadataKey<T> metadataKey, @NotNull TransientValue<T> value) {
+            this.metadataMap.put(metadataKey, value);
             return this;
         }
 
