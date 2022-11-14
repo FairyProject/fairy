@@ -280,7 +280,7 @@ public class MinecraftReflection {
                 ENTITY_ID_RESOLVER = n -> {
                     int id = (int) fieldWrapper.get(null);
                     fieldWrapper.set(null, id + n);
-                    return id + n;
+                    return id; // it's id++ so we return the old one
                 };
             } catch (Throwable throwable) {
                 FieldWrapper fieldWrapper = new FieldResolver(entityClass).resolveWrapper("ENTITY_COUNTER");

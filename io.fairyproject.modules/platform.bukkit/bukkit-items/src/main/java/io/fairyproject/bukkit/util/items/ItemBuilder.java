@@ -139,4 +139,6 @@ public interface ItemBuilder extends Cloneable {
     ItemStack build();
 
     Material getType();
+
+    ItemBuilder clone();
 }

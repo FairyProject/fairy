@@ -47,7 +47,9 @@ public class FairyItemImpl implements FairyItem {
 
     @Override
     public @NotNull ItemBuilder provide(@NotNull MCPlayer mcPlayer) {
-        return this.itemProvider.apply(mcPlayer).transformItemStack(itemStack -> FairyItemRef.set(itemStack, this));
+        return this.itemProvider.apply(mcPlayer)
+                .clone()
+                .transformItemStack(itemStack -> FairyItemRef.set(itemStack, this));
     }
 
     @Override

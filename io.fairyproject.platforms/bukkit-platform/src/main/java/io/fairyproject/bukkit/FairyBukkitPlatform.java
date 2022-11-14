@@ -75,6 +75,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     }
 
     public FairyBukkitPlatform(File dataFolder) {
+        INSTANCE = this;
         FairyPlatform.INSTANCE = this;
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
