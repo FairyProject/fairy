@@ -26,10 +26,15 @@
 package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.protocol.MCVersion;
 import lombok.Getter;
-import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class ItemSet implements Cloneable {
 
@@ -352,6 +357,7 @@ public class ItemSet implements Cloneable {
 
         @Getter
         private final Armors armors;
+        private Slot offhand;
 
         public PlayerInventory() {
             super(CONTENT_SIZE);
@@ -365,11 +371,18 @@ public class ItemSet implements Cloneable {
 
         @Override
         public Slot[] getSlots() {
-            return ArrayUtils.addAll(super.getSlots(), this.armors.getSlots());
+            List<Slot> slots = new ArrayList<>();
+            slots.addAll(Arrays.asList(super.getSlots()));
+            slots.addAll(Arrays.asList(this.armors.getSlots()));
+            slots.add(this.offhand);
+            return slots.toArray(new Slot[0]);
         }
 
         @Override
         public Slot getSlot(int index) {
+            if (index >= CONTENT_SIZE + 4) {
+                return this.getOffhand();
+            }
             if (index >= CONTENT_SIZE) {
                 return this.armors.getSlot(index - CONTENT_SIZE);
             }
@@ -378,6 +391,10 @@ public class ItemSet implements Cloneable {
 
         @Override
         public void setSlot(int index, Object t) {
+            if (index >= CONTENT_SIZE + this.armors.getSlotCount()) {
+                this.setOffhand(t);
+                return;
+            }
             if (index >= CONTENT_SIZE) {
                 this.armors.setSlot(index - CONTENT_SIZE, t);
                 return;
@@ -393,9 +410,21 @@ public class ItemSet implements Cloneable {
             this.armors.setSlot(part.getSlot(), t);
         }
 
+        public Slot getOffhand() {
+            return this.offhand;
+        }
+
+        public void setOffhand(Slot slot) {
+            this.offhand = slot;
+        }
+
+        public void setOffhand(Object t) {
+            this.offhand = ItemSet.createSlotBy(t);
+        }
+
         @Override
         public ItemStack[] toItems(Player player) {
-            ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 40)];
+            ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 36 + 4 + 1)]; // 36 = player inventory, 4 = armor, 1 = offhand
             for (int i = 0; i < itemStacks.length; i++) {
                 final Slot slot = this.getSlot(i);
                 if (slot != null) {
@@ -410,6 +439,10 @@ public class ItemSet implements Cloneable {
             ItemStack[] itemStacks = super.toItems(player);
             player.getInventory().setContents(itemStacks);
             this.armors.apply(player);
+            // offhand support
+            if (this.offhand != null && MCServer.current().getVersion().isOrAbove(MCVersion.V1_9)) {
+                player.getInventory().setItemInOffHand(this.offhand.getItem(player));
+            }
         }
 
         @Override
@@ -426,6 +459,9 @@ public class ItemSet implements Cloneable {
                 if (slot != null) {
                     playerInventory.setSlot(CONTENT_SIZE + i, slot.clone());
                 }
+            }
+            if (offhand != null) {
+                playerInventory.setOffhand(offhand.clone());
             }
 
             return playerInventory;
