@@ -460,7 +460,7 @@ public class HologramImpl implements Hologram {
             // custom name
             MCVersion version = MCServer.current().getVersion();
             if (version.isOrAbove(MCVersion.V1_13)) {
-                entityDataList.add(new EntityData(2, EntityDataTypes.COMPONENT, this.line.render(player)));
+                entityDataList.add(new EntityData(2, EntityDataTypes.OPTIONAL_COMPONENT, Optional.ofNullable(this.line.render(player))));
             } else {
                 entityDataList.add(new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale())));
             }
@@ -474,15 +474,15 @@ public class HologramImpl implements Hologram {
 
             // armorstand status bit mask
             if (version.isOrAbove(MCVersion.V1_17))
-                entityDataList.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x01));
+                entityDataList.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x11));
             else if (version.isOrAbove(MCVersion.V1_15))
-                entityDataList.add(new EntityData(14, EntityDataTypes.BYTE, (byte) 0x01));
+                entityDataList.add(new EntityData(14, EntityDataTypes.BYTE, (byte) 0x11));
             else if (version.isOrAbove(MCVersion.V1_14))
-                entityDataList.add(new EntityData(13, EntityDataTypes.BYTE, (byte) 0x01));
+                entityDataList.add(new EntityData(13, EntityDataTypes.BYTE, (byte) 0x11));
             else if (version.isOrAbove(MCVersion.V1_10))
-                entityDataList.add(new EntityData(11, EntityDataTypes.BYTE, (byte) 0x01));
+                entityDataList.add(new EntityData(11, EntityDataTypes.BYTE, (byte) 0x11));
             else
-                entityDataList.add(new EntityData(10, EntityDataTypes.BYTE, (byte) 0x01));
+                entityDataList.add(new EntityData(10, EntityDataTypes.BYTE, (byte) 0x11));
 
             return entityDataList;
         }
