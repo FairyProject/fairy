@@ -362,6 +362,7 @@ public class ItemSet implements Cloneable {
         public PlayerInventory() {
             super(CONTENT_SIZE);
             this.armors = new Armors();
+            this.offhand = new SlotEmpty();
         }
 
         @Override
