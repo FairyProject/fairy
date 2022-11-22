@@ -232,6 +232,11 @@ public class CommandMeta implements ICommand {
             return;
         }
 
+        if (!this.canAccess(commandContext)) {
+            commandContext.sendMessage(MessageType.ERROR, "You don't have permission to execute this command!");
+            return;
+        }
+
         List<Object> transformedParameters = new ArrayList<>();
 
         transformedParameters.add(commandContext);
