@@ -197,9 +197,10 @@ public class HologramImpl implements Hologram {
         synchronized (this) {
             if (!this.spawned)
                 return;
+            this.viewers.keySet().forEach(this::removeViewer);
             this.spawned = false;
         }
-        this.viewers.keySet().forEach(this::removeViewer);
+
         this.viewers.clear();
         if (this.eventNode != null) {
             this.world.getEventNode().removeChild(this.eventNode);

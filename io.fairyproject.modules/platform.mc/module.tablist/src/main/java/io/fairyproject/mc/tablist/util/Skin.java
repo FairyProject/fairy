@@ -60,7 +60,11 @@ public class Skin {
                             if (!gameProfile.hasProperty("textures")) {
                                 Property property = gameProfile.getProperties().stream()
                                         .filter(p -> p.getName().equals("textures"))
-                                        .findFirst().orElseThrow(IllegalStateException::new);
+                                        .findFirst().orElse(null);
+                                if (property == null) {
+                                    // Offline player I suppose
+                                    return Skin.GRAY;
+                                }
                                 String texture = property.getValue();
                                 String signature = property.getSignature();
 

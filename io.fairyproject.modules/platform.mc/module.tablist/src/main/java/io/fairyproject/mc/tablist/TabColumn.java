@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.mc.tablist.util;
+package io.fairyproject.mc.tablist;
 
 import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
@@ -96,7 +96,7 @@ public enum TabColumn {
         }
     }
 
-    public Integer getNumb(MCPlayer player, int raw) {
+    public int getNumber(MCPlayer player, int raw) {
         /* Check if the Player is not a 1.7 User */
         if (player.getVersion() != MCVersion.V1_7) {
             return raw - startNumber + 1;

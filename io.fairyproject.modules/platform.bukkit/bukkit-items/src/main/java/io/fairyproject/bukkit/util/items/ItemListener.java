@@ -47,30 +47,30 @@ public class ItemListener implements Listener {
     @Autowired
     private FairyItemRegistry fairyItemRegistry;
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
-        Player player = event.getPlayer();
-
-        Item item = event.getItem();
-
-        MetadataMap metadataMap = Metadata.get(item).orElse(null);
-        if (metadataMap != null && metadataMap.has(METADATA)) {
-            return;
-        }
-
-        ItemStack pickupItemStack = item.getItemStack();
-        FairyItem fairyItem = this.fairyItemRegistry.get(pickupItemStack);
-        if (fairyItem == null)
-            return;
-
-        ItemStack itemStack = fairyItem.provide(MCPlayer.from(player))
-                .amount(pickupItemStack.getAmount())
-                .durability(pickupItemStack.getDurability())
-                .build();
-
-        item.setItemStack(itemStack);
-        Metadata.provide(item).put(METADATA, true);
-        event.setCancelled(true);
-    }
+//    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+//    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+//        Player player = event.getPlayer();
+//
+//        Item item = event.getItem();
+//
+//        MetadataMap metadataMap = Metadata.get(item).orElse(null);
+//        if (metadataMap != null && metadataMap.has(METADATA)) {
+//            return;
+//        }
+//
+//        ItemStack pickupItemStack = item.getItemStack();
+//        FairyItem fairyItem = this.fairyItemRegistry.get(pickupItemStack);
+//        if (fairyItem == null)
+//            return;
+//
+//        ItemStack itemStack = fairyItem.provide(MCPlayer.from(player))
+//                .amount(pickupItemStack.getAmount())
+//                .durability(pickupItemStack.getDurability())
+//                .build();
+//
+//        item.setItemStack(itemStack);
+//        Metadata.provide(item).put(METADATA, true);
+//        event.setCancelled(true);
+//    }
 
 }

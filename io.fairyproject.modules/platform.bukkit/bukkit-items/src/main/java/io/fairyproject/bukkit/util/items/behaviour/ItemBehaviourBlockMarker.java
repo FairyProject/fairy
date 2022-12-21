@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
+import com.cryptomorin.xseries.XSound;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.util.items.FairyItem;
 import io.fairyproject.bukkit.util.items.FairyItemRef;
@@ -57,11 +58,11 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
             return;
         }
 
-        final String itemKey = FairyItemRef.get(itemInHand).getName();
-        if (itemKey == null || !itemKey.equals(this.item.getName()))
+        FairyItem item = FairyItemRef.get(itemInHand);
+        if (item != this.item)
             return;
 
-        Metadata.provideForBlock(block).put(METADATA, itemKey);
+        Metadata.provideForBlock(block).put(METADATA, this.item.getName());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -80,11 +81,25 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         if (item == null)
             return;
 
-        event.setDropItems(false);
+        this.addHandHeldItemDurability(player, 1);
+        event.setCancelled(true);
         final ItemStack itemStack = item.provide(MCPlayer.from(player))
                 .amount(1)
                 .build();
         player.getWorld().dropItemNaturally(block.getLocation(), itemStack);
+    }
+
+    private void addHandHeldItemDurability(Player player, int amount) {
+        ItemStack itemStack = player.getItemInHand();
+        if (itemStack.getType().getMaxDurability() > 1) { // ensure item is not unbreakable
+            itemStack.setDurability((short) (itemStack.getDurability() + amount));
+            if (itemStack.getDurability() > itemStack.getType().getMaxDurability()) {
+                player.setItemInHand(null);
+                player.updateInventory();
+
+                XSound.ENTITY_ITEM_BREAK.play(player);
+            }
+        }
     }
 
     @Override

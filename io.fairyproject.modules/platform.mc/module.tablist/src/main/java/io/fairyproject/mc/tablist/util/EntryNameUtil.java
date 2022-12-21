@@ -24,34 +24,42 @@
 
 package io.fairyproject.mc.tablist.util;
 
-import net.kyori.adventure.text.Component;
-import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.tablist.Tablist;
+import io.fairyproject.util.CC;
 
-public interface TablistImpl {
+import java.util.ArrayList;
+import java.util.List;
 
-    default void removeSelf(MCPlayer player) {
+public class EntryNameUtil {
+
+    private static final String[] TAB_ENTRIES;
+    private static final String[] TEAM_NAMES;
+
+    static {
+        List<String> list = new ArrayList<>();
+        for (int i = 1; i <= 15; i++) {
+            String entry = CC.getColorCharByIndex(i) + "";
+            list.add(CC.RED + entry);
+            list.add(CC.GREEN + entry);
+            list.add(CC.DARK_RED + entry);
+            list.add(CC.DARK_GREEN + entry);
+            list.add(CC.BLUE + entry);
+            list.add(CC.DARK_BLUE + entry);
+        }
+        TAB_ENTRIES = list.toArray(new String[0]);
+
+        list = new ArrayList<>();
+        for (int i = 0; i < 80; i++) {
+            String s = (i < 10 ? "\\u00010" : "\\u0001") + i;
+            list.add(s);
+        }
+        TEAM_NAMES = list.toArray(new String[0]);
     }
 
-    void registerLoginListener();
+    public static String entry(int rawSlot) {
+        return TAB_ENTRIES[rawSlot];
+    }
 
-    TabEntry createFakePlayer(
-            Tablist tablist, String string, TabColumn column, int slot, int rawSlot
-    );
-
-    void updateFakeName(
-            Tablist tablist, TabEntry tabEntry, Component text
-    );
-
-    void updateFakeLatency(
-            Tablist tablist, TabEntry tabEntry, int latency
-    );
-
-    void updateFakeSkin(
-            Tablist tablist, TabEntry tabEntry, Skin skin
-    );
-
-    void updateHeaderAndFooter(
-            Tablist tablist, Component header, Component footer
-    );
+    public static String name(int rawSlot) {
+        return TEAM_NAMES[rawSlot];
+    }
 }
