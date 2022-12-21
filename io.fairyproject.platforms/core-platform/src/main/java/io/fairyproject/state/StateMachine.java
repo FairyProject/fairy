@@ -37,7 +37,7 @@ public interface StateMachine extends Terminable, TerminableConsumer {
      * @param state the state
      * @return the previous state, null if there was no previous state
      */
-    @Nullable default State transform(State state) {
+    @Nullable default State transform(@NotNull State state) {
         return transform(state, Signal.UNDEFINED);
     }
 
@@ -47,7 +47,7 @@ public interface StateMachine extends Terminable, TerminableConsumer {
      * @param state the state to transform
      * @return the previous state, null if there was no previous state
      */
-    @Nullable State transform(State state, Signal signal);
+    @Nullable State transform(@NotNull State state, @Nullable Signal signal);
 
     /**
      * Tick the state machine
@@ -59,7 +59,7 @@ public interface StateMachine extends Terminable, TerminableConsumer {
      *
      * @param signal the signal
      */
-    void stop(Signal signal);
+    void stop(@NotNull Signal signal);
 
     /**
      * Fire a signal to the state machine
@@ -75,6 +75,11 @@ public interface StateMachine extends Terminable, TerminableConsumer {
      */
     @NotNull Duration getInterval();
 
+    /**
+     * The event node of the state machine
+     *
+     * @return the event node
+     */
     EventNode<StateMachineEvent> getEventNode();
 
 }
