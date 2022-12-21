@@ -24,7 +24,6 @@
 
 package io.fairyproject.state.event;
 
-import io.fairyproject.state.Signal;
 import io.fairyproject.state.State;
 import io.fairyproject.state.StateMachine;
 import lombok.Getter;
