@@ -25,7 +25,6 @@
 package io.fairyproject.state.impl;
 
 import io.fairyproject.event.EventNode;
-import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.state.*;
 import io.fairyproject.state.event.StateEventFilter;
 import io.fairyproject.state.event.StateMachineEvent;
