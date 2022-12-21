@@ -22,16 +22,44 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairyproject.state.event;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.event.Cancellable;
+import io.fairyproject.state.Signal;
+import io.fairyproject.state.State;
+import io.fairyproject.state.StateMachine;
+import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public interface State {
+public class StateMachineTransitionEvent implements StateEvent, Cancellable {
 
-    static State of(String name) {
-        return new StateImpl(name);
+    private final StateMachine stateMachine;
+    @Getter
+    @Nullable
+    private final State from;
+    @Getter
+    @NotNull
+    private final State to;
+
+    @Getter
+    @NotNull
+    private final Signal signal;
+
+    public StateMachineTransitionEvent(StateMachine stateMachine, @Nullable State from, @NotNull State to, @NotNull Signal signal) {
+        this.stateMachine = stateMachine;
+        this.from = from;
+        this.to = to;
+        this.signal = signal;
     }
 
-    String name();
-    
+    @Override
+    public @NotNull State getState() {
+        return this.to;
+    }
+
+    @Override
+    public @NotNull StateMachine getStateMachine() {
+        return this.stateMachine;
+    }
 }

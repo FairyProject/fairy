@@ -22,16 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairyproject.state.event;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.state.Signal;
+import io.fairyproject.state.State;
+import io.fairyproject.state.StateMachine;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-public interface State {
+@RequiredArgsConstructor
+@Getter
+public class StateStopEvent implements StateEvent {
 
-    static State of(String name) {
-        return new StateImpl(name);
-    }
+    private final StateMachine stateMachine;
+    private final State state;
+    private final Signal signal;
 
-    String name();
-    
 }

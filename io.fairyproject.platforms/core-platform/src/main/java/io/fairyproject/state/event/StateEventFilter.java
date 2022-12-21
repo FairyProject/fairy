@@ -22,16 +22,17 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairyproject.state.event;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.event.EventFilter;
+import io.fairyproject.state.State;
+import io.fairyproject.state.StateMachine;
+import lombok.experimental.UtilityClass;
 
-public interface State {
+@UtilityClass
+public class StateEventFilter {
 
-    static State of(String name) {
-        return new StateImpl(name);
-    }
+    public final EventFilter<StateMachineEvent, StateMachine> STATE_MACHINE = EventFilter.from(StateMachineEvent.class, StateMachine.class, StateMachineEvent::getStateMachine);
+    public final EventFilter<StateEvent, State> STATE = EventFilter.from(StateEvent.class, State.class, StateEvent::getState);
 
-    String name();
-    
 }

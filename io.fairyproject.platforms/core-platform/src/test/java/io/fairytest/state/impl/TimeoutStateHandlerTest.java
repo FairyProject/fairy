@@ -1,6 +1,8 @@
 package io.fairytest.state.impl;
 
+import io.fairyproject.state.State;
 import io.fairyproject.state.StateMachine;
+import io.fairyproject.state.StateMachineBuilder;
 import io.fairyproject.state.impl.TimeoutStateHandler;
 import io.fairyproject.tests.base.JUnitJupiterBase;
 import org.junit.jupiter.api.Assertions;
@@ -10,35 +12,36 @@ import java.time.Duration;
 
 public class TimeoutStateHandlerTest extends JUnitJupiterBase {
 
-    private enum ExampleState {
+    private enum ExampleState implements State {
         A, B, C
-    }
-
-    private enum ExampleTrigger {
-        T1, T2, T3
     }
 
     // test timeout state handler
     @Test
     public void timeoutStateShouldTrigger() throws InterruptedException {
-        StateMachine<ExampleState, ExampleTrigger> stateMachine = StateMachine.create();
+        StateMachineBuilder builder = StateMachine.builder();
+        builder.initialState(ExampleState.A);
 
-        stateMachine.state(ExampleState.A)
-                .handler(TimeoutStateHandler.of(Duration.ofMillis(500)))
-                .when(TimeoutStateHandler.trigger(), t -> t.to(ExampleState.B));
-        stateMachine.state(ExampleState.B);
-        stateMachine.interval(Duration.ofMillis(50L));
-        stateMachine.start(ExampleState.A, null);
+        builder.state(ExampleState.A)
+                .handler(TimeoutStateHandler.of(Duration.ofMillis(500)));
 
+        builder.transition()
+                .when(TimeoutStateHandler.SIGNAL)
+                .to(ExampleState.B);
+
+        builder.state(ExampleState.B);
+        builder.interval(Duration.ofMillis(50));
+
+        StateMachine stateMachine = builder.build();
         long l = System.currentTimeMillis();
-        while (stateMachine.current() != ExampleState.B) {
+        while (stateMachine.getCurrentState() != ExampleState.B) {
             Thread.sleep(100L);
             if (System.currentTimeMillis() - l > 2000L) {
                 Assertions.fail("Timeout");
             }
         }
 
-        Assertions.assertEquals(ExampleState.B, stateMachine.current());
+        Assertions.assertEquals(ExampleState.B, stateMachine.getCurrentState());
     }
 
 }

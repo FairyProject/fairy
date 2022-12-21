@@ -24,14 +24,10 @@
 
 package io.fairyproject.state;
 
-import io.fairyproject.state.impl.StateImpl;
+import org.jetbrains.annotations.NotNull;
 
-public interface State {
+public interface Transition {
 
-    static State of(String name) {
-        return new StateImpl(name);
-    }
+    void handle(@NotNull Signal signal);
 
-    String name();
-    
 }

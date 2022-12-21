@@ -1,16 +1,17 @@
 package io.fairyproject.state.impl;
 
+import io.fairyproject.state.Signal;
+import io.fairyproject.state.State;
 import io.fairyproject.state.StateHandler;
 import io.fairyproject.state.StateMachine;
-import io.fairyproject.state.trigger.Trigger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 
-public class TimeoutStateHandler<S, T> implements StateHandler<S, T> {
+public class TimeoutStateHandler implements StateHandler {
 
-    public static final Trigger<?> TRIGGER = Trigger.keyed("timeout");
+    public static final Signal SIGNAL = Signal.of("timeout");
 
     private final Duration duration;
     private long timestamp;
@@ -20,28 +21,19 @@ public class TimeoutStateHandler<S, T> implements StateHandler<S, T> {
     }
 
     @Override
-    public void onStart(@NotNull StateMachine<S, T> stateMachine, @NotNull S state, @Nullable Trigger<T> trigger) {
+    public void onStart(@NotNull StateMachine stateMachine, @NotNull State state, @Nullable Signal signal) {
         this.timestamp = System.currentTimeMillis();
     }
 
     @Override
-    public void onTick(@NotNull StateMachine<S, T> stateMachine, @NotNull S state) {
+    public void onTick(@NotNull StateMachine stateMachine, @NotNull State state) {
         if (System.currentTimeMillis() - this.timestamp > this.duration.toMillis()) {
-            stateMachine.fire(TimeoutStateHandler.trigger());
+            stateMachine.signal(SIGNAL);
         }
     }
 
-    @Override
-    public void onStop(@NotNull StateMachine<S, T> stateMachine, @NotNull S state, @Nullable Trigger<T> trigger) {
-        // do nothing
-    }
-
-    public static <T> Trigger<T> trigger() {
-        return (Trigger<T>) TRIGGER;
-    }
-
-    public static <S, T> TimeoutStateHandler<S, T> of(@NotNull Duration duration) {
-        return new TimeoutStateHandler<>(duration);
+    public static TimeoutStateHandler of(@NotNull Duration duration) {
+        return new TimeoutStateHandler(duration);
     }
 
 }

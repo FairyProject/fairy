@@ -1,7 +1,6 @@
 package io.fairyproject.state;
 
 import io.fairyproject.state.impl.TimeoutStateHandler;
-import io.fairyproject.state.trigger.Trigger;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -10,108 +9,114 @@ import java.time.Duration;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
-public interface StateHandler<S, T> {
+public interface StateHandler {
 
-    static <S, T> Builder<S, T> builder() {
-        return new Builder<>();
+    static Builder builder() {
+        return new Builder();
     }
 
-    static <S, T> StateHandler<S, T> timeout(Duration duration) {
-        return new TimeoutStateHandler<>(duration);
+    static StateHandler timeout(Duration duration) {
+        return new TimeoutStateHandler(duration);
     }
 
     /**
      * On start of the state
      *
      * @param stateMachine the state machine
-     * @param state the state
-     * @param trigger the trigger
+     * @param state        the state
+     * @param signal       the signal
      */
-    void onStart(@NotNull StateMachine<S, T> stateMachine, @NotNull S state, @Nullable Trigger<T> trigger);
+    default void onStart(@NotNull StateMachine stateMachine, @NotNull State state, @Nullable Signal signal) {
+        // to be overridden
+    }
 
     /**
      * On tick of the state
      *
      * @param stateMachine the state machine
-     * @param state the state
+     * @param state        the state
      */
-    void onTick(@NotNull StateMachine<S, T> stateMachine, @NotNull S state);
+    default void onTick(@NotNull StateMachine stateMachine, @NotNull State state) {
+        // to be overridden
+    }
 
     /**
      * On end of the state
      *
      * @param stateMachine the state machine
-     * @param state the state
-     * @param trigger the trigger
+     * @param state        the state
+     * @param signal       the signal
      */
-    void onStop(@NotNull StateMachine<S, T> stateMachine, @NotNull S state, @Nullable Trigger<T> trigger);
+    default void onStop(@NotNull StateMachine stateMachine, @NotNull State state, @Nullable Signal signal) {
+        // to be overridden
+    }
 
-    class Builder<S, T> {
-        private BiConsumer<S, Trigger<T>> onStart;
-        private Consumer<S> onTick;
-        private BiConsumer<S, Trigger<T>> onStop;
+    class Builder {
+        private BiConsumer<State, Signal> onStart;
+        private Consumer<State> onTick;
+        private BiConsumer<State, Signal> onStop;
 
         @Contract("_ -> this")
-        public Builder<S, T> onStart(@NotNull BiConsumer<S, Trigger<T>> onStart) {
+        public Builder onStart(@NotNull BiConsumer<State, Signal> onStart) {
             this.onStart = onStart;
             return this;
         }
 
         @Contract("_ -> this")
-        public Builder<S, T> onStop(@NotNull BiConsumer<S, Trigger<T>> onStop) {
+        public Builder onStop(@NotNull BiConsumer<State, Signal> onStop) {
             this.onStop = onStop;
             return this;
         }
 
         @Contract("_ -> this")
-        public Builder<S, T> onStart(@NotNull Consumer<Trigger<T>> onStart) {
+        public Builder onStart(@NotNull Consumer<Signal> onStart) {
             return onStart((s, t) -> onStart.accept(t));
         }
 
         @Contract("_ -> this")
-        public Builder<S, T> onTick(@NotNull Consumer<S> onTick) {
+        public Builder onTick(@NotNull Consumer<State> onTick) {
             this.onTick = onTick;
             return this;
         }
 
         @Contract("_ -> this")
-        public Builder<S, T> onStop(@NotNull Consumer<Trigger<T>> onStop) {
+        public Builder onStop(@NotNull Consumer<Signal> onStop) {
             return onStop((s, t) -> onStop.accept(t));
         }
 
         @Contract("_ -> this")
-        public Builder<S, T> onStart(@NotNull Runnable onStart) {
+        public Builder onStart(@NotNull Runnable onStart) {
             return onStart((s, t) -> onStart.run());
         }
 
         @Contract("_ -> this")
-        public Builder<S, T> onTick(@NotNull Runnable onTick) {
+        public Builder onTick(@NotNull Runnable onTick) {
             return onTick(s -> onTick.run());
         }
 
         @Contract("_ -> this")
-        public Builder<S, T> onStop(@NotNull Runnable onStop) {
+        public Builder onStop(@NotNull Runnable onStop) {
             return onStop((s, t) -> onStop.run());
         }
 
-        public StateHandler<S, T> build() {
-            return new StateHandler<S, T>() {
+        public StateHandler build() {
+            return new StateHandler() {
                 @Override
-                public void onStart(@NotNull StateMachine<S, T> stateMachine, @NotNull S state, @Nullable Trigger<T> trigger) {
+                public void onStart(@NotNull StateMachine stateMachine, @NotNull State state, @Nullable Signal trigger) {
                     if (onStart != null) {
                         onStart.accept(state, trigger);
                     }
                 }
 
                 @Override
-                public void onTick(@NotNull StateMachine<S, T> stateMachine, @NotNull S state) {
+                public void onTick(@NotNull StateMachine stateMachine, @NotNull State state) {
                     if (onTick != null) {
                         onTick.accept(state);
                     }
                 }
 
                 @Override
-                public void onStop(@NotNull StateMachine<S, T> stateMachine, @NotNull S state, @Nullable Trigger<T> trigger) {
+                public void onStop(@NotNull StateMachine stateMachine, @NotNull State state, @Nullable Signal trigger) {
                     if (onStop != null) {
                         onStop.accept(state, trigger);
                     }

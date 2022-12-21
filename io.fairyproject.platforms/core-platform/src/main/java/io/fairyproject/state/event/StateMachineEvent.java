@@ -22,16 +22,14 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.state;
+package io.fairyproject.state.event;
 
-import io.fairyproject.state.impl.StateImpl;
+import io.fairyproject.event.Event;
+import io.fairyproject.state.StateMachine;
+import org.jetbrains.annotations.NotNull;
 
-public interface State {
+public interface StateMachineEvent extends Event {
 
-    static State of(String name) {
-        return new StateImpl(name);
-    }
+    @NotNull StateMachine getStateMachine();
 
-    String name();
-    
 }
