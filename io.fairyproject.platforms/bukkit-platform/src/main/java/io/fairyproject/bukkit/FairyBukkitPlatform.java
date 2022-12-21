@@ -60,7 +60,6 @@ import java.net.URLClassLoader;
 
 public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
-    public static FairyBukkitPlatform INSTANCE;
     public static JavaPlugin PLUGIN = JavaPluginUtil.getProvidingPlugin(FairyBukkitPlatform.class);
     public static BukkitAudiences AUDIENCES;
 
@@ -75,7 +74,6 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     }
 
     public FairyBukkitPlatform(File dataFolder) {
-        INSTANCE = this;
         FairyPlatform.INSTANCE = this;
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();

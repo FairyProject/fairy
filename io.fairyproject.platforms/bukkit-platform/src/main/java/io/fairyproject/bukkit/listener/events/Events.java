@@ -25,10 +25,12 @@
 package io.fairyproject.bukkit.listener.events;
 
 import io.fairyproject.Fairy;
+import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.ListenerSubscription;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.log.Log;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -72,6 +74,9 @@ public class Events {
                     (e.getFrom().getBlockZ() >> 4) != (e.getTo().getBlockZ() >> 4) ||
                     !e.getFrom().getWorld().equals(e.getTo().getWorld());
 
+    @Autowired
+    private FairyPlatform platform;
+
     public <T extends Cancellable> Consumer<T> cancel() {
         return event -> event.setCancelled(true);
     }
@@ -99,7 +104,7 @@ public class Events {
             Log.error("The plugin hasn't enabled but trying to register listener " + mainListener.getClass().getSimpleName());
         }
 
-        TerminableConsumer terminable = FairyBukkitPlatform.INSTANCE;
+        TerminableConsumer terminable = platform;
         if (plugin instanceof TerminableConsumer) {
             terminable = (TerminableConsumer) plugin;
         }

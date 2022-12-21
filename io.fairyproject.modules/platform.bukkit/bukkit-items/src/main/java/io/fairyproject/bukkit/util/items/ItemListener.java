@@ -25,19 +25,10 @@
 package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.object.Obj;
-import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerPickupItemEvent;
-import org.bukkit.inventory.ItemStack;
 
 @Obj
 public class ItemListener implements Listener {
