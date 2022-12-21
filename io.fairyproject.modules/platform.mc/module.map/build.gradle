@@ -6,5 +6,5 @@ module {
 }
 
 dependencies {
-    compileOnly project.spigot()
+    compileOnly libs.spigot
 }

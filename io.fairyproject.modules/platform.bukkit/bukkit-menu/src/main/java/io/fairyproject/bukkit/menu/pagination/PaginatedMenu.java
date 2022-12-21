@@ -141,7 +141,7 @@ public abstract class PaginatedMenu extends Menu {
      * @return The display ItemStack
      */
     public ItemStack getJumpToPageButtonItem(Player player, JumpToPageButton button) {
-        return new ItemBuilder(button.isCurrent() ? XMaterial.ENCHANTED_BOOK : XMaterial.BOOK)
+        return ItemBuilder.of(button.isCurrent() ? XMaterial.ENCHANTED_BOOK : XMaterial.BOOK)
                 .name("&ePage " + button.getPage())
                 .lore(CC.SB_BAR, button.isCurrent() ? "&aThis is the current page" : "&fClick me jump to this page", CC.SB_BAR)
                 .build();
@@ -153,7 +153,7 @@ public abstract class PaginatedMenu extends Menu {
      * @return The display ItemStack
      */
     public ItemStack getPageButtonItem(Player player, PageButton button) {
-        ItemBuilder itemBuilder = new ItemBuilder(XMaterial.WHITE_CARPET).lore(CC.SB_BAR);
+        ItemBuilder itemBuilder = ItemBuilder.of(XMaterial.WHITE_CARPET).lore(CC.SB_BAR);
         switch (button.getAction()) {
             case GO_BACKWARD:
                 if (button.hasNext()) {

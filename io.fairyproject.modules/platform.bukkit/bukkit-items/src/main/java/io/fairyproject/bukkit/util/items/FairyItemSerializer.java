@@ -22,36 +22,35 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.mc.tablist.util;
+package io.fairyproject.bukkit.util.items;
 
-import net.kyori.adventure.text.Component;
-import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.tablist.Tablist;
+import io.fairyproject.ObjectSerializer;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.object.Obj;
 
-public interface TablistImpl {
+@Obj
+public class FairyItemSerializer implements ObjectSerializer<FairyItem, String> {
 
-    default void removeSelf(MCPlayer player) {
+    @Autowired
+    private FairyItemRegistry fairyItemRegistry;
+
+    @Override
+    public String serialize(FairyItem input) {
+        return input.getName();
     }
 
-    void registerLoginListener();
+    @Override
+    public FairyItem deserialize(String output) {
+        return this.fairyItemRegistry.get(output);
+    }
 
-    TabEntry createFakePlayer(
-            Tablist tablist, String string, TabColumn column, int slot, int rawSlot
-    );
+    @Override
+    public Class<FairyItem> inputClass() {
+        return FairyItem.class;
+    }
 
-    void updateFakeName(
-            Tablist tablist, TabEntry tabEntry, Component text
-    );
-
-    void updateFakeLatency(
-            Tablist tablist, TabEntry tabEntry, int latency
-    );
-
-    void updateFakeSkin(
-            Tablist tablist, TabEntry tabEntry, Skin skin
-    );
-
-    void updateHeaderAndFooter(
-            Tablist tablist, Component header, Component footer
-    );
+    @Override
+    public Class<String> outputClass() {
+        return String.class;
+    }
 }

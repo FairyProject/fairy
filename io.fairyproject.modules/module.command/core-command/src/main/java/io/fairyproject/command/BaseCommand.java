@@ -161,6 +161,11 @@ public abstract class BaseCommand implements ICommand {
             commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
         }
 
+        if (!this.canAccess(commandContext)) {
+            commandContext.sendMessage(MessageType.ERROR, "You don't have permission to execute this command!");
+            return;
+        }
+
         if (!this.resolveBaseArguments(commandContext)) {
             return;
         }

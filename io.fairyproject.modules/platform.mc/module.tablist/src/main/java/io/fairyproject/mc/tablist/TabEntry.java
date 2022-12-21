@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,28 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.items;
+package io.fairyproject.mc.tablist;
 
-import io.fairyproject.ObjectSerializer;
-import io.fairyproject.container.object.Obj;
+import io.fairyproject.mc.tablist.util.Skin;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import net.kyori.adventure.text.Component;
 
-@Obj
-public class ImanityItemSerializer implements ObjectSerializer<ImanityItem, String> {
-    @Override
-    public String serialize(ImanityItem input) {
-        return input.getId();
-    }
+import java.util.UUID;
 
-    @Override
-    public ImanityItem deserialize(String output) {
-        return ImanityItem.getItem(output);
-    }
+@Data
+@AllArgsConstructor
+@Builder
+public class TabEntry {
 
-    @Override
-    public Class<ImanityItem> inputClass() {
-        return ImanityItem.class;
-    }
+    private String id;
+    private UUID uuid;
+    private Component text;
+    private Tablist tab;
+    private Skin texture;
+    private TabColumn column;
+    private int slot;
+    private int latency;
 
-    @Override
-    public Class<String> outputClass() {
-        return String.class;
-    }
 }

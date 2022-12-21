@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.tablist.util;
 
+import io.fairyproject.mc.tablist.TabColumn;
 import net.kyori.adventure.text.Component;
 import lombok.Getter;
 

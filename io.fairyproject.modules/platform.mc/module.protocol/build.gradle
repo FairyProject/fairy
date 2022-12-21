@@ -5,7 +5,7 @@ module {
 
 dependencies {
     compileOnly "io.netty:netty-all:" + findProperty("netty.version")
-    compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
+    compileOnly libs.spigot
 
     implementation libs.packetevents.spigot
 }

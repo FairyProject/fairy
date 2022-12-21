@@ -11,11 +11,12 @@ lombok = "1.18.24"
 persistence-api = "2.2"
 junit = "5.8.1"
 asm = "9.3"
-packetevents = "2.0.9-SNAPSHOT"
+packetevents = "2.0.12-SNAPSHOT"
+bukkit-api = "1.16.5-R0.1-SNAPSHOT"
 
 # Adventure
-adventure = "4.10.1"
-adventure-platform = "4.1.0"
+adventure = "4.11.0"
+adventure-platform = "4.1.2"
 
 [libraries]
 # Jackson
@@ -23,6 +24,9 @@ jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
 jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
+
+spigot = { module = "org.spigotmc:spigot-api", version.ref = "bukkit-api" }
+paper = { module = "com.destroystokyo.paper:paper-api", version.ref = "bukkit-api" }
 
 hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
@@ -53,6 +57,7 @@ adventure-text-serializer-gson-legacy-impl = { module = "net.kyori:adventure-tex
 adventure-text-serializer-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure" }
 
 adventure-platform-bukkit = { module = "net.kyori:adventure-platform-bukkit", version.ref = "adventure-platform" }
+adventure-platform-text-serializer-bungee = { module = "net.kyori:adventure-text-serializer-bungeecord", version.ref = "adventure-platform" }
 
 [bundles]
 jackson = ["jackson-core", "jackson-databind", "jackson-annotations", "jackson-datatype-jsr310"]

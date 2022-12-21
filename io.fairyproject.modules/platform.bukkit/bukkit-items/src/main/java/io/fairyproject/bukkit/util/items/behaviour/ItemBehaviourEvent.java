@@ -27,7 +27,7 @@ package io.fairyproject.bukkit.util.items.behaviour;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.EventSubscription;
 import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.util.items.ImanityItem;
+import io.fairyproject.bukkit.util.items.FairyItem;
 import lombok.Getter;
 import org.bukkit.event.Event;
 
@@ -42,8 +42,7 @@ public abstract class ItemBehaviourEvent<E extends Event> extends ItemBehaviour 
     }
 
     @Override
-    public void init(ImanityItem item) {
-        super.init(item);
+    public void onInit(FairyItem item) {
         this.subscription = Events.subscribe(classToRegister)
                 .listen((subscription, e) -> this.call(e))
                 .build(FairyBukkitPlatform.PLUGIN);

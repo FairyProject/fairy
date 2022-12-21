@@ -47,21 +47,17 @@ public class ItemBehaviourInteract extends ItemBehaviourListener {
         Action action = event.getAction();
         ItemStack itemStack = event.getItem();
 
-        if (!this.isActionMatches(action)) {
+        if (!this.isActionMatches(action))
             return;
-        }
-
-        if (!this.matches(player, itemStack)) {
+        if (!this.matches(player, itemStack))
             return;
-        }
 
         this.callback.call(player, itemStack, action, event);
     }
 
     public boolean isActionMatches(Action action) {
-        if (this.actions.length == 0) {
+        if (this.actions.length == 0)
             return true;
-        }
 
         for (Action allowed : this.actions) {
             if (allowed == action) {

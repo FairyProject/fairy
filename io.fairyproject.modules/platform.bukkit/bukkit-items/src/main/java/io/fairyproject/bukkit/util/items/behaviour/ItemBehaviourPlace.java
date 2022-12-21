@@ -24,7 +24,6 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
-import io.fairyproject.bukkit.util.items.ImanityItem;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -36,14 +35,6 @@ import org.bukkit.inventory.ItemStack;
 public class ItemBehaviourPlace extends ItemBehaviourListener {
 
     private final Callback callback;
-
-    @Override
-    public void init(ImanityItem item) {
-        if (!item.getType().isBlock()) {
-            throw new IllegalArgumentException("Material " + item.getType() + " is not block! but it's trying to register place event!");
-        }
-        super.init(item);
-    }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {

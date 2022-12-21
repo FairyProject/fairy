@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
-import io.fairyproject.bukkit.util.items.ImanityItem;
+import io.fairyproject.bukkit.util.items.FairyItem;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -59,16 +59,13 @@ public abstract class ItemBehaviour {
         return reference.get();
     }
 
-    protected ImanityItem item;
+    protected FairyItem item;
     private final List<BiPredicate<Player, ItemStack>> filters;
 
     public ItemBehaviour() {
         this.filters = new ArrayList<>(1);
         if (this.shouldFilterItemKey()) {
-            this.filter((player, itemStack) -> {
-                final String key = ImanityItem.getItemKeyFromBukkit(itemStack);
-                return key != null && key.equals(this.item.getId());
-            });
+            this.filter((player, itemStack) -> this.item.isSimilar(itemStack));
         }
     }
 
@@ -76,17 +73,17 @@ public abstract class ItemBehaviour {
         return true;
     }
 
-    public final void init0(ImanityItem item) {
+    public final void init(FairyItem item) {
         this.item = item;
-        this.init(item);
+        this.onInit(item);
+    }
+
+    protected void onInit(FairyItem item) {
+        // to be overridden
     }
 
     public void unregister() {
-
-    }
-
-    public void init(ImanityItem item) {
-
+        // to be overridden
     }
 
     public ItemBehaviour filter(BiPredicate<Player, ItemStack> filter) {

@@ -15,6 +15,9 @@ test {
     useJUnitPlatform()
 }
 
+compileJava.options.compilerArgs.add '-parameters'
+compileTestJava.options.compilerArgs.add '-parameters'
+
 // setup directory per version
 project.afterEvaluate(p -> {
     if (project.name != "gradle-plugin") {

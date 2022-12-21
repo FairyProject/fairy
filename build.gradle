@@ -57,6 +57,7 @@ allprojects {
         maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
         maven { url "https://repo.viaversion.com/" }
         maven { url "https://maven.enginehub.org/repo/" }
+        maven { url "https://repo.papermc.io/repository/maven-public/" }
         flatDir { dir("${this.projectDir.path}/libs") }
     }
 
@@ -87,7 +88,6 @@ subprojects {
         version = findProperty("fairy.version")
 
         apply from: "${rootDir}/gradle/scripts/builder.gradle"
-        apply from: "${rootDir}/gradle/scripts/extensions.gradle"
         if (project.name.contains("bootstrap")) {
             apply from: "${rootDir}/gradle/scripts/bootstrap.gradle"
         } else {

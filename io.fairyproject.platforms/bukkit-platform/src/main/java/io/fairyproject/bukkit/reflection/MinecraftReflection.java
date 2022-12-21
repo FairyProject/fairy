@@ -33,6 +33,7 @@ import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
+import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.version.protocol.ProtocolCheck;
@@ -44,8 +45,10 @@ import io.fairyproject.log.Log;
 import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.EquivalentConverter;
+import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ScanResult;
+import io.github.toolfactory.narcissus.Narcissus;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
@@ -272,6 +275,7 @@ public class MinecraftReflection {
         return MinecraftReflection.setEntityId(1);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static int setEntityId(int newIds) {
         if (ENTITY_ID_RESOLVER == null) {
             Class<?> entityClass = NMS_CLASS_RESOLVER.resolveSilent("world.entity.Entity", "Entity");
@@ -280,13 +284,33 @@ public class MinecraftReflection {
                 ENTITY_ID_RESOLVER = n -> {
                     int id = (int) fieldWrapper.get(null);
                     fieldWrapper.set(null, id + n);
-                    return id + n;
+                    return id; // it's id++ so we return the old one
                 };
             } catch (Throwable throwable) {
-                FieldWrapper fieldWrapper = new FieldResolver(entityClass).resolveWrapper("ENTITY_COUNTER");
-                AtomicInteger id = (AtomicInteger) fieldWrapper.get(null);
+                AtomicInteger entityCounter;
+                try {
+                    Field field = new FieldResolver(entityClass).resolve(new ResolverQuery(AtomicInteger.class, 0)
+                            .withModifierOptions(ResolverQuery.ModifierOptions.builder()
+                                    .onlyStatic(true)
+                                    .onlyFinal(true)
+                                    .build())
+                    );
 
-                ENTITY_ID_RESOLVER = id::addAndGet;
+                    try {
+                        entityCounter = (AtomicInteger) field.get(null);
+                    } catch (IllegalAccessException | InternalError ex) {
+                        if (Narcissus.libraryLoaded) {
+                            entityCounter = (AtomicInteger) Narcissus.getStaticField(field);
+                        } else {
+                            throw new IllegalStateException("Couldn't get the entity counter field!", ex);
+                        }
+                    }
+                } catch (ReflectiveOperationException e) {
+                    SneakyThrowUtil.sneakyThrow(e);
+                    return -1;
+                }
+
+                ENTITY_ID_RESOLVER = entityCounter::addAndGet;
             }
         }
 

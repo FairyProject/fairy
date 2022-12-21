@@ -562,6 +562,8 @@ public final class NBTEditor {
         try {
             Object stack = null;
             stack = getMethod( "asNMSCopy" ).invoke( null, item );
+            if (stack == null)
+                return null;
 
             Object tag = null;
 

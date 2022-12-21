@@ -25,16 +25,16 @@
 package io.fairyproject.mc.tablist;
 
 import io.fairyproject.container.Autowired;
-import io.fairyproject.mc.protocol.MCProtocol;
-import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.packet.PacketPlay;
-import io.fairyproject.mc.tablist.util.*;
-import lombok.Getter;
 import io.fairyproject.mc.protocol.MCVersion;
-import io.fairyproject.util.CC;
+import io.fairyproject.mc.tablist.util.Skin;
+import io.fairyproject.mc.tablist.util.TabSlot;
+import io.fairyproject.mc.tablist.util.TablistUtil;
+import lombok.Getter;
+import net.kyori.adventure.text.Component;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public class Tablist {
@@ -43,17 +43,23 @@ public class Tablist {
     private static TablistService SERVICE;
 
     private final MCPlayer player;
-    private final Set<TabEntry> currentEntries = new HashSet<>();
+    private final Set<TabEntry> entries = new HashSet<>();
+    private final AtomicBoolean shown;
 
     private Component header;
     private Component footer;
 
+
     public Tablist(MCPlayer player) {
         this.player = player;
+        this.shown = new AtomicBoolean(false);
+
         this.setup();
     }
 
     private void setup() {
+        this.entries.clear();
+
         final int possibleSlots = player.getVersion() == MCVersion.V1_7 ? 60 : 80;
 
         for (int i = 1; i <= possibleSlots; i++) {
@@ -62,57 +68,61 @@ public class Tablist {
                 continue;
             }
 
-            TabEntry tabEntry = SERVICE.getImplementation().createFakePlayer(
-                    this,
-                    String.format("%03d", i) + "|Tab",
-                    tabColumn,
-                    tabColumn.getNumb(player, i),
-                    i
-            );
-            if (player.getVersion() == MCVersion.V1_7) {
-                final PacketPlay.Out.ScoreboardTeam packet = PacketPlay.Out.ScoreboardTeam.builder()
-                        .name(LegacyClientUtil.name(i - 1))
-                        .parameters(Optional.of(PacketPlay.Out.ScoreboardTeam.Parameters.builder()
-                                .playerPrefix(Component.empty())
-                                .playerSuffix(Component.empty())
-                                .build()))
-                        .players(LegacyClientUtil.entry(i - 1))
-                        .build();
-
-                MCProtocol.sendPacket(player, packet);
-            }
-            currentEntries.add(tabEntry);
+            TabEntry tabEntry = new TabEntry(String.format("%03d", i) + "|Tab", UUID.randomUUID(), Component.empty(), this, Skin.GRAY, tabColumn, tabColumn.getNumber(player, i), 0);
+            entries.add(tabEntry);
         }
     }
 
-    public void update() {
-        Set<TabEntry> previous = new HashSet<>(currentEntries);
+    private void show() {
+        if (!this.shown.compareAndSet(false, true))
+            return;
 
-        Set<TabSlot> processedObjects = SERVICE.getSlots(player);
-        if (processedObjects == null) {
-            processedObjects = Collections.emptySet();
+        TablistUtil.addFakePlayer(this, this.entries);
+    }
+
+    private void hide() {
+        if (!this.shown.compareAndSet(true, false))
+            return;
+
+        TablistUtil.removeFakePlayer(this, this.entries);
+        for (TabEntry tabEntry : this.entries) {
+            TablistUtil.updateFakeName(this, tabEntry, Component.empty());
+            TablistUtil.updateFakeLatency(this, tabEntry, 0);
+            TablistUtil.updateFakeSkin(this, tabEntry, Skin.GRAY);
         }
 
-        for (TabSlot scoreObject : processedObjects) {
-            TabEntry tabEntry = getEntry(scoreObject.getColumn(), scoreObject.getSlot());
+        this.header = null;
+        this.footer = null;
+        TablistUtil.updateHeaderAndFooter(this, Component.empty(), Component.empty());
+    }
+
+    public void update() {
+        Set<TabEntry> previous = new HashSet<>(entries);
+
+        Set<TabSlot> current = SERVICE.getSlots(player);
+        if (current == null || current.isEmpty()) {
+            this.hide();
+            return;
+        }
+
+        this.show();
+
+        for (TabSlot tabSlot : current) {
+            TabEntry tabEntry = getEntry(tabSlot.getColumn(), tabSlot.getSlot());
+
             if (tabEntry != null) {
                 previous.remove(tabEntry);
-                SERVICE.getImplementation().updateFakeLatency(this, tabEntry, scoreObject.getPing());
-                SERVICE.getImplementation().updateFakeName(this, tabEntry, scoreObject.getText());
-                if (player.getVersion() != MCVersion.V1_7) {
-                    if (!tabEntry.getTexture().toString().equals(scoreObject.getSkin().toString())) {
-                        SERVICE.getImplementation().updateFakeSkin(this, tabEntry, scoreObject.getSkin());
-                    }
-                }
+
+                TablistUtil.updateFakeLatency(this, tabEntry, tabSlot.getPing());
+                TablistUtil.updateFakeName(this, tabEntry, tabSlot.getText());
+                TablistUtil.updateFakeSkin(this, tabEntry, tabSlot.getSkin());
             }
         }
 
         for (TabEntry tabEntry : previous) {
-            SERVICE.getImplementation().updateFakeName(this, tabEntry, Component.empty());
-            SERVICE.getImplementation().updateFakeLatency(this, tabEntry, 0);
-            if (player.getVersion() != MCVersion.V1_7) {
-                SERVICE.getImplementation().updateFakeSkin(this, tabEntry, Skin.GRAY);
-            }
+            TablistUtil.updateFakeName(this, tabEntry, Component.empty());
+            TablistUtil.updateFakeLatency(this, tabEntry, 0);
+            TablistUtil.updateFakeSkin(this, tabEntry, Skin.GRAY);
         }
 
         previous.clear();
@@ -121,49 +131,18 @@ public class Tablist {
         Component footerNow = SERVICE.getFooter(player);
 
         if (!Objects.equals(this.header, headerNow) || !Objects.equals(this.footer, footerNow)) {
-            SERVICE.getImplementation().updateHeaderAndFooter(this, headerNow, footerNow);
+            TablistUtil.updateHeaderAndFooter(this, headerNow, footerNow);
             this.header = headerNow;
             this.footer = footerNow;
         }
     }
 
-    public TabEntry getEntry(TabColumn column, Integer slot) {
-        for (TabEntry entry : currentEntries) {
-            if (entry.getColumn().name().equalsIgnoreCase(column.name()) && entry.getSlot() == slot) {
+    public TabEntry getEntry(TabColumn column, int slot) {
+        for (TabEntry entry : entries) {
+            if (entry.getColumn() == column && entry.getSlot() == slot) {
                 return entry;
             }
         }
-        return null;
-    }
-
-    public static String[] splitStrings(String text, int rawSlot) {
-        if (text.length() > 16) {
-            String prefix = text.substring(0, 16);
-            String suffix;
-
-            if (prefix.charAt(15) == CC.CODE || prefix.charAt(15) == '&') {
-                prefix = prefix.substring(0, 15);
-                suffix = text.substring(15);
-            } else if (prefix.charAt(14) == CC.CODE || prefix.charAt(14) == '&') {
-                prefix = prefix.substring(0, 14);
-                suffix = text.substring(14);
-            } else {
-                suffix = CC.getLastColors(CC.translate(prefix)) + text.substring(16);
-            }
-
-            if (suffix.length() > 16) {
-                suffix = suffix.substring(0, 16);
-            }
-
-            //Bukkit.broadcastMessage(prefix + " |||| " + suffix);
-            return new String[]{
-                    prefix,
-                    suffix
-            };
-        } else {
-            return new String[]{
-                    text
-            };
-        }
+        throw new IllegalArgumentException("No entry found for column " + column + " and slot " + slot);
     }
 }

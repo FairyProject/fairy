@@ -35,10 +35,7 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.tablist.util.TabSlot;
-import io.fairyproject.mc.tablist.util.TablistImpl;
-import io.fairyproject.mc.tablist.util.impl.MainTablistImpl;
 import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.task.Task;
 import io.fairyproject.util.Stacktrace;
 import lombok.Getter;
 import lombok.Setter;
@@ -60,7 +57,6 @@ public class TablistService {
 
     private List<TablistAdapter> adapters;
     private ScheduledExecutorService thread;
-    private TablistImpl implementation;
 
     //Tablist Ticks
     @Setter
@@ -80,7 +76,6 @@ public class TablistService {
 
     @PostInitialize
     public void onPostInitialize() {
-        this.registerImplementation();
         this.setup();
     }
 
@@ -136,10 +131,6 @@ public class TablistService {
         this.removePlayerTablist(event.getPlayer());
     }
 
-    private void registerImplementation() {
-        this.implementation = new MainTablistImpl();
-    }
-
     public void registerPlayerTablist(MCPlayer player) {
         Tablist tablist = new Tablist(player);
 
@@ -151,42 +142,19 @@ public class TablistService {
     }
 
     private void setup() {
-        // To ensure client will display 60 slots on 1.7
-        // TODO
-//        if (Bukkit.getMaxPlayers() < 60) {
-//            this.implementation.registerLoginListener();
-//            packetService.registerPacketListener(new PacketListener() {
-//                @Override
-//                public Class<?>[] type() {
-//                    return new Class[] { PacketTypeClasses.Server.LOGIN };
-//                }
-//
-//                @Override
-//                public boolean write(Player player, PacketDto dto) {
-//                    WrappedPacketOutLogin packet = dto.wrap(WrappedPacketOutLogin.class);
-//                    packet.setMaxPlayers(60);
-//
-//                    dto.refresh();
-//                    return true;
-//                }
-//            });
-//        }
-
         //Start Thread
-        Task.asyncRepeated(t -> {
-            if (this.adapters.isEmpty()) {
+        Fairy.getTaskScheduler().runAsyncRepeated(() -> {
+            if (this.adapters.isEmpty())
                 return;
-            }
-            for (MCPlayer player : MCPlayer.all()) {
-                Tablist tablist = player.metadata().getOrNull(TABLIST_KEY);
 
-                if (tablist != null) {
+            for (MCPlayer player : MCPlayer.all()) {
+                player.metadata().ifPresent(TABLIST_KEY, tablist -> {
                     try {
                         tablist.update();
                     } catch (Throwable throwable) {
                         Stacktrace.print(throwable);
                     }
-                }
+                });
             }
         }, this.ticks);
     }

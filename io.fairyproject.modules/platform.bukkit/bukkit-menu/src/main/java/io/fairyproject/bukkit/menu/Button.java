@@ -34,7 +34,7 @@ import org.bukkit.inventory.ItemStack;
 public abstract class Button {
 
 	public static Button placeholder(final XMaterial material, String title) {
-		return ButtonBuilder.of(new ItemBuilder(material.parseItem())
+		return ButtonBuilder.of(ItemBuilder.of(material.parseItem())
 				.name(title)
 				.build()
 		).cancel().build();

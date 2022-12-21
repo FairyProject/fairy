@@ -24,6 +24,7 @@
 
 package io.fairyproject.sidebar;
 
+import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerDisplayScoreboard;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerScoreboardObjective;
@@ -110,8 +111,12 @@ public class Sidebar {
             return;
         }
 
-        final Object channel = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getChannel(player.getUUID());
-        final ClientVersion version = MCProtocol.INSTANCE.getPacketEvents().getProtocolManager().getClientVersion(channel);
+        PacketEventsAPI<?> packetEvents = MCProtocol.INSTANCE.getPacketEvents();
+        final Object channel = packetEvents.getProtocolManager().getChannel(player.getUUID());
+        if (channel == null || !packetEvents.getNettyManager().getChannelOperator().isOpen(channel))
+            return;
+
+        final ClientVersion version = packetEvents.getProtocolManager().getClientVersion(channel);
         final WrapperPlayServerTeams packet = getOrRegisterTeam(line);
 
         WrapperPlayServerTeams.ScoreBoardTeamInfo info;

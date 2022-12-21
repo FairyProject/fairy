@@ -23,7 +23,7 @@ public class FakeEntityDeathAnimation extends AbstractFakeEntityAnimation {
 
         int entityID = MCEntity.Companion.BRIDGE.newEntityId();
         if (entity instanceof MCPlayer) {
-            WrapperPlayServerSpawnPlayer packet = new WrapperPlayServerSpawnPlayer(
+            this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, new WrapperPlayServerSpawnPlayer(
                     entityID,
                     entity.getUUID(),
                     new Vector3d(
@@ -33,16 +33,14 @@ public class FakeEntityDeathAnimation extends AbstractFakeEntityAnimation {
                     ),
                     pos.getYaw(),
                     pos.getPitch(),
-                    entity.data());
-            this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, packet));
+                    entity.data())));
         }
 
-        WrapperPlayServerEntityStatus packet = new WrapperPlayServerEntityStatus(entityID, 3);
-        this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, packet));
+        this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, new WrapperPlayServerEntityStatus(entityID, 3)));
 
         Task.runMainLater(() -> {
-            WrapperPlayServerDestroyEntities destroyPacket = new WrapperPlayServerDestroyEntities(entityID);
-            this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, destroyPacket));
+            this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, new WrapperPlayServerDestroyEntities(entityID)));
         }, 20L);
     }
+
 }

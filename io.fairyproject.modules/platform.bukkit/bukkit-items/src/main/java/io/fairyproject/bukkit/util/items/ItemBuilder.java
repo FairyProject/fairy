@@ -1,286 +1,144 @@
-/*
- * MIT License
- *
- * Copyright (c) 2021 Imanity
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
 package io.fairyproject.bukkit.util.items;
 
-import com.cryptomorin.xseries.SkullUtils;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.bukkit.nbt.NBTKey;
-import io.fairyproject.bukkit.nbt.NBTModifier;
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
-import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
-import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
-import io.fairyproject.util.AccessUtil;
-import io.fairyproject.util.ConditionUtils;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
-import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import io.fairyproject.util.filter.FilterUnit;
-import org.bukkit.ChatColor;
+import io.fairyproject.bukkit.util.items.impl.ItemBuilderImpl;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.SkullMeta;
+import org.jetbrains.annotations.Contract;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.BiConsumer;
+import java.util.Locale;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-/**
- * TODO:
- * refactor all of these mass
- */
-public class ItemBuilder implements Listener, Cloneable {
+@SuppressWarnings("unused")
+public interface ItemBuilder extends Cloneable {
 
-	private static Field GAME_PROFILE_FIELD;
-	private static MethodWrapper<?> GET_PROFILE_ENTITY_HUMAN_METHOD;
-	private static final BiConsumer<SkullMeta, Player> SET_SKULL_WITH_PLAYER = FilterUnit.<BiConsumer<SkullMeta, Player>>create()
-			// modern 1.12+
-			.add(FilterUnit.Item.<BiConsumer<SkullMeta, Player>>create((skullMeta, player) -> skullMeta.setOwningPlayer(player))
-					.predicate(FilterUnit.test(t -> SkullMeta.class.getDeclaredMethod("setOwningPlayer"), NoSuchMethodException.class)))
-			// legacy
-			.add((skullMeta, player) -> {
-				if (GAME_PROFILE_FIELD == null) {
-					ThrowingRunnable.sneaky(() -> {
-						Class<?> entityHumanClass = new NMSClassResolver().resolve("world.entity.player.EntityHuman", "EntityHuman");
-						Class<?> craftMetaSkullClass = new OBCClassResolver().resolve("inventory.CraftMetaSkull");
+    static ItemBuilder of(XMaterial material) {
+        return new ItemBuilderImpl(material);
+    }
 
-						final Field field = craftMetaSkullClass.getDeclaredField("profile");
-						AccessUtil.setAccessible(field);
-						GAME_PROFILE_FIELD = field;
+    static ItemBuilder of(Material material) {
+        return new ItemBuilderImpl(XMaterial.matchXMaterial(material));
+    }
 
-						GET_PROFILE_ENTITY_HUMAN_METHOD = new MethodResolver(entityHumanClass).resolve(MinecraftReflection.GAME_PROFILE_TYPE, 0);
-					}).run();
-				}
+    static ItemBuilder of(ItemStack itemStack) {
+        return new ItemBuilderImpl(itemStack);
+    }
 
-				Object handle = MinecraftReflection.getHandleSilent(player);
-				Object gameProfile = GET_PROFILE_ENTITY_HUMAN_METHOD.invokeSilent(handle);
-				try {
-					GAME_PROFILE_FIELD.set(skullMeta, gameProfile);
-				} catch (IllegalAccessException e) {
-					SneakyThrowUtil.sneakyThrow(e);
-				}
-			})
-			.find()
-			.orElseThrow(() -> new IllegalStateException("No valid set skull with player can be found."));
+    @Contract("_ -> this")
+    default ItemBuilder name(Component component) {
+        return name(Locale.ENGLISH, component);
+    }
 
-	private ItemStack itemStack;
+    @Contract("_ -> this")
+    default ItemBuilder lores(Component... components) {
+        return lores(Locale.ENGLISH, components);
+    }
 
-	public ItemBuilder(final XMaterial mat) {
-		itemStack = mat.parseItem();
-	}
+    @Contract("_ -> this")
+    default ItemBuilder lores(Iterable<Component> component) {
+        return lores(Locale.ENGLISH, component);
+    }
 
-	public ItemBuilder(final ItemStack itemStack) {
-		this.itemStack = itemStack;
-	}
+    @Contract("_, _ -> this")
+    ItemBuilder name(Locale locale, Component name);
 
-	public ItemBuilder amount(final int amount) {
-		itemStack.setAmount(amount);
-		return this;
-	}
+    @Contract("_, _ -> this")
+    ItemBuilder lores(Locale locale, Iterable<Component> lore);
 
-	public ItemBuilder name(final String name) {
-		final ItemMeta meta = itemStack.getItemMeta();
-		meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-		itemStack.setItemMeta(meta);
-		return this;
-	}
+    @Contract("_, _ -> this")
+    ItemBuilder lores(Locale locale, Component... lore);
 
-	public ItemBuilder lore(final Iterable<String> lore) {
-		final ItemMeta meta = itemStack.getItemMeta();
+    @Contract("_ -> this")
+    ItemBuilder name(String name);
 
-		List<String> toSet = meta.getLore();
-		if (toSet == null) {
-			toSet = new ArrayList<>();
-		}
+    @Contract("_ -> this")
+    ItemBuilder lore(Iterable<String> lore);
 
-		for (final String string : lore) {
-			toSet.add(ChatColor.translateAlternateColorCodes('&', string));
-		}
+    @Contract("_ -> this")
+    ItemBuilder lore(String... lore);
 
-		meta.setLore(toSet);
-		itemStack.setItemMeta(meta);
-		return this;
-	}
+    @Contract("_ -> this")
+    ItemBuilder amount(int amount);
 
-	public ItemBuilder lore(final String... lore) {
-		final ItemMeta meta = itemStack.getItemMeta();
+    @Contract("_ -> this")
+    ItemBuilder unbreakable(boolean unbreakable);
 
-		List<String> toSet = meta.getLore();
-		if (toSet == null) {
-			toSet = new ArrayList<>();
-		}
+    @Contract("_ -> this")
+    ItemBuilder durability(int durability);
 
-		for (final String string : lore) {
-			toSet.add(ChatColor.translateAlternateColorCodes('&', string));
-		}
+    @Contract("_ -> this")
+    ItemBuilder data(int data);
 
-		meta.setLore(toSet);
-		itemStack.setItemMeta(meta);
-		return this;
-	}
+    @Contract("_, _ -> this")
+    ItemBuilder enchantment(XEnchantment enchantment, int level);
 
-	public ItemBuilder unbreakable(final boolean unbreakable) {
-		final ItemMeta meta = itemStack.getItemMeta();
-		meta.setUnbreakable(unbreakable);
-		itemStack.setItemMeta(meta);
-		return this;
-	}
+    @Contract("_ -> this")
+    ItemBuilder enchantment(XEnchantment enchantment);
 
-	public ItemBuilder durability(final int durability) {
-		itemStack.setDurability((short) - (durability - itemStack.getType().getMaxDurability()));
-		return this;
-	}
+    @Contract("_ -> this")
+    ItemBuilder type(XMaterial material);
 
-	public ItemBuilder data(final int data) {
-		itemStack.setDurability((short) data);
-		return this;
-	}
+    @Contract(" -> this")
+    ItemBuilder clearLore();
 
-	public ItemBuilder enchantment(final XEnchantment enchantment, final int level) {
-		Enchantment enchant = enchantment.getEnchant();
-		ConditionUtils.notNull(enchant, enchantment.name() + " doesn't seems to be supported in current version.");
+    @Contract(" -> this")
+    ItemBuilder clearEnchantments();
 
-		itemStack.addUnsafeEnchantment(enchant, level);
-		return this;
-	}
+    @Contract("_ -> this")
+    ItemBuilder color(Color color);
 
-	public ItemBuilder enchantment(final XEnchantment enchantment) {
-		Enchantment enchant = enchantment.getEnchant();
-		ConditionUtils.notNull(enchant, enchantment.name() + " doesn't seems to be supported in current version.");
+    @Contract("_ -> this")
+    ItemBuilder skull(String owner);
 
-		itemStack.addUnsafeEnchantment(enchant, 1);
-		return this;
-	}
+    @Contract("_ -> this")
+    ItemBuilder skull(Player owner);
 
-	public ItemBuilder type(final XMaterial material) {
-		itemStack.setType(material.parseMaterial());
-		return this;
-	}
+    @Contract(" -> this")
+    ItemBuilder shiny();
 
-	public ItemBuilder clearLore() {
-		final ItemMeta meta = itemStack.getItemMeta();
-		meta.setLore(Collections.emptyList());
-		itemStack.setItemMeta(meta);
-		return this;
-	}
+    @Contract("_, _ -> this")
+    @Deprecated
+    ItemBuilder tag(Object value, String... key);
 
-	public ItemBuilder clearEnchantments() {
-		for (final Enchantment e : itemStack.getEnchantments().keySet()) {
-			itemStack.removeEnchantment(e);
-		}
-		return this;
-	}
+    @Contract("_, _ -> this")
+    ItemBuilder tag(NBTKey key, Object value);
 
-	public ItemBuilder color(final Color color) {
-		if (itemStack.getType() == Material.LEATHER_BOOTS || itemStack.getType() == Material.LEATHER_CHESTPLATE || itemStack.getType() == Material.LEATHER_HELMET
-				|| itemStack.getType() == Material.LEATHER_LEGGINGS) {
-			final LeatherArmorMeta meta = (LeatherArmorMeta) itemStack.getItemMeta();
-			meta.setColor(color);
-			itemStack.setItemMeta(meta);
-			return this;
-		} else
-			throw new IllegalArgumentException("color() only applicable for leather armor!");
-	}
+    @Contract("_ -> this")
+    ItemBuilder itemFlag(ItemFlag itemFlag);
 
-	public ItemBuilder skull(String owner) {
-		if (XMaterial.PLAYER_HEAD.isSimilar(itemStack)) {
-			final ItemMeta itemMeta = itemStack.getItemMeta();
-			SkullUtils.applySkin(itemMeta, owner);
-			itemStack.setItemMeta(itemMeta);
-			return this;
-		} else {
-			throw new IllegalArgumentException("skull() only applicable for human skull item!");
-		}
-	}
+    @Contract("_ -> this")
+    ItemBuilder removeItemFlag(ItemFlag itemFlag);
 
-	public ItemBuilder skull(Player owner) {
-		if (XMaterial.PLAYER_HEAD.isSimilar(itemStack)) {
-			SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
-			SET_SKULL_WITH_PLAYER.accept(skullMeta, owner);
-			itemStack.setItemMeta(skullMeta);
-			return this;
-		} else {
-			throw new IllegalArgumentException("skull() only applicable for human skull item!");
-		}
-	}
+    @Contract("_ -> this")
+    ItemBuilder editMeta(Consumer<ItemMeta> consumer);
 
-	public ItemBuilder shiny() {
-		ItemMeta meta = this.itemStack.getItemMeta();
+    @Contract("_, _ -> this")
+    <T extends ItemMeta> ItemBuilder editMeta(Class<T> metaClass, Consumer<T> consumer);
 
-		meta.addEnchant(Enchantment.PROTECTION_FIRE, 1, false);
-		meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-		return this;
-	}
+    @Contract("_ -> this")
+    ItemBuilder editItemStack(Consumer<ItemStack> consumer);
 
-	@Deprecated
-	public ItemBuilder tag(Object value, String... key) {
-		return tag(NBTKey.create(key), value);
-	}
+    @Contract("_ -> this")
+    ItemBuilder transformMeta(Function<ItemMeta, ItemMeta> function);
 
-	public ItemBuilder tag(NBTKey key, Object value) {
-		this.itemStack = NBTModifier.get().setTag(this.itemStack, key, value);
-		return this;
-	}
+    @Contract("_, _ -> this")
+    <T extends ItemMeta> ItemBuilder transformMeta(Class<T> metaClass, Function<T, T> function);
 
-	public ItemBuilder itemFlag(ItemFlag itemFlag) {
-		ItemMeta im = itemStack.getItemMeta();
-		im.addItemFlags(itemFlag);
-		itemStack.setItemMeta(im);
-		return this;
-	}
+    @Contract("_ -> this")
+    ItemBuilder transformItemStack(Function<ItemStack, ItemStack> function);
 
-	public ItemBuilder removeItemFlag(ItemFlag itemFlag) {
-		ItemMeta im = itemStack.getItemMeta();
-		if (im.hasItemFlag(itemFlag)) {
-			im.removeItemFlags(itemFlag);
-		}
-		itemStack.setItemMeta(im);
-		return this;
-	}
+    @Contract(" -> new")
+    ItemStack build();
 
-	@Override
-	public ItemBuilder clone() {
-		return new ItemBuilder(this.itemStack.clone());
-	}
+    Material getType();
 
-	public ItemStack build() {
-		return itemStack;
-	}
-
-	public Material getType() {
-		return this.itemStack.getType();
-	}
-
+    ItemBuilder clone();
 }

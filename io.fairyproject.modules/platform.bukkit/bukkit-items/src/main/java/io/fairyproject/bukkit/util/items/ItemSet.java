@@ -22,14 +22,21 @@
  * SOFTWARE.
  */
 
+
 package io.fairyproject.bukkit.util.items;
 
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.protocol.MCVersion;
 import lombok.Getter;
-import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-public class ItemSet {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class ItemSet implements Cloneable {
 
     private static final int CONTENT_SIZE = 36;
 
@@ -49,7 +56,7 @@ public class ItemSet {
         return new ItemSetBuilder.Armor();
     }
 
-    public static ItemSetBuilder builderPlayerInventory() {
+    public static ItemSetBuilder.PlayerInventory builderPlayerInventory() {
         return new ItemSetBuilder.PlayerInventory();
     }
 
@@ -57,11 +64,20 @@ public class ItemSet {
         if (t == null) {
             return null;
         }
-        if (t instanceof ItemStack) {
-            return new SlotItemStack((ItemStack) t);
+        if (t instanceof Slot) {
+            return (Slot) t;
         }
-        if (t instanceof ImanityItem) {
-            return new SlotImanityItem((ImanityItem) t);
+        if (t instanceof ItemStack) {
+            ItemStack itemStack = (ItemStack) t;
+            // if it was fairy item, we convert the slot to fairy item slot with an amount
+            FairyItem fairyItem = FairyItemRef.get(itemStack);
+            if (fairyItem != null)
+                return new FairyItemSlot(fairyItem, itemStack.getAmount(), itemStack.getDurability());
+
+            return new ItemStackSlot(itemStack);
+        }
+        if (t instanceof FairyItem) {
+            return new FairyItemSlot((FairyItem) t, 1, (short) 0);
         }
         throw new UnsupportedOperationException();
     }
@@ -73,6 +89,17 @@ public class ItemSet {
         this.slots = new Slot[slotCount];
     }
 
+    @Override
+    public ItemSet clone() {
+        ItemSet itemSet = new ItemSet(this.slots.length);
+        for (int i = 0; i < this.slots.length; i++) {
+            if (this.slots[i] != null)
+                itemSet.slots[i] = this.slots[i].clone();
+        }
+
+        return itemSet;
+    }
+
     public int getSlotCount() {
         return this.slots.length;
     }
@@ -82,7 +109,10 @@ public class ItemSet {
     }
 
     public ItemStack getItem(int index, Player viewer) {
-        return this.getSlot(index).getItem(viewer);
+        Slot slot = this.getSlot(index);
+        if (slot == null)
+            return null;
+        return slot.getItem(viewer);
     }
 
     public void setSlot(int index, Object t) {
@@ -106,15 +136,18 @@ public class ItemSet {
         player.updateInventory();
     }
 
-    public interface Slot {
+    public interface Slot extends Cloneable {
         ItemStack getItem(Player player);
+
+        Slot clone();
     }
 
     @Getter
-    public static class SlotItemStack implements Slot {
+    public static class ItemStackSlot implements Slot {
 
         private final ItemStack itemStack;
-        public SlotItemStack(ItemStack itemStack) {
+
+        public ItemStackSlot(ItemStack itemStack) {
             this.itemStack = itemStack;
         }
 
@@ -122,19 +155,37 @@ public class ItemSet {
         public ItemStack getItem(Player player) {
             return this.itemStack;
         }
+
+        @Override
+        public Slot clone() {
+            return new ItemStackSlot(this.itemStack.clone());
+        }
     }
 
     @Getter
-    public static class SlotImanityItem implements Slot {
+    public static class FairyItemSlot implements Slot {
 
-        private final ImanityItem imanityItem;
-        public SlotImanityItem(ImanityItem imanityItem) {
-            this.imanityItem = imanityItem;
+        private final FairyItem fairyItem;
+        private final int amount;
+        private final int durability;
+
+        public FairyItemSlot(FairyItem fairyItem, int amount, int durability) {
+            this.fairyItem = fairyItem;
+            this.amount = amount;
+            this.durability = durability;
         }
 
         @Override
         public ItemStack getItem(Player player) {
-            return this.imanityItem.get(player);
+            return this.fairyItem.provide(MCPlayer.from(player))
+                    .amount(this.amount)
+                    .durability(this.durability)
+                    .build();
+        }
+
+        @Override
+        public Slot clone() {
+            return new FairyItemSlot(this.fairyItem, this.amount, this.durability);
         }
     }
 
@@ -143,6 +194,11 @@ public class ItemSet {
         @Override
         public ItemStack getItem(Player player) {
             return null;
+        }
+
+        @Override
+        public Slot clone() {
+            return new SlotEmpty();
         }
     }
 
@@ -165,9 +221,16 @@ public class ItemSet {
             return this;
         }
 
-        public ItemSetBuilder set(int slot, ImanityItem... item) {
+        public ItemSetBuilder set(int slot, FairyItem... item) {
             for (int i = 0; i < item.length; i++) {
                 this.itemSet.setSlot(slot + i, item[i]);
+            }
+            return this;
+        }
+
+        public ItemSetBuilder set(int slot, Slot... slots) {
+            for (int i = 0; i < slots.length; i++) {
+                this.itemSet.setSlot(slot + i, slots[i]);
             }
             return this;
         }
@@ -191,8 +254,8 @@ public class ItemSet {
                 this.set(part.getSlot(), itemStack);
             }
 
-            public void set(ArmorPart part, ImanityItem imanityItem) {
-                this.set(part.getSlot(), imanityItem);
+            public void set(ArmorPart part, FairyItem fairyItem) {
+                this.set(part.getSlot(), fairyItem);
             }
 
             @Override
@@ -207,12 +270,32 @@ public class ItemSet {
                 this.itemSet = new ItemSet.PlayerInventory();
             }
 
-            public void set(ArmorPart part, ItemStack itemStack) {
-                this.set(CONTENT_SIZE + part.getSlot(), itemStack);
+            public PlayerInventory set(ArmorPart part, ItemStack itemStack) {
+                return this.set(CONTENT_SIZE + part.getSlot(), itemStack);
             }
 
-            public void set(ArmorPart part, ImanityItem imanityItem) {
-                this.set(CONTENT_SIZE + part.getSlot(), imanityItem);
+            public PlayerInventory set(ArmorPart part, FairyItem fairyItem) {
+                return this.set(CONTENT_SIZE + part.getSlot(), fairyItem);
+            }
+
+            @Override
+            public PlayerInventory set(int slot, ItemStack... item) {
+                return (PlayerInventory) super.set(slot, item);
+            }
+
+            @Override
+            public PlayerInventory set(int slot, FairyItem... item) {
+                return (PlayerInventory) super.set(slot, item);
+            }
+
+            @Override
+            public ItemSetBuilder.PlayerInventory set(int slot, Slot... slots) {
+                return (PlayerInventory) super.set(slot, slots);
+            }
+
+            @Override
+            public PlayerInventory setEmpty(int slot) {
+                return (PlayerInventory) super.setEmpty(slot);
             }
 
             @Override
@@ -256,16 +339,30 @@ public class ItemSet {
             player.getInventory().setArmorContents(itemStacks);
             player.updateInventory();
         }
+
+        @Override
+        public ItemSet.Armors clone() {
+            Armors armors = new Armors();
+            for (int i = 0; i < this.getSlotCount(); i++) {
+                Slot slot = this.getSlot(i);
+                if (slot != null) {
+                    armors.setSlot(i, slot.clone());
+                }
+            }
+            return armors;
+        }
     }
 
     public static class PlayerInventory extends ItemSet {
 
         @Getter
         private final Armors armors;
+        private Slot offhand;
 
         public PlayerInventory() {
             super(CONTENT_SIZE);
             this.armors = new Armors();
+            this.offhand = new SlotEmpty();
         }
 
         @Override
@@ -275,11 +372,18 @@ public class ItemSet {
 
         @Override
         public Slot[] getSlots() {
-            return ArrayUtils.addAll(super.getSlots(), this.armors.getSlots());
+            List<Slot> slots = new ArrayList<>();
+            slots.addAll(Arrays.asList(super.getSlots()));
+            slots.addAll(Arrays.asList(this.armors.getSlots()));
+            slots.add(this.offhand);
+            return slots.toArray(new Slot[0]);
         }
 
         @Override
         public Slot getSlot(int index) {
+            if (index >= CONTENT_SIZE + 4) {
+                return this.getOffhand();
+            }
             if (index >= CONTENT_SIZE) {
                 return this.armors.getSlot(index - CONTENT_SIZE);
             }
@@ -288,8 +392,13 @@ public class ItemSet {
 
         @Override
         public void setSlot(int index, Object t) {
+            if (index >= CONTENT_SIZE + this.armors.getSlotCount()) {
+                this.setOffhand(t);
+                return;
+            }
             if (index >= CONTENT_SIZE) {
                 this.armors.setSlot(index - CONTENT_SIZE, t);
+                return;
             }
             super.setSlot(index, t);
         }
@@ -302,9 +411,21 @@ public class ItemSet {
             this.armors.setSlot(part.getSlot(), t);
         }
 
+        public Slot getOffhand() {
+            return this.offhand;
+        }
+
+        public void setOffhand(Slot slot) {
+            this.offhand = slot;
+        }
+
+        public void setOffhand(Object t) {
+            this.offhand = ItemSet.createSlotBy(t);
+        }
+
         @Override
         public ItemStack[] toItems(Player player) {
-            ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 40)];
+            ItemStack[] itemStacks = new ItemStack[Math.max(this.getSlotCount(), 36 + 4 + 1)]; // 36 = player inventory, 4 = armor, 1 = offhand
             for (int i = 0; i < itemStacks.length; i++) {
                 final Slot slot = this.getSlot(i);
                 if (slot != null) {
@@ -319,6 +440,32 @@ public class ItemSet {
             ItemStack[] itemStacks = super.toItems(player);
             player.getInventory().setContents(itemStacks);
             this.armors.apply(player);
+            // offhand support
+            if (this.offhand != null && MCServer.current().getVersion().isOrAbove(MCVersion.V1_9)) {
+                player.getInventory().setItemInOffHand(this.offhand.getItem(player));
+            }
+        }
+
+        @Override
+        public ItemSet.PlayerInventory clone() {
+            ItemSet.PlayerInventory playerInventory = new PlayerInventory();
+            for (int i = 0; i < this.getSlotCount(); i++) {
+                Slot slot = this.getSlot(i);
+                if (slot != null) {
+                    playerInventory.setSlot(i, slot.clone());
+                }
+            }
+            for (int i = 0; i < this.armors.getSlotCount(); i++) {
+                Slot slot = this.armors.getSlot(i);
+                if (slot != null) {
+                    playerInventory.setSlot(CONTENT_SIZE + i, slot.clone());
+                }
+            }
+            if (offhand != null) {
+                playerInventory.setOffhand(offhand.clone());
+            }
+
+            return playerInventory;
         }
     }
 

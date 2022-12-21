@@ -30,8 +30,10 @@ import com.google.common.cache.LoadingCache;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import io.fairyproject.bukkit.reflection.wrapper.ClassWrapper;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -39,16 +41,16 @@ import java.util.concurrent.TimeUnit;
  */
 public class ClassResolver extends ResolverAbstract<Class> {
 
-	private static final LoadingCache<String, Class<?>> CLASS_CACHE = CacheBuilder
+	private static final LoadingCache<String, Optional<Class<?>>> CLASS_CACHE = CacheBuilder
 			.newBuilder()
 			.expireAfterAccess(1L, TimeUnit.MINUTES)
-			.build(new CacheLoader<String, Class<?>>() {
+			.build(new CacheLoader<String, Optional<Class<?>>>() {
 				@Override
-				public @Nullable Class<?> load(@NonNull String s) {
+				public @NotNull Optional<Class<?>> load(@NonNull String s) {
 					try {
-						return Class.forName(s);
+						return Optional.of(Class.forName(s));
 					} catch (ClassNotFoundException ex) {
-						return null;
+						return Optional.empty();
 					}
 				}
 			});
@@ -58,7 +60,7 @@ public class ClassResolver extends ResolverAbstract<Class> {
 	}
 
 	public void cache(String name, Class<?> type) {
-		CLASS_CACHE.put(name, type);
+		CLASS_CACHE.put(name, Optional.of(type));
 	}
 
 	public Class resolveSilent(String... names) {
@@ -94,10 +96,10 @@ public class ClassResolver extends ResolverAbstract<Class> {
 
 	@Override
 	protected Class resolveObject(ResolverQuery query) throws ReflectiveOperationException {
-		Class<?> result = ThrowingSupplier.unchecked(() -> CLASS_CACHE.get(query.getName())).get();
+		Class<?> result = ThrowingSupplier.sneaky(() -> CLASS_CACHE.get(query.getName())).get().orElse(null);
 
 		if (result == null) {
-			throw new ClassNotFoundException();
+			throw new ClassNotFoundException(query.toString());
 		}
 
 		return result;

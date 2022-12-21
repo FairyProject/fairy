@@ -29,7 +29,7 @@ import io.fairyproject.util.CC;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LegacyClientUtil {
+public class EntryNameUtil {
 
     private static final String[] TAB_ENTRIES;
     private static final String[] TEAM_NAMES;

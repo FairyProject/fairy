@@ -197,9 +197,10 @@ public class HologramImpl implements Hologram {
         synchronized (this) {
             if (!this.spawned)
                 return;
+            this.viewers.keySet().forEach(this::removeViewer);
             this.spawned = false;
         }
-        this.viewers.keySet().forEach(this::removeViewer);
+
         this.viewers.clear();
         if (this.eventNode != null) {
             this.world.getEventNode().removeChild(this.eventNode);
@@ -452,25 +453,39 @@ public class HologramImpl implements Hologram {
         }
 
         private List<EntityData> createEntityData(MCPlayer player) {
-            EntityData displayName;
-            if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_13)) {
-                displayName = new EntityData(2, EntityDataTypes.COMPONENT, this.line.render(player));
+            List<EntityData> entityDataList = new ArrayList<>();
+
+            // entity data bit mask
+            entityDataList.add(new EntityData(0, EntityDataTypes.BYTE, (byte) 0x20));
+
+            // custom name
+            MCVersion version = MCServer.current().getVersion();
+            if (version.isOrAbove(MCVersion.V1_13)) {
+                entityDataList.add(new EntityData(2, EntityDataTypes.OPTIONAL_COMPONENT, Optional.ofNullable(this.line.render(player))));
             } else {
-                displayName = new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale()));
+                entityDataList.add(new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale())));
             }
 
-            return Arrays.asList(
-                    new EntityData(0, EntityDataTypes.BYTE, (byte)32),
-                    new EntityData(1, EntityDataTypes.SHORT, (short)300),
-                    displayName,
-                    new EntityData(3, EntityDataTypes.BYTE, (byte)1),
-                    new EntityData(4, EntityDataTypes.BYTE, (byte)1),
-                    new EntityData(6, EntityDataTypes.FLOAT, 20.0f),
-                    new EntityData(7, EntityDataTypes.INT, 0),
-                    new EntityData(8, EntityDataTypes.BYTE, (byte)0),
-                    new EntityData(9, EntityDataTypes.BYTE, (byte)0),
-                    new EntityData(10, EntityDataTypes.BYTE, (byte)1)
-            );
+            // always show name tag
+            if (version.isOrAbove(MCVersion.V1_9)) {
+                entityDataList.add(new EntityData(3, EntityDataTypes.BOOLEAN, true));
+            } else {
+                entityDataList.add(new EntityData(3, EntityDataTypes.BYTE, (byte) 1));
+            }
+
+            // armorstand status bit mask
+            if (version.isOrAbove(MCVersion.V1_17))
+                entityDataList.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x11));
+            else if (version.isOrAbove(MCVersion.V1_15))
+                entityDataList.add(new EntityData(14, EntityDataTypes.BYTE, (byte) 0x11));
+            else if (version.isOrAbove(MCVersion.V1_14))
+                entityDataList.add(new EntityData(13, EntityDataTypes.BYTE, (byte) 0x11));
+            else if (version.isOrAbove(MCVersion.V1_10))
+                entityDataList.add(new EntityData(11, EntityDataTypes.BYTE, (byte) 0x11));
+            else
+                entityDataList.add(new EntityData(10, EntityDataTypes.BYTE, (byte) 0x11));
+
+            return entityDataList;
         }
 
     }
