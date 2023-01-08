@@ -75,6 +75,7 @@ public enum OBCVersion {
 
     /// (Potentially) Upcoming versions
     v1_19_R1(false),
+    v1_19_R2(false),
 
     v1_20_R1(false);
 
