@@ -6,6 +6,7 @@ module {
 dependencies {
     compileOnly "io.netty:netty-all:" + findProperty("netty.version")
     compileOnly libs.spigot
+    compileOnly "dev.imanity.mockbukkit:MockBukkit1.16:1.0.1"
 
     implementation libs.packetevents.spigot
 }

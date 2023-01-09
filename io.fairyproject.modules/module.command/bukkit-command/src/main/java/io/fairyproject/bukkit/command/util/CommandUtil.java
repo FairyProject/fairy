@@ -1,6 +1,7 @@
 package io.fairyproject.bukkit.command.util;
 
 import com.cryptomorin.xseries.XMaterial;
+import io.fairyproject.Debug;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
@@ -59,28 +60,26 @@ public class CommandUtil {
     private Supplier<CommandMap> COMMAND_MAP_SUPPLIER;
 
     public CommandMap getCommandMap() {
+        if (Debug.UNIT_TEST)
+            return null;
+
         if (COMMAND_MAP_SUPPLIER == null) {
-//            try {
-//                Bukkit.comm();
-//                COMMAND_MAP_SUPPLIER = Bukkit::getCommandMap;
-//            } catch (NoSuchMethodError ex) {
-                try {
-                    final PluginManager pluginManager = Bukkit.getPluginManager();
+            try {
+                final PluginManager pluginManager = Bukkit.getPluginManager();
 
-                    Field field = pluginManager.getClass().getDeclaredField("commandMap");
-                    field.setAccessible(true);
+                Field field = pluginManager.getClass().getDeclaredField("commandMap");
+                field.setAccessible(true);
 
-                    COMMAND_MAP_SUPPLIER = () -> {
-                        try {
-                            return (CommandMap) field.get(pluginManager);
-                        } catch (IllegalAccessException e) {
-                            throw new IllegalStateException(e);
-                        }
-                    };
-                } catch (NoSuchFieldException e) {
-                    throw new IllegalStateException(e);
-                }
-//            }
+                COMMAND_MAP_SUPPLIER = () -> {
+                    try {
+                        return (CommandMap) field.get(pluginManager);
+                    } catch (IllegalAccessException e) {
+                        throw new IllegalStateException(e);
+                    }
+                };
+            } catch (NoSuchFieldException e) {
+                throw new IllegalStateException(e);
+            }
         }
 
         return COMMAND_MAP_SUPPLIER.get();

@@ -1,6 +1,5 @@
 package io.fairyproject.bukkit.util.items;
 
-import io.fairyproject.bukkit.util.BukkitUtil;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
 import io.fairyproject.bukkit.util.items.impl.FairyItemImpl;
 import io.fairyproject.container.Autowired;
@@ -11,7 +10,6 @@ import io.fairyproject.metadata.TransientValue;
 import io.fairyproject.util.terminable.Terminable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,15 +22,10 @@ import java.util.function.Function;
 public interface FairyItem extends Terminable {
 
     static Builder builder(@NotNull String name) {
-        Plugin plugin = BukkitUtil.getCurrentPlugin(4);
-
-        return new Builder(name)
-                .plugin(plugin);
+        return new Builder(name);
     }
 
     @NotNull String getName();
-
-    @NotNull Plugin getPlugin();
 
     @NotNull MetadataMap getMetadataMap();
 
@@ -80,18 +73,12 @@ public interface FairyItem extends Terminable {
         private static FairyItemRegistry REGISTRY;
 
         private final String name;
-        private Plugin plugin;
         private Function<MCPlayer, ItemBuilder> itemProvider;
         private final MetadataMap metadataMap = MetadataMap.create();
         private final List<ItemBehaviour> behaviours = new ArrayList<>();
 
         private Builder(@NotNull String name) {
             this.name = name;
-        }
-
-        public Builder plugin(@NotNull Plugin plugin) {
-            this.plugin = plugin;
-            return this;
         }
 
         public Builder behaviour(@NotNull ItemBehaviour behaviour) {
@@ -127,11 +114,16 @@ public interface FairyItem extends Terminable {
             return this;
         }
 
+        @Deprecated
         public FairyItem build() {
-            FairyItem fairyItem = new FairyItemImpl(this.name, this.plugin, this.metadataMap, this.behaviours, this.itemProvider);
+            FairyItem fairyItem = new FairyItemImpl(this.name, this.metadataMap, this.behaviours, this.itemProvider);
             REGISTRY.register(fairyItem);
 
             return fairyItem;
+        }
+
+        public FairyItem create() {
+            return new FairyItemImpl(this.name, this.metadataMap, this.behaviours, this.itemProvider);
         }
     }
 

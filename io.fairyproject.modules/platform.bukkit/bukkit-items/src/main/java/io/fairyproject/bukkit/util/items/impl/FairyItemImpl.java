@@ -2,15 +2,12 @@ package io.fairyproject.bukkit.util.items.impl;
 
 import io.fairyproject.bukkit.util.items.FairyItem;
 import io.fairyproject.bukkit.util.items.FairyItemRef;
-import io.fairyproject.bukkit.util.items.FairyItemRegistry;
 import io.fairyproject.bukkit.util.items.ItemBuilder;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
-import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataMap;
 import lombok.Getter;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -20,20 +17,15 @@ import java.util.function.Function;
 @Getter
 public class FairyItemImpl implements FairyItem {
 
-    @Autowired
-    private static FairyItemRegistry REGISTRY;
-
     private final String name;
-    private final Plugin plugin;
     private final MetadataMap metadataMap;
     private final List<ItemBehaviour> behaviours;
     private final Function<MCPlayer, ItemBuilder> itemProvider;
 
     private boolean closed;
 
-    public FairyItemImpl(String name, Plugin plugin, MetadataMap metadataMap, List<ItemBehaviour> behaviours, Function<MCPlayer, ItemBuilder> itemProvider) {
+    public FairyItemImpl(String name, MetadataMap metadataMap, List<ItemBehaviour> behaviours, Function<MCPlayer, ItemBuilder> itemProvider) {
         this.name = name;
-        this.plugin = plugin;
         this.metadataMap = metadataMap;
         this.behaviours = behaviours;
         this.itemProvider = itemProvider;

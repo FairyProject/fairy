@@ -8,7 +8,8 @@ import io.fairyproject.container.exception.ServiceAlreadyExistsException;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.Obj;
-import io.fairyproject.container.object.resolver.MethodContainerResolver;
+import io.fairyproject.container.object.lifecycle.impl.provider.LifeCycleHandlerConstructorProvider;
+import io.fairyproject.container.object.lifecycle.impl.provider.LifeCycleHandlerMethodProvider;
 import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.ClassGraphUtil;
 import io.fairyproject.util.SimpleTiming;
@@ -159,7 +160,7 @@ public class ContainerNodeScanner {
 
     private void loadObjClasses() {
         final ClassInfoList objClasses = this.scanResult.getClassesWithAnnotation(Obj.class);
-        objClasses.loadClasses().forEach(aClass -> this.handleLoadClass(aClass, new Class<?>[0], this.objNode));
+        objClasses.loadClasses().forEach(aClass -> this.handleLoadClass(aClass, new Class<?>[0], this.objNode, true));
     }
 
     private CompletableFuture<?> handleLifeCycle(LifeCycle lifeCycle) {
@@ -186,34 +187,12 @@ public class ContainerNodeScanner {
                     if (method.getReturnType() == void.class)
                         throw new IllegalArgumentException("The Method " + method + " has annotated @Register but no return type!");
 
-                    MethodContainerResolver resolver = new MethodContainerResolver(method, ContainerContext.get());
-                    Class<?>[] dependencies = Arrays.stream(resolver.getTypes())
-                            .map(ContainerRef::getObj)
-                            .filter(Objects::nonNull)
-                            .map(ContainerObj::type)
-                            .toArray(Class<?>[]::new);
-
-                    Class<?> objectType = resolver.returnType();
+                    Class<?> objectType = method.getReturnType();
                     if (register.as() != Void.class)
                         objectType = register.as();
 
-                    Object instance;
-                    try {
-                        instance = resolver.invoke(null, ContainerContext.get());
-                    } catch (Exception e) {
-                        SneakyThrowUtil.sneakyThrow(e);
-                        return;
-                    }
-
-                    if (ContainerRef.hasObj(objectType))
-                        throw new ServiceAlreadyExistsException(objectType);
-
-                    ContainerObj containerObj = ContainerObj.of(objectType, instance);
-                    for (Class<?> dependency : dependencies) {
-                        containerObj.addDepend(dependency, ServiceDependencyType.FORCE);
-                    }
-                    log("Found {} with type {}, Registering it as ContainerObject...", objectType, instance.getClass().getSimpleName());
-
+                    ContainerObj containerObj = this.handleLoadClass(objectType, method.getParameterTypes(), this.mainNode, false);
+                    containerObj.addLifeCycleHandler(new LifeCycleHandlerMethodProvider(ContainerContext.get(), containerObj, method));
                     this.mainNode.addObj(containerObj);
                 });
     }
@@ -224,11 +203,11 @@ public class ContainerNodeScanner {
             Service service = aClass.getDeclaredAnnotation(Service.class);
             if (service == null)
                 return;
-            this.handleLoadClass(aClass, service.depends(), this.mainNode);
+            this.handleLoadClass(aClass, service.depends(), this.mainNode, true);
         });
     }
 
-    private void handleLoadClass(Class<?> aClass, Class<?>[] depends, ContainerNode node) {
+    private ContainerObj handleLoadClass(Class<?> aClass, Class<?>[] depends, ContainerNode node, boolean constructProvider) {
         if (ContainerRef.hasObj(aClass))
             throw new ServiceAlreadyExistsException(aClass);
 
@@ -239,8 +218,12 @@ public class ContainerNodeScanner {
         ContainerContext.get()
                 .lifeCycleHandlerRegistry()
                 .handle(containerObject);
+        if (constructProvider)
+            containerObject.addLifeCycleHandler(new LifeCycleHandlerConstructorProvider(containerObject));
 
         node.addObj(containerObject);
+
+        return containerObject;
     }
 
     protected CompletableFuture<ScanResult> buildClassScanner() {

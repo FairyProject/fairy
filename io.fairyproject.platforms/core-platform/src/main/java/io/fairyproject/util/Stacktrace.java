@@ -49,7 +49,7 @@ public class Stacktrace {
     public Throwable simplifyStacktrace(Throwable throwable) {
         Throwable t = throwable;
         while (t instanceof InvocationTargetException ||
-                t instanceof RuntimeException ||
+                t.getClass() == RuntimeException.class ||
                 t instanceof ExecutionException) {
             if (t.getCause() == null) {
                 break;

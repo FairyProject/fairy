@@ -9,7 +9,6 @@ import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,7 +39,6 @@ public class FairyItemRegistry {
         ConditionUtils.is(item.isClosed(), "Item is already registered");
 
         itemByName.put(item.getName(), item);
-        itemsByPlugin.computeIfAbsent(item.getPlugin(), plugin -> new ArrayList<>()).add(item);
 
         item.init();
     }
@@ -50,10 +48,6 @@ public class FairyItemRegistry {
         ConditionUtils.not(item.isClosed(), "Item is already closed");
 
         this.itemByName.remove(item.getName());
-
-        List<FairyItem> items = this.itemsByPlugin.get(item.getPlugin());
-        if (items != null)
-            items.remove(item);
 
         item.closeAndReportException();
     }

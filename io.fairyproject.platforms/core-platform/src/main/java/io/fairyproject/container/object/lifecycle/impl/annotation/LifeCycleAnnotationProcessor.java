@@ -62,9 +62,17 @@ public abstract class LifeCycleAnnotationProcessor implements LifeCycleHandler {
         for (int i = 0; i < this.processors.length; i++) {
             processors[i] = new ArrayList<>();
         }
-        Utility.getSuperClasses(aClass).stream()
-                .flatMap(type -> Stream.of(type.getDeclaredMethods()))
-                .forEachOrdered(this::handleMethodInit);
+        for (Class<?> superClass : Utility.getSuperClasses(aClass)) {
+            try {
+                for (Method declaredMethod : superClass.getDeclaredMethods()) {
+                    this.handleMethodInit(declaredMethod);
+                }
+            } catch (Throwable throwable) {
+                IllegalStateException illegalStateException = new IllegalStateException("An error occurs while scanning class " + superClass, throwable);
+                illegalStateException.printStackTrace();
+                throw illegalStateException;
+            }
+        }
     }
 
     @Override

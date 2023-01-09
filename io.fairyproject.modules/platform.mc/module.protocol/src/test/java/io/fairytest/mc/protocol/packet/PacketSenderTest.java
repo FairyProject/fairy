@@ -8,7 +8,7 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.packet.impl.PacketPool;
 import io.fairyproject.mc.protocol.packet.impl.PacketSenderMock;
-import io.fairyproject.tests.bukkit.base.BukkitJUnitJupiterBase;
+import io.fairytest.mc.protocol.BukkitJUnitJupiterBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 

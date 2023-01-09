@@ -70,18 +70,37 @@ public class ContainerObjImpl implements ContainerObj {
         this.lifeCycle = lifeCycle;
         if (!this.lifeCycleHandlers.isEmpty()) {
             return AsyncUtils.allOf(this.lifeCycleHandlers.stream()
-                    .map(lifeCycleHandler -> lifeCycleHandler.apply(lifeCycle))
+                    .map(lifeCycleHandler -> {
+                        try {
+                            return lifeCycleHandler.apply(lifeCycle);
+                        } catch (Exception e) {
+                            return AsyncUtils.failureOf(new IllegalStateException(String.format("Failed to apply life cycle handler %s for %s",
+                                    lifeCycleHandler.getClass().getSimpleName(),
+                                    this.type
+                            ), e));
+                        }
+                    })
                     .collect(Collectors.toList())
             );
-        }
-        else
+        } else
             return AsyncUtils.empty();
     }
 
     @NotNull
     @Override
     public CompletableFuture<?> initLifeCycleHandlers() {
-        return this.threadingMode.execute(() -> this.lifeCycleHandlers.forEach(LifeCycleHandler::init));
+        return this.threadingMode.execute(() -> {
+            for (LifeCycleHandler lifeCycleHandler : this.lifeCycleHandlers) {
+                try {
+                    lifeCycleHandler.init();
+                } catch (Throwable e) {
+                    throw new IllegalStateException(String.format("Failed to initialize lifecycle handler %s for %s",
+                            lifeCycleHandler.getClass().getSimpleName(),
+                            this.type
+                    ), e);
+                }
+            }
+        });
     }
 
     @Override
