@@ -1,22 +1,24 @@
 package io.fairyproject.discord.button;
 
-import com.google.common.collect.HashMultimap;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
 import net.dv8tion.jda.api.interactions.components.ButtonInteraction;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 public class ButtonReader {
 
-    private final HashMultimap<String, BiConsumer<User, ButtonInteraction>> listening = HashMultimap.create();
+    private final Map<String, Set<BiConsumer<User, ButtonInteraction>>> listening = new ConcurrentHashMap<>();
 
     public void read(String id, BiConsumer<User, ButtonInteraction> consumer) {
-        this.listening.put(id, consumer);
+        this.listening.computeIfAbsent(id, k -> ConcurrentHashMap.newKeySet()).add(consumer);
     }
 
     public void removeAll(String id) {
-        this.listening.removeAll(id);
+        this.listening.remove(id);
     }
 
     public void handle(ButtonClickEvent event) {

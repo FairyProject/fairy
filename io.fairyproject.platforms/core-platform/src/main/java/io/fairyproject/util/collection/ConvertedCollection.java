@@ -25,12 +25,10 @@
 package io.fairyproject.util.collection;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
 
 /**
  * Represents a collection that wraps another collection by transforming the elements going in and out.
@@ -90,7 +88,18 @@ public abstract class ConvertedCollection<VInner, VOuter> extends AbstractConver
 
     @Override
     public Iterator<VOuter> iterator() {
-        return Iterators.transform(inner.iterator(), getOuterConverter());
+        Iterator<VInner> iterator = this.inner.iterator();
+        return new Iterator<VOuter>() {
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public VOuter next() {
+                return getOuterConverter().apply(iterator.next());
+            }
+        };
     }
 
     @Override
@@ -111,7 +120,7 @@ public abstract class ConvertedCollection<VInner, VOuter> extends AbstractConver
     @Override
     @SuppressWarnings("unchecked")
     public boolean retainAll(Collection<?> c) {
-        List<VInner> innerCopy = Lists.newArrayList();
+        List<VInner> innerCopy = new ArrayList<>();
 
         // Convert all the elements
         for (Object outer : c)

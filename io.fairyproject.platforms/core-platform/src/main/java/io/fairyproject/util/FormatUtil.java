@@ -25,7 +25,6 @@
 package io.fairyproject.util;
 
 import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringEscapeUtils;
 
 import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
@@ -72,7 +71,7 @@ public class FormatUtil {
     }
 
     public String getBooleanSymbol(boolean bol) {
-        return bol ? "§a" + StringEscapeUtils.unescapeJava("\u221a") : "§cX";
+        return bol ? "§a√" : "§cX";
     }
 
     public String formatTimes(long millis) {

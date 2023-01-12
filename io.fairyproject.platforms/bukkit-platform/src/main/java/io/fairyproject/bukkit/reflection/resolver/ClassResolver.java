@@ -28,11 +28,8 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import io.fairyproject.bukkit.reflection.wrapper.ClassWrapper;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -46,7 +43,7 @@ public class ClassResolver extends ResolverAbstract<Class<?>> {
 			.expireAfterAccess(1L, TimeUnit.MINUTES)
 			.build(new CacheLoader<String, Optional<Class<?>>>() {
 				@Override
-				public @NotNull Optional<Class<?>> load(@NonNull String s) {
+				public @NotNull Optional<Class<?>> load(@NotNull String s) {
 					try {
 						return Optional.of(Class.forName(s));
 					} catch (ClassNotFoundException ex) {

@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.mc.operator;
 
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCGameProfile;

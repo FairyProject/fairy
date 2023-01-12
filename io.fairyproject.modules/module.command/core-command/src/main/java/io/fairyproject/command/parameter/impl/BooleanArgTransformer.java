@@ -24,32 +24,30 @@
 
 package io.fairyproject.command.parameter.impl;
 
-import com.google.common.collect.ImmutableMap;
 import io.fairyproject.command.CommandContext;
 import io.fairyproject.command.parameter.ArgTransformer;
 import io.fairyproject.container.object.Obj;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Obj
 public class BooleanArgTransformer implements ArgTransformer<Boolean> {
 
-    private static final Map<String, Boolean> MAP;
+    private static final Map<String, Boolean> MAP = new HashMap<>();
 
     static {
-        MAP = ImmutableMap.<String, Boolean>builder()
-                .put("true", true)
-                .put("on", true)
-                .put("yes", true)
-                .put("false", false)
-                .put("off", false)
-                .put("no", false)
-        .build();
+        MAP.put("true", true);
+        MAP.put("on", true);
+        MAP.put("yes", true);
+        MAP.put("false", false);
+        MAP.put("off", false);
+        MAP.put("no", false);
     }
 
     @Override
     public Class[] type() {
-        return new Class[] {Boolean.class, boolean.class};
+        return new Class[]{Boolean.class, boolean.class};
     }
 
     public Boolean transform(CommandContext event, String source) {

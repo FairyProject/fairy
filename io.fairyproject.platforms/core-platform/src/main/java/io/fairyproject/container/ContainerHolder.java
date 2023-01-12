@@ -26,8 +26,8 @@ package io.fairyproject.container;
 
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 

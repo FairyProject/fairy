@@ -25,7 +25,6 @@
 package io.fairyproject.bukkit.visibility;
 
 import io.fairyproject.container.object.Obj;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -51,13 +50,13 @@ public class VisibilityListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onTabComplete(PlayerChatTabCompleteEvent event) {
         final String token = event.getLastToken();
-        final Collection<String> completions = (Collection<String>)event.getTabCompletions();
+        final Collection<String> completions = event.getTabCompletions();
         completions.clear();
         for (final Player target : Bukkit.getOnlinePlayers()) {
             if (!this.visibilityService.treatAsOnline(target, event.getPlayer())) {
                 continue;
             }
-            if (!StringUtils.startsWithIgnoreCase(target.getName(), token)) {
+            if (!target.getName().toLowerCase().startsWith(token.toLowerCase())) {
                 continue;
             }
             completions.add(target.getName());

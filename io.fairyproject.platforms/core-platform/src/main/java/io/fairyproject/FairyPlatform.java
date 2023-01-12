@@ -38,8 +38,8 @@ import io.github.classgraph.ClassGraph;
 import io.github.toolfactory.narcissus.Narcissus;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;

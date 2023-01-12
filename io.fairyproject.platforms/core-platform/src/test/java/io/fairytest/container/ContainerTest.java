@@ -5,14 +5,15 @@ import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.node.ContainerNodeScanner;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.tests.base.JUnitJupiterBase;
+import io.fairyproject.util.entry.Entry;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairytest.container.annotated.AnnotatedRegistration;
 import io.fairytest.container.annotated.BeanInterface;
 import io.fairytest.container.annotated.BeanInterfaceImpl;
 import io.fairytest.container.service.ServiceMock;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -43,12 +44,12 @@ public class ContainerTest extends JUnitJupiterBase {
         assertNotEquals(-1, serviceMock.getPostInitializeMs());
 
         LifeCycle[] lifeCycleOrder = Stream.of(
-                        Pair.of(LifeCycle.CONSTRUCT, serviceMock.getConstructMs()),
-                        Pair.of(LifeCycle.PRE_INITIALIZE, serviceMock.getPreInitializeMs()),
-                        Pair.of(LifeCycle.POST_INITIALIZE, serviceMock.getPostInitializeMs())
+                        new Entry<>(LifeCycle.CONSTRUCT, serviceMock.getConstructMs()),
+                        new Entry<>(LifeCycle.PRE_INITIALIZE, serviceMock.getPreInitializeMs()),
+                        new Entry<>(LifeCycle.POST_INITIALIZE, serviceMock.getPostInitializeMs())
                 )
-                .sorted(java.util.Map.Entry.comparingByValue())
-                .map(Pair::getKey)
+                .sorted(Comparator.comparing(Entry::getValue))
+                .map(Entry::getKey)
                 .toArray(LifeCycle[]::new);
 
         assertArrayEquals(new LifeCycle[]{

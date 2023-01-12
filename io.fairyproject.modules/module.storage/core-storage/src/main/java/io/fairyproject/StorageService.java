@@ -28,22 +28,22 @@ import io.fairyproject.config.GlobalStorageConfiguration;
 import io.fairyproject.config.StorageConfiguration;
 import io.fairyproject.container.*;
 import io.fairyproject.container.collection.ContainerObjCollector;
-import io.fairyproject.jackson.JacksonService;
 import io.fairyproject.providers.inmemory.InMemoryRepositoryProvider;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@ServiceDependency({GlobalStorageConfiguration.class, SerializerFactory.class, JacksonService.class})
+@ServiceDependency({GlobalStorageConfiguration.class, SerializerFactory.class})
+@RequiredArgsConstructor
 public class StorageService {
 
-    @Autowired
-    private GlobalStorageConfiguration globalStorageConfiguration;
+    private final GlobalStorageConfiguration globalStorageConfiguration;
 
     private final Map<String, RepositoryProvider> repositoryProviders = new ConcurrentHashMap<>();
 

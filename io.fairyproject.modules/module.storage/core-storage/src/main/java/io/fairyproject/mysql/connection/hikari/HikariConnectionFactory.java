@@ -24,7 +24,6 @@
 
 package io.fairyproject.mysql.connection.hikari;
 
-import com.google.common.collect.ImmutableList;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import io.fairyproject.log.Log;
@@ -36,6 +35,7 @@ import io.fairyproject.mysql.pojo.statement.StandardSqlStatementBuilder;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -101,7 +101,7 @@ public abstract class HikariConnectionFactory extends AbstractConnectionFactory 
     }
 
     private static void handleLinkageError(LinkageError linkageError) {
-        List<String> noteworthyClasses = ImmutableList.of(
+        List<String> noteworthyClasses = Arrays.asList(
                 "org.slf4j.LoggerFactory",
                 "org.slf4j.ILoggerFactory",
                 "org.apache.logging.slf4j.Log4jLoggerFactory",

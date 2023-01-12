@@ -1,7 +1,6 @@
 package io.fairyproject.command.util;
 
 import lombok.experimental.UtilityClass;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -13,7 +12,7 @@ public class CoreCommandUtil {
     public List<String> filterTabComplete(String arg, List<String> commands) {
         return commands.stream()
                 .distinct()
-                .filter(cmd -> cmd != null && (arg.isEmpty() || StringUtils.startsWithIgnoreCase(cmd, arg)))
+                .filter(cmd -> cmd != null && (arg.isEmpty() || cmd.toLowerCase().startsWith(arg.toLowerCase())))
                 .collect(Collectors.toList());
     }
 

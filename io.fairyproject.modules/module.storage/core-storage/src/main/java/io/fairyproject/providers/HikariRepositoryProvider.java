@@ -24,9 +24,9 @@
 
 package io.fairyproject.providers;
 
-import com.google.common.collect.ImmutableMap;
 import io.fairyproject.RepositoryType;
 import io.fairyproject.mysql.config.hikari.AbstractHikariRepositoryProvider;
+import io.fairyproject.util.collection.MapBuilder;
 
 import java.util.Map;
 
@@ -65,13 +65,13 @@ public class HikariRepositoryProvider extends AbstractHikariRepositoryProvider {
 
     @Override
     public Map<String, String> getDefaultOptions() {
-        return ImmutableMap.of(
-                "address", "localhost",
-                "port", "3306",
-                "database", "database",
-                "username", "user",
-                "password", "password"
-        );
+        return MapBuilder.<String, String>create()
+                .put("address", "localhost")
+                .put("port", "3306")
+                .put("database", "database")
+                .put("username", "user")
+                .put("password", "password")
+                .build();
     }
 
     @Override

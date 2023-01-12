@@ -1,5 +1,4 @@
 [versions]
-jackson = "2.11.2"
 hikari = "3.4.5"
 guava = "30.0-jre"
 gson = "2.8.6"
@@ -19,12 +18,6 @@ adventure = "4.11.0"
 adventure-platform = "4.1.2"
 
 [libraries]
-# Jackson
-jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jackson" }
-jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jackson" }
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jackson" }
-jackson-datatype-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version.ref = "jackson" }
-
 spigot = { module = "org.spigotmc:spigot-api", version.ref = "bukkit-api" }
 paper = { module = "com.destroystokyo.paper:paper-api", version.ref = "bukkit-api" }
 
@@ -60,7 +53,6 @@ adventure-platform-bukkit = { module = "net.kyori:adventure-platform-bukkit", ve
 adventure-platform-text-serializer-bungee = { module = "net.kyori:adventure-text-serializer-bungeecord", version.ref = "adventure-platform" }
 
 [bundles]
-jackson = ["jackson-core", "jackson-databind", "jackson-annotations", "jackson-datatype-jsr310"]
 asm = ["asm-core", "asm-commons"]
 adventure = ["adventure-api", "adventure-text-serializer-gson", "adventure-text-serializer-legacy", "adventure-nbt", "adventure-text-minimessage", "adventure-text-serializer-gson-legacy-impl", "adventure-text-serializer-plain"]
 

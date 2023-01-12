@@ -24,8 +24,8 @@
 
 package io.fairyproject.util.terminable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * An extension of {@link AutoCloseable}.
@@ -82,7 +82,7 @@ public interface Terminable extends AutoCloseable {
      *
      * @param consumer the terminable consumer
      */
-    default void bindWith(@Nonnull TerminableConsumer consumer) {
+    default void bindWith(@NotNull TerminableConsumer consumer) {
         consumer.bind(this);
     }
 

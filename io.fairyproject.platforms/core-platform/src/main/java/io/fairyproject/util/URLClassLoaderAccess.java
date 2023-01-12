@@ -5,7 +5,6 @@ import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.github.toolfactory.narcissus.Narcissus;
 import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -52,9 +51,9 @@ public abstract class URLClassLoaderAccess {
      *
      * @param url the URL to add
      */
-    public abstract void addURL(@Nonnull URL url);
+    public abstract void addURL(@NotNull URL url);
 
-    public void addPath(@Nonnull Path path) {
+    public void addPath(@NotNull Path path) {
         ThrowingRunnable.sneaky(() -> this.addURL(path.toUri().toURL())).run();
     }
 
@@ -84,7 +83,7 @@ public abstract class URLClassLoaderAccess {
         }
 
         @Override
-        public void addURL(@Nonnull URL url) {
+        public void addURL(@NotNull URL url) {
             try {
                 ADD_URL_METHOD.invoke(super.classLoader, url);
             } catch (ReflectiveOperationException e) {
@@ -183,7 +182,7 @@ public abstract class URLClassLoaderAccess {
         }
 
         @Override
-        public void addURL(@Nonnull URL url) {
+        public void addURL(@NotNull URL url) {
             this.unopenedURLs.add(url);
             this.pathURLs.add(url);
         }
@@ -197,7 +196,7 @@ public abstract class URLClassLoaderAccess {
         }
 
         @Override
-        public void addURL(@Nonnull URL url) {
+        public void addURL(@NotNull URL url) {
             throw new UnsupportedOperationException();
         }
     }

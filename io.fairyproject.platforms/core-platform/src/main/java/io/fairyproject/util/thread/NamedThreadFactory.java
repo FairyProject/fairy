@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,37 +22,30 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.redis.subscription;
+package io.fairyproject.util.thread;
 
-import io.fairyproject.redis.RedisService;
-import lombok.Getter;
-import org.redisson.api.RTopic;
+import lombok.Builder;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
+import java.util.concurrent.ThreadFactory;
 
-@Getter
-public class RedisPubSub<T> {
+@RequiredArgsConstructor
+@Builder
+public class NamedThreadFactory implements ThreadFactory {
 
     private final String name;
-    private final RTopic topic;
-    private final Class<T> type;
+    private final boolean daemon;
+    private final Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+    private final int priority = Thread.NORM_PRIORITY;
 
-    public RedisPubSub(String name, RedisService redis, Class<T> type) {
-        this.name = name;
-        this.topic = redis.getClient().getTopic(name);
-        this.type = type;
-    }
-
-    public void subscribe(Consumer<T> subscription) {
-        this.topic.addListenerAsync(this.type, (channel, message) -> subscription.accept(message));
-    }
-
-    public void publish(Object payload) {
-        this.topic.publishAsync(payload);
-    }
-
-    public void disable() {
-        this.topic.removeAllListeners();
+    @Override
+    public Thread newThread(@NotNull Runnable r) {
+        Thread thread = new Thread(r, this.name);
+        thread.setDaemon(this.daemon);
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
+        thread.setPriority(this.priority);
+        return thread;
     }
 
 }

@@ -1,13 +1,11 @@
 package io.fairyproject.bukkit.mc;
 
 import io.fairyproject.Debug;
-import io.fairyproject.bukkit.mc.entity.BukkitEntityIDCounter;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.version.BukkitVersionDecoder;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.entity.EntityIDCounter;
 import io.fairyproject.mc.version.MCVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;

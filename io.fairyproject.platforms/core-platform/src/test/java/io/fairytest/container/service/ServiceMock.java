@@ -1,7 +1,6 @@
 package io.fairytest.container.service;
 
 import io.fairyproject.container.*;
-import io.fairyproject.jackson.JacksonService;
 import lombok.Getter;
 
 @Service
@@ -10,9 +9,6 @@ public class ServiceMock {
 
     @Autowired
     public static ServiceMock STATIC_WIRED;
-
-    @Autowired
-    public JacksonService jacksonService;
 
     public ContainerContext containerContext;
 

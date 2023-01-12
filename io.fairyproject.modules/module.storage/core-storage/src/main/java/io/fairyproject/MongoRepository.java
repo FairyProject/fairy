@@ -29,8 +29,6 @@ import com.mongodb.client.model.Filters;
 import io.fairyproject.mongo.AbstractMongoRepositoryProvider;
 import lombok.Getter;
 import org.bson.BsonDocument;
-import io.fairyproject.container.Autowired;
-import io.fairyproject.jackson.JacksonService;
 import org.mongojack.JacksonMongoCollection;
 import org.mongojack.internal.MongoJackModule;
 
@@ -41,9 +39,6 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 public class MongoRepository<T, I extends Serializable> extends AbstractRepository<T, I, AbstractMongoRepositoryProvider> {
-
-    @Autowired
-    private static JacksonService JACKSON_SERVICE;
 
     @Getter
     protected JacksonMongoCollection<T> collection;
@@ -72,7 +67,9 @@ public class MongoRepository<T, I extends Serializable> extends AbstractReposito
     }
 
     public ObjectMapper objectMapper() {
-        return JACKSON_SERVICE.getOrCreateJacksonMapper("mongo", MongoJackModule::configure);
+        ObjectMapper objectMapper = new ObjectMapper();
+        MongoJackModule.configure(objectMapper);
+        return objectMapper;
     }
 
     @Override

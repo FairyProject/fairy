@@ -33,7 +33,7 @@ import com.google.common.collect.Table;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.util.CoordXZ;
 import io.fairyproject.bukkit.util.CoordinatePair;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;

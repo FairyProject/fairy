@@ -6,8 +6,8 @@ import io.fairyproject.mc.MCPlayer;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 
 @UtilityClass
 public class TimedItemBehaviours {
@@ -17,7 +17,7 @@ public class TimedItemBehaviours {
     }
 
     public ItemBehaviour cooldown(ItemBehaviour behaviour, long defaultCooldown, @Nullable Component cooldownMessage, @Nullable Component removeMessage, Plugin plugin) {
-        PlayerCooldown cooldown = new PlayerCooldown(defaultCooldown, (player, cause) -> {
+        PlayerCooldown cooldown = new PlayerCooldown(defaultCooldown, player -> {
             if (removeMessage != null) {
                 player.sendMessage(MCAdventure.asJsonString(removeMessage, MCPlayer.from(player).getLocale()));
             }

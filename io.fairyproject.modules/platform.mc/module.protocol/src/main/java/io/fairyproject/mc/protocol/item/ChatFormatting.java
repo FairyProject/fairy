@@ -1,6 +1,8 @@
 package io.fairyproject.mc.protocol.item;
 
 import com.google.common.collect.Lists;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -8,7 +10,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 
 public enum ChatFormatting {
     BLACK("BLACK", '0', 0, 0),

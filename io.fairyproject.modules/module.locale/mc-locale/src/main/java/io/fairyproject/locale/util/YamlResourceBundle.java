@@ -1,9 +1,8 @@
 package io.fairyproject.locale.util;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
+import io.fairyproject.util.ConditionUtils;
+import io.fairyproject.util.entry.Entry;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 import org.yaml.snakeyaml.Yaml;
 
@@ -31,13 +30,13 @@ public class YamlResourceBundle extends ResourceBundle {
     public YamlResourceBundle(InputStream inputStream) {
         this.entries = StreamSupport.stream(new Yaml().loadAll(inputStream).spliterator(), false)
                 .flatMap(this::parseDoc)
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
     public YamlResourceBundle(Reader reader) {
         this.entries = StreamSupport.stream(new Yaml().loadAll(reader).spliterator(), false)
                 .flatMap(this::parseDoc)
-                .collect(Collectors.toMap(Pair::getKey, Pair::getValue));
+                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
     public static class Control extends ResourceBundle.Control {
@@ -46,12 +45,12 @@ public class YamlResourceBundle extends ResourceBundle {
 
         @Override
         public List<String> getFormats(String baseName) {
-            return ImmutableList.of("yaml", "yml");
+            return Arrays.asList("yaml", "yml");
         }
 
         @Override
         public ResourceBundle newBundle(String baseName, Locale locale, String format, ClassLoader loader, boolean reload) throws IllegalAccessException, InstantiationException, IOException {
-            Preconditions.checkArgument(getFormats(baseName).contains(format));
+            ConditionUtils.is(getFormats(baseName).contains(format), "Unsupported format: " + format);
             final String bundleName = toBundleName(baseName, locale);
             final String resourceName = toResourceName(bundleName, format);
             final URL resource = loader.getResource(resourceName);
@@ -62,26 +61,26 @@ public class YamlResourceBundle extends ResourceBundle {
         }
     }
 
-    private Stream<Pair<String, Object>> parseDoc(Object obj) {
-        Preconditions.checkArgument(obj instanceof Map);
+    private Stream<Entry<String, Object>> parseDoc(Object obj) {
+        ConditionUtils.is(obj instanceof Map, "obj instanceof Map");
         return ((Map<?, ?>) obj).entrySet().stream()
                 .flatMap(entry -> parseNode(entry.getKey().toString(), entry.getValue(), Collections.emptyList()));
     }
 
-    private Stream<Pair<String, Object>> parseNode(String key, Object value, List<Object> ancestors) {
+    private Stream<Entry<String, Object>> parseNode(String key, Object value, List<Object> ancestors) {
         if (value instanceof Map) {
             return parseMapNode(key, (Map<String, Object>) value, ancestors);
         }
         if (value instanceof List) {
             List<?> list = (List<?>) value;
-            return Stream.of(Pair.of(key, list.stream()
+            return Stream.of(new Entry<>(key, list.stream()
                     .map(Object::toString)
                     .collect(Collectors.joining("\n"))));
         }
-        return Stream.of(Pair.of(key, value));
+        return Stream.of(new Entry<>(key, value));
     }
 
-    private Stream<Pair<String, Object>> parseMapNode(String key, Map<String, Object> value, List<Object> ancestors) {
+    private Stream<Entry<String, Object>> parseMapNode(String key, Map<String, Object> value, List<Object> ancestors) {
         if (ancestors.stream().anyMatch(it -> it == value)) return Stream.empty();
         final ArrayList<Object> newList = new ArrayList<>(ancestors);
         newList.add(value);
@@ -89,12 +88,12 @@ public class YamlResourceBundle extends ResourceBundle {
                 .flatMap(entry -> parseNode(key + "." + entry.getKey(), entry.getValue(), newList));
     }
 
-    private Stream<Pair<String, Object>> parseListNode(String key, List<Object> value, List<Object> ancestors) {
+    private Stream<Entry<String, Object>> parseListNode(String key, List<Object> value, List<Object> ancestors) {
         if (ancestors.stream().anyMatch(it -> it == value)) return Stream.empty();
         final ArrayList<Object> newList = new ArrayList<>(ancestors);
         newList.add(value);
 
-        Stream<Pair<String, Object>> strings;
+        Stream<Entry<String, Object>> strings;
         if (value.isEmpty()) {
             strings = Stream.empty();
         } else {
@@ -107,12 +106,12 @@ public class YamlResourceBundle extends ResourceBundle {
                     }
                     list.add((String) o);
                 }
-                strings = Stream.of(Pair.of(key, list.toArray(new Object[0])));
+                strings = Stream.of(new Entry<>(key, list.toArray(new Object[0])));
             }
         }
 
         AtomicInteger indexes = new AtomicInteger(0);
-        final Stream<Pair<String, Object>> stream = Stream.of(value.toArray(new Object[0]))
+        final Stream<Entry<String, Object>> stream = Stream.of(value.toArray(new Object[0]))
                 .flatMap(item -> {
                     return parseNode(key + "[" + indexes.getAndIncrement() + "]", item, newList);
                 });

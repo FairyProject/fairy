@@ -31,13 +31,12 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
 import io.fairyproject.util.ConditionUtils;
+import io.fairyproject.util.entry.Entry;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import net.kyori.adventure.translation.Translator;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -71,18 +70,18 @@ public class LocaleService {
     public boolean isTranslationFile(Path path) {
         final String fileName = path.getFileName().toString();
         try {
-            this.recognizeFileType(FilenameUtils.getExtension(fileName));
+            this.recognizeFileType(getFileExtension(fileName));
             return true;
         } catch (IllegalArgumentException ex) {
             return false;
         }
     }
 
-    public Pair<Locale, ResourceBundle> loadTranslationFile(Path path) {
+    public Entry<Locale, ResourceBundle> loadTranslationFile(Path path) {
         try {
             final String fileName = path.getFileName().toString();
-            LocaleFileType fileType = this.recognizeFileType(FilenameUtils.getExtension(fileName));
-            final String localeName = FilenameUtils.getName(fileName);
+            LocaleFileType fileType = this.recognizeFileType(getFileExtension(fileName));
+            final String localeName = getFileName(fileName);
             Locale locale = parseLocale(localeName);
 
             if (locale == null) {
@@ -103,7 +102,7 @@ public class LocaleService {
                 }
             }
 
-            return Pair.of(locale, resourceBundle);
+            return new Entry<>(locale, resourceBundle);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -151,6 +150,38 @@ public class LocaleService {
 
     public static @Nullable Locale parseLocale(@Nullable String locale) {
         return locale == null ? null : Translator.parseLocale(locale);
+    }
+
+    private static String getFileExtension(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        int extensionPos = fileName.lastIndexOf('.');
+        int lastUnixPos = fileName.lastIndexOf('/');
+        int lastWindowsPos = fileName.lastIndexOf('\\');
+        int lastSeparator = Math.max(lastUnixPos, lastWindowsPos);
+        int index = lastSeparator > extensionPos ? -1 : extensionPos;
+        if (index == -1) {
+            return "";
+        } else {
+            return fileName.substring(index + 1);
+        }
+    }
+
+    private static String getFileName(String fileName) {
+        if (fileName == null) {
+            return null;
+        }
+        int extensionPos = fileName.lastIndexOf('.');
+        int lastUnixPos = fileName.lastIndexOf('/');
+        int lastWindowsPos = fileName.lastIndexOf('\\');
+        int lastSeparator = Math.max(lastUnixPos, lastWindowsPos);
+        int index = lastSeparator > extensionPos ? -1 : extensionPos;
+        if (index == -1) {
+            return fileName;
+        } else {
+            return fileName.substring(0, index);
+        }
     }
 
 }

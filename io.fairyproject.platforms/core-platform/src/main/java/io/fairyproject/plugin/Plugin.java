@@ -24,9 +24,9 @@
 
 package io.fairyproject.plugin;
 
-import com.google.common.base.Preconditions;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.internal.FairyInternalIdentityMeta;
+import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -97,7 +97,7 @@ public abstract class Plugin implements TerminableConsumer, Terminable {
 
     @Override
     public void close() throws Exception {
-        Preconditions.checkNotNull(this.action, "The plugin hasn't been initialized.");
+        ConditionUtils.notNull(this.action, "The plugin hasn't been initialized.");
 
         this.action.close();
     }

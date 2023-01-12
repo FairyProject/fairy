@@ -26,7 +26,6 @@ package io.fairyproject.container;
 
 import io.fairyproject.ObjectSerializer;
 import io.fairyproject.container.collection.ContainerObjCollector;
-import io.fairyproject.jackson.JacksonService;
 import io.fairyproject.log.Log;
 import io.fairyproject.serializer.AvoidDuplicate;
 import io.fairyproject.serializer.SerializerData;
@@ -34,8 +33,8 @@ import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -46,15 +45,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * It's like a wildcard service, so you only need to register one serializer and use everywhere.
  */
 @Service
-@ServiceDependency(JacksonService.class)
 @Getter
 public class SerializerFactory {
 
     private Map<Class<?>, SerializerData> serializerByValueType;
     private Map<Class<?>, SerializerData> serializerBySerializerType;
-
-    @Autowired
-    private JacksonService jacksonService;
 
     @PreInitialize
     public void onPreInitialize() {
@@ -87,7 +82,6 @@ public class SerializerFactory {
 
         this.serializerByValueType.put(serializer.inputClass(), serializerData);
         this.serializerBySerializerType.put(serializer.getClass(), serializerData);
-        this.jacksonService.registerJacksonConfigure(new SerializerJacksonConfigure(serializer));
     }
 
     /**

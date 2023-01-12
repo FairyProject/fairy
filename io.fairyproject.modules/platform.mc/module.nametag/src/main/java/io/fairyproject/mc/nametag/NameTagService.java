@@ -25,8 +25,6 @@
 package io.fairyproject.mc.nametag;
 
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
-import com.google.common.collect.ImmutableList;
-import com.google.common.primitives.Ints;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.PreInitialize;
@@ -128,7 +126,7 @@ public class NameTagService {
 
     public void register(NameTagAdapter adapter) {
         this.nameTagAdapters.add(adapter);
-        this.nameTagAdapters.sort((o1, o2) -> Ints.compare(o2.getWeight(), o1.getWeight()));
+        this.nameTagAdapters.sort((o1, o2) -> Integer.compare(o2.getWeight(), o1.getWeight()));
     }
 
     public void unregister(NameTagAdapter adapter) {
@@ -136,7 +134,7 @@ public class NameTagService {
     }
 
     public Collection<NameTagAdapter> getNameTagAdapters() {
-        return ImmutableList.copyOf(this.nameTagAdapters);
+        return Collections.unmodifiableCollection(this.nameTagAdapters);
     }
 
     public CompletableFuture<?> updateFromThirdSide(MCPlayer target) {

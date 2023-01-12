@@ -1,12 +1,12 @@
 package io.fairyproject.locale;
 
-import com.google.common.collect.Sets;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.ServiceDependency;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.FileUtil;
+import io.fairyproject.util.entry.Entry;
 import lombok.Getter;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.translation.GlobalTranslator;
@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -28,7 +29,7 @@ public abstract class TranslationManager {
     @Autowired
     protected static LocaleService LOCALE_SERVICE;
 
-    protected final Set<Locale> installed = Sets.newConcurrentHashSet();
+    protected final Set<Locale> installed = ConcurrentHashMap.newKeySet();
     @Getter
     protected TranslationRegistry translationRegistry;
     protected boolean loaded;
@@ -79,7 +80,7 @@ public abstract class TranslationManager {
         Map<Locale, ResourceBundle> loaded = new HashMap<>();
         for (Path translationFile : translationFiles) {
             try {
-                Map.Entry<Locale, ResourceBundle> result = LOCALE_SERVICE.loadTranslationFile(translationFile);
+                Entry<Locale, ResourceBundle> result = LOCALE_SERVICE.loadTranslationFile(translationFile);
                 this.translationRegistry.registerAll(result.getKey(), result.getValue(), false);
                 this.installed.add(result.getKey());
 

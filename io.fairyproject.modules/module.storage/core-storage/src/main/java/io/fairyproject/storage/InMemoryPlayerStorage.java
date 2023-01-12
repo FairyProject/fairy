@@ -24,12 +24,9 @@
 
 package io.fairyproject.storage;
 
-import com.google.common.collect.Lists;
 import io.fairyproject.container.PostInitialize;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -66,7 +63,7 @@ public abstract class InMemoryPlayerStorage<T> implements PlayerStorage<T> {
 
     @Override
     public List<T> findAll() {
-        return Lists.newArrayList(this.storedObjects.values());
+        return new ArrayList<>(this.storedObjects.values());
     }
 
     @Override

@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class ContainerPluginListener implements PluginListenerAdapter {
         Debug.log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
 
         try {
-            List<String> classPaths = this.containerContext.findClassPaths(aClass);
+            List<String> classPaths = new ArrayList<>(this.containerContext.findClassPaths(aClass));
             classPaths.add(plugin.getDescription().getShadedPackage());
 
             ContainerNodeScanner scanner = this.containerContext.scanClasses();

@@ -24,11 +24,9 @@
 
 package io.fairyproject.config;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import io.fairyproject.Debug;
 import io.fairyproject.config.annotation.ElementType;
+import io.fairyproject.util.collection.MapBuilder;
 import lombok.Getter;
 import io.fairyproject.Fairy;
 import io.fairyproject.StorageService;
@@ -38,20 +36,20 @@ import io.fairyproject.container.Service;
 import io.fairyproject.config.yaml.YamlConfiguration;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @Getter
+@SuppressWarnings("FieldMayBeFinal")
 public class GlobalStorageConfiguration extends YamlConfiguration {
 
-    private Map<String, String> storages = Maps.newHashMap(ImmutableMap.of(
-            "locale", "default"
-    ));
+    private Map<String, String> storages = MapBuilder.<String, String>create()
+            .put("locale", "default")
+            .build();
 
     private String defaultProvider = "default";
     @ElementType(StorageConfiguration.class)
-    private List<StorageConfiguration> storageProviders = Lists.newArrayList(new StorageConfiguration());
+    private List<StorageConfiguration> storageProviders = Collections.singletonList(new StorageConfiguration());
 
     @Autowired
     private transient StorageService storageService;

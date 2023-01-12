@@ -1,11 +1,11 @@
 package io.fairytest.event;
 
-import com.google.common.collect.Lists;
 import io.fairyproject.event.Event;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.event.EventNodeImpl;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -44,8 +44,8 @@ public class EventNodeGraphTest {
             node.addChild(EventNode.all("child2").setPriority(10));
             node.addChild(EventNode.all("child1").setPriority(5));
             verifyGraph(node, new EventNodeImpl.Graph("main", "Event", 0,
-                    Lists.newArrayList(new EventNodeImpl.Graph("child1", "Event", 5, Lists.newArrayList()),
-                            new EventNodeImpl.Graph("child2", "Event", 10, Lists.newArrayList())
+                    Arrays.asList(new EventNodeImpl.Graph("child1", "Event", 5, new ArrayList<>()),
+                            new EventNodeImpl.Graph("child2", "Event", 10, new ArrayList<>())
                     )));
         }
     }

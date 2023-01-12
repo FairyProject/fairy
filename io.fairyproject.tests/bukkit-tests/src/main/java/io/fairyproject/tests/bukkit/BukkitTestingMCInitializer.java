@@ -1,8 +1,8 @@
 package io.fairyproject.tests.bukkit;
 
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
-import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManagerImpl;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
@@ -13,6 +13,11 @@ import java.util.Collection;
 import java.util.UUID;
 
 public class BukkitTestingMCInitializer extends BukkitMCInitializer {
+
+    @Override
+    public BukkitNMSManager createNMSManager() {
+        return new BukkitNMSManagerMock();
+    }
 
     @Override
     public MCPlayer.Bridge createPlayerBridge(MCVersionMappingRegistry versionMappingRegistry) {

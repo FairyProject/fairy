@@ -24,15 +24,6 @@
 
 package io.fairyproject.mc.util;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.fairyproject.Fairy;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
@@ -42,7 +33,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.io.IOException;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -53,8 +43,6 @@ import java.util.StringJoiner;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@JsonSerialize(using = Position.Serializer.class)
-@JsonDeserialize(using = Position.Deserializer.class)
 public class Position implements Cloneable {
 
 	private String world = "world";
@@ -266,30 +254,6 @@ public class Position implements Cloneable {
 				this.yaw,
 				this.pitch
 		);
-	}
-
-	public static class Serializer extends StdSerializer<Position> {
-
-		protected Serializer() {
-			super(Position.class);
-		}
-
-		@Override
-		public void serialize(Position customLocation, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
-			jsonGenerator.writeString(customLocation.toString());
-		}
-	}
-
-	public static class Deserializer extends StdDeserializer<Position> {
-
-		protected Deserializer() {
-			super(Position.class);
-		}
-
-		@Override
-		public Position deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JsonProcessingException {
-			return Position.fromString(jsonParser.getValueAsString());
-		}
 	}
 
 }

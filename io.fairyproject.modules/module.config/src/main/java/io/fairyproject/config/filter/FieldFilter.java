@@ -24,15 +24,11 @@
 
 package io.fairyproject.config.filter;
 
-import com.google.common.collect.ImmutableList;
 import io.fairyproject.config.annotation.NestedConfig;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
@@ -51,9 +47,9 @@ public interface FieldFilter extends Predicate<Field> {
         final NestedConfig annotation = cls.getAnnotation(NestedConfig.class);
         final List<Class<?>> accepted;
         if (annotation == null) {
-            accepted = ImmutableList.of();
+            accepted = Collections.emptyList();
         } else {
-            accepted = ImmutableList.copyOf(annotation.value());
+            accepted = Arrays.asList(annotation.value());
         }
 
         List<Field> fields = new ArrayList<>();

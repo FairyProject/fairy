@@ -26,9 +26,8 @@ package io.fairyproject.util.terminable.composite;
 
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a {@link Terminable} made up of several other {@link Terminable}s.
@@ -47,7 +46,7 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      *
      * @return a new {@link CompositeTerminable}
      */
-    @Nonnull
+    @NotNull
     static CompositeTerminable create() {
         return new AbstractCompositeTerminable();
     }
@@ -58,7 +57,7 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      *
      * @return a new {@link CompositeTerminable}
      */
-    @Nonnull
+    @NotNull
     static CompositeTerminable createWeak() {
         return new AbstractWeakCompositeTerminable();
     }
@@ -151,9 +150,9 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
         return this;
     }
 
-    @Nonnull
+    @NotNull
     @Override
-    default <T extends AutoCloseable> T bind(@Nonnull T terminable) {
+    default <T extends AutoCloseable> T bind(@NotNull T terminable) {
         with(terminable);
         return terminable;
     }

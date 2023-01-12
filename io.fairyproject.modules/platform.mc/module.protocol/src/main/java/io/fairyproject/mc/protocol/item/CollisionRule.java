@@ -1,8 +1,8 @@
 package io.fairyproject.mc.protocol.item;
 
 import com.google.common.collect.Maps;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Map;
 
 public enum CollisionRule {

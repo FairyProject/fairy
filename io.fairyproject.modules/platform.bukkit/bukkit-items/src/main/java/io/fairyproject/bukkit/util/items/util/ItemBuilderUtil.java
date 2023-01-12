@@ -1,7 +1,8 @@
 package io.fairyproject.bukkit.util.items.util;
 
 import com.google.common.collect.ImmutableList;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManagerImpl;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
@@ -44,7 +45,7 @@ public class ItemBuilderUtil {
             .add((skullMeta, player) -> {
                 if (GAME_PROFILE_FIELD == null) {
                     ThrowingRunnable.sneaky(() -> {
-                        BukkitNMSManager bukkitNMSManager = Containers.get(BukkitNMSManager.class);
+                        BukkitNMSManager bukkitNMSManager = Containers.get(BukkitNMSManagerImpl.class);
                         Class<?> entityHumanClass = bukkitNMSManager.getNmsClassResolver().resolve("world.entity.player.EntityHuman", "EntityHuman");
                         Class<?> craftMetaSkullClass = bukkitNMSManager.getObcClassResolver().resolve("inventory.CraftMetaSkull");
 

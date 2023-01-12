@@ -3,7 +3,7 @@ package io.fairyproject.bukkit.mc.entity;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;

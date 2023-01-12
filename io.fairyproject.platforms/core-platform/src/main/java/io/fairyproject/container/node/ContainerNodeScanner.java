@@ -1,6 +1,5 @@
 package io.fairyproject.container.node;
 
-import com.google.common.util.concurrent.ListenableFuture;
 import io.fairyproject.Debug;
 import io.fairyproject.container.*;
 import io.fairyproject.container.controller.ContainerController;
@@ -105,7 +104,7 @@ public class ContainerNodeScanner {
         BlockingThreadAwaitQueue queue = BlockingThreadAwaitQueue.create();
 
         try {
-            final CompletableFuture<?> future = this.buildClassScanner()
+            final CompletableFuture<?> future = CompletableFuture.runAsync(this::buildClassScanner, ContainerContext.get().executor)
                     .thenRun(this::loadServiceClasses)
                     .thenRun(this::loadRegister)
                     .thenRun(this::loadObjClasses)
@@ -115,7 +114,8 @@ public class ContainerNodeScanner {
                     .thenCompose(directlyCompose(this::handleController))
                     .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.PRE_INIT)), queue)
                     .thenRun(this::handleObjCollector)
-                    .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.POST_INIT)), queue);
+                    .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.POST_INIT)), queue)
+                    .thenRun(() -> this.scanResult.close());
 
             queue.await(future::isDone);
             future.get();
@@ -226,7 +226,7 @@ public class ContainerNodeScanner {
         return containerObject;
     }
 
-    protected CompletableFuture<ScanResult> buildClassScanner() {
+    protected void buildClassScanner() {
         final ClassGraph classGraph = new ClassGraph()
                 .enableAllInfo()
                 .verbose(false);
@@ -247,20 +247,11 @@ public class ContainerNodeScanner {
             classGraph.overrideClassLoaders(classLoaders.toArray(new ClassLoader[0]));
         }
 
-        CompletableFuture<ScanResult> future = new CompletableFuture<>();
-        final ListenableFuture<ScanResult> scanResultFuture = (ListenableFuture<ScanResult>) classGraph.scanAsync(ContainerContext.EXECUTOR, 4);
-        scanResultFuture.addListener(() -> {
-            try {
-                final ScanResult scanResult = scanResultFuture.get();
-                future.complete(scanResult);
-            } catch (ExecutionException | InterruptedException e) {
-                future.completeExceptionally(e);
-            }
-        }, Runnable::run);
-        return future.thenApply(result -> {
-            this.scanResult = result;
-            return this.scanResult;
-        });
+        this.scanResult = classGraph.scan(ContainerContext.get().executor(), 4);
+    }
+
+    private void onScanResult(ScanResult scanResult) {
+        this.scanResult = scanResult;
     }
 
     private <T, U> Function<T, CompletionStage<U>> directlyCompose(Supplier<CompletionStage<U>> supplier) {

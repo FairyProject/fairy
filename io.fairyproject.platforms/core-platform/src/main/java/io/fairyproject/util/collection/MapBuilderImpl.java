@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,32 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.redis.message;
+package io.fairyproject.util.collection;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.Map;
 
-import java.lang.reflect.Method;
+public class MapBuilderImpl<K, V> implements MapBuilder<K, V> {
 
-@AllArgsConstructor
-@Getter
-public class MessageListenerData {
+    private final Map<K, V> map;
 
-    private final Object instance;
-    private final Method method;
-    private final Class<?> messageClass;
+    public MapBuilderImpl(Map<K, V> map) {
+        this.map = map;
+    }
 
+    @Override
+    public MapBuilder<K, V> put(K key, V value) {
+        this.map.put(key, value);
+        return this;
+    }
+
+    @Override
+    public MapBuilder<K, V> putAll(Map<K, V> map) {
+        this.map.putAll(map);
+        return this;
+    }
+
+    @Override
+    public Map<K, V> build() {
+        return this.map;
+    }
 }

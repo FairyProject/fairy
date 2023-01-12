@@ -30,7 +30,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMu
 import com.google.common.collect.HashMultimap;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.visual.sender.impl.NewVisualData;
 import io.fairyproject.bukkit.visual.sender.impl.OldVisualData;
 import io.fairyproject.bukkit.visual.util.BlockPositionData;

@@ -23,14 +23,12 @@
  */
 
 package io.fairyproject.reflect;
-
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.gson.annotations.SerializedName;
+;
+import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import org.jetbrains.annotations.Nullable;
 import sun.misc.Unsafe;
 
 import java.lang.annotation.Annotation;
@@ -38,7 +36,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 @UtilityClass
 public class Reflect {
@@ -110,7 +108,7 @@ public class Reflect {
     }
 
     public static void setField(Object src, Field field, Object value) {
-        Preconditions.checkNotNull(field);
+        ConditionUtils.notNull(field, "field");
         try {
             MethodHandle methodHandle = lookup().unreflectSetter(field);
             if (Modifier.isStatic(field.getModifiers())) {
@@ -129,7 +127,7 @@ public class Reflect {
     }
 
     public static Object getField(Object src, Field field) {
-        Preconditions.checkNotNull(field);
+        ConditionUtils.notNull(field, "field");
         try {
             MethodHandle methodHandle = lookup().unreflectGetter(field);
             if (Modifier.isStatic(field.getModifiers())) {
@@ -149,23 +147,6 @@ public class Reflect {
 
     public static Class<?> getCallerClassNotOptional(int depth) {
         return CallerClass.impl.getCallerClass(depth);
-    }
-
-    public static String getSerializedName(Field field) {
-        return field.isAnnotationPresent(SerializedName.class) ? field.getAnnotation(SerializedName.class).value() : field.getName();
-    }
-
-    public static Optional<Field> getFieldBySerializedName(Class<?> clazz, String name) {
-        for (Field field : clazz.getDeclaredFields()) {
-            if (field.isAnnotationPresent(SerializedName.class)) {
-                if (field.getAnnotation(SerializedName.class).value().equals(name)) {
-                    return Optional.of(field);
-                } else if (field.getName().equals(name)) {
-                    return Optional.of(field);
-                }
-            }
-        }
-        return Optional.empty();
     }
 
     public static Field setAccessible(Field field) throws ReflectiveOperationException {

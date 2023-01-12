@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,25 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.redis.server.enums;
+package io.fairyproject.util.collection;
 
-public enum ServerState {
-    BOOTING,
-    RUNNING,
-    STOPPING
+import java.util.HashMap;
+import java.util.Map;
+
+public interface MapBuilder<K, V> {
+
+    static <K, V> MapBuilder<K, V> create(Map<K, V> map) {
+        return new MapBuilderImpl<>(map);
+    }
+
+    static <K, V> MapBuilder<K, V> create() {
+        return new MapBuilderImpl<>(new HashMap<>());
+    }
+
+    MapBuilder<K, V> put(K key, V value);
+
+    MapBuilder<K, V> putAll(Map<K, V> map);
+
+    Map<K, V> build();
+
 }

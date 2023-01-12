@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,21 +22,32 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.redis.server.message;
+package io.fairyproject.tests.bukkit;
 
-import io.fairyproject.redis.message.Message;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 
-@Getter
-@NoArgsConstructor
-@Message
-public class ServerAddMessage {
-
-    private String serverName;
-
-    public ServerAddMessage(String serverName) {
-        this.serverName = serverName;
+public class BukkitNMSManagerMock implements BukkitNMSManager {
+    @Override
+    public MCServer getMcServer() {
+        throw new UnsupportedOperationException();
     }
 
+    @Override
+    public MCVersionMappingRegistry getVersionMappingRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public NMSClassResolver getNmsClassResolver() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OBCClassResolver getObcClassResolver() {
+        throw new UnsupportedOperationException();
+    }
 }

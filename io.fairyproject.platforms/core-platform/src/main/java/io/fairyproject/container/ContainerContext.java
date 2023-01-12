@@ -24,9 +24,6 @@
 
 package io.fairyproject.container;
 
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.FairyPlatform;
@@ -44,14 +41,16 @@ import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.thread.executor.ListeningDecorator;
+import io.fairyproject.util.thread.NamedThreadFactory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static io.fairyproject.Debug.log;
@@ -59,12 +58,7 @@ import static io.fairyproject.Debug.log;
 @Accessors(fluent = true)
 public class ContainerContext {
     private static ContainerContext INSTANCE;
-    public static boolean SINGLE_THREADED = Runtime.getRuntime().availableProcessors() < 2 || Boolean.getBoolean("fairy.singlethreaded");
-    public static ListeningExecutorService EXECUTOR = ListeningDecorator.create(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
-            .setNameFormat("Container Thread - %d")
-            .setDaemon(true)
-            .setUncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
-            .build()));
+
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
 
     @Getter
@@ -73,9 +67,13 @@ public class ContainerContext {
             new SubscribeEventContainerController()
     ).toArray(new ContainerController[0]);
 
-    /**
-     * The global node of containers
-     */
+    @Getter
+    public final ExecutorService executor = Executors.newCachedThreadPool(NamedThreadFactory.builder()
+            .name("Container Thread - %d")
+            .daemon(true)
+            .uncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
+            .build());
+
     @Getter
     private ContainerNode node;
 
@@ -163,10 +161,10 @@ public class ContainerContext {
         ClasspathScan annotation = plugin.getAnnotation(ClasspathScan.class);
 
         if (annotation != null) {
-            return Lists.newArrayList(annotation.value());
+            return Arrays.asList(annotation.value());
         }
 
-        return Lists.newArrayList();
+        return Collections.emptyList();
     }
 
     public ContainerNodeScanner scanClasses() {

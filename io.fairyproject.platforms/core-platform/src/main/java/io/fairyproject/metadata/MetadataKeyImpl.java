@@ -24,15 +24,14 @@
 
 package io.fairyproject.metadata;
 
-import com.google.common.reflect.TypeToken;
-
 import java.util.Objects;
 
 final class MetadataKeyImpl<T> implements MetadataKey<T> {
 
     private final String id;
-    private final TypeToken<T> type;
-    MetadataKeyImpl(String id, TypeToken<T> type) {
+    private final Class<T> type;
+
+    MetadataKeyImpl(String id, Class<T> type) {
         this.id = id.toLowerCase();
         this.type = type;
     }
@@ -43,7 +42,7 @@ final class MetadataKeyImpl<T> implements MetadataKey<T> {
     }
 
     @Override
-    public TypeToken<T> getType() {
+    public Class<T> getType() {
         return this.type;
     }
 
@@ -51,7 +50,7 @@ final class MetadataKeyImpl<T> implements MetadataKey<T> {
     public T cast(Object object) throws ClassCastException {
         Objects.requireNonNull(object, "object");
         //noinspection unchecked
-        return (T) this.type.getRawType().cast(object);
+        return (T) this.type.cast(object);
     }
 
     @Override

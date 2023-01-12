@@ -1,7 +1,6 @@
 package io.fairyproject.mc;
 
-import com.google.common.collect.ImmutableMap;
-
+import java.util.HashMap;
 import java.util.Map;
 
 public enum GameMode {
@@ -52,10 +51,9 @@ public enum GameMode {
     }
 
     static {
-        final ImmutableMap.Builder<Integer, GameMode> builder = ImmutableMap.builder();
+        BY_ID = new HashMap<>();
         for (GameMode mode : values()) {
-            builder.put(mode.getValue(), mode);
+            BY_ID.put(mode.getValue(), mode);
         }
-        BY_ID = builder.build();
     }
 }

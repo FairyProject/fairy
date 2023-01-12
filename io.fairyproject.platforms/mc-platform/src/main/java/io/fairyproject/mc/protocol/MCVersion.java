@@ -26,7 +26,6 @@ package io.fairyproject.mc.protocol;
 
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import lombok.Getter;
-import org.apache.commons.lang3.ArrayUtils;
 
 @Getter
 public enum MCVersion {
@@ -84,12 +83,21 @@ public enum MCVersion {
 
     public static MCVersion getVersionFromRaw(int input) {
         for (MCVersion mcVersion : values()) {
-            if (ArrayUtils.contains(mcVersion.rawVersion, input)) {
+            if (arrayContains(mcVersion.rawVersion, input)) {
                 return mcVersion;
             }
         }
 
         return V1_8;
+    }
+
+    public static boolean arrayContains(int[] array, int value) {
+        for (int i : array) {
+            if (i == value) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

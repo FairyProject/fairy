@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,32 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.redis.message;
+package io.fairyproject.util.collection;
 
-public interface MessageListener {
+import java.util.Iterator;
+import java.util.function.Function;
+
+public class TransformedIterator<I, T> implements Iterator<T> {
+    private final Iterator<I> fromIterator;
+    private final Function<I, T> function;
+
+    public TransformedIterator(Iterator<I> fromIterator, Function<I, T> function) {
+        this.fromIterator = fromIterator;
+        this.function = function;
+    }
+
+    @Override
+    public boolean hasNext() {
+        return fromIterator.hasNext();
+    }
+
+    @Override
+    public T next() {
+        return function.apply(fromIterator.next());
+    }
+
+    @Override
+    public void remove() {
+        fromIterator.remove();
+    }
 }

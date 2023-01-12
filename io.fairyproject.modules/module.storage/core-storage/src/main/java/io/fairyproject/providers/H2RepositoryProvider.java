@@ -24,10 +24,10 @@
 
 package io.fairyproject.providers;
 
-import com.google.common.collect.ImmutableMap;
 import io.fairyproject.RepositoryType;
 import io.fairyproject.mysql.config.AbstractSqlRepositoryProvider;
 import io.fairyproject.mysql.connection.file.H2ConnectionFactory;
+import io.fairyproject.util.collection.MapBuilder;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -44,9 +44,9 @@ public class H2RepositoryProvider extends AbstractSqlRepositoryProvider {
 
     @Override
     public Map<String, String> getDefaultOptions() {
-        return ImmutableMap.of(
-                "path", "imanity-h2"
-        );
+        return MapBuilder.<String, String>create()
+                .put("path", "imanity-h2")
+                .build();
     }
 
     @Override

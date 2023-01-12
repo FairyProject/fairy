@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.reflection;
+package io.fairyproject.bukkit.nms;
 
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
@@ -33,14 +33,14 @@ import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.Getter;
 
 @Getter
-public class BukkitNMSManager {
+public class BukkitNMSManagerImpl implements BukkitNMSManager {
 
     private final MCServer mcServer;
     private final MCVersionMappingRegistry versionMappingRegistry;
     private final NMSClassResolver nmsClassResolver;
     private final OBCClassResolver obcClassResolver;
 
-    public BukkitNMSManager(MCServer mcServer, MCVersionMappingRegistry versionMappingRegistry, Class<?> serverClass) {
+    public BukkitNMSManagerImpl(MCServer mcServer, MCVersionMappingRegistry versionMappingRegistry, Class<?> serverClass) {
         String versionFormat = OBCVersionDecoder.create().decode(serverClass);
 
         this.mcServer = mcServer;

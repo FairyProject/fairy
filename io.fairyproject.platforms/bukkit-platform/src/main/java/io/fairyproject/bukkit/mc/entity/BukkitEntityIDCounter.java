@@ -24,7 +24,7 @@
 
 package io.fairyproject.bukkit.mc.entity;
 
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;

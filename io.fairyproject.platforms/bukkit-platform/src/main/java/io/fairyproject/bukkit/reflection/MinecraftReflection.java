@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.reflection;
 
 import io.fairyproject.Debug;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;

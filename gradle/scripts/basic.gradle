@@ -26,7 +26,6 @@ dependencies {
     compileOnly libs.annotations
     annotationProcessor libs.annotations
 
-    compileOnly libs.bundles.jackson
     compileOnly libs.javax.persistence.api
 
     if (project.name.contains("-")) {
@@ -46,13 +45,6 @@ dependencies {
         compileOnly project(":io.fairyproject.platforms:core-platform")
         testImplementation project(":io.fairyproject.tests:core-tests")
     }
-
-    compileOnly libs.guava
-    compileOnly libs.gson
-    compileOnly libs.yaml
-    compileOnly libs.common.lang3
-    compileOnly libs.common.io
-    compileOnly "net.md-5:bungeecord-chat:1.16-R0.3"
 
     // Test dependencies
     testImplementation libs.junit

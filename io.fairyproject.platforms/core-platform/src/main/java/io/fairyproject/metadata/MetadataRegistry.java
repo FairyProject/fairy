@@ -24,9 +24,9 @@
 
 package io.fairyproject.metadata;
 
-import com.google.common.cache.LoadingCache;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -42,8 +42,8 @@ public interface MetadataRegistry<T> {
      * @param id the object
      * @return a metadata map
      */
-    @Nonnull
-    MetadataMap provide(@Nonnull T id);
+    @NotNull
+    MetadataMap provide(@NotNull T id);
 
     /**
      * Gets a {@link MetadataMap} for the given object, if one already exists and has
@@ -52,8 +52,8 @@ public interface MetadataRegistry<T> {
      * @param id the object
      * @return a metadata map, if present
      */
-    @Nonnull
-    Optional<MetadataMap> get(@Nonnull T id);
+    @NotNull
+    Optional<MetadataMap> get(@NotNull T id);
 
     /**
      * Deletes the {@link MetadataMap} and all contained {@link MetadataKey}s for
@@ -61,13 +61,13 @@ public interface MetadataRegistry<T> {
      *
      * @param id the object
      */
-    void remove(@Nonnull T id);
+    void remove(@NotNull T id);
 
     /**
      * Performs cache maintenance to remove empty map instances and expired transient values.
      */
     void cleanup();
 
-    public LoadingCache<T, MetadataMap> cache();
+    Map<T, MetadataMap> cache();
 
 }

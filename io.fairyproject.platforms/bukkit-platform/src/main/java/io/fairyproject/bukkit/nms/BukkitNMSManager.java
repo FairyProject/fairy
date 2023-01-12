@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,14 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.jackson;
+package io.fairyproject.bukkit.nms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+public interface BukkitNMSManager {
+    io.fairyproject.mc.MCServer getMcServer();
 
-public interface JacksonConfigure {
+    io.fairyproject.mc.version.MCVersionMappingRegistry getVersionMappingRegistry();
 
-    void configure(ObjectMapper objectMapper);
+    io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver getNmsClassResolver();
 
+    io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver getObcClassResolver();
 }

@@ -24,10 +24,10 @@
 
 package io.fairyproject;
 
-import com.google.common.collect.Sets;
 
 import java.io.Serializable;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class AbstractRepositoryProvider implements RepositoryProvider {
@@ -38,7 +38,7 @@ public abstract class AbstractRepositoryProvider implements RepositoryProvider {
 
     public AbstractRepositoryProvider(String id) {
         this.id = id;
-        this.repositories = Sets.newConcurrentHashSet();
+        this.repositories = ConcurrentHashMap.newKeySet();
         this.lock = new ReentrantLock();
     }
 

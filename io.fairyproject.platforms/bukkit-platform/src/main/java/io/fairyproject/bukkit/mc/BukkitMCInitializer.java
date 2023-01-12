@@ -5,7 +5,8 @@ import io.fairyproject.bukkit.mc.entity.BukkitEntityIDCounter;
 import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
 import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperatorImpl;
 import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManagerImpl;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.container.Containers;
@@ -34,12 +35,16 @@ public class BukkitMCInitializer implements MCInitializer {
 
     @Override
     public void serverLoaded() {
-        this.nmsManager = new BukkitNMSManager(MCServer.current(), Containers.get(MCVersionMappingRegistry.class), Bukkit.getServer().getClass());
+        this.nmsManager = this.createNMSManager();
         this.playerOperator = new BukkitMCPlayerOperatorImpl(nmsManager);
         MinecraftReflection.init(nmsManager);
         this.dataWatcherConverter = new BukkitDataWatcherConverter(nmsManager);
 
         EntityIDCounter.Companion.CURRENT = new BukkitEntityIDCounter(nmsManager);
+    }
+
+    public BukkitNMSManager createNMSManager() {
+        return new BukkitNMSManagerImpl(MCServer.current(), Containers.get(MCVersionMappingRegistry.class), Bukkit.getServer().getClass());
     }
 
     @Override

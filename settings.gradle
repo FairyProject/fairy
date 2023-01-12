@@ -86,9 +86,6 @@ void initModules() {
 
     include "io.fairyproject.modules:module.storage:bukkit-storage"
     include "io.fairyproject.modules:module.storage:core-storage"
-
-    include "io.fairyproject.modules:platform.core:core-legacy"
-    include "io.fairyproject.modules:platform.core:core-jackson"
 }
 
 void includeDebug() {

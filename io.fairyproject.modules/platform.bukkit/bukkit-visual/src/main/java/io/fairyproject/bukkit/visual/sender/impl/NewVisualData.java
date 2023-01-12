@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.visual.sender.impl;
 
 import com.cryptomorin.xseries.XMaterial;
-import io.fairyproject.bukkit.reflection.BukkitNMSManager;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
 import io.fairyproject.bukkit.visual.sender.VisualData;

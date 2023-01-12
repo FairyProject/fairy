@@ -24,14 +24,12 @@
 
 package io.fairyproject.metadata;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import io.fairyproject.util.exceptionally.ThrowingSupplier;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A basic implementation of {@link MetadataRegistry} using a LoadingCache.
@@ -40,32 +38,29 @@ import java.util.Optional;
  */
 public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
 
-    private static final CacheLoader<?, MetadataMap> LOADER = new Loader<>();
+    private final Map<T, MetadataMap> cache = new ConcurrentHashMap<>();
 
-    @Nonnull
-    protected final LoadingCache<T, MetadataMap> cache = CacheBuilder.newBuilder().build(getLoader());
-
-    public LoadingCache<T, MetadataMap> cache() {
+    public Map<T, MetadataMap> cache() {
         return this.cache;
     }
 
-    @Nonnull
+    @NotNull
     @Override
-    public MetadataMap provide(@Nonnull T id) {
+    public MetadataMap provide(@NotNull T id) {
         Objects.requireNonNull(id, "id");
-        return ThrowingSupplier.sneaky(() -> this.cache.get(id)).get();
+        return this.cache.computeIfAbsent(id, k -> MetadataMap.create());
     }
 
-    @Nonnull
+    @NotNull
     @Override
-    public Optional<MetadataMap> get(@Nonnull T id) {
+    public Optional<MetadataMap> get(@NotNull T id) {
         Objects.requireNonNull(id, "id");
-        return Optional.ofNullable(this.cache.getIfPresent(id));
+        return Optional.ofNullable(this.cache.get(id));
     }
 
     @Override
-    public void remove(@Nonnull T id) {
-        MetadataMap map = this.cache.asMap().remove(id);
+    public void remove(@NotNull T id) {
+        MetadataMap map = this.cache.remove(id);
         if (map != null) {
             map.clear();
         }
@@ -74,18 +69,7 @@ public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
     @Override
     public void cleanup() {
         // MetadataMap#isEmpty also removes expired values
-        this.cache.asMap().values().removeIf(MetadataMap::isEmpty);
+        this.cache.values().removeIf(MetadataMap::isEmpty);
     }
 
-    private static <T> CacheLoader<T, MetadataMap> getLoader() {
-        //noinspection unchecked
-        return (CacheLoader) LOADER;
-    }
-
-    private static final class Loader<T> extends CacheLoader<T, MetadataMap> {
-        @Override
-        public MetadataMap load(@Nonnull T key) {
-            return MetadataMap.create();
-        }
-    }
 }

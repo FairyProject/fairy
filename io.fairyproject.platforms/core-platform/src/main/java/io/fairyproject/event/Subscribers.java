@@ -1,6 +1,6 @@
 package io.fairyproject.event;
 
-import com.google.common.base.Preconditions;
+import io.fairyproject.util.ConditionUtils;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -52,8 +52,8 @@ public class Subscribers {
     public void register(Subscriber<?> subscriber) {
         this.lock.writeLock().lock();
         try {
-            Preconditions.checkArgument(!this.subscribers.contains(subscriber), "The subscriber has already been registered.");
-            Preconditions.checkArgument(this.type.isAssignableFrom(subscriber.getType()), "The subscriber doesn't match the required event type.");
+            ConditionUtils.is(!this.subscribers.contains(subscriber), "The subscriber has already been registered.");
+            ConditionUtils.is(this.type.isAssignableFrom(subscriber.getType()), "The subscriber doesn't match the required event type.");
             this.subscribers.add(subscriber);
             this.subscribers.sort(Comparator.comparing(t -> t));
             this.removeBake();
