@@ -19,10 +19,12 @@ import java.util.UUID;
 
 public class BukkitMCEntity implements MCEntity {
 
+    private BukkitDataWatcherConverter dataWatcherConverter;
     private final Entity entity;
     private final EventNode<MCEntityEvent> eventNode;
 
-    public BukkitMCEntity(Entity entity) {
+    public BukkitMCEntity(Entity entity, BukkitDataWatcherConverter dataWatcherConverter) {
+        this.dataWatcherConverter = dataWatcherConverter;
         this.entity = entity;
         this.eventNode = GlobalEventNode.get().map(this, MCEventFilter.ENTITY);
     }
@@ -59,7 +61,7 @@ public class BukkitMCEntity implements MCEntity {
 
     @Override
     public @NotNull List<EntityData> data() {
-        return ThrowingSupplier.sneaky(() -> BukkitDataWatcherConverter.convert(this.entity)).get();
+        return ThrowingSupplier.sneaky(() -> this.dataWatcherConverter.convert(this.entity)).get();
     }
 
     @Override

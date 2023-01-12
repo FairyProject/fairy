@@ -1,8 +1,11 @@
 package io.fairyproject.tests.bukkit;
 
 import io.fairyproject.bukkit.mc.BukkitMCInitializer;
+import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
+import io.fairyproject.bukkit.reflection.BukkitNMSManager;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,8 +15,8 @@ import java.util.UUID;
 public class BukkitTestingMCInitializer extends BukkitMCInitializer {
 
     @Override
-    public MCPlayer.Bridge createPlayerBridge() {
-        final MCPlayer.Bridge playerBridge = super.createPlayerBridge();
+    public MCPlayer.Bridge createPlayerBridge(MCVersionMappingRegistry versionMappingRegistry) {
+        final MCPlayer.Bridge playerBridge = super.createPlayerBridge(versionMappingRegistry);
         return new MCPlayer.Bridge() {
             @Override
             public UUID from(@NotNull Object obj) {
@@ -28,7 +31,7 @@ public class BukkitTestingMCInitializer extends BukkitMCInitializer {
             @Override
             public MCPlayer create(Object obj) {
                 final Player player = (Player) obj;
-                return new BukkitMCPlayerMock(player.getUniqueId(), player.getName(), MCVersion.V1_8, player); // version customize?
+                return new BukkitMCPlayerMock(player.getUniqueId(), player.getName(), MCVersion.of(8), player, versionMappingRegistry); // version customize?
             }
 
             @Override

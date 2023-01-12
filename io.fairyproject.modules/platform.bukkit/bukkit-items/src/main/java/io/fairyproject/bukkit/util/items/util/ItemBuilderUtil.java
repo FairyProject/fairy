@@ -1,11 +1,11 @@
 package io.fairyproject.bukkit.util.items.util;
 
 import com.google.common.collect.ImmutableList;
+import io.fairyproject.bukkit.reflection.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
+import io.fairyproject.container.Containers;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
@@ -44,8 +44,9 @@ public class ItemBuilderUtil {
             .add((skullMeta, player) -> {
                 if (GAME_PROFILE_FIELD == null) {
                     ThrowingRunnable.sneaky(() -> {
-                        Class<?> entityHumanClass = new NMSClassResolver().resolve("world.entity.player.EntityHuman", "EntityHuman");
-                        Class<?> craftMetaSkullClass = new OBCClassResolver().resolve("inventory.CraftMetaSkull");
+                        BukkitNMSManager bukkitNMSManager = Containers.get(BukkitNMSManager.class);
+                        Class<?> entityHumanClass = bukkitNMSManager.getNmsClassResolver().resolve("world.entity.player.EntityHuman", "EntityHuman");
+                        Class<?> craftMetaSkullClass = bukkitNMSManager.getObcClassResolver().resolve("inventory.CraftMetaSkull");
 
                         final Field field = craftMetaSkullClass.getDeclaredField("profile");
                         AccessUtil.setAccessible(field);

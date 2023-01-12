@@ -7,7 +7,8 @@ import io.fairyproject.mc.MCEventFilter;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.netty.channel.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -24,6 +25,7 @@ public abstract class MCPlayerMock implements MCPlayer {
     private final String name;
     private final MCVersion version;
     private final Object originalInstance;
+    private final MCVersionMappingRegistry versionMappingRegistry;
 
     @Nullable
     private Component displayName;
@@ -100,11 +102,6 @@ public abstract class MCPlayerMock implements MCPlayer {
     @Override
     public Channel getChannel() {
         throw new UnsupportedOperationException("Not Implemented.");
-    }
-
-    @Override
-    public int getProtocolId() {
-        return this.version.getRawVersion()[0];
     }
 
     @Override

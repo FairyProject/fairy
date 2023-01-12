@@ -34,9 +34,13 @@ import io.fairyproject.container.Service;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.Subscribe;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
+import io.fairyproject.mc.nametag.update.DuoPlayerNameTagUpdate;
+import io.fairyproject.mc.nametag.update.NameTagUpdate;
+import io.fairyproject.mc.nametag.update.SinglePlayerNameTagUpdate;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.item.NameTagVisibility;
 import io.fairyproject.metadata.MetadataKey;
@@ -44,19 +48,23 @@ import io.fairyproject.task.Task;
 import io.fairyproject.util.Utility;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
 public class NameTagService {
 
-    protected static MetadataKey<NameTagList> TEAM_INFO_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "NameTag", NameTagList.class);
+    protected static MetadataKey<NameTagList> TEAM_INFO_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "name-tag", NameTagList.class);
 
-    private Map<String, NameTag> nametags;
-    private List<NameTagAdapter> adapters;
+    private final AtomicInteger teamId = new AtomicInteger(0);
+    private final Map<NameTag, NameTagData> nameTagData = new ConcurrentHashMap<>();
+    private final List<NameTagAdapter> nameTagAdapters = new LinkedList<>();
 
     @PreInitialize
     public void onPreInitialize() {
@@ -65,70 +73,86 @@ public class NameTagService {
                 .withAddHandler(ContainerObjCollector.warpInstance(NameTagAdapter.class, this::register))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(NameTagAdapter.class, this::unregister))
         );
+    }
 
-        this.adapters = new LinkedList<>();
-        this.nametags = new ConcurrentHashMap<>();
+    private CompletableFuture<?> runAsync(Runnable runnable) {
+        return Task.runAsync(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable throwable) {
+                Log.error("An error occurred while running async task", throwable);
+            }
+        });
     }
 
     @Subscribe
     public void onPlayerJoin(MCPlayerJoinEvent event) {
-        for (NameTag tagInfo : this.nametags.values()) {
-            this.sendPacket(event.getPlayer(), tagInfo);
+        for (NameTagData data : this.nameTagData.values()) {
+            this.sendCreatePacket(event.getPlayer(), data);
         }
     }
 
     @Subscribe
     public void onPlayerQuit(MCPlayerQuitEvent event) {
         final String name = event.getPlayer().getName();
-        Task.runAsync(() -> MCPlayer.all().forEach(other -> {
-            if (other.getName().equals(name) || !other.isOnline()) {
-                return;
-            }
-            other.metadata().ifPresent(TEAM_INFO_KEY, list -> {
-                NameTag nameTag = list.getNameTag(name);
-                if (nameTag != null) {
-                    nameTag.removeName(name);
-                    list.removeNameTag(name);
+        runAsync(() -> removeNameFromAll(name));
+    }
 
-                    WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
-                            nameTag.getName(),
-                            WrapperPlayServerTeams.TeamMode.REMOVE_ENTITIES,
-                            Optional.empty(),
-                            name
-                    );
-                    MCProtocol.sendPacket(other, packet);
-                }
-            });
-        }));
+    private void removeNameFromAll(String name) {
+        for (MCPlayer player : MCPlayer.all()) {
+            if (player.getName().equals(name))
+                return;
+
+            if (!player.isOnline())
+                return;
+
+            player.metadata().ifPresent(TEAM_INFO_KEY, list -> removeNameFromList(name, player, list));
+        }
+    }
+
+    private void removeNameFromList(String name, MCPlayer player, NameTagList list) {
+        NameTagData data = list.get(name);
+        if (data == null)
+            return;
+
+        list.remove(name);
+
+        WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
+                data.getName(),
+                WrapperPlayServerTeams.TeamMode.REMOVE_ENTITIES,
+                Optional.empty(),
+                name
+        );
+        MCProtocol.sendPacket(player, packet);
     }
 
     public void register(NameTagAdapter adapter) {
-        this.adapters.add(adapter);
-        this.adapters.sort((o1, o2) -> Ints.compare(o2.getWeight(), o1.getWeight()));
+        this.nameTagAdapters.add(adapter);
+        this.nameTagAdapters.sort((o1, o2) -> Ints.compare(o2.getWeight(), o1.getWeight()));
     }
 
     public void unregister(NameTagAdapter adapter) {
-        this.adapters.remove(adapter);
+        this.nameTagAdapters.remove(adapter);
     }
 
-    public Collection<NameTagAdapter> getAdapters() {
-        return ImmutableList.copyOf(this.adapters);
+    public Collection<NameTagAdapter> getNameTagAdapters() {
+        return ImmutableList.copyOf(this.nameTagAdapters);
     }
 
     public CompletableFuture<?> updateFromThirdSide(MCPlayer target) {
-        NameTagUpdate update = NameTagUpdate.createTarget(target);
-        return Task.runAsync(() -> this.applyUpdate(update));
+        NameTagUpdate update = NameTagUpdate.createAllToPlayer(target);
+        return runAsync(() -> this.applyUpdate(update));
     }
 
     public CompletableFuture<?> updateFromFirstSide(MCPlayer player) {
-        NameTagUpdate update = NameTagUpdate.createPlayer(player);
-        return Task.runAsync(() -> this.applyUpdate(update));
+        NameTagUpdate update = NameTagUpdate.createPlayerToAll(player);
+        return runAsync(() -> this.applyUpdate(update));
     }
 
     public CompletableFuture<?> update(MCPlayer player) {
-        NameTagUpdate firstSide = NameTagUpdate.createPlayer(player);
-        NameTagUpdate thirdSide = NameTagUpdate.createTarget(player);
-        return Task.runAsync(() -> {
+        NameTagUpdate firstSide = NameTagUpdate.createPlayerToAll(player);
+        NameTagUpdate thirdSide = NameTagUpdate.createAllToPlayer(player);
+        return runAsync(() -> {
             this.applyUpdate(firstSide);
             this.applyUpdate(thirdSide);
         });
@@ -136,110 +160,152 @@ public class NameTagService {
 
     public CompletableFuture<?> update(MCPlayer target, MCPlayer player) {
         NameTagUpdate update = NameTagUpdate.create(target, player);
-        return Task.runAsync(() -> this.applyUpdate(update));
+        return runAsync(() -> this.applyUpdate(update));
     }
 
     public CompletableFuture<?> updateAll() {
-        return Task.runAsync(() -> this.applyUpdate(NameTagUpdate.all()));
+        return runAsync(() -> this.applyUpdate(NameTagUpdate.all()));
     }
 
-    protected void applyUpdate(NameTagUpdate update) {
-        final UUID playerUuid = update.getPlayer();
-        final UUID targetUuid = update.getTarget();
-        if (playerUuid == null && targetUuid == null) {
-            Utility.twice(MCPlayer.all(), this::updateForInternal);
-        } else if (playerUuid != null && targetUuid == null) {
-            MCPlayer player = MCPlayer.find(playerUuid);
-            if (player != null) {
-                MCPlayer.all().forEach(target -> this.updateForInternal(player, target));
-            }
-        } else if (playerUuid == null) {
-            MCPlayer target = MCPlayer.find(targetUuid);
-            if (target != null) {
-                MCPlayer.all().forEach(player -> this.updateForInternal(player, target));
-            }
+    protected void applyUpdate(@NotNull NameTagUpdate update) {
+        switch (update.getType()) {
+            case ALL:
+                this.applyUpdateAll();
+                break;
+            case ALL_TO_PLAYER:
+                this.applyUpdateAllToPlayer((SinglePlayerNameTagUpdate) update);
+                break;
+            case PLAYER_TO_ALL:
+                this.applyUpdatePlayerToAll((SinglePlayerNameTagUpdate) update);
+                break;
+            case PLAYER_TO_PLAYER:
+                this.applyUpdatePlayerToPlayer((DuoPlayerNameTagUpdate) update);
+                break;
+            default:
+                throw new IllegalArgumentException("Unknown update type: " + update.getType());
         }
-        MCPlayer player = MCPlayer.find(playerUuid);
-        MCPlayer target = MCPlayer.find(targetUuid);
-        if (player != null && target != null) {
+    }
+
+    private void applyUpdatePlayerToPlayer(DuoPlayerNameTagUpdate update) {
+        MCPlayer player = MCPlayer.find(update.getPlayer());
+        MCPlayer target = MCPlayer.find(update.getTarget());
+        if (player != null && target != null)
             this.updateForInternal(player, target);
-        }
+    }
+
+    private void applyUpdatePlayerToAll(SinglePlayerNameTagUpdate update) {
+        MCPlayer target = MCPlayer.find(update.getPlayer());
+        if (target != null)
+            MCPlayer.all().forEach(player -> this.updateForInternal(target, player));
+    }
+
+    private void applyUpdateAllToPlayer(SinglePlayerNameTagUpdate update) {
+        MCPlayer target = MCPlayer.find(update.getPlayer());
+        if (target != null)
+            MCPlayer.all().forEach(player -> this.updateForInternal(player, target));
+    }
+
+    private void applyUpdateAll() {
+        Utility.twice(MCPlayer.all(), this::updateForInternal);
     }
 
     @Nullable
     public NameTag findNameTag(MCPlayer player, MCPlayer target) {
-        for (NameTagAdapter adapter : this.adapters) {
+        for (NameTagAdapter adapter : this.nameTagAdapters) {
             NameTag nametag = adapter.fetch(player, target);
-            if (nametag != null) {
+            if (nametag != null)
                 return nametag;
-            }
         }
         return null;
     }
 
     private void updateForInternal(MCPlayer player, MCPlayer target) {
         NameTag nameTag = this.findNameTag(player, target);
-        if (nameTag != null) {
-            NameTagUpdateEvent event = new NameTagUpdateEvent(player, target, nameTag);
-            GlobalEventNode.get().call(event);
-            if (event.isCancelled()) {
-                return;
-            }
-            nameTag = event.getNameTag();
+        if (nameTag == null)
+            return;
 
-            NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
-            list.addNameTag(target.getName(), nameTag);
+        NameTagUpdateEvent event = new NameTagUpdateEvent(player, target, nameTag);
+        GlobalEventNode.get().call(event);
+        if (event.isCancelled())
+            return;
 
-            WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
-                    nameTag.getName(),
-                    WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
-                    Optional.empty(),
-                    target.getName()
-            );
-            MCProtocol.sendPacket(player, packet);
-        }
+        nameTag = event.getNameTag();
+
+        NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
+        NameTagData nameTagData = this.getOrCreateData(nameTag);
+        list.add(target.getName(), nameTagData);
+
+        WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
+                nameTagData.getName(),
+                WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
+                Optional.empty(),
+                target.getName()
+        );
+        MCProtocol.sendPacket(player, packet);
     }
 
     @Nullable
-    protected NameTag getNameTag(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
-        return this.nametags.getOrDefault(this.toKey(prefix, suffix, nameTagVisibility), null);
+    protected NameTagData getData(NameTag nameTag) {
+        return this.nameTagData.getOrDefault(nameTag, null);
     }
 
-    protected NameTag getOrCreate(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
-        NameTag info = this.getNameTag(prefix, suffix, nameTagVisibility);
+    protected NameTagData getOrCreateData(NameTag nameTag) {
+        NameTagData data = this.getData(nameTag);
+        if (data != null)
+            return data;
 
-        if (info != null) {
-            return info;
-        }
+        NameTagData newData = new NameTagData(this.generateTeamName(), nameTag);
+        this.nameTagData.put(nameTag, newData);
+        this.sendDataToAll(newData);
 
-        NameTag newTeam = new NameTag(prefix, suffix);
-        newTeam.setNameTagVisibility(nameTagVisibility);
-        this.nametags.put(this.toKey(prefix, suffix, nameTagVisibility), newTeam);
-        for (MCPlayer player : MCPlayer.all()) {
-            this.sendPacket(player, newTeam);
-        }
-        return newTeam;
+        return newData;
     }
 
-    private void sendPacket(MCPlayer mcPlayer, NameTag info) {
-        WrapperPlayServerTeams.NameTagVisibility packetVisibility = WrapperPlayServerTeams.NameTagVisibility.fromID(info.getNameTagVisibility().name);
+    private void sendDataToAll(NameTagData newData) {
+        for (MCPlayer player : MCPlayer.all())
+            this.sendCreatePacket(player, newData);
+    }
+
+    private String generateTeamName() {
+        return "team-" + this.teamId.getAndIncrement();
+    }
+
+    private void sendCreatePacket(MCPlayer mcPlayer, NameTagData data) {
+        NameTag nameTag = data.getNameTag();
+
+        Component prefix = Component.empty();
+        if (nameTag.getPrefix() != null)
+            prefix = nameTag.getPrefix();
+
+        Component suffix = Component.empty();
+        if (nameTag.getSuffix() != null)
+            suffix = nameTag.getSuffix();
+
+        NameTagVisibility nameTagVisibility = nameTag.getNameTagVisibility();
+        WrapperPlayServerTeams.NameTagVisibility packetVisibility = WrapperPlayServerTeams.NameTagVisibility.ALWAYS;
+        if (nameTagVisibility != null)
+            WrapperPlayServerTeams.NameTagVisibility.fromID(nameTagVisibility.name);
+
+        TextColor color = nameTag.getColor();
+        if (color == null) {
+            color = prefix.color();
+            if (color == null)
+                color = NamedTextColor.WHITE;
+        }
+
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
-                info.getName(),
+                data.getName(),
                 WrapperPlayServerTeams.TeamMode.CREATE,
                 Optional.of(new WrapperPlayServerTeams.ScoreBoardTeamInfo(
                         Component.empty(),
-                        info.getPrefix(),
-                        info.getSuffix(),
+                        prefix,
+                        suffix,
                         packetVisibility,
                         WrapperPlayServerTeams.CollisionRule.ALWAYS,
-                        NamedTextColor.WHITE,
+                        NamedTextColor.nearestTo(color),
                         WrapperPlayServerTeams.OptionData.NONE
                 ))
         );
         MCProtocol.sendPacket(mcPlayer, packet);
-    }
-
-    private String toKey(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
-        return prefix + ":" + suffix + ":" + nameTagVisibility;
     }
 }

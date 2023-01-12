@@ -17,12 +17,7 @@ public class ProtocolTestingHandle implements BukkitTestingHandle {
 
     @Override
     public FairyPlatform platform() {
-        return new FairyBukkitTestingPlatform() {
-            @Override
-            public OBCVersion version() {
-                return OBCVersion.v1_16_R3;
-            }
-        };
+        return new FairyBukkitTestingPlatform();
     }
 
     @Override

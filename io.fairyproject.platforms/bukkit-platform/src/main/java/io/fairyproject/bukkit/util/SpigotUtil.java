@@ -24,9 +24,6 @@
 
 package io.fairyproject.bukkit.util;
 
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
-import org.bukkit.entity.Player;
-
 public class SpigotUtil {
 
     public static SpigotType SPIGOT_TYPE;
@@ -59,10 +56,6 @@ public class SpigotUtil {
 
         SPIGOT_TYPE = SpigotType.CRAFTBUKKIT;
 
-    }
-
-    public static int getProtocolVersion(Player player) {
-        return MinecraftReflection.getProtocol(player).getRawVersion()[0];
     }
 
     public enum SpigotType {

@@ -1,6 +1,8 @@
 package io.fairyproject.mc;
 
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
+import io.fairyproject.mc.version.MCVersionMapping;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.UtilityClass;
@@ -18,14 +20,18 @@ public class MCAdventure {
     public GsonComponentSerializer GSON;
     public LegacyComponentSerializer LEGACY;
 
-    public void initialize(AdventureHook adventureHook) {
+    public void initialize(MCServer mcServer, MCVersionMappingRegistry mappingRegistry, AdventureHook adventureHook) {
         final GsonComponentSerializer.Builder builder = GsonComponentSerializer.builder();
         final LegacyComponentSerializer.Builder legacyBuilder = LegacyComponentSerializer.builder();
-        if (!MCServer.current().getVersion().isHexColorSupport()) {
+
+        MCVersion version = mcServer.getVersion();
+        MCVersionMapping mapping = mappingRegistry.findMapping(version);
+
+        if (!mapping.isHexColorSupport()) {
             builder.downsampleColors();
         }
 
-        if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_16)) {
+        if (version.isHigherOrEqual(MCVersion.of(16))) {
             legacyBuilder
                     .hexColors()
                     .useUnusualXRepeatedCharacterHexFormat();
@@ -56,7 +62,7 @@ public class MCAdventure {
     }
 
     public String asItemString(Component component, Locale locale) {
-        if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_13)) {
+        if (MCServer.current().getVersion().isHigherOrEqual(MCVersion.of(13))) {
             return asJsonString(component, locale);
         } else {
             return asLegacyString(component, locale);

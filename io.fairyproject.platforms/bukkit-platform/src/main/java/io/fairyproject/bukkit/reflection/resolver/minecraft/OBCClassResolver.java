@@ -24,19 +24,22 @@
 
 package io.fairyproject.bukkit.reflection.resolver.minecraft;
 
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.ClassResolver;
+import lombok.RequiredArgsConstructor;
 
 /**
  * {@link ClassResolver} for <code>org.bukkit.craftbukkit.*</code> classes
  */
+@RequiredArgsConstructor
 public class OBCClassResolver extends ClassResolver {
+
+	private final String obcClassPrefix;
 
 	@Override
 	public Class resolve(String... names) throws ClassNotFoundException {
 		for (int i = 0; i < names.length; i++) {
 			if (!names[i].startsWith("org.bukkit")) {
-				names[i] = MinecraftReflection.getOBCPackage() + "." + names[i];
+				names[i] = obcClassPrefix + names[i];
 			}
 		}
 		return super.resolve(names);

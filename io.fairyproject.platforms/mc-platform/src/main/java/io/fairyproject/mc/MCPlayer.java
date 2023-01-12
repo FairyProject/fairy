@@ -1,6 +1,6 @@
 package io.fairyproject.mc;
 
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
@@ -199,13 +199,6 @@ public interface MCPlayer extends MCEntity, Audience {
      * @return netty channel
      */
     Channel getChannel();
-
-    /**
-     * get player's current protocol id
-     *
-     * @return protocol id
-     */
-    int getProtocolId();
 
     /**
      * cast the proxy player to platform specific player instance

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,18 +30,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class NameTagList {
-    private final Map<String, NameTag> infoByName = new HashMap<>();
+    private final Map<String, NameTagData> dataByName = new HashMap<>();
 
     @Nullable
-    public NameTag getNameTag(String name) {
-        return this.infoByName.getOrDefault(name, null);
+    public NameTagData get(String name) {
+        return this.dataByName.getOrDefault(name, null);
     }
 
-    public void addNameTag(String name, NameTag tagInfo) {
-        this.infoByName.put(name, tagInfo);
+    public void add(String name, NameTagData nameTagData) {
+        this.dataByName.put(name, nameTagData);
     }
 
-    public void removeNameTag(String name) {
-        this.infoByName.remove(name);
+    public void remove(String name) {
+        this.dataByName.remove(name);
     }
 }

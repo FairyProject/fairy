@@ -39,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Default {@link ClassResolver}
  */
-public class ClassResolver extends ResolverAbstract<Class> {
+public class ClassResolver extends ResolverAbstract<Class<?>> {
 
 	private static final LoadingCache<String, Optional<Class<?>>> CLASS_CACHE = CacheBuilder
 			.newBuilder()
@@ -55,15 +55,11 @@ public class ClassResolver extends ResolverAbstract<Class> {
 				}
 			});
 
-	public ClassWrapper resolveWrapper(String... names) {
-		return new ClassWrapper<>(resolveSilent(names));
-	}
-
 	public void cache(String name, Class<?> type) {
 		CLASS_CACHE.put(name, Optional.of(type));
 	}
 
-	public Class resolveSilent(String... names) {
+	public Class<?> resolveSilent(String... names) {
 		try {
 			return resolve(names);
 		} catch (Exception e) {
@@ -71,7 +67,7 @@ public class ClassResolver extends ResolverAbstract<Class> {
 		return null;
 	}
 
-	public Class resolve(String... names) throws ClassNotFoundException {
+	public Class<?> resolve(String... names) throws ClassNotFoundException {
 		ResolverQuery.Builder builder = ResolverQuery.builder();
 		for (String name : names)
 			builder.with(name);
@@ -82,7 +78,7 @@ public class ClassResolver extends ResolverAbstract<Class> {
 		}
 	}
 
-	public Class resolveSubClass(Class<?> mainClass, String... names) throws ClassNotFoundException {
+	public Class<?> resolveSubClass(Class<?> mainClass, String... names) throws ClassNotFoundException {
 		ResolverQuery.Builder builder = ResolverQuery.builder();
 		String prefix = mainClass.getName() + "$";
 		for (String name : names)
@@ -95,7 +91,7 @@ public class ClassResolver extends ResolverAbstract<Class> {
 	}
 
 	@Override
-	protected Class resolveObject(ResolverQuery query) throws ReflectiveOperationException {
+	protected Class<?> resolveObject(ResolverQuery query) throws ReflectiveOperationException {
 		Class<?> result = ThrowingSupplier.sneaky(() -> CLASS_CACHE.get(query.getName())).get().orElse(null);
 
 		if (result == null) {

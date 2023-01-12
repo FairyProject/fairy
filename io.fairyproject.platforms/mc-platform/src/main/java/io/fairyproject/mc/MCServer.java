@@ -1,6 +1,6 @@
 package io.fairyproject.mc;
 
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
 
 import java.util.UUID;
 

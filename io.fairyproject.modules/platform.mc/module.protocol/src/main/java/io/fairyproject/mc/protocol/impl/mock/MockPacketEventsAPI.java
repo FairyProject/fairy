@@ -7,10 +7,17 @@ import com.github.retrooper.packetevents.manager.protocol.ProtocolManager;
 import com.github.retrooper.packetevents.manager.server.ServerManager;
 import com.github.retrooper.packetevents.netty.NettyManager;
 import io.fairyproject.FairyPlatform;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.plugin.Plugin;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+@RequiredArgsConstructor
 public class MockPacketEventsAPI extends PacketEventsAPI<Plugin> {
+
+    private final MCServer mcServer;
+    private final MCVersionMappingRegistry mappingRegistry;
 
     @Getter
     private boolean loaded = false;
@@ -22,7 +29,7 @@ public class MockPacketEventsAPI extends PacketEventsAPI<Plugin> {
             return;
         }
         this.loaded = true;
-        this.serverManager = new MockServerManager();
+        this.serverManager = new MockServerManager(mcServer, mappingRegistry);
     }
 
     @Override

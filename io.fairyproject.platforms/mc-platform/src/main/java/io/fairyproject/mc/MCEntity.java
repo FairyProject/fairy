@@ -41,7 +41,6 @@ public interface MCEntity {
 
         MCEntity from(Object entity);
 
-        int newEntityId();
 
     }
 

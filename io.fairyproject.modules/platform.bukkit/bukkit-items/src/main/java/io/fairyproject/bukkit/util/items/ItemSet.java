@@ -27,7 +27,7 @@ package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -441,7 +441,7 @@ public class ItemSet implements Cloneable {
             player.getInventory().setContents(itemStacks);
             this.armors.apply(player);
             // offhand support
-            if (this.offhand != null && MCServer.current().getVersion().isOrAbove(MCVersion.V1_9)) {
+            if (this.offhand != null && MCServer.current().getVersion().isHigherOrEqual(MCVersion.of(9))) {
                 player.getInventory().setItemInOffHand(this.offhand.getItem(player));
             }
         }

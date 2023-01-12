@@ -11,6 +11,7 @@ import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketSendEvent;
 import io.fairyproject.mc.protocol.impl.BukkitPacketEventsBuilder;
@@ -18,16 +19,21 @@ import io.fairyproject.mc.protocol.impl.mock.MockPacketEventsBuilder;
 import io.fairyproject.mc.protocol.packet.PacketSender;
 import io.fairyproject.mc.protocol.packet.impl.PacketSenderImpl;
 import io.fairyproject.mc.protocol.packet.impl.PacketSenderMock;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Service
+@RequiredArgsConstructor
 public class MCProtocol {
     public static MCProtocol INSTANCE;
+
+    private final MCVersionMappingRegistry mappingRegistry;
 
     private PacketSender packetSender;
     private PacketEventsAPI<?> packetEvents;
@@ -41,7 +47,7 @@ public class MCProtocol {
         PacketSender packetSender;
 
         if (Debug.UNIT_TEST) {
-            packetEventsBuilder = new MockPacketEventsBuilder();
+            packetEventsBuilder = new MockPacketEventsBuilder(MCServer.current(), this.mappingRegistry);
             packetSender = PacketSenderMock.get();
         } else {
             packetSender = new PacketSenderImpl();
@@ -126,7 +132,6 @@ public class MCProtocol {
                 .bStats(false)
                 .checkForUpdates(false);
         this.packetEvents.init();
-
     }
 
     @PostDestroy

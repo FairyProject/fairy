@@ -1,13 +1,16 @@
 package io.fairyproject.bukkit.mc;
 
 import io.fairyproject.Debug;
+import io.fairyproject.bukkit.mc.entity.BukkitEntityIDCounter;
+import io.fairyproject.bukkit.reflection.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
-import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
-import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
+import io.fairyproject.bukkit.version.BukkitVersionDecoder;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.entity.EntityIDCounter;
+import io.fairyproject.mc.version.MCVersion;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.entity.Entity;
 
 import java.lang.invoke.MethodHandle;
@@ -17,21 +20,34 @@ import java.util.UUID;
 import java.util.function.Function;
 
 public class BukkitMCServer implements MCServer {
-    private static final Function<UUID, Entity> UUID_TO_ENTITY;
-    static {
-        Function<UUID, Entity> uuidToEntity;
-        if (Debug.UNIT_TEST) {
-            uuidToEntity = uuid -> {
+
+    private final Server server;
+    private final BukkitNMSManager nmsManager;
+    private Function<UUID, Entity> uuidToEntity;
+
+    public BukkitMCServer(Server server, BukkitNMSManager nmsManager) {
+        this.server = server;
+        this.nmsManager = nmsManager;
+    }
+
+    @Override
+    public boolean isMainThread() {
+        return Bukkit.isPrimaryThread();
+    }
+
+    @Override
+    public MCEntity getEntity(UUID entityUuid) {
+        if (uuidToEntity == null) {
+            if (Debug.UNIT_TEST)
                 throw new IllegalStateException("Unit testing unsupported.");
-            };
-        } else {
+
+            Function<UUID, Entity> uuidToEntity;
             try {
                 Bukkit.class.getDeclaredMethod("getEntity", UUID.class);
                 uuidToEntity = Bukkit::getEntity;
             } catch (NoSuchMethodException ex) {
                 try {
-                    NMSClassResolver classResolver = new NMSClassResolver();
-                    final Class<?> minecraftServer = classResolver.resolve("server.MinecraftServer","MinecraftServer");
+                    final Class<?> minecraftServer = this.nmsManager.getNmsClassResolver().resolve("server.MinecraftServer","MinecraftServer");
                     final Object server = minecraftServer.getMethod("getServer").invoke(null);
                     Method method = minecraftServer.getDeclaredMethod("a", UUID.class);
                     MethodHandle methodHandle = MethodHandles.lookup().unreflect(method);
@@ -47,23 +63,16 @@ public class BukkitMCServer implements MCServer {
                     throw new IllegalStateException(throwable);
                 }
             }
+            this.uuidToEntity = uuidToEntity;
         }
 
-        UUID_TO_ENTITY = uuidToEntity;
-    }
-
-    @Override
-    public boolean isMainThread() {
-        return Bukkit.isPrimaryThread();
-    }
-
-    @Override
-    public MCEntity getEntity(UUID entityUuid) {
-        return MCEntity.from(UUID_TO_ENTITY.apply(entityUuid));
+        return MCEntity.from(this.uuidToEntity.apply(entityUuid));
     }
 
     @Override
     public MCVersion getVersion() {
-        return OBCVersion.get().toMCVersion();
+        BukkitVersionDecoder bukkitVersionDecoder = BukkitVersionDecoder.create();
+
+        return bukkitVersionDecoder.decode(this.server);
     }
 }

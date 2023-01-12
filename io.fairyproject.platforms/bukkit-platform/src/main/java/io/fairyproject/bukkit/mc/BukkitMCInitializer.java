@@ -1,10 +1,19 @@
 package io.fairyproject.bukkit.mc;
 
+import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
+import io.fairyproject.bukkit.mc.entity.BukkitEntityIDCounter;
+import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
+import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperatorImpl;
 import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.reflection.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.util.Players;
+import io.fairyproject.container.Containers;
 import io.fairyproject.mc.*;
+import io.fairyproject.mc.entity.EntityIDCounter;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.metadata.MetadataKey;
+import lombok.Getter;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -16,7 +25,22 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+@Getter
 public class BukkitMCInitializer implements MCInitializer {
+
+    private BukkitNMSManager nmsManager;
+    private BukkitMCPlayerOperator playerOperator;
+    private BukkitDataWatcherConverter dataWatcherConverter;
+
+    @Override
+    public void serverLoaded() {
+        this.nmsManager = new BukkitNMSManager(MCServer.current(), Containers.get(MCVersionMappingRegistry.class), Bukkit.getServer().getClass());
+        this.playerOperator = new BukkitMCPlayerOperatorImpl(nmsManager);
+        MinecraftReflection.init(nmsManager);
+        this.dataWatcherConverter = new BukkitDataWatcherConverter(nmsManager);
+
+        EntityIDCounter.Companion.CURRENT = new BukkitEntityIDCounter(nmsManager);
+    }
 
     @Override
     public MCAdventure.AdventureHook createAdventure() {
@@ -27,23 +51,19 @@ public class BukkitMCInitializer implements MCInitializer {
 
     @Override
     public MCServer createMCServer() {
-        return new BukkitMCServer();
+        return new BukkitMCServer(Bukkit.getServer(), this.nmsManager);
     }
 
     @Override
     public MCEntity.Bridge createEntityBridge() {
+
         return new MCEntity.Bridge() {
             @Override
             public MCEntity from(Object entity) {
                 if (!(entity instanceof org.bukkit.entity.Entity)) {
                     throw new UnsupportedOperationException();
                 }
-                return new BukkitMCEntity((org.bukkit.entity.Entity) entity);
-            }
-
-            @Override
-            public int newEntityId() {
-                return MinecraftReflection.getNewEntityId();
+                return new BukkitMCEntity((org.bukkit.entity.Entity) entity, dataWatcherConverter);
             }
         };
     }
@@ -82,7 +102,9 @@ public class BukkitMCInitializer implements MCInitializer {
     }
 
     @Override
-    public MCPlayer.Bridge createPlayerBridge() {
+    public MCPlayer.Bridge createPlayerBridge(MCVersionMappingRegistry versionMappingRegistry) {
+        MCServer mcServer = MCServer.current();
+
         return new MCPlayer.Bridge() {
             @Override
             public UUID from(@NotNull Object obj) {
@@ -108,7 +130,7 @@ public class BukkitMCInitializer implements MCInitializer {
                     }
                     throw new IllegalArgumentException(obj.getClass().getName());
                 }
-                return new BukkitMCPlayer((Player) obj);
+                return new BukkitMCPlayer((Player) obj, mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
             }
 
             @Override

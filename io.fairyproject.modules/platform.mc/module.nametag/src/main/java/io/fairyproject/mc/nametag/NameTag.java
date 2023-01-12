@@ -25,45 +25,20 @@
 package io.fairyproject.mc.nametag;
 
 import io.fairyproject.mc.protocol.item.NameTagVisibility;
-import net.kyori.adventure.text.Component;
+import lombok.Builder;
 import lombok.Data;
-
-import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 
 @Data
+@Builder
+@RequiredArgsConstructor
 public final class NameTag {
 
-    private static final AtomicInteger TEAM_INDEX = new AtomicInteger(0);
+    private final Component prefix;
+    private final Component suffix;
+    private final TextColor color;
+    private final NameTagVisibility nameTagVisibility;
 
-    private String name;
-    private Component prefix;
-    private Component suffix;
-    private NameTagVisibility nameTagVisibility;
-
-    private Set<String> nameSet;
-
-    NameTag(final Component prefix, final Component suffix) {
-        this(prefix, suffix, NameTagVisibility.ALWAYS);
-    }
-
-    NameTag(final Component prefix, final Component suffix, NameTagVisibility nameTagVisibility) {
-        this.name = "ImanityTeam-" + TEAM_INDEX.getAndIncrement();
-        this.prefix = prefix;
-        this.suffix = suffix;
-        this.nameTagVisibility = nameTagVisibility;
-        this.nameSet = new HashSet<>();
-    }
-
-    public void addName(String name) {
-        this.nameSet.add(name);
-    }
-
-    public void removeName(String name) {
-        this.nameSet.remove(name);
-    }
-
-    public boolean hasName(String name) {
-        return this.nameSet.contains(name);
-    }
 }
