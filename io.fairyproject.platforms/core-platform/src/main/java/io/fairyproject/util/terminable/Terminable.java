@@ -33,13 +33,12 @@ import org.jetbrains.annotations.Nullable;
  * @author lucko
  */
 @FunctionalInterface
-public interface Terminable extends AutoCloseable {
+public interface Terminable {
     Terminable EMPTY = () -> {};
 
     /**
      * Closes this resource.
      */
-    @Override
     void close() throws Exception;
 
     /**

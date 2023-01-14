@@ -37,30 +37,30 @@ import java.util.concurrent.ConcurrentLinkedDeque;
  * @author lucko
  */
 public class AbstractWeakCompositeTerminable implements CompositeTerminable {
-    private final Deque<WeakReference<AutoCloseable>> closeables = new ConcurrentLinkedDeque<>();
+    private final Deque<WeakReference<Terminable>> terminableQueue = new ConcurrentLinkedDeque<>();
 
     protected AbstractWeakCompositeTerminable() {
 
     }
 
     @Override
-    public CompositeTerminable with(AutoCloseable autoCloseable) {
-        Objects.requireNonNull(autoCloseable, "autoCloseable");
-        this.closeables.push(new WeakReference<>(autoCloseable));
+    public CompositeTerminable with(Terminable terminable) {
+        Objects.requireNonNull(terminable, "terminable");
+        this.terminableQueue.push(new WeakReference<>(terminable));
         return this;
     }
 
     @Override
     public void close() throws CompositeClosingException {
         List<Exception> caught = new ArrayList<>();
-        for (WeakReference<AutoCloseable> ref; (ref = this.closeables.poll()) != null; ) {
-            AutoCloseable ac = ref.get();
-            if (ac == null) {
+        for (WeakReference<Terminable> ref; (ref = this.terminableQueue.poll()) != null; ) {
+            Terminable terminable = ref.get();
+            if (terminable == null) {
                 continue;
             }
 
             try {
-                ac.close();
+                terminable.close();
             } catch (Exception e) {
                 caught.add(e);
             }
@@ -73,17 +73,17 @@ public class AbstractWeakCompositeTerminable implements CompositeTerminable {
 
     @Override
     public boolean isClosed() {
-        return this.closeables.stream()
+        return this.terminableQueue.stream()
                 .map(WeakReference::get)
                 .filter(Objects::nonNull)
-                .allMatch(closable -> closable instanceof Terminable && ((Terminable) closable).isClosed());
+                .allMatch(Terminable::isClosed);
     }
 
     @Override
     public void cleanup() {
-        this.closeables.removeIf(ref -> {
-            AutoCloseable ac = ref.get();
-            return ac == null || (ac instanceof Terminable && ((Terminable) ac).isClosed());
+        this.terminableQueue.removeIf(ref -> {
+            Terminable ac = ref.get();
+            return ac == null || ac.isClosed();
         });
     }
 }

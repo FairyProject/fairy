@@ -30,8 +30,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.util.CoordXZ;
@@ -75,6 +73,7 @@ public class VisualBlockService implements TaskRunnable, Listener {
     private final LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
     private final Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
     private final Queue<VisualTask> visualTasks = new ConcurrentLinkedQueue<>();
+    private final BukkitNMSManager nmsManager;
 
     private VisualBlockSender visualBlockSender;
     private VisualBlockGenerator mainGenerator;
@@ -82,7 +81,8 @@ public class VisualBlockService implements TaskRunnable, Listener {
 
     private boolean destroyed;
 
-    public VisualBlockService() {
+    public VisualBlockService(BukkitNMSManager nmsManager) {
+        this.nmsManager = nmsManager;
         this.claimPositionTable = HashBasedTable.create();
         this.claimCache = CacheBuilder.newBuilder()
                 .maximumSize(8000)
@@ -102,7 +102,6 @@ public class VisualBlockService implements TaskRunnable, Listener {
 
     @PostInitialize
     public void onPostInitialize() {
-        BukkitNMSManager nmsManager = ((FairyBukkitPlatform) Fairy.getPlatform()).getMcInitializer().getNmsManager();
         this.visualBlockSender = new VisualBlockSender(nmsManager);
 
         Task.asyncRepeated(this, 1L);

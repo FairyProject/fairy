@@ -35,6 +35,11 @@ pluginManagement {
 
 rootProject.name = "fairy-parent"
 
+void initBundles() {
+    include "io.fairyproject.bundles:bukkit-bundles"
+    include "io.fairyproject.bundles:bukkit-tests-bundles"
+}
+
 void initPlatforms() {
     include "io.fairyproject.platforms:app-platform"
     include "io.fairyproject.platforms:bukkit-platform"
@@ -69,7 +74,6 @@ void initModules() {
     include "io.fairyproject.modules:platform.mc:module.sidebar"
     include "io.fairyproject.modules:platform.mc:module.tablist"
     include "io.fairyproject.modules:platform.mc:module.actionbar"
-    include "io.fairyproject.modules:platform.mc:module.protocol"
     include "io.fairyproject.modules:platform.mc:module.map"
     include "io.fairyproject.modules:platform.mc:module.animation"
 
@@ -99,11 +103,13 @@ void includeDebug() {
     }
 }
 
+initBundles()
 initBootstrap()
 initModules()
 initPlatforms()
 initTests()
 
+include "gradle-plugin"
 include "shared"
 include "bom"
 includeDebug()

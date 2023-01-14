@@ -40,7 +40,7 @@ public class MCVersionMappingRegistryTest {
         private MCVersionMapping v11600;
 
         @BeforeEach
-        public void setup() {
+        public void setup() throws IOException {
             this.registry = new MCVersionMappingRegistry();
             v11702 = new MCVersionMapping(1, 17, 2, false, true, 756);
             v11700 = new MCVersionMapping(1, 17, 0, false, true, 755);

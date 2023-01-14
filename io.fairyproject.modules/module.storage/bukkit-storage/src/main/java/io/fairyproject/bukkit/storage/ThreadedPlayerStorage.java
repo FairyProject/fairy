@@ -171,7 +171,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
     @PostInitialize
     public final void onPostInitializeStorage() {
-        final ContainerObj containerObj = ContainerRef.getObj(this.getClass());
+        final ContainerObj containerObj = ContainerReference.getObj(this.getClass());
 
         this.storedObjects = new ConcurrentHashMap<>();
         this.asyncLoginReject = new HashSet<>();

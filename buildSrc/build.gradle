@@ -11,7 +11,7 @@ repositories {
 
 gradlePlugin {
     plugins {
-        fairy {
+        module {
             id = "io.fairyproject.module"
             implementationClass = "io.fairyproject.gradle.ModulePlugin"
         }

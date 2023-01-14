@@ -31,6 +31,7 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -43,7 +44,6 @@ import org.jetbrains.annotations.Nullable;
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
@@ -100,12 +100,8 @@ public abstract class FairyPlatform implements TerminableConsumer {
     }
 
     @Override
-    public <T extends AutoCloseable> @NotNull T bind(T t) {
+    public <T extends Terminable> @NotNull T bind(T t) {
         return this.compositeTerminable.bind(t);
-    }
-
-    public AutoCloseable bind(ExecutorService executorService) {
-        return this.bind(executorService::shutdown);
     }
 
     /**

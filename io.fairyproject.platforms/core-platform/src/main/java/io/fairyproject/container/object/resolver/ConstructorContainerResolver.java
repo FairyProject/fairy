@@ -26,14 +26,13 @@ package io.fairyproject.container.object.resolver;
 
 import io.fairyproject.container.ContainerConstruct;
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.ContainerRef;
+import io.fairyproject.container.ContainerReference;
 import io.fairyproject.util.AccessUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Parameter;
 
 @Getter
 public class ConstructorContainerResolver extends ContainerResolverBase {
@@ -45,34 +44,41 @@ public class ConstructorContainerResolver extends ContainerResolverBase {
     public ConstructorContainerResolver(Class<?> type) {
         this.type = type;
 
-        Constructor<?> constructorRet = null;
-        int priorityRet = -1;
-
-        for (Constructor<?> constructor : this.type.getDeclaredConstructors()) {
-            AccessUtil.setAccessible(constructor);
-
-            int priority = -1;
-            ContainerConstruct annotation = constructor.getAnnotation(ContainerConstruct.class);
-            if (annotation != null) {
-                priority = annotation.priority();
-            }
-
-            if (constructorRet == null || priorityRet < priority) {
-                constructorRet = constructor;
-                priorityRet = priority;
-            }
-        }
-
-        this.constructor = constructorRet;
+        this.constructor = this.findConstructor();
         this.types = this.constructor.getParameterTypes();
-        for (Class<?> aClass : this.types) {
-            if (!ContainerRef.hasObj(aClass)) {
-                throw new IllegalArgumentException("The type " + aClass.getName() + " it's not supposed to be in bean constructor!");
+    }
+
+    private Constructor<?> findConstructor() throws ReflectiveOperationException {
+        Constructor<?> constructor = null;
+        int priority = -1;
+
+        for (Constructor<?> current : this.type.getDeclaredConstructors()) {
+            AccessUtil.setAccessible(current);
+
+            int currentPriority = -1;
+            ContainerConstruct annotation = current.getAnnotation(ContainerConstruct.class);
+            if (annotation != null)
+                currentPriority = annotation.priority();
+
+            if (constructor == null || priority < currentPriority) {
+                constructor = current;
+                priority = currentPriority;
             }
         }
+
+        if (constructor == null)
+            constructor = this.type.getDeclaredConstructor();
+
+        return constructor;
     }
 
     public Object newInstance(ContainerContext containerContext) throws IllegalAccessException, InvocationTargetException, InstantiationException {
+        for (Class<?> aClass : this.types) {
+            if (!ContainerReference.hasObj(aClass)) {
+                throw new IllegalArgumentException("The type " + aClass.getName() + " it's not supposed to be in bean constructor!");
+            }
+        }
+
         return this.constructor.newInstance(this.resolve(containerContext));
     }
 

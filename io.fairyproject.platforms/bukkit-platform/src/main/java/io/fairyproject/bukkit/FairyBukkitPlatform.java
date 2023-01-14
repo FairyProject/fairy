@@ -34,21 +34,18 @@ import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.ListenerSubscription;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
-import io.fairyproject.bukkit.mc.BukkitMCInitializer;
-import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
-import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.configuration.BukkitMCConfiguration;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.log.Log;
-import io.fairyproject.mc.FairyMCPlatform;
-import io.fairyproject.mc.MCInitializer;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
@@ -61,22 +58,20 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.net.URLClassLoader;
 
-public class FairyBukkitPlatform extends FairyMCPlatform implements TerminableConsumer {
+public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
     public static JavaPlugin PLUGIN = JavaPluginUtil.getProvidingPlugin(FairyBukkitPlatform.class);
     public static BukkitAudiences AUDIENCES;
 
-    protected BukkitMCPlayerOperator playerOperator;
-    protected BukkitNMSManager nmsManager;
     private final URLClassLoaderAccess classLoader;
     private final File dataFolder;
     private final CompositeTerminable compositeTerminable;
     @Getter
-    private BukkitMCInitializer mcInitializer;
+    private BukkitMCConfiguration mcInitializer;
 
     @NotNull
     @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+    public <T extends Terminable> T bind(@NotNull T terminable) {
         return this.compositeTerminable.bind(terminable);
     }
 
@@ -124,11 +119,6 @@ public class FairyBukkitPlatform extends FairyMCPlatform implements TerminableCo
     @Override
     public void onPostServicesInitial() {
         Events.call(new PostServicesInitialEvent());
-    }
-
-    @Override
-    public MCInitializer createMCInitializer() {
-        return this.mcInitializer = new BukkitMCInitializer();
     }
 
     @Override

@@ -26,7 +26,6 @@ package io.fairyproject.bukkit.reflection;
 
 import io.fairyproject.Debug;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
-import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.ConstructorResolver;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
@@ -97,27 +96,6 @@ public class MinecraftReflection {
                 throw new IllegalStateException("Coulnd't find mojang GameProfile class!", ex2);
             }
         }
-    }
-
-    /**
-     * @return the current NMS/OBC version (format <code>&lt;version&gt;.</code>
-     */
-    public static String getVersion() {
-        return OBCVersion.get().packageName() + ".";
-    }
-
-    /**
-     * @return the current NMS version package
-     */
-    public static String getNMSPackage() {
-        return OBCVersion.get().getNmsPackage();
-    }
-
-    /**
-     * @return the current OBC package
-     */
-    public static String getOBCPackage() {
-        return OBCVersion.get().getObcPackage();
     }
 
     public static Object getHandle(Object object) throws ReflectiveOperationException {

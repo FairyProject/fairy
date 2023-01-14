@@ -1,16 +1,14 @@
 package io.fairytest.mc;
 
-import io.fairyproject.Fairy;
 import io.fairyproject.locale.util.YamlResourceBundle;
-import io.fairyproject.tests.base.JUnitJupiterBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class YamlResourceBundleTest extends JUnitJupiterBase {
+public class YamlResourceBundleTest {
 
     @Test
     public void readStrings() {
-        YamlResourceBundle resourceBundle = new YamlResourceBundle(Fairy.getPlatform().getResource("dummy.yml"));
+        YamlResourceBundle resourceBundle = new YamlResourceBundle(YamlResourceBundleTest.class.getClassLoader().getResourceAsStream("dummy.yml"));
 
         Assertions.assertEquals("Hi! Whats up", resourceBundle.getString("a"), "Normal string element");
         Assertions.assertEquals("This is second element", resourceBundle.getString("b"), "Normal string element");

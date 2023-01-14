@@ -33,10 +33,12 @@ public interface MCEntity {
     @NotNull List<EntityData> data();
 
     @UtilityClass
+    @Deprecated
     class Companion {
         public MCEntity.Bridge BRIDGE;
     }
 
+    @Deprecated
     interface Bridge {
 
         MCEntity from(Object entity);

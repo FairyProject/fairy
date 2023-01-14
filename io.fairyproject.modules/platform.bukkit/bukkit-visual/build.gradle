@@ -4,5 +4,4 @@ dependencies {
 
 module {
     depend("platform.bukkit:bukkit-xseries")
-    depend("platform.mc:module.protocol")
 }

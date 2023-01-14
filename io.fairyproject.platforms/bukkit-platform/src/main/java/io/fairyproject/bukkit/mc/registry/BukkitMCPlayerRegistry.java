@@ -1,0 +1,86 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2022 Fairy Project
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package io.fairyproject.bukkit.mc.registry;
+
+import io.fairyproject.bukkit.mc.BukkitMCPlayer;
+import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
+import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
+import io.fairyproject.bukkit.util.Players;
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.registry.MCPlayerRegistry;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@RequiredArgsConstructor
+public class BukkitMCPlayerRegistry implements MCPlayerRegistry {
+
+    private final MCServer mcServer;
+    private final BukkitDataWatcherConverter dataWatcherConverter;
+    private final BukkitMCPlayerOperator playerOperator;
+    protected final MCVersionMappingRegistry versionMappingRegistry;
+
+    @Override
+    public UUID from(@NotNull Object obj) {
+        return Players.tryGetUniqueId(obj);
+    }
+
+    @Override
+    public MCPlayer find(UUID uuid) {
+        final Player player = Bukkit.getPlayer(uuid);
+        if (player != null) {
+            return MCPlayer.from(player);
+        }
+        return null;
+    }
+
+    @Override
+    public MCPlayer create(Object obj) {
+        if (!(obj instanceof Player)) {
+            if (obj instanceof UUID) {
+                final Player player = Bukkit.getPlayer((UUID) obj);
+                if (player != null)
+                    return create(player);
+            }
+            throw new IllegalArgumentException(obj.getClass().getName());
+        }
+        return new BukkitMCPlayer((Player) obj, mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+    }
+
+    @Override
+    public Collection<MCPlayer> all() {
+        return Bukkit.getOnlinePlayers().stream()
+                .map(MCPlayer::from)
+                .collect(Collectors.toList());
+    }
+
+}

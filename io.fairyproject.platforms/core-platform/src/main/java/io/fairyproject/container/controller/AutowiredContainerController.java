@@ -3,14 +3,14 @@ package io.fairyproject.container.controller;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ContainerHolder;
-import io.fairyproject.log.Log;
+import io.fairyproject.container.controller.node.AutowiredNodeController;
+import io.fairyproject.container.controller.node.NodeController;
+import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.log.Log;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.AccessUtil;
-import io.fairyproject.util.ClassGraphUtil;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
-import io.github.classgraph.ScanResult;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -25,16 +25,8 @@ public class AutowiredContainerController implements ContainerController {
     }
 
     @Override
-    public void init(ScanResult scanResult) {
-        ClassGraphUtil.fieldWithAnnotation(scanResult, Autowired.class)
-                .filter(field -> Modifier.isStatic(field.getModifiers()))
-                .forEach(field -> {
-                    try {
-                        AutowiredContainerController.INSTANCE.applyField(field, null);
-                    } catch (ReflectiveOperationException e) {
-                        SneakyThrowUtil.sneakyThrow(e);
-                    }
-                });
+    public NodeController initNode(ContainerNode node) {
+        return new AutowiredNodeController(this);
     }
 
     @Override

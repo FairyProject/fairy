@@ -24,6 +24,7 @@
 
 package io.fairyproject.container;
 
+@Deprecated
 public enum ServiceDependencyType {
 
     FORCE,

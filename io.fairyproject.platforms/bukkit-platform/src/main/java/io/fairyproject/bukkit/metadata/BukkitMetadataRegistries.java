@@ -25,10 +25,12 @@
 package io.fairyproject.bukkit.metadata;
 
 import com.google.common.collect.ImmutableMap;
+import io.fairyproject.bukkit.mc.EntityUUIDFinder;
 import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.PlayerMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.WorldMetadataRegistry;
+import io.fairyproject.container.Containers;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.metadata.*;
@@ -149,7 +151,8 @@ final class BukkitMetadataRegistries {
             Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<Entity, K> ret = ImmutableMap.builder();
             this.cache().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
-                Entity entity = MCServer.current().getEntity(uuid).as(Entity.class);
+                EntityUUIDFinder entityUUIDFinder = Containers.get(EntityUUIDFinder.class);
+                Entity entity = entityUUIDFinder.findEntityByUuid(uuid);
                 if (entity != null) {
                     ret.put(entity, t);
                 }

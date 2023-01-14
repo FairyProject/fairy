@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.mc.operator;
 
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
+import io.fairyproject.container.PreInitialize;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
@@ -46,10 +47,10 @@ public class BukkitMCPlayerOperatorImpl implements BukkitMCPlayerOperator {
 
     private final BukkitNMSManager nmsManager;
 
-    private final Function<Player, Integer> getPing;
-    private final Function<Player, Component> getDisplayName;
-    private final BiConsumer<MCPlayer, Component> setDisplayName;
-    private final Function<Player, MCGameProfile> getGameProfile;
+    private Function<Player, Integer> getPing;
+    private Function<Player, Component> getDisplayName;
+    private BiConsumer<MCPlayer, Component> setDisplayName;
+    private Function<Player, MCGameProfile> getGameProfile;
 
     private Method getHandle;
     private Field playerConnection;
@@ -60,7 +61,10 @@ public class BukkitMCPlayerOperatorImpl implements BukkitMCPlayerOperator {
 
     public BukkitMCPlayerOperatorImpl(BukkitNMSManager nmsManager) {
         this.nmsManager = nmsManager;
+    }
 
+    @PreInitialize
+    public void onPreInitialize() {
         try {
             getPing = this.setupGetPing();
             getGameProfile = this.setupGetGameProfile();

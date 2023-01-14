@@ -24,7 +24,7 @@
 
 package io.fairyproject.mc.nametag;
 
-import io.fairyproject.mc.protocol.item.NameTagVisibility;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +39,6 @@ public final class NameTag {
     private final Component prefix;
     private final Component suffix;
     private final TextColor color;
-    private final NameTagVisibility nameTagVisibility;
+    private final WrapperPlayServerTeams.NameTagVisibility nameTagVisibility;
 
 }

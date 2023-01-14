@@ -24,14 +24,12 @@
 
 package io.fairyproject.util.thread;
 
-import io.fairyproject.util.terminable.Terminable;
-
 /**
  * A tool to synchronize code with the main server thread
  *
  * <p>It is highly recommended to use this interface with try-with-resource blocks.</p>
  */
-public interface ServerThreadLock extends Terminable {
+public interface ServerThreadLock extends AutoCloseable {
 
     /**
      * Blocks the current thread until a {@link ServerThreadLock} can be obtained.

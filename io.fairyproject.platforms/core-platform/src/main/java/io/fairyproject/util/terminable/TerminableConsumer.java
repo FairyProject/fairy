@@ -28,7 +28,7 @@ import io.fairyproject.util.terminable.module.TerminableModule;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Accepts {@link AutoCloseable}s (and by inheritance {@link Terminable}s),
+ * Accepts {@link Terminable},
  * as well as {@link TerminableModule}s.
  *
  * @author lucko
@@ -44,7 +44,7 @@ public interface TerminableConsumer {
      * @return the same terminable
      */
     @NotNull
-    <T extends AutoCloseable> T bind(@NotNull T terminable);
+    <T extends Terminable> T bind(@NotNull T terminable);
 
     /**
      * Binds with the given terminable module.

@@ -40,7 +40,6 @@ import io.fairyproject.mc.nametag.update.DuoPlayerNameTagUpdate;
 import io.fairyproject.mc.nametag.update.NameTagUpdate;
 import io.fairyproject.mc.nametag.update.SinglePlayerNameTagUpdate;
 import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.item.NameTagVisibility;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.Utility;
@@ -279,10 +278,9 @@ public class NameTagService {
         if (nameTag.getSuffix() != null)
             suffix = nameTag.getSuffix();
 
-        NameTagVisibility nameTagVisibility = nameTag.getNameTagVisibility();
-        WrapperPlayServerTeams.NameTagVisibility packetVisibility = WrapperPlayServerTeams.NameTagVisibility.ALWAYS;
-        if (nameTagVisibility != null)
-            WrapperPlayServerTeams.NameTagVisibility.fromID(nameTagVisibility.name);
+        WrapperPlayServerTeams.NameTagVisibility packetVisibility = nameTag.getNameTagVisibility();
+        if (packetVisibility == null)
+            packetVisibility = WrapperPlayServerTeams.NameTagVisibility.ALWAYS;
 
         TextColor color = nameTag.getColor();
         if (color == null) {

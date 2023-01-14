@@ -10,8 +10,6 @@ public interface MCServer {
         return Companion.CURRENT;
     }
 
-    MCEntity getEntity(UUID entityUuid);
-
     boolean isMainThread();
 
     MCVersion getVersion();

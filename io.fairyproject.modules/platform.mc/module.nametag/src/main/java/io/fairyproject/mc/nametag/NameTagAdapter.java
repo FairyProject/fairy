@@ -24,7 +24,8 @@
 
 package io.fairyproject.mc.nametag;
 
-import io.fairyproject.mc.protocol.item.NameTagVisibility;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams.NameTagVisibility;
 import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;

@@ -79,7 +79,7 @@ public abstract class Plugin implements TerminableConsumer, Terminable {
 
     @NotNull
     @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+    public <T extends Terminable> T bind(@NotNull T terminable) {
         return this.compositeTerminable.bind(terminable);
     }
 

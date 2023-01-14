@@ -27,6 +27,7 @@ package io.fairyproject.bukkit.nms;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver;
 import io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver;
 import io.fairyproject.bukkit.version.OBCVersionDecoder;
+import io.fairyproject.container.PreInitialize;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.version.MCVersionMapping;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
@@ -35,18 +36,24 @@ import lombok.Getter;
 @Getter
 public class BukkitNMSManagerImpl implements BukkitNMSManager {
 
+    private final Class<?> serverClass;
     private final MCServer mcServer;
     private final MCVersionMappingRegistry versionMappingRegistry;
-    private final NMSClassResolver nmsClassResolver;
-    private final OBCClassResolver obcClassResolver;
+    private NMSClassResolver nmsClassResolver;
+    private OBCClassResolver obcClassResolver;
 
     public BukkitNMSManagerImpl(MCServer mcServer, MCVersionMappingRegistry versionMappingRegistry, Class<?> serverClass) {
-        String versionFormat = OBCVersionDecoder.create().decode(serverClass);
-
+        this.serverClass = serverClass;
         this.mcServer = mcServer;
         this.versionMappingRegistry = versionMappingRegistry;
+    }
+
+    @PreInitialize
+    public void onPreInitialize() {
+        String versionFormat = OBCVersionDecoder.create().decode(serverClass);
+
         this.nmsClassResolver = setupNmsClassResolver(versionFormat);
-        obcClassResolver = setupObcClassResolver(versionFormat);
+        this.obcClassResolver = setupObcClassResolver(versionFormat);
     }
 
     private OBCClassResolver setupObcClassResolver(String versionFormat) {

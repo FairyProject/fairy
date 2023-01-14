@@ -25,20 +25,22 @@
 package io.fairyproject.config;
 
 import io.fairyproject.Debug;
-import io.fairyproject.config.annotation.ElementType;
-import io.fairyproject.util.collection.MapBuilder;
-import lombok.Getter;
 import io.fairyproject.Fairy;
 import io.fairyproject.StorageService;
-import io.fairyproject.container.Autowired;
-import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.Service;
+import io.fairyproject.config.annotation.ElementType;
 import io.fairyproject.config.yaml.YamlConfiguration;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.util.collection.MapBuilder;
+import lombok.Getter;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-@Service
+@InjectableComponent
 @Getter
 @SuppressWarnings("FieldMayBeFinal")
 public class GlobalStorageConfiguration extends YamlConfiguration {

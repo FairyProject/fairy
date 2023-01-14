@@ -29,6 +29,7 @@ import io.fairyproject.event.EventNode;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.state.*;
 import io.fairyproject.state.event.*;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -182,7 +183,7 @@ public class StateMachineImpl implements StateMachine {
 
     @NotNull
     @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+    public <T extends Terminable> T bind(@NotNull T terminable) {
         return this.compositeTerminable.bind(terminable);
     }
 }

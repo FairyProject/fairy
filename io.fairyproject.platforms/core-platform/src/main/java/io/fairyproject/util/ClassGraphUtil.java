@@ -1,5 +1,6 @@
 package io.fairyproject.util;
 
+import io.github.classgraph.FieldInfo;
 import io.github.classgraph.ScanResult;
 import lombok.experimental.UtilityClass;
 
@@ -19,10 +20,11 @@ public class ClassGraphUtil {
     }
 
     public Stream<Field> fieldWithAnnotation(ScanResult scanResult, Class<? extends Annotation> annotationClass) {
-        return scanResult.getClassesWithFieldAnnotation(annotationClass).loadClasses()
+        return scanResult.getClassesWithFieldAnnotation(annotationClass)
                 .stream()
-                .flatMap(clazz -> Stream.of(clazz.getDeclaredFields()))
-                .filter(field -> field.getAnnotation(annotationClass) != null);
+                .flatMap(classInfo -> classInfo.getFieldInfo().stream())
+                .filter(fieldInfo -> fieldInfo.hasAnnotation(annotationClass))
+                .map(FieldInfo::loadClassAndGetField);
     }
 
 }

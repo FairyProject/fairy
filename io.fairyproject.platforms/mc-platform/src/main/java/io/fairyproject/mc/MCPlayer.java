@@ -210,6 +210,7 @@ public interface MCPlayer extends MCEntity, Audience {
      */
     <T> T as(Class<T> playerClass);
 
+    @Deprecated
     class Companion {
 
         public static Bridge BRIDGE = null;
@@ -217,6 +218,7 @@ public interface MCPlayer extends MCEntity, Audience {
 
     }
 
+    @Deprecated
     interface Bridge {
 
         UUID from(@NotNull Object obj);
