@@ -137,7 +137,7 @@ public class VisualBlockSender {
             }
         }
 
-        throw new UnsupportedOperationException();
+        return 0;
     }
 
 }

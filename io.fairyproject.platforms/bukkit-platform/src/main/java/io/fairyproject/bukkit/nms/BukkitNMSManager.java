@@ -32,4 +32,8 @@ public interface BukkitNMSManager {
     io.fairyproject.bukkit.reflection.resolver.minecraft.NMSClassResolver getNmsClassResolver();
 
     io.fairyproject.bukkit.reflection.resolver.minecraft.OBCClassResolver getObcClassResolver();
+
+    default boolean isSupported() {
+        return true;
+    }
 }

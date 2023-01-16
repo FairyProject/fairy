@@ -35,6 +35,9 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.Stacktrace;
 import lombok.RequiredArgsConstructor;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +76,26 @@ public class PluginNodeLoader {
             classScanner.getClassLoaders().add(plugin.getPluginClassLoader());
             classScanner.getClassPaths().addAll(this.findClassPaths());
             classScanner.getExcludedClassPaths().add(Fairy.getFairyPackage());
-            classScanner.getUrls().add(plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
+            if (Debug.UNIT_TEST) {
+                // Hard coded, anyway to make it safer?
+                Path pathMain = Paths.get("build/classes/java/main").toAbsolutePath();
+                if (Files.exists(pathMain))
+                    classScanner.getUrls().add(pathMain.toUri().toURL());
+
+                Path pathTest = Paths.get("build/classes/java/test").toAbsolutePath();
+                if (Files.exists(pathTest))
+                    classScanner.getUrls().add(pathTest.toUri().toURL());
+
+                pathMain = Paths.get("build/classes/kotlin/main").toAbsolutePath();
+                if (Files.exists(pathMain))
+                    classScanner.getUrls().add(pathMain.toUri().toURL());
+
+                pathTest = Paths.get("build/classes/kotlin/test").toAbsolutePath();
+                if (Files.exists(pathTest))
+                    classScanner.getUrls().add(pathTest.toUri().toURL());
+            } else {
+                classScanner.getUrls().add(plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
+            }
 
             classScanner.scan();
         } catch (Throwable throwable) {

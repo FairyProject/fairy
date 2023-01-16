@@ -38,22 +38,21 @@ public class NewVisualData implements VisualData {
     private final MethodWrapper<?> getIdMethod;
 
     public NewVisualData(BukkitNMSManager nmsManager) {
-        Class<?> magicNumbers;
-        MethodWrapper<?> fromLegacyData;
-        MethodWrapper<?> getId;
+        Class<?> magicNumbers = null;
+        MethodWrapper<?> fromLegacyData = null;
+        MethodWrapper<?> getId = null;
 
         try {
-            final Class<?> blockStateType = nmsManager.getNmsClassResolver().resolve("world.level.block.state.BlockState", "IBlockData");
-            final Class<?> blockType = nmsManager.getNmsClassResolver().resolve("world.level.block.Block", "Block");
-            magicNumbers = nmsManager.getObcClassResolver().resolve("util.CraftMagicNumbers");
-            fromLegacyData = new MethodResolver(magicNumbers).resolve(blockStateType, 0, Material.class, byte.class);
-            getId = new MethodResolver(blockType).resolve(blockStateType, 0, blockType);
+            if (nmsManager.isSupported()) {
+                final Class<?> blockStateType = nmsManager.getNmsClassResolver().resolve("world.level.block.state.BlockState", "IBlockData");
+                final Class<?> blockType = nmsManager.getNmsClassResolver().resolve("world.level.block.Block", "Block");
+                magicNumbers = nmsManager.getObcClassResolver().resolve("util.CraftMagicNumbers");
+                fromLegacyData = new MethodResolver(magicNumbers).resolve(blockStateType, 0, Material.class, byte.class);
+                getId = new MethodResolver(blockType).resolve(blockStateType, 0, blockType);
 
-            System.out.println("Initialized NewData for Visual module.");
-        } catch (ReflectiveOperationException e) {
-            magicNumbers = null;
-            fromLegacyData = null;
-            getId = null;
+                System.out.println("Initialized NewData for Visual module.");
+            }
+        } catch (ReflectiveOperationException ignored) {
         }
 
         magicNumbersClass = magicNumbers;

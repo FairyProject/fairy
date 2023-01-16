@@ -40,38 +40,36 @@ public class OldVisualData implements VisualData {
     private final Object blockRegistry;
 
     public OldVisualData(BukkitNMSManager nmsManager) {
-        MethodWrapper<?> blockGetById;
-        MethodWrapper<?> fromLegacyData;
+        MethodWrapper<?> blockGetById = null;
+        MethodWrapper<?> fromLegacyData = null;
         MethodWrapper<?> fromId = null;
-        Object blockRegistry;
+        Object blockRegistry = null;
 
         try {
-            final Class<?> blockType = nmsManager.getNmsClassResolver().resolve("Block");
-            Class<?> registryID;
-            try {
-                registryID = nmsManager.getNmsClassResolver().resolve("RegistryBlockID");
-            } catch (ClassNotFoundException ex) {
-                registryID = nmsManager.getNmsClassResolver().resolve("RegistryID");
-            }
-            blockGetById = new MethodWrapper<>(blockType.getMethod("getById", int.class));
-            fromLegacyData = new MethodWrapper<>(blockType.getMethod("fromLegacyData", int.class));
-            blockRegistry = new FieldResolver(blockType).resolve(registryID, 0).get(0);
-            for (Method method : registryID.getDeclaredMethods()) {
-                if (method.getReturnType() == int.class && method.getParameterCount() == 1) {
-                    fromId = new MethodWrapper<>(method);
-                    break;
+            if (nmsManager.isSupported()) {
+                final Class<?> blockType = nmsManager.getNmsClassResolver().resolve("Block");
+                Class<?> registryID;
+                try {
+                    registryID = nmsManager.getNmsClassResolver().resolve("RegistryBlockID");
+                } catch (ClassNotFoundException ex) {
+                    registryID = nmsManager.getNmsClassResolver().resolve("RegistryID");
                 }
+                blockGetById = new MethodWrapper<>(blockType.getMethod("getById", int.class));
+                fromLegacyData = new MethodWrapper<>(blockType.getMethod("fromLegacyData", int.class));
+                blockRegistry = new FieldResolver(blockType).resolve(registryID, 0).get(0);
+                for (Method method : registryID.getDeclaredMethods()) {
+                    if (method.getReturnType() == int.class && method.getParameterCount() == 1) {
+                        fromId = new MethodWrapper<>(method);
+                        break;
+                    }
+                }
+
+                if (fromId == null)
+                    throw new IllegalArgumentException("Cannot find method 'fromId' in " + registryID.getName());
+
+                System.out.println("Initialized OldData for Visual module.");
             }
-
-            if (fromId == null)
-                throw new IllegalArgumentException("Cannot find method 'fromId' in " + registryID.getName());
-
-            System.out.println("Initialized OldData for Visual module.");
         } catch (Exception ex) {
-            blockGetById = null;
-            fromLegacyData = null;
-            fromId = null;
-            blockRegistry = null;
         }
 
         blockGetByIdMethod = blockGetById;

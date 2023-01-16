@@ -50,4 +50,9 @@ public class BukkitNMSManagerMock implements BukkitNMSManager {
     public OBCClassResolver getObcClassResolver() {
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public boolean isSupported() {
+        return false;
+    }
 }
