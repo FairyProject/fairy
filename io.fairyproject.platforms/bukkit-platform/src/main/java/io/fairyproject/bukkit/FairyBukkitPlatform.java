@@ -32,6 +32,7 @@ import io.fairyproject.bukkit.impl.BukkitPluginHandler;
 import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
 import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.ListenerSubscription;
+import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
 import io.fairyproject.bukkit.configuration.BukkitMCConfiguration;
@@ -109,6 +110,9 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
                 .withFilter(ContainerObjCollector.inherits(Listener.class))
                 .withFilter(ContainerObjCollector.inherits(FilteredListener.class).negate())
                 .withAddHandler(containerObj -> {
+                    if (!containerObj.type().isAnnotationPresent(RegisterAsListener.class))
+                        return;
+
                     Listener listener = (Listener) containerObj.instance();
                     ListenerSubscription subscription = Events.subscribe(listener);
 
