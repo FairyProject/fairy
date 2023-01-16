@@ -26,6 +26,7 @@ package io.fairyproject.mc;
 
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PreInitialize;
+import io.fairyproject.mc.entity.EntityIDCounter;
 import io.fairyproject.mc.registry.MCEntityRegistry;
 import io.fairyproject.mc.registry.MCGameProfileRegistry;
 import io.fairyproject.mc.registry.MCPlayerRegistry;
@@ -46,6 +47,7 @@ public class MCLegacyInitializer {
     private final MCGameProfileRegistry gameProfileRegistry;
     private final MCPlayerRegistry playerRegistry;
     private final MCWorldRegistry worldRegistry;
+    private final EntityIDCounter entityIDCounter;
 
     @PreInitialize
     public void onPreInitialize() {
@@ -99,6 +101,7 @@ public class MCLegacyInitializer {
                 return worldRegistry.all();
             }
         };
+        EntityIDCounter.Companion.CURRENT = entityIDCounter;
     }
 
 }

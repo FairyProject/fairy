@@ -14,6 +14,7 @@ public interface MCServer {
 
     MCVersion getVersion();
 
+    @Deprecated
     class Companion {
 
         public static MCServer CURRENT;

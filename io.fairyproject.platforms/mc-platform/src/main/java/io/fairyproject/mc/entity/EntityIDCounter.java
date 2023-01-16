@@ -26,12 +26,14 @@ package io.fairyproject.mc.entity;
 
 public interface EntityIDCounter {
 
+    @Deprecated
     static EntityIDCounter current() {
         return Companion.CURRENT;
     }
 
     int next();
 
+    @Deprecated
     class Companion {
 
         public static EntityIDCounter CURRENT;
