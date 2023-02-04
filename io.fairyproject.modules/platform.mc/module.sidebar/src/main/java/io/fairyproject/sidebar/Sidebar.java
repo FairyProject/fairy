@@ -169,7 +169,7 @@ public class Sidebar {
         }
 
         teams[line] = component;
-        packet.setTeamInfo(Optional.of(info));
+        packet.setTeamInfo(info);
         MCProtocol.sendPacket(player, packet);
     }
 
