@@ -8,14 +8,17 @@ common-io = "2.7"
 annotations = "19.0.0"
 lombok = "1.18.24"
 persistence-api = "2.2"
-junit = "5.8.1"
 asm = "9.3"
-packetevents = "2.0.15-SNAPSHOT"
+packetevents = "2.0.17-SNAPSHOT"
 bukkit-api = "1.16.5-R0.1-SNAPSHOT"
 
 # Adventure
 adventure = "4.11.0"
 adventure-platform = "4.1.2"
+
+# testing
+junit = "5.8.1"
+mockito = "5.1.1"
 
 [libraries]
 spigot = { module = "org.spigotmc:spigot-api", version.ref = "bukkit-api" }
@@ -30,7 +33,10 @@ common-io = { module = "commons-io:commons-io", version.ref = "common-io" }
 annotations = { module = "org.jetbrains:annotations", version.ref = "annotations" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 javax-persistence-api = { module = "javax.persistence:javax.persistence-api", version.ref = "persistence-api" }
+
+# testing
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 
 # PacketEvents
 packetevents-api = { module = "io.fairyproject.packetevents:api", version.ref = "packetevents" }

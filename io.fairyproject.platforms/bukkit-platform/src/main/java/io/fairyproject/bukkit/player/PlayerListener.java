@@ -26,9 +26,10 @@ package io.fairyproject.bukkit.player;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.events.player.PlayerPostJoinEvent;
+import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.container.object.Obj;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.task.Task;
@@ -39,7 +40,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-@Obj
+@InjectableComponent
+@RegisterAsListener
 public class PlayerListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
