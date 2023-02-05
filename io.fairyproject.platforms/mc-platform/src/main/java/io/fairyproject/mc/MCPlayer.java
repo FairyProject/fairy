@@ -1,8 +1,9 @@
 package io.fairyproject.mc;
 
+import io.fairyproject.container.Containers;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.metadata.CommonMetadataRegistries;
-import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 import io.netty.channel.Channel;
 import net.kyori.adventure.audience.Audience;
@@ -22,23 +23,19 @@ import java.util.function.Function;
  */
 public interface MCPlayer extends MCEntity, Audience {
 
-    MetadataKey<MCPlayer> METADATA = MetadataKey.create("proxy:player", MCPlayer.class);
-
+    @Deprecated
     static Collection<MCPlayer> all() {
         return Companion.BRIDGE.all();
     }
 
     @NotNull
+    @Deprecated
     static <T> MCPlayer from(@Nullable T originalPlayer) {
-        if (originalPlayer == null) {
-            throw new IllegalArgumentException("originalPlayer cannot be null.");
-        }
-        return CommonMetadataRegistries
-                .provide(Companion.BRIDGE.from(originalPlayer))
-                .getOrPut(METADATA, () -> Companion.BRIDGE.create(originalPlayer));
+        return Containers.get(MCPlayerRegistry.class).findPlayerByPlatformPlayer(originalPlayer);
     }
 
     @Nullable
+    @Deprecated
     static MCPlayer find(UUID uuid) {
         return Companion.BRIDGE.find(uuid);
     }
@@ -199,16 +196,6 @@ public interface MCPlayer extends MCEntity, Audience {
      * @return netty channel
      */
     Channel getChannel();
-
-    /**
-     * cast the proxy player to platform specific player instance
-     *
-     * @param playerClass the platform specific Player class
-     * @param <T> the type of the platform specific Player
-     * @return the instance
-     * @throws ClassCastException if class is incorrect, could be wrong type or not the right platform
-     */
-    <T> T as(Class<T> playerClass);
 
     @Deprecated
     class Companion {

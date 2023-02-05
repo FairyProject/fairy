@@ -8,6 +8,7 @@ import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.util.AudienceProxy;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMapping;
@@ -16,32 +17,43 @@ import io.netty.channel.Channel;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
+import java.net.InetAddress;
 import java.util.UUID;
 
 public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCPlayer {
 
-    private final Player player;
-    private final Channel channel;
-    private final Audience audience;
+    private Player player;
+    private Channel channel;
+    private Audience audience;
+
+    private final UUID uuid;
+    private final String name;
+    private final InetAddress address;
     private final MCServer server;
+    private final MCProtocol protocol;
     private final BukkitMCPlayerOperator operator;
     private final MCVersionMappingRegistry versionMappingRegistry;
 
     public BukkitMCPlayer(
-            Player player,
+            UUID uuid,
+            String name,
+            InetAddress address,
             MCServer server,
+            MCProtocol protocol,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator operator,
             MCVersionMappingRegistry versionMappingRegistry
     ) {
-        super(player, dataWatcherConverter);
-        this.player = player;
+        super(dataWatcherConverter);
+        this.uuid = uuid;
+        this.name = name;
+        this.address = address;
         this.server = server;
+        this.protocol = protocol;
         this.operator = operator;
         this.versionMappingRegistry = versionMappingRegistry;
-        this.audience = FairyBukkitPlatform.AUDIENCES.player(player);
-        this.channel = operator.getChannel(player);
     }
 
     @Override
@@ -69,7 +81,7 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
 
     @Override
     public UUID getUUID() {
-        return this.player.getUniqueId();
+        return this.uuid;
     }
 
     @Override
@@ -79,7 +91,7 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
 
     @Override
     public String getName() {
-        return this.player.getName();
+        return this.name;
     }
 
     @Override
@@ -104,6 +116,9 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
 
     @Override
     public Channel getChannel() {
+        if (this.channel == null) {
+            this.channel = this.operator.getChannel(this.player);
+        }
         return this.channel;
     }
 
@@ -115,6 +130,12 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
         return playerClass.cast(this.player);
     }
 
+    @Override
+    public void setNative(@NotNull Object nativeObject) {
+        super.setNative(nativeObject);
+        this.player = (Player) nativeObject;
+        this.audience = FairyBukkitPlatform.AUDIENCES.player(player);
+    }
 
     @Override
     public Audience audience() {

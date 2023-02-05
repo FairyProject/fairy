@@ -29,7 +29,8 @@ import io.fairyproject.container.PreInitialize;
 import io.fairyproject.mc.entity.EntityIDCounter;
 import io.fairyproject.mc.registry.MCEntityRegistry;
 import io.fairyproject.mc.registry.MCGameProfileRegistry;
-import io.fairyproject.mc.registry.MCPlayerRegistry;
+import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.registry.MCWorldRegistry;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +47,7 @@ public class MCLegacyInitializer {
     private final MCEntityRegistry mcEntityRegistry;
     private final MCGameProfileRegistry gameProfileRegistry;
     private final MCPlayerRegistry playerRegistry;
+    private final MCPlayerPlatformOperator playerPlatformOperator;
     private final MCWorldRegistry worldRegistry;
     private final EntityIDCounter entityIDCounter;
 
@@ -67,22 +69,22 @@ public class MCLegacyInitializer {
         MCPlayer.Companion.BRIDGE = new MCPlayer.Bridge() {
             @Override
             public UUID from(@NotNull Object obj) {
-                return playerRegistry.from(obj);
+                return playerPlatformOperator.getUniqueId(obj);
             }
 
             @Override
             public MCPlayer find(UUID uuid) {
-                return playerRegistry.find(uuid);
+                return playerRegistry.findPlayerByUuid(uuid);
             }
 
             @Override
             public MCPlayer create(Object obj) {
-                return playerRegistry.create(obj);
+                throw new UnsupportedOperationException("Cannot create player from object");
             }
 
             @Override
             public Collection<MCPlayer> all() {
-                return playerRegistry.all();
+                return playerRegistry.getAllPlayers();
             }
         };
         MCWorld.Companion.BRIDGE = new MCWorld.Bridge() {

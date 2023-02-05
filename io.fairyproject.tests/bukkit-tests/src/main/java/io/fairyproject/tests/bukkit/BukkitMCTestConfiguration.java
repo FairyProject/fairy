@@ -6,10 +6,11 @@ import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.TestConfiguration;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.registry.MCPlayerRegistry;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.tests.bukkit.mc.operator.BukkitMCPlayerOperatorMock;
-import io.fairyproject.tests.bukkit.mc.registry.BukkitMCPlayerRegistryMock;
+import io.fairyproject.tests.bukkit.mc.registry.BukkitMCPlayerPlatformOperatorMock;
 
 @TestConfiguration
 public class BukkitMCTestConfiguration {
@@ -25,11 +26,12 @@ public class BukkitMCTestConfiguration {
     }
 
     @InjectableComponent
-    public MCPlayerRegistry providePlayerBridge(
+    public MCPlayerPlatformOperator provideMCPlayerPlatformOperator(
             MCServer mcServer,
+            MCProtocol mcProtocol,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        return new BukkitMCPlayerRegistryMock(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayerPlatformOperatorMock(mcServer, mcProtocol, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 }

@@ -22,20 +22,22 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.configuration;
+package io.fairyproject.mc.event;
 
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.protocol.BukkitPacketEventsBuilder;
-import io.fairyproject.container.InjectableComponent;
-import io.fairyproject.container.configuration.Configuration;
-import io.fairyproject.mc.protocol.PacketEventsBuilder;
+import io.fairyproject.event.Cancellable;
+import io.fairyproject.event.Event;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-@Configuration
-public class BukkitProtocolConfiguration {
+import java.net.InetAddress;
+import java.util.UUID;
 
-    @InjectableComponent
-    public PacketEventsBuilder providePacketEventsBuilder(FairyPlatform platform) {
-        return new BukkitPacketEventsBuilder(platform);
-    }
+@RequiredArgsConstructor
+@Getter
+public class AsyncLoginEvent implements Cancellable, Event {
+
+    private final String name;
+    private final UUID uuid;
+    private final InetAddress address;
 
 }

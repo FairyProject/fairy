@@ -22,22 +22,24 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.mc.registry;
+package io.fairyproject.mc.registry.player;
 
 import io.fairyproject.mc.MCPlayer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.net.InetAddress;
 import java.util.UUID;
 
-public interface MCPlayerRegistry {
+public interface MCPlayerPlatformOperator {
 
-    UUID from(@NotNull Object obj);
+    UUID getUniqueId(@NotNull Object platformPlayer);
 
-    MCPlayer find(UUID uuid);
+    String getName(@NotNull Object platformPlayer);
 
-    MCPlayer create(Object obj);
-
-    Collection<MCPlayer> all();
+    MCPlayer create(
+            @NotNull String name,
+            @NotNull UUID uuid,
+            @NotNull InetAddress address
+    );
 
 }

@@ -30,7 +30,6 @@ import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.container.InjectableComponent;
-import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.task.Task;
 import org.bukkit.entity.Player;
@@ -48,7 +47,6 @@ public class PlayerListener implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         final Player player = event.getPlayer();
 
-        Metadata.provideForPlayer(player).remove(MCPlayer.METADATA);
         Events.unregisterAll(player);
         Metadata.get(player).ifPresent(MetadataMap::cleanup);
     }

@@ -24,12 +24,53 @@
 
 package io.fairyproject.mc.protocol;
 
-import java.io.InputStream;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
+import lombok.RequiredArgsConstructor;
+
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.function.Function;
 
+@RequiredArgsConstructor
 public class PacketEventsGithubResourceProvider implements Function<String, InputStream> {
+
+    private final String url = "https://raw.githubusercontent.com/FairyProject/packetevents/2.0/api/src/main/resources/%s";
+    private final Path cacheDirectory;
+
     @Override
     public InputStream apply(String s) {
-        return null;
+        return ThrowingSupplier.sneaky(() -> {
+            Path path = cacheDirectory.resolve(s);
+            if (Files.exists(path))
+                return Files.newInputStream(path);
+
+            HttpURLConnection connection = (HttpURLConnection) new URL(String.format(url, s)).openConnection();
+
+            connection.setRequestMethod("GET");
+            connection.setDoOutput(true);
+            connection.setUseCaches(false);
+
+            try (InputStream inputStream = connection.getInputStream()) {
+                byte[] bytes = readAllBytes(inputStream);
+                Files.createFile(path);
+                Files.write(path, bytes, StandardOpenOption.WRITE);
+
+                return new ByteArrayInputStream(bytes);
+            }
+        }).get();
+    }
+
+    private byte[] readAllBytes(InputStream inputStream) throws IOException {
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            output.write(buffer, 0, bytesRead);
+        }
+        return output.toByteArray();
     }
 }

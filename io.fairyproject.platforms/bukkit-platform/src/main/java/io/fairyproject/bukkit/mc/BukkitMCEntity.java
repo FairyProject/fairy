@@ -19,14 +19,19 @@ import java.util.UUID;
 
 public class BukkitMCEntity implements MCEntity {
 
-    private BukkitDataWatcherConverter dataWatcherConverter;
-    private final Entity entity;
+    private final BukkitDataWatcherConverter dataWatcherConverter;
     private final EventNode<MCEntityEvent> eventNode;
 
-    public BukkitMCEntity(Entity entity, BukkitDataWatcherConverter dataWatcherConverter) {
+    private Entity entity;
+
+    public BukkitMCEntity(BukkitDataWatcherConverter dataWatcherConverter) {
         this.dataWatcherConverter = dataWatcherConverter;
-        this.entity = entity;
         this.eventNode = GlobalEventNode.get().map(this, MCEventFilter.ENTITY);
+    }
+
+    public BukkitMCEntity(Entity entity, BukkitDataWatcherConverter dataWatcherConverter) {
+        this(dataWatcherConverter);
+        this.entity = entity;
     }
 
     @Override
@@ -70,5 +75,10 @@ public class BukkitMCEntity implements MCEntity {
             throw new ClassCastException();
         }
         return playerClass.cast(this.entity);
+    }
+
+    @Override
+    public void setNative(@NotNull Object nativeObject) {
+        this.entity = (Entity) nativeObject;
     }
 }

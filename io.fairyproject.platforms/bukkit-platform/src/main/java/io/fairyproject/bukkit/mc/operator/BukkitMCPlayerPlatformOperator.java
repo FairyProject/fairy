@@ -22,65 +22,54 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.mc.registry;
+package io.fairyproject.bukkit.mc.operator;
 
 import io.fairyproject.bukkit.mc.BukkitMCPlayer;
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
-import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.registry.MCPlayerRegistry;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
+import java.net.InetAddress;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class BukkitMCPlayerRegistry implements MCPlayerRegistry {
+public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator {
 
     private final MCServer mcServer;
+    private final MCProtocol mcProtocol;
     private final BukkitDataWatcherConverter dataWatcherConverter;
     private final BukkitMCPlayerOperator playerOperator;
     protected final MCVersionMappingRegistry versionMappingRegistry;
 
     @Override
-    public UUID from(@NotNull Object obj) {
-        return Players.tryGetUniqueId(obj);
+    public UUID getUniqueId(@NotNull Object platformPlayer) {
+        return Players.tryGetUniqueId(platformPlayer);
     }
 
     @Override
-    public MCPlayer find(UUID uuid) {
-        final Player player = Bukkit.getPlayer(uuid);
-        if (player != null) {
-            return MCPlayer.from(player);
-        }
-        return null;
+    public String getName(@NotNull Object platformPlayer) {
+        if (platformPlayer instanceof String)
+            return (String) platformPlayer;
+
+        if (platformPlayer instanceof Player)
+            return ((Player) platformPlayer).getName();
+
+        throw new IllegalArgumentException(platformPlayer.getClass().getName());
     }
 
     @Override
-    public MCPlayer create(Object obj) {
-        if (!(obj instanceof Player)) {
-            if (obj instanceof UUID) {
-                final Player player = Bukkit.getPlayer((UUID) obj);
-                if (player != null)
-                    return create(player);
-            }
-            throw new IllegalArgumentException(obj.getClass().getName());
-        }
-        return new BukkitMCPlayer((Player) obj, mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
-    }
-
-    @Override
-    public Collection<MCPlayer> all() {
-        return Bukkit.getOnlinePlayers().stream()
-                .map(MCPlayer::from)
-                .collect(Collectors.toList());
+    public MCPlayer create(
+            @NotNull String name,
+            @NotNull UUID uuid,
+            @NotNull InetAddress address) {
+        return new BukkitMCPlayer(uuid, name, address, mcServer, mcProtocol, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
 }

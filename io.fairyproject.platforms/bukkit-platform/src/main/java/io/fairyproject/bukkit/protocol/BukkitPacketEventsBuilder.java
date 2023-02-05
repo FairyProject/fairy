@@ -25,13 +25,29 @@
 package io.fairyproject.bukkit.protocol;
 
 import com.github.retrooper.packetevents.PacketEventsAPI;
+import io.fairyproject.FairyPlatform;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.mc.protocol.PacketEventsBuilder;
+import io.fairyproject.mc.protocol.PacketEventsGithubResourceProvider;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.plugin.Plugin;
 
+import java.nio.file.Path;
+
+@RequiredArgsConstructor
 public class BukkitPacketEventsBuilder implements PacketEventsBuilder {
+
+    public final FairyPlatform platform;
+
     @Override
     public PacketEventsAPI<?> build() {
-        return SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
+        PacketEventsAPI<Plugin> packetEventsAPI = SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
+        Path cacheDirectory = platform.getDataFolder().toPath().resolve("assets");
+        packetEventsAPI.getSettings().customResourceProvider(new PacketEventsGithubResourceProvider(cacheDirectory));
+        packetEventsAPI.getSettings().debug(true);
+
+        return packetEventsAPI;
     }
+
 }

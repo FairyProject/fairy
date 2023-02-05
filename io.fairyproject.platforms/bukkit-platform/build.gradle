@@ -40,7 +40,7 @@ dependencies {
     compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
     compileOnly name: "ProtocolSupport"
 
-    testImplementation "org.mockito:mockito-core:4.11.0"
+    testImplementation libs.mockito
 }
 
 repositories {
@@ -58,5 +58,6 @@ processResources {
 
 shadowJar {
     exclude("com/google/gson/**")
+    exclude("assets/**")
     exclude("plugin.yml")
 }

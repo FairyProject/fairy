@@ -31,7 +31,7 @@ import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
 import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperatorImpl;
 import io.fairyproject.bukkit.mc.registry.BukkitMCEntityRegistry;
 import io.fairyproject.bukkit.mc.registry.BukkitMCGameProfileRegistry;
-import io.fairyproject.bukkit.mc.registry.BukkitMCPlayerRegistry;
+import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerPlatformOperator;
 import io.fairyproject.bukkit.mc.registry.BukkitMCWorldRegistry;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.nms.BukkitNMSManagerImpl;
@@ -40,9 +40,10 @@ import io.fairyproject.container.configuration.Configuration;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.entity.EntityIDCounter;
+import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.registry.MCEntityRegistry;
 import io.fairyproject.mc.registry.MCGameProfileRegistry;
-import io.fairyproject.mc.registry.MCPlayerRegistry;
+import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.registry.MCWorldRegistry;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.Getter;
@@ -102,12 +103,13 @@ public class BukkitMCConfiguration {
     }
 
     @InjectableComponent
-    public MCPlayerRegistry providePlayerBridge(
+    public MCPlayerPlatformOperator provideMCPlayerPlatformOperator(
             MCServer mcServer,
+            MCProtocol mcProtocol,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        return new BukkitMCPlayerRegistry(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayerPlatformOperator(mcServer, mcProtocol, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
     @InjectableComponent

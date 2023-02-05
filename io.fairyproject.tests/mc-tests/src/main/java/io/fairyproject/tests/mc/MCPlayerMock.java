@@ -24,9 +24,10 @@ public abstract class MCPlayerMock implements MCPlayer {
     private final UUID uuid;
     private final String name;
     private final MCVersion version;
-    private final Object originalInstance;
     private final MCVersionMappingRegistry versionMappingRegistry;
 
+    @Nullable
+    private Object originalInstance;
     @Nullable
     private Component displayName;
     @Setter
@@ -112,4 +113,8 @@ public abstract class MCPlayerMock implements MCPlayer {
         throw new IllegalArgumentException();
     }
 
+    @Override
+    public void setNative(@NotNull Object nativeObject) {
+        this.originalInstance = nativeObject;
+    }
 }

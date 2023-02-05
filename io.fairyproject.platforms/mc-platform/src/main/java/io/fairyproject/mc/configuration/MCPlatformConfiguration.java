@@ -22,20 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.configuration;
+package io.fairyproject.mc.configuration;
 
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.protocol.BukkitPacketEventsBuilder;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.Configuration;
-import io.fairyproject.mc.protocol.PacketEventsBuilder;
+import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
+import io.fairyproject.mc.registry.player.MCPlayerRegistryImpl;
 
 @Configuration
-public class BukkitProtocolConfiguration {
+public class MCPlatformConfiguration {
 
     @InjectableComponent
-    public PacketEventsBuilder providePacketEventsBuilder(FairyPlatform platform) {
-        return new BukkitPacketEventsBuilder(platform);
+    public MCPlayerRegistry provideMCPlayerRegistry(MCPlayerPlatformOperator playerPlatformOperator) {
+        return new MCPlayerRegistryImpl(playerPlatformOperator);
     }
 
 }

@@ -22,20 +22,30 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.configuration;
+package io.fairyproject.mc.registry.player;
 
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.protocol.BukkitPacketEventsBuilder;
-import io.fairyproject.container.InjectableComponent;
-import io.fairyproject.container.configuration.Configuration;
-import io.fairyproject.mc.protocol.PacketEventsBuilder;
+import io.fairyproject.mc.MCPlayer;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-@Configuration
-public class BukkitProtocolConfiguration {
+import java.util.Collection;
+import java.util.UUID;
 
-    @InjectableComponent
-    public PacketEventsBuilder providePacketEventsBuilder(FairyPlatform platform) {
-        return new BukkitPacketEventsBuilder(platform);
-    }
+public interface MCPlayerRegistry {
+
+    @NotNull MCPlayer findPlayerByUuid(@NotNull UUID uuid);
+
+    @NotNull MCPlayer findPlayerByName(@NotNull String name);
+
+    @NotNull MCPlayer findPlayerByPlatformPlayer(@NotNull Object platformPlayer);
+
+    @ApiStatus.Internal
+    void addPlayer(@NotNull MCPlayer player);
+
+    @ApiStatus.Internal
+    @Nullable MCPlayer removePlayer(@NotNull UUID uuid);
+
+    Collection<MCPlayer> getAllPlayers();
 
 }

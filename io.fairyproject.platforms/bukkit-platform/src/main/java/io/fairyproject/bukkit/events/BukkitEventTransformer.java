@@ -2,6 +2,7 @@ package io.fairyproject.bukkit.events;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.BukkitPos;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.Service;
 import io.fairyproject.event.GlobalEventNode;
@@ -11,6 +12,7 @@ import io.fairyproject.mc.event.*;
 import io.fairyproject.mc.event.world.MCWorldUnloadEvent;
 import io.fairyproject.mc.util.Position;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -23,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-@Service
+@InjectableComponent
 public class BukkitEventTransformer {
 
     public static final EventPriority PRIORITY_REGISTRATION = EventPriority.MONITOR;
@@ -35,6 +37,9 @@ public class BukkitEventTransformer {
     @PreInitialize
     public void onPreInitialize() {
         this.bukkitToMC = new ConcurrentHashMap<>();
+        this.register(AsyncPlayerPreLoginEvent.class, AsyncLoginEvent.class, this::transformAsyncLoginEvent);
+        this.register(PlayerLoginEvent.class, NativePlayerLoginEvent.class, EventPriority.LOWEST, this::transformNativeLoginEvent);
+        this.register(PlayerLoginEvent.class, MCPlayerLoginEvent.class, event -> new MCPlayerLoginEvent(MCPlayer.from(event.getPlayer())));
         this.register(PlayerJoinEvent.class, MCPlayerJoinEvent.class, event -> new MCPlayerJoinEvent(MCPlayer.from(event.getPlayer())));
         this.register(PlayerQuitEvent.class, MCPlayerQuitEvent.class, event -> new MCPlayerQuitEvent(MCPlayer.from(event.getPlayer())));
         this.register(PlayerMoveEvent.class, MCPlayerMoveEvent.class, event -> {
@@ -79,6 +84,18 @@ public class BukkitEventTransformer {
         );
     }
 
+    private NativePlayerLoginEvent transformNativeLoginEvent(PlayerLoginEvent event) {
+        Player player = event.getPlayer();
+        return new NativePlayerLoginEvent(player, player.getUniqueId(), player.getName(), event.getAddress());
+    }
+
+    private AsyncLoginEvent transformAsyncLoginEvent(AsyncPlayerPreLoginEvent event) {
+        AsyncLoginEvent asyncLoginEvent = new AsyncLoginEvent(event.getName(), event.getUniqueId(), event.getAddress());
+        asyncLoginEvent.setCancelled(event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED);
+
+        return asyncLoginEvent;
+    }
+
     @Nullable
     public Class<?> getMC(Class<? extends Event> bukkitEvent) {
         return this.bukkitToMC.get(bukkitEvent);
@@ -88,9 +105,18 @@ public class BukkitEventTransformer {
         this.register(bukkitClass, mcClass, transformer, null);
     }
 
+    private <B extends Event, M extends io.fairyproject.event.Event> void register(Class<B> bukkitClass, Class<M> mcClass, EventPriority priority, Function<B, M> transformer) {
+        this.register(bukkitClass, mcClass, priority, transformer, null);
+    }
+
     private <B extends Event, M extends io.fairyproject.event.Event> void register(Class<B> bukkitClass, Class<M> mcClass, Function<B, M> transformer, BiConsumer<B, M> postProcessing) {
+        this.register(bukkitClass, mcClass, PRIORITY_REGISTRATION, transformer, postProcessing);
+    }
+
+
+    private <B extends Event, M extends io.fairyproject.event.Event> void register(Class<B> bukkitClass, Class<M> mcClass, EventPriority priority, Function<B, M> transformer, BiConsumer<B, M> postProcessing) {
         this.bukkitToMC.put(bukkitClass, mcClass);
-        Bukkit.getPluginManager().registerEvent(bukkitClass, DUMMY_LISTENER, PRIORITY_REGISTRATION, (listener, event) -> {
+        Bukkit.getPluginManager().registerEvent(bukkitClass, DUMMY_LISTENER, priority, (listener, event) -> {
             if (!bukkitClass.isInstance(event)) {
                 return;
             }

@@ -26,27 +26,31 @@ package io.fairyproject.tests.bukkit.mc.registry;
 
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
-import io.fairyproject.bukkit.mc.registry.BukkitMCPlayerRegistry;
+import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerPlatformOperator;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.tests.bukkit.BukkitMCPlayerMock;
-import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
-public class BukkitMCPlayerRegistryMock extends BukkitMCPlayerRegistry {
+import java.net.InetAddress;
+import java.util.UUID;
 
-    public BukkitMCPlayerRegistryMock(
+public class BukkitMCPlayerPlatformOperatorMock extends BukkitMCPlayerPlatformOperator {
+
+    public BukkitMCPlayerPlatformOperatorMock(
             MCServer mcServer,
+            MCProtocol mcProtocol,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        super(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        super(mcServer, mcProtocol, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
     @Override
-    public MCPlayer create(Object obj) {
-        final Player player = (Player) obj;
-        return new BukkitMCPlayerMock(player.getUniqueId(), player.getName(), MCVersion.of(8), player, versionMappingRegistry); // version customize?
+    public MCPlayer create(@NotNull String name, @NotNull UUID uuid, @NotNull InetAddress address) {
+        return new BukkitMCPlayerMock(uuid, name, MCVersion.of(8), versionMappingRegistry); // version customize?
     }
 }

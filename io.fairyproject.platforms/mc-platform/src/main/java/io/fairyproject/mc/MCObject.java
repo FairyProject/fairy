@@ -22,20 +22,22 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.configuration;
+package io.fairyproject.mc;
 
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.protocol.BukkitPacketEventsBuilder;
-import io.fairyproject.container.InjectableComponent;
-import io.fairyproject.container.configuration.Configuration;
-import io.fairyproject.mc.protocol.PacketEventsBuilder;
+import org.jetbrains.annotations.NotNull;
 
-@Configuration
-public class BukkitProtocolConfiguration {
+public interface MCObject {
 
-    @InjectableComponent
-    public PacketEventsBuilder providePacketEventsBuilder(FairyPlatform platform) {
-        return new BukkitPacketEventsBuilder(platform);
-    }
+    /**
+     * cast the proxy object to platform specific object instance
+     *
+     * @param playerClass the platform specific object class
+     * @param <T> the type of the platform specific object
+     * @return the instance
+     * @throws ClassCastException if class is incorrect, could be wrong type or not the right platform
+     */
+    <T> T as(@NotNull Class<T> playerClass);
+
+    void setNative(@NotNull Object nativeObject);
 
 }
