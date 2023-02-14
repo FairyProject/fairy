@@ -356,7 +356,7 @@ public abstract class BaseCommand implements ICommand {
             for (int i = args.length; i >= 0; i--) {
                 final String subcommand = joinStringArray(args, i);
 
-                Set<ICommand> commands = subCommands.get(subcommand);
+                Set<ICommand> commands = subCommands.getOrDefault(subcommand, Collections.emptySet());
 
                 if (!commands.isEmpty()) {
                     return new PossibleSearches(commands, CoreCommandUtil.arrayFromRange(args, i, args.length - 1), subcommand);
