@@ -1,6 +1,8 @@
 package io.fairyproject.bukkit.command;
 
 import io.fairyproject.Debug;
+import io.fairyproject.bukkit.listener.RegisterAsListener;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.bukkit.command.util.CommandUtil;
 import io.fairyproject.command.BaseCommand;
@@ -15,7 +17,8 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 
-@Obj
+@InjectableComponent
+@RegisterAsListener
 public class BukkitCommandListener implements CommandListener {
 
     private final MetadataKey<BukkitCommandExecutor> metadata = MetadataKey.create("bukkit:executor", BukkitCommandExecutor.class);
