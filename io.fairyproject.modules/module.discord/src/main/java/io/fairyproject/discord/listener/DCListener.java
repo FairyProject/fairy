@@ -1,6 +1,6 @@
 package io.fairyproject.discord.listener;
 
-import io.fairyproject.container.object.Obj;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.discord.DCBot;
 import io.fairyproject.discord.event.DCMessageReceivedEvent;
 import io.fairyproject.event.GlobalEventNode;
@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
 
-@Obj
+@InjectableComponent
 public class DCListener extends ListenerAdapter {
 
     @Override

@@ -24,7 +24,9 @@
 
 package io.fairyproject.bukkit.listener.impl;
 
+import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.util.BukkitUtil;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.object.Obj;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -38,7 +40,8 @@ import io.fairyproject.bukkit.events.player.PlayerDamageByPlayerEvent;
 import io.fairyproject.bukkit.events.player.PlayerDamageEvent;
 import io.fairyproject.bukkit.listener.events.Events;
 
-@Obj
+@InjectableComponent
+@RegisterAsListener
 public class CallEventListener implements Listener {
 
     @EventHandler

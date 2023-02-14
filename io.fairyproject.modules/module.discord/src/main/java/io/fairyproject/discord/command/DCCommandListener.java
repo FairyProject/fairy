@@ -5,8 +5,8 @@ import io.fairyproject.command.CommandListener;
 import io.fairyproject.command.CommandService;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.object.Obj;
 import io.fairyproject.discord.DCBot;
 import io.fairyproject.discord.channel.DCMessageChannel;
 import io.fairyproject.discord.event.DCBotInitializedEvent;
@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 
-@Obj
+@InjectableComponent
 public class DCCommandListener implements CommandListener {
 
     private final MetadataKey<DCCommandMap> METADATA = MetadataKey.create("discord:command-map", DCCommandMap.class);
@@ -89,7 +89,7 @@ public class DCCommandListener implements CommandListener {
             for (Class<? extends DCBot> botClass : annotation.value()) {
                 final Object bot = this.containerContext.getContainerObject(botClass);
                 if (bot != null) {
-                    bots.add((DCBot) bot);
+                    bots.add(( DCBot ) bot);
                 } else {
                     throw new IllegalArgumentException("Couldn't find container instance for " + botClass.getName());
                 }

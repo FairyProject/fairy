@@ -24,19 +24,21 @@
 
 package io.fairyproject.bukkit.visibility;
 
-import io.fairyproject.container.object.Obj;
+import io.fairyproject.bukkit.events.player.PlayerPostJoinEvent;
+import io.fairyproject.bukkit.listener.RegisterAsListener;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.InjectableComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChatTabCompleteEvent;
-import io.fairyproject.bukkit.events.player.PlayerPostJoinEvent;
-import io.fairyproject.container.Autowired;
 
 import java.util.Collection;
 
-@Obj
+@InjectableComponent
+@RegisterAsListener
 public class VisibilityListener implements Listener {
 
     @Autowired
