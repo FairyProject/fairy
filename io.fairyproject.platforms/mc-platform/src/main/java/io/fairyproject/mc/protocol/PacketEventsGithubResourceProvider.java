@@ -56,8 +56,11 @@ public class PacketEventsGithubResourceProvider implements Function<String, Inpu
 
             try (InputStream inputStream = connection.getInputStream()) {
                 byte[] bytes = readAllBytes(inputStream);
-                Files.createFile(path);
-                Files.write(path, bytes, StandardOpenOption.WRITE);
+                Files.createDirectories(path.getParent());
+                Files.write(path, bytes,
+                        StandardOpenOption.WRITE,
+                        StandardOpenOption.CREATE
+                );
 
                 return new ByteArrayInputStream(bytes);
             }
