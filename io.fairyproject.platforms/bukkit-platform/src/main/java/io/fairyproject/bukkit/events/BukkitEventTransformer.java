@@ -38,8 +38,7 @@ public class BukkitEventTransformer {
     public void onPreInitialize() {
         this.bukkitToMC = new ConcurrentHashMap<>();
         this.register(AsyncPlayerPreLoginEvent.class, AsyncLoginEvent.class, this::transformAsyncLoginEvent);
-        this.register(PlayerLoginEvent.class, NativePlayerLoginEvent.class, EventPriority.LOWEST, this::transformNativeLoginEvent);
-        this.register(PlayerLoginEvent.class, MCPlayerLoginEvent.class, event -> new MCPlayerLoginEvent(MCPlayer.from(event.getPlayer())));
+        this.register(PlayerJoinEvent.class, NativePlayerLoginEvent.class, EventPriority.LOWEST, this::transformNativeLoginEvent);
         this.register(PlayerJoinEvent.class, MCPlayerJoinEvent.class, event -> new MCPlayerJoinEvent(MCPlayer.from(event.getPlayer())));
         this.register(PlayerQuitEvent.class, MCPlayerQuitEvent.class, event -> new MCPlayerQuitEvent(MCPlayer.from(event.getPlayer())));
         this.register(PlayerMoveEvent.class, MCPlayerMoveEvent.class, event -> {
@@ -84,9 +83,9 @@ public class BukkitEventTransformer {
         );
     }
 
-    private NativePlayerLoginEvent transformNativeLoginEvent(PlayerLoginEvent event) {
+    private NativePlayerLoginEvent transformNativeLoginEvent(PlayerJoinEvent event) {
         Player player = event.getPlayer();
-        return new NativePlayerLoginEvent(player, player.getUniqueId(), player.getName(), event.getAddress());
+        return new NativePlayerLoginEvent(player, player.getUniqueId(), player.getName(), player.getAddress().getAddress());
     }
 
     private AsyncLoginEvent transformAsyncLoginEvent(AsyncPlayerPreLoginEvent event) {
