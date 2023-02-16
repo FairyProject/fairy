@@ -229,11 +229,13 @@ public class NameTagService {
         nameTag = event.getNameTag();
 
         NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
-        NameTagData nameTagData = this.getOrCreateData(nameTag);
-        list.add(target.getName(), nameTagData);
+        this.removeNameFromList(target.getName(), player, list);
+
+        NameTagData current = this.getOrCreateData(nameTag);
+        list.add(target.getName(), current);
 
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
-                nameTagData.getName(),
+                current.getName(),
                 WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
                 Optional.empty(),
                 target.getName()
