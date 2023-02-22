@@ -7,6 +7,9 @@ import org.gradle.api.artifacts.Dependency
 import java.util.*
 
 
+/**
+ * The resource generator for bukkit plugin.yml
+ */
 class FairyResourceBukkitMeta : FairyResource {
     override fun generate(
         project: Project,

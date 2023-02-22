@@ -14,6 +14,11 @@ import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.api.tasks.SourceSetContainer
 
+/**
+ * Fairy Gradle plugin.
+ *
+ * @since 0.6.4b1
+ */
 class FairyGradlePlugin : Plugin<Project> {
 
     private lateinit var sourceSets: SourceSetContainer
@@ -51,7 +56,7 @@ class FairyGradlePlugin : Plugin<Project> {
         val pluginClass: Class<*>
         try {
             pluginClass = action.pluginClass
-        } catch (e: Throwable) {
+        } catch (e: ClassNotFoundException) {
             // ignore
             return
         }

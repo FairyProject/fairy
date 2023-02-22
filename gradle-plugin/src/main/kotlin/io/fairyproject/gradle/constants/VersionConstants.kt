@@ -27,6 +27,9 @@ package io.fairyproject.gradle.constants
 import io.fairyproject.gradle.FairyGradlePlugin
 import io.fairyproject.gradle.util.VersionExtractor
 
+/**
+ * Version constants.
+ */
 object VersionConstants {
 
     val version: String = VersionExtractor.forClass(FairyGradlePlugin::class.java)

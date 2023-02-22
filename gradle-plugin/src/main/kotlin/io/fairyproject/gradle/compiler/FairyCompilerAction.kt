@@ -1,7 +1,6 @@
 package io.fairyproject.gradle.compiler
 
 import io.fairyproject.gradle.file.ClassModifierCancellable
-import io.fairyproject.gradle.file.ClassModifierEvent
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.DirectoryProperty
@@ -10,11 +9,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
 
+/**
+ * Fairy compiler action.
+ */
 open class FairyCompilerAction : Action<Task> {
 
     private val classModifiers = arrayOf(
-        ClassModifierCancellable(),
-        ClassModifierEvent()
+        ClassModifierCancellable()
     )
 
     override fun execute(t: Task) {

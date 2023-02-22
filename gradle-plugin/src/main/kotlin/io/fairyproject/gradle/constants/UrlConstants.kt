@@ -1,5 +1,8 @@
 package io.fairyproject.gradle.constants
 
+/**
+ * Url constants.
+ */
 object UrlConstants {
 
     const val bomDetailsUrl = "https://repo.imanity.dev/api/maven/details/imanity-libraries/io/fairyproject/bom/%s";

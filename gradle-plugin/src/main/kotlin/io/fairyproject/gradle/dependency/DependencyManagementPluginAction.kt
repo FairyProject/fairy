@@ -30,6 +30,10 @@ import io.spring.gradle.dependencymanagement.DependencyManagementPlugin
 import io.spring.gradle.dependencymanagement.dsl.DependencyManagementExtension
 import org.gradle.api.Project
 
+/**
+ * Dependency management plugin action.
+ * This action will be executed if the dependency management plugin is applied.
+ */
 class DependencyManagementPluginAction : PluginApplicationAction {
 
     override val pluginClass = DependencyManagementPlugin::class.java

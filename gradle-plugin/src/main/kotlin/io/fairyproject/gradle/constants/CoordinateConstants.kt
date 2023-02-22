@@ -24,6 +24,9 @@
 
 package io.fairyproject.gradle.constants
 
+/**
+ * Coordinate constants.
+ */
 object CoordinateConstants {
 
     val bom = "io.fairyproject:bom:${VersionConstants.version}"

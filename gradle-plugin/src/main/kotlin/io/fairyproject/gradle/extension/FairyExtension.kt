@@ -6,19 +6,14 @@ import io.fairyproject.gradle.platform.PlatformType
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 
+/**
+ * Fairy extension.
+ */
 open class FairyExtension(objectFactory: ObjectFactory) {
 
-    val version: Property<String> = objectFactory.property(String::class.java)
     val mainPackage: Property<String> = objectFactory.property(String::class.java)
 
     private val properties = mutableMapOf<PlatformType, Properties>()
-
-    /**
-     * Set the fairy version
-     */
-    fun version(version: String) {
-        this.version.set(version)
-    }
 
     /**
      * Get properties for bukkit platform

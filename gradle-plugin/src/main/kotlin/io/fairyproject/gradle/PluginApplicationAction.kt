@@ -28,6 +28,9 @@ import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
+/**
+ * Plugin application action.
+ */
 interface PluginApplicationAction: Action<Project> {
 
     val pluginClass: Class<out Plugin<*>>

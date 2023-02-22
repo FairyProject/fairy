@@ -2,8 +2,14 @@ package io.fairyproject.gradle.extension.property
 
 import io.fairyproject.gradle.platform.PlatformType
 
+/**
+ * The properties of a plugin.
+ */
 sealed class Properties(val platformType: PlatformType) : HashMap<String, Any>()
 
+/**
+ * The properties of a bukkit plugin.
+ */
 class BukkitProperties : Properties(PlatformType.BUKKIT) {
 
     // TODO - add all bukkit properties

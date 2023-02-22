@@ -5,6 +5,9 @@ import io.fairyproject.gradle.resource.impl.FairyResourceBukkitMeta
 import io.fairyproject.gradle.resource.impl.FairyResourcePluginMeta
 import org.gradle.api.Project
 
+/**
+ * The resource generator.
+ */
 interface FairyResource {
 
     fun generate(

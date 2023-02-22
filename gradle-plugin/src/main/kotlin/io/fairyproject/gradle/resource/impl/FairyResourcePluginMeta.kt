@@ -6,6 +6,9 @@ import io.fairyproject.gradle.extension.FairyExtension
 import io.fairyproject.gradle.resource.*
 import org.gradle.api.Project
 
+/**
+ * The resource generator for plugin meta.
+ */
 open class FairyResourcePluginMeta: FairyResource {
 
     private val gson = GsonBuilder().setPrettyPrinting().create()

@@ -25,7 +25,6 @@
 
 package io.fairyproject.bukkit.util.items;
 
-import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.version.MCVersion;
 import lombok.Getter;
@@ -177,7 +176,7 @@ public class ItemSet implements Cloneable {
 
         @Override
         public ItemStack getItem(Player player) {
-            return this.fairyItem.provide(MCPlayer.from(player))
+            return this.fairyItem.provide(player)
                     .amount(this.amount)
                     .durability(this.durability)
                     .build();

@@ -1,5 +1,8 @@
 package io.fairyproject.gradle.platform
 
+/**
+ * The platform type.
+ */
 enum class PlatformType {
     BUKKIT,
     APP,
