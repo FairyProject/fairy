@@ -33,23 +33,23 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class AbstractCompositeTerminable implements CompositeTerminable {
-    private final Deque<AutoCloseable> closeables = new ConcurrentLinkedDeque<>();
+    private final Deque<Terminable> terminableQueue = new ConcurrentLinkedDeque<>();
 
     protected AbstractCompositeTerminable() {
 
     }
 
     @Override
-    public CompositeTerminable with(AutoCloseable autoCloseable) {
-        Objects.requireNonNull(autoCloseable, "autoCloseable");
-        this.closeables.push(autoCloseable);
+    public CompositeTerminable with(Terminable terminable) {
+        Objects.requireNonNull(terminable, "terminable");
+        this.terminableQueue.push(terminable);
         return this;
     }
 
     @Override
     public void close() throws CompositeClosingException {
         List<Exception> caught = new ArrayList<>();
-        for (AutoCloseable ac; (ac = this.closeables.poll()) != null; ) {
+        for (Terminable ac; (ac = this.terminableQueue.poll()) != null; ) {
             try {
                 ac.close();
             } catch (Exception e) {
@@ -64,12 +64,12 @@ public class AbstractCompositeTerminable implements CompositeTerminable {
 
     @Override
     public boolean isClosed() {
-        return this.closeables.stream().allMatch(closable -> closable instanceof Terminable && ((Terminable) closable).isClosed());
+        return this.terminableQueue.stream().allMatch(closable -> closable instanceof Terminable && ((Terminable) closable).isClosed());
     }
 
     @Override
     public void cleanup() {
-        this.closeables.removeIf(ac -> {
+        this.terminableQueue.removeIf(ac -> {
             if (!(ac instanceof Terminable)) {
                 return false;
             }

@@ -24,9 +24,9 @@
 
 package io.fairyproject.util.collection;
 
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
-import com.google.common.base.Function;
+import java.util.function.Function;
 
 /**
  * Represents an object that transform elements of type VInner to type VOuter and back again.

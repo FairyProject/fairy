@@ -25,10 +25,10 @@
 package io.fairyproject.providers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableMap;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import io.fairyproject.mongo.AbstractMongoRepositoryProvider;
+import io.fairyproject.util.collection.MapBuilder;
 import org.mongojack.JacksonMongoCollection;
 
 import java.util.Map;
@@ -43,11 +43,11 @@ public class MongoRepositoryProvider extends AbstractMongoRepositoryProvider {
 
     @Override
     public Map<String, String> getDefaultOptions() {
-        return ImmutableMap.of(
-                "connectionString", "mongodb://localhost:27017",
-                "database", "database",
-                "connectionPrefix", "imanity_"
-        );
+        return MapBuilder.<String, String>create()
+                .put("connectionString", "mongodb://localhost:27017")
+                .put("database", "database")
+                .put("connectionPrefix", "imanity_")
+                .build();
     }
 
     @Override

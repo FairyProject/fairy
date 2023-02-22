@@ -34,7 +34,6 @@ import io.fairyproject.Fairy;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.item.ObjectiveDisplaySlot;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
 import net.kyori.adventure.text.Component;
@@ -64,7 +63,7 @@ public class Sidebar {
         MCProtocol.sendPacket(player, objective);
 
         final WrapperPlayServerDisplayScoreboard scoreboard = new WrapperPlayServerDisplayScoreboard(
-                ObjectiveDisplaySlot.SIDEBAR.getSerializeId(),
+                1,
                 player.getName()
         );
 
@@ -170,7 +169,7 @@ public class Sidebar {
         }
 
         teams[line] = component;
-        packet.setTeamInfo(Optional.of(info));
+        packet.setTeamInfo(info);
         MCProtocol.sendPacket(player, packet);
     }
 

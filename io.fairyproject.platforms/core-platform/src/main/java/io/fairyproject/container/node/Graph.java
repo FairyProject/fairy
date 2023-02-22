@@ -1,6 +1,5 @@
 package io.fairyproject.container.node;
 
-import com.google.common.collect.ImmutableList;
 import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
@@ -77,7 +76,7 @@ public abstract class Graph<T> {
             final T element = stack.pop();
             this.nodes.add(element);
         }
-        this.nodes = ImmutableList.copyOf(this.nodes);
+        this.nodes = new ArrayList<>(this.nodes);
         return this;
     }
 

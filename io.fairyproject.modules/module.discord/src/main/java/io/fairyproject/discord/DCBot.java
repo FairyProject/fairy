@@ -1,5 +1,6 @@
 package io.fairyproject.discord;
 
+import io.fairyproject.annotation.AnnotateSuggest;
 import io.fairyproject.container.*;
 import io.fairyproject.discord.button.ButtonReader;
 import io.fairyproject.discord.command.CommandPrefix;

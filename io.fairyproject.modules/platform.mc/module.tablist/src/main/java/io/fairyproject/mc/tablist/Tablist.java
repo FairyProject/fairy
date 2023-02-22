@@ -24,25 +24,25 @@
 
 package io.fairyproject.mc.tablist;
 
-import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.tablist.util.Skin;
 import io.fairyproject.mc.tablist.util.TabSlot;
-import io.fairyproject.mc.tablist.util.TablistUtil;
+import io.fairyproject.mc.version.MCVersion;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Getter
 public class Tablist {
 
-    @Autowired
-    private static TablistService SERVICE;
-
     private final MCPlayer player;
+    private final TablistService tablistService;
+    private final TablistSender tablistSender;
     private final Set<TabEntry> entries = new HashSet<>();
     private final AtomicBoolean shown;
 
@@ -50,8 +50,10 @@ public class Tablist {
     private Component footer;
 
 
-    public Tablist(MCPlayer player) {
+    public Tablist(MCPlayer player, TablistService tablistService, TablistSender tablistSender) {
         this.player = player;
+        this.tablistService = tablistService;
+        this.tablistSender = tablistSender;
         this.shown = new AtomicBoolean(false);
 
         this.setup();
@@ -60,7 +62,7 @@ public class Tablist {
     private void setup() {
         this.entries.clear();
 
-        final int possibleSlots = player.getVersion() == MCVersion.V1_7 ? 60 : 80;
+        final int possibleSlots = player.getVersion().isLowerThan(MCVersion.of(8)) ? 60 : 80;
 
         for (int i = 1; i <= possibleSlots; i++) {
             final TabColumn tabColumn = TabColumn.getFromSlot(player, i);
@@ -77,29 +79,29 @@ public class Tablist {
         if (!this.shown.compareAndSet(false, true))
             return;
 
-        TablistUtil.addFakePlayer(this, this.entries);
+        this.tablistSender.addFakePlayer(this, this.entries);
     }
 
     private void hide() {
         if (!this.shown.compareAndSet(true, false))
             return;
 
-        TablistUtil.removeFakePlayer(this, this.entries);
+        this.tablistSender.removeFakePlayer(this, this.entries);
         for (TabEntry tabEntry : this.entries) {
-            TablistUtil.updateFakeName(this, tabEntry, Component.empty());
-            TablistUtil.updateFakeLatency(this, tabEntry, 0);
-            TablistUtil.updateFakeSkin(this, tabEntry, Skin.GRAY);
+            this.tablistSender.updateFakeName(this, tabEntry, Component.empty());
+            this.tablistSender.updateFakeLatency(this, tabEntry, 0);
+            this.tablistSender.updateFakeSkin(this, tabEntry, Skin.GRAY);
         }
 
         this.header = null;
         this.footer = null;
-        TablistUtil.updateHeaderAndFooter(this, Component.empty(), Component.empty());
+        this.tablistSender.updateHeaderAndFooter(this, Component.empty(), Component.empty());
     }
 
     public void update() {
         Set<TabEntry> previous = new HashSet<>(entries);
 
-        Set<TabSlot> current = SERVICE.getSlots(player);
+        Set<TabSlot> current = this.tablistService.getSlots(player);
         if (current == null || current.isEmpty()) {
             this.hide();
             return;
@@ -113,25 +115,25 @@ public class Tablist {
             if (tabEntry != null) {
                 previous.remove(tabEntry);
 
-                TablistUtil.updateFakeLatency(this, tabEntry, tabSlot.getPing());
-                TablistUtil.updateFakeName(this, tabEntry, tabSlot.getText());
-                TablistUtil.updateFakeSkin(this, tabEntry, tabSlot.getSkin());
+                this.tablistSender.updateFakeLatency(this, tabEntry, tabSlot.getPing());
+                this.tablistSender.updateFakeName(this, tabEntry, tabSlot.getText());
+                this.tablistSender.updateFakeSkin(this, tabEntry, tabSlot.getSkin());
             }
         }
 
         for (TabEntry tabEntry : previous) {
-            TablistUtil.updateFakeName(this, tabEntry, Component.empty());
-            TablistUtil.updateFakeLatency(this, tabEntry, 0);
-            TablistUtil.updateFakeSkin(this, tabEntry, Skin.GRAY);
+            this.tablistSender.updateFakeName(this, tabEntry, Component.empty());
+            this.tablistSender.updateFakeLatency(this, tabEntry, 0);
+            this.tablistSender.updateFakeSkin(this, tabEntry, Skin.GRAY);
         }
 
         previous.clear();
 
-        Component headerNow = SERVICE.getHeader(player);
-        Component footerNow = SERVICE.getFooter(player);
+        Component headerNow = this.tablistService.getHeader(player);
+        Component footerNow = this.tablistService.getFooter(player);
 
         if (!Objects.equals(this.header, headerNow) || !Objects.equals(this.footer, footerNow)) {
-            TablistUtil.updateHeaderAndFooter(this, headerNow, footerNow);
+            this.tablistSender.updateHeaderAndFooter(this, headerNow, footerNow);
             this.header = headerNow;
             this.footer = footerNow;
         }

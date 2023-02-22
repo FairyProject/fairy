@@ -24,12 +24,12 @@
 
 package io.fairyproject.mc.nametag;
 
-import io.fairyproject.mc.protocol.item.NameTagVisibility;
-import net.kyori.adventure.text.Component;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams.NameTagVisibility;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
-import io.fairyproject.container.Autowired;
+import net.kyori.adventure.text.Component;
 
 @Getter
 public abstract class NameTagAdapter {
@@ -37,20 +37,32 @@ public abstract class NameTagAdapter {
     @Autowired
     protected static NameTagService NAMETAG_SERVICE;
 
+    @Deprecated
     public static NameTag createNametag(Component prefix, Component suffix) {
         return createNametag(prefix, suffix, NameTagVisibility.ALWAYS);
     }
 
+    @Deprecated
     public static NameTag createNametag(String legacyPrefix, String legacySuffix) {
         return createNametag(legacyPrefix, legacySuffix, NameTagVisibility.ALWAYS);
     }
 
+    @Deprecated
     public static NameTag createNametag(Component prefix, Component suffix, NameTagVisibility nameTagVisibility) {
-        return NAMETAG_SERVICE.getOrCreate(prefix, suffix, nameTagVisibility);
+        return NameTag.builder()
+                .prefix(prefix)
+                .suffix(suffix)
+                .nameTagVisibility(nameTagVisibility)
+                .build();
     }
 
+    @Deprecated
     public static NameTag createNametag(String legacyPrefix, String legacySuffix, NameTagVisibility nameTagVisibility) {
-        return NAMETAG_SERVICE.getOrCreate(MCAdventure.LEGACY.deserialize(legacyPrefix), MCAdventure.LEGACY.deserialize(legacySuffix), nameTagVisibility);
+        return NameTag.builder()
+                .prefix(MCAdventure.LEGACY.deserialize(legacyPrefix))
+                .suffix(MCAdventure.LEGACY.deserialize(legacySuffix))
+                .nameTagVisibility(nameTagVisibility)
+                .build();
     }
 
     private final String name;

@@ -1,9 +1,9 @@
 package io.fairyproject.event;
 
 import io.fairyproject.container.Autowired;
-import io.fairyproject.container.Service;
+import io.fairyproject.container.InjectableComponent;
 
-@Service
+@InjectableComponent
 public class GlobalEventNode extends EventNodeImpl<Event> {
 
     @Autowired

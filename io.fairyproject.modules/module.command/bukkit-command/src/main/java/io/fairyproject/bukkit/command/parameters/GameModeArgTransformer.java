@@ -24,9 +24,10 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
+import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.object.Obj;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
@@ -40,34 +41,35 @@ import java.util.stream.Collectors;
 @Obj
 public class GameModeArgTransformer extends BukkitArgTransformer<GameMode> {
 
-	private static final Map<String, GameMode> MAP = new HashMap<>();
+	private final Map<String, GameMode> gamemodeMap = new HashMap<>();
 
-	static {
-		MAP.put("creative", GameMode.CREATIVE);
-		MAP.put("1", GameMode.CREATIVE);
+	@PostInitialize
+	public void onPostInitialize() {
+		gamemodeMap.put("creative", GameMode.CREATIVE);
+		gamemodeMap.put("1", GameMode.CREATIVE);
 
-		MAP.put("survival", GameMode.SURVIVAL);
-		MAP.put("0", GameMode.SURVIVAL);
+		gamemodeMap.put("survival", GameMode.SURVIVAL);
+		gamemodeMap.put("0", GameMode.SURVIVAL);
 
-		MAP.put("adventure", GameMode.ADVENTURE);
-		MAP.put("2", GameMode.ADVENTURE);
+		gamemodeMap.put("adventure", GameMode.ADVENTURE);
+		gamemodeMap.put("2", GameMode.ADVENTURE);
 
-		if (MCServer.current().getVersion().isOrAbove(MCVersion.V1_8)) {
-			MAP.put("spectator", GameMode.SPECTATOR);
-			MAP.put("3", GameMode.SPECTATOR);
+		if (MCServer.current().getVersion().isHigherOrEqual(MCVersion.of(8))) {
+			gamemodeMap.put("spectator", GameMode.SPECTATOR);
+			gamemodeMap.put("3", GameMode.SPECTATOR);
 		}
 	}
 
 	public GameMode transform(CommandSender sender, String source) {
-		if (!MAP.containsKey(source.toLowerCase())) {
+		if (!gamemodeMap.containsKey(source.toLowerCase())) {
 			return this.fail(source + " is not a valid game mode.");
 		}
 
-		return MAP.get(source.toLowerCase());
+		return gamemodeMap.get(source.toLowerCase());
 	}
 
 	public List<String> tabComplete(Player sender, String source) {
-		return (MAP.keySet().stream().filter(string -> StringUtils.startsWithIgnoreCase(string, source))
+		return (gamemodeMap.keySet().stream().filter(string -> StringUtils.startsWithIgnoreCase(string, source))
 		           .collect(Collectors.toList()));
 	}
 

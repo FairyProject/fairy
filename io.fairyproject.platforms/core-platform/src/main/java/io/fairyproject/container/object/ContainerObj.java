@@ -4,10 +4,12 @@ import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.container.Threading;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.container.object.lifecycle.LifeCycleHandler;
+import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
@@ -15,6 +17,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public interface ContainerObj extends Terminable, TerminableConsumer {
@@ -48,6 +52,8 @@ public interface ContainerObj extends Terminable, TerminableConsumer {
     @Contract("_ -> this")
     @NotNull ContainerObj addLifeCycleHandler(@NotNull LifeCycleHandler lifeCycleHandler);
 
+    @NotNull List<LifeCycleHandler> lifeCycleHandlers();
+
     void setInstance(@NotNull Object instance);
 
     @NotNull Collection<Class<?>> depends();
@@ -66,8 +72,12 @@ public interface ContainerObj extends Terminable, TerminableConsumer {
     @ApiStatus.Internal
     void removeCollector(@NotNull ContainerObjCollector collector);
 
+    void setProvider(@NotNull InstanceProvider provider);
+
+    @Nullable InstanceProvider provider();
+
     @RequiredArgsConstructor
-    @Data
+    @Getter
     class DependEntry {
 
         private final Class<?> dependClass;
@@ -77,6 +87,23 @@ public interface ContainerObj extends Terminable, TerminableConsumer {
             return new DependEntry(dependClass, dependType);
         }
 
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            DependEntry that = (DependEntry) o;
+            return dependClass.equals(that.dependClass);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(dependClass);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("DependEntry{dependClass=%s, dependType=%s}", dependClass, dependType);
+        }
     }
 
 }

@@ -1,10 +1,9 @@
 package io.fairyproject.metadata;
 
-import com.google.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -13,51 +12,51 @@ public interface MetadataMapProxy extends MetadataMap {
 
     MetadataMap getMetadataMap();
 
-    default <T> void put(@Nonnull MetadataKey<T> key, @Nonnull T value) {
+    default <T> void put(@NotNull MetadataKey<T> key, @NotNull T value) {
         this.getMetadataMap().put(key, value);
     }
 
-    default <T> void put(@Nonnull MetadataKey<T> key, @Nonnull TransientValue<T> value) {
+    default <T> void put(@NotNull MetadataKey<T> key, @NotNull TransientValue<T> value) {
         this.getMetadataMap().put(key, value);
     }
 
-    default <T> void forcePut(@Nonnull MetadataKey<T> key, @Nonnull T value) {
+    default <T> void forcePut(@NotNull MetadataKey<T> key, @NotNull T value) {
         this.getMetadataMap().forcePut(key, value);
     }
 
-    default <T> void forcePut(@Nonnull MetadataKey<T> key, @Nonnull TransientValue<T> value) {
+    default <T> void forcePut(@NotNull MetadataKey<T> key, @NotNull TransientValue<T> value) {
         this.getMetadataMap().forcePut(key, value);
     }
 
-    default <T> boolean putIfAbsent(@Nonnull MetadataKey<T> key, @Nonnull T value) {
+    default <T> boolean putIfAbsent(@NotNull MetadataKey<T> key, @NotNull T value) {
         return this.getMetadataMap().putIfAbsent(key, value);
     }
 
-    default <T> boolean putIfAbsent(@Nonnull MetadataKey<T> key, @Nonnull TransientValue<T> value) {
+    default <T> boolean putIfAbsent(@NotNull MetadataKey<T> key, @NotNull TransientValue<T> value) {
         return this.getMetadataMap().putIfAbsent(key, value);
     }
 
-    @Nonnull
-    default <T> Optional<T> get(@Nonnull MetadataKey<T> key) {
+    @NotNull
+    default <T> Optional<T> get(@NotNull MetadataKey<T> key) {
         return this.getMetadataMap().get(key);
     }
 
-    default <T> boolean ifPresent(@Nonnull MetadataKey<T> key, @Nonnull Consumer<? super T> action) {
+    default <T> boolean ifPresent(@NotNull MetadataKey<T> key, @NotNull Consumer<? super T> action) {
         return this.getMetadataMap().ifPresent(key, action);
     }
 
     @Nullable
-    default <T> T getOrNull(@Nonnull MetadataKey<T> key) {
+    default <T> T getOrNull(@NotNull MetadataKey<T> key) {
         return this.getMetadataMap().getOrNull(key);
     }
 
-    @Nonnull
-    default <T> T getOrDefault(@Nonnull MetadataKey<T> key, @Nullable T def) {
+    @NotNull
+    default <T> T getOrDefault(@NotNull MetadataKey<T> key, @Nullable T def) {
         return this.getMetadataMap().getOrDefault(key, def);
     }
 
-    @Nonnull
-    default <T> T getOrPut(@Nonnull MetadataKey<T> key, @Nonnull Supplier<? extends T> def) {
+    @NotNull
+    default <T> T getOrPut(@NotNull MetadataKey<T> key, @NotNull Supplier<? extends T> def) {
         return this.getMetadataMap().getOrPut(key, def);
     }
 
@@ -66,16 +65,16 @@ public interface MetadataMapProxy extends MetadataMap {
         return this.getMetadataMap().getOrThrow(key);
     }
 
-    @Nonnull
-    default <T> T getOrPutExpiring(@Nonnull MetadataKey<T> key, @Nonnull Supplier<? extends TransientValue<T>> def) {
+    @NotNull
+    default <T> T getOrPutExpiring(@NotNull MetadataKey<T> key, @NotNull Supplier<? extends TransientValue<T>> def) {
         return this.getMetadataMap().getOrPutExpiring(key, def);
     }
 
-    default boolean has(@Nonnull MetadataKey<?> key) {
+    default boolean has(@NotNull MetadataKey<?> key) {
         return this.getMetadataMap().has(key);
     }
 
-    default boolean remove(@Nonnull MetadataKey<?> key) {
+    default boolean remove(@NotNull MetadataKey<?> key) {
         return this.getMetadataMap().remove(key);
     }
 
@@ -83,8 +82,8 @@ public interface MetadataMapProxy extends MetadataMap {
         this.getMetadataMap().clear();
     }
 
-    @Nonnull
-    default ImmutableMap<MetadataKey<?>, Object> asMap() {
+    @NotNull
+    default Map<MetadataKey<?>, Object> asMap() {
         return this.getMetadataMap().asMap();
     }
 

@@ -37,6 +37,7 @@ import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.CC;
 import io.fairyproject.util.Stacktrace;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import lombok.Getter;
@@ -80,7 +81,7 @@ public abstract class Menu implements TerminableConsumer {
 
     @NotNull
     @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+    public <T extends Terminable> T bind(@NotNull T terminable) {
         return this.compositeTerminable.bind(terminable);
     }
 

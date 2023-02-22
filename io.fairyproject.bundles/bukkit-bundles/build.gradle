@@ -1,0 +1,8 @@
+apply plugin: "java-library"
+
+version = rootProject.version
+
+dependencies {
+    api(project(":io.fairyproject.platforms:bukkit-platform"))
+    api(project(":io.fairyproject.bootstraps:bukkit-bootstrap"))
+}

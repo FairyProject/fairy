@@ -36,7 +36,7 @@ import io.fairyproject.util.FastRandom;
 @UtilityClass
 public class Fairy {
 
-    public final String METADATA_PREFIX = "Imanity_";
+    public final String METADATA_PREFIX = "fairy:";
     public final String PACKAGE_NAME = "fairy";
     private final FastRandom RANDOM = new FastRandom();
 

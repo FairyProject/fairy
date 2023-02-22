@@ -25,8 +25,8 @@
 package io.fairyproject.mc.tablist;
 
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.version.MCVersion;
 import lombok.Getter;
-import io.fairyproject.mc.protocol.MCVersion;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,7 +78,7 @@ public enum TabColumn {
 
     public static TabColumn getFromSlot(MCPlayer player, Integer slot) {
         /* Player Version 1.7 */
-        if (player.getVersion() == MCVersion.V1_7) {
+        if (player.getVersion().isLowerThan(MCVersion.of(8))) {
             return Arrays.stream(TabColumn.values())
                     .filter(tabColumn -> tabColumn.getNumbers().contains(slot))
                     .findFirst().get();
@@ -98,7 +98,7 @@ public enum TabColumn {
 
     public int getNumber(MCPlayer player, int raw) {
         /* Check if the Player is not a 1.7 User */
-        if (player.getVersion() != MCVersion.V1_7) {
+        if (player.getVersion().isHigherOrEqual(MCVersion.of(8))) {
             return raw - startNumber + 1;
         }
         int number = 0;

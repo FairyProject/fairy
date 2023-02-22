@@ -24,12 +24,8 @@
 
 package io.fairyproject.reflect;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import io.fairyproject.util.Utility;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
-import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -37,21 +33,13 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 
 public class ReflectCache {
 
-    private static final LoadingCache<Class<?>, ReflectCache> CLASS_ACCESSORS = CacheBuilder.newBuilder()
-            .expireAfterAccess(5, TimeUnit.MINUTES)
-            .build(new CacheLoader<Class<?>, ReflectCache>() {
-                @Override
-                public ReflectCache load(@NotNull Class<?> key) {
-                    return new ReflectCache(key);
-                }
-            });
+    private static final Map<Class<?>, ReflectCache> CLASS_ACCESSORS = new ConcurrentHashMap<>();
 
     public static ReflectCache get(Class<?> parentClass) {
-        return ThrowingSupplier.sneaky(() -> CLASS_ACCESSORS.get(parentClass)).get();
+        return ThrowingSupplier.sneaky(() -> CLASS_ACCESSORS.computeIfAbsent(parentClass, ReflectCache::new)).get();
     }
 
     private final Class<?> parentClass;

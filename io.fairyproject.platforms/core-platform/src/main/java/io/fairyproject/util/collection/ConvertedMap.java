@@ -29,11 +29,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Collections2;
-
 /**
  * Represents a map that wraps another map by transforming the entries going in and out.
  *
@@ -150,12 +145,7 @@ public abstract class ConvertedMap<Key, VInner, VOuter> extends AbstractConverte
 
     @Override
     public Collection<VOuter> values() {
-        return Collections2.transform(entrySet(), new Function<Entry<Key, VOuter>, VOuter>() {
-            @Override
-            public VOuter apply(@Nullable Entry<Key, VOuter> entry) {
-                return entry.getValue();
-            }
-        });
+        return new TransformedCollection<>(this.entrySet(), Entry::getValue);
     }
 
     /**

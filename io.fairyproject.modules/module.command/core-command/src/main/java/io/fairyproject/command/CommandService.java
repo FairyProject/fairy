@@ -34,8 +34,8 @@ import io.fairyproject.log.Log;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;

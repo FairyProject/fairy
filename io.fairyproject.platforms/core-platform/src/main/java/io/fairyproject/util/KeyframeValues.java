@@ -24,14 +24,13 @@
 
 package io.fairyproject.util;
 
-import com.google.common.base.Preconditions;
 import io.fairyproject.Fairy;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
 import lombok.Setter;
 import io.fairyproject.task.TaskRunnable;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class KeyframeValues {
@@ -55,7 +54,7 @@ public class KeyframeValues {
     }
 
     public KeyframeValues add(Keyframe keyframe) {
-        Preconditions.checkArgument(this.nextFrame != -1);
+        ConditionUtils.is(this.nextFrame != -1, "You must set nextFrameTime before adding a keyframe");
         this.add(this.nextFrame, keyframe);
         return this;
     }

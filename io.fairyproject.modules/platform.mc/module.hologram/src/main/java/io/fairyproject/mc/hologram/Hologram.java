@@ -2,6 +2,7 @@ package io.fairyproject.mc.hologram;
 
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.Viewable;
 import io.fairyproject.mc.hologram.line.HologramLine;
 import io.fairyproject.mc.util.Position;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
 public interface Hologram extends Viewable {
 
     static @NotNull Hologram create(Position pos) {
-        return new HologramImpl(pos);
+        return new HologramImpl(MCServer.current(), pos);
     }
 
     /**

@@ -1,25 +1,32 @@
 package io.fairyproject.container.node;
 
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.ContainerRef;
+import io.fairyproject.container.ContainerLogger;
+import io.fairyproject.container.ContainerReference;
 import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.container.controller.ContainerController;
+import io.fairyproject.container.controller.node.NodeController;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 public class ContainerNodeImpl implements ContainerNode {
     private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
     private final Map<Class<?>, ContainerObj> objects = new ConcurrentHashMap<>(16);
     private final Set<ContainerNode> childNodes = ConcurrentHashMap.newKeySet();
+    private final List<NodeController> controllers = new ArrayList<>();
     private final Graph<ContainerObj> graph = new GraphImpl();
     private final String name;
 
@@ -37,7 +44,7 @@ public class ContainerNodeImpl implements ContainerNode {
     public @NotNull ContainerNode addObj(@NotNull ContainerObj obj) {
         ConditionUtils.is(!this.isResolved(), "The ContainerNode has already been resolved.");
         this.objects.put(obj.type(), obj);
-        ContainerRef.setObj(obj.type(), obj);
+        ContainerReference.setObj(obj.type(), obj);
         return this;
     }
 
@@ -70,6 +77,23 @@ public class ContainerNodeImpl implements ContainerNode {
     }
 
     @Override
+    public @NotNull ContainerNode addController(@NotNull NodeController controller) {
+        this.controllers.add(controller);
+        return this;
+    }
+
+    @Override
+    public @NotNull ContainerNode removeController(@NotNull NodeController controller) {
+        this.controllers.remove(controller);
+        return this;
+    }
+
+    @Override
+    public @NotNull List<NodeController> controllers() {
+        return Collections.unmodifiableList(this.controllers);
+    }
+
+    @Override
     public @NotNull Set<ContainerObj> all() {
         Set<ContainerObj> retVal = new HashSet<>(this.objects.values());
         for (ContainerNode childNode : this.childNodes) {
@@ -86,23 +110,30 @@ public class ContainerNodeImpl implements ContainerNode {
 
     @Override
     public @NotNull ContainerNode resolve() {
+        if (this.isResolved())
+            return this;
+
         for (ContainerObj obj : this.objects.values()) {
             for (ContainerObj.DependEntry entry : obj.dependEntries()) {
                 final Class<?> dependClass = entry.getDependClass();
                 final ServiceDependencyType type = entry.getDependType();
 
-                if (ContainerRef.hasObj(dependClass))
+                if (ContainerReference.hasObj(dependClass))
                     continue;
                 if (type == ServiceDependencyType.FORCE) {
-                    throw new IllegalArgumentException("Cannot find container obj: " + dependClass);
+                    ContainerLogger.reportNode(this);
+                    ContainerLogger.reportComponent(obj, "cannot be resolved because of missing dependency: " + dependClass.getName(), new IllegalArgumentException());
                 } else {
                     // TODO - sub disable
-                    continue;
                 }
             }
             this.graph.add(obj);
         }
         this.graph.resolve();
+
+        for (ContainerNode childNode : this.childNodes) {
+            childNode.resolve();
+        }
         return this;
     }
 
@@ -131,14 +162,38 @@ public class ContainerNodeImpl implements ContainerNode {
             for (ContainerController controller : ContainerContext.get().controllers()) {
                 ThrowingRunnable.sneaky(() -> controller.removeContainerObject(obj)).run();
             }
-            ContainerRef.setObj(obj.type(), null);
+            ContainerReference.setObj(obj.type(), null);
         }
     }
 
     @NotNull
     @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+    public <T extends Terminable> T bind(@NotNull T terminable) {
         return this.compositeTerminable.bind(terminable);
+    }
+
+    @Override
+    public CompletableFuture<?> forEachClockwiseAwait(Function<ContainerObj, CompletableFuture<?>> function) {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        futures.add(this.graph.forEachClockwiseAwait(function));
+        for (ContainerNode node : this.childNodes) {
+            futures.add(node.forEachClockwiseAwait(function));
+        }
+
+        return AsyncUtils.allOf(futures);
+    }
+
+    @Override
+    public CompletableFuture<?> forEachCounterClockwiseAwait(Function<ContainerObj, CompletableFuture<?>> function) {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        for (ContainerNode node : this.childNodes) {
+            futures.add(node.forEachCounterClockwiseAwait(function));
+        }
+        futures.add(this.graph.forEachCounterClockwiseAwait(function));
+
+        return AsyncUtils.allOf(futures);
     }
 
     private class GraphImpl extends Graph<ContainerObj> {
@@ -152,7 +207,7 @@ public class ContainerNodeImpl implements ContainerNode {
 
                 // it's not in current node but has container object
                 // assuming it's registered by other node.
-                if (obj == null && ContainerRef.hasObj(type)) {
+                if (obj == null && ContainerReference.hasObj(type)) {
                     continue;
                 }
                 retVal.add(obj);

@@ -30,15 +30,14 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.player.movement.MovementListener;
+import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.util.CoordXZ;
 import io.fairyproject.bukkit.util.CoordinatePair;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
+import io.fairyproject.bukkit.visual.sender.VisualBlockSender;
 import io.fairyproject.bukkit.visual.type.VisualType;
-import io.fairyproject.bukkit.visual.util.VisualUtil;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.Service;
@@ -56,6 +55,9 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,20 +67,22 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 
 @Service
-public class VisualBlockService implements TaskRunnable {
+public class VisualBlockService implements TaskRunnable, Listener {
 
     private final Table<UUID, VisualPosition, VisualBlock> table = HashBasedTable.create();
-    private LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
-    private Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
+    private final LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
+    private final Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
     private final Queue<VisualTask> visualTasks = new ConcurrentLinkedQueue<>();
+    private final BukkitNMSManager nmsManager;
 
+    private VisualBlockSender visualBlockSender;
     private VisualBlockGenerator mainGenerator;
     private final Map<Plugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
 
     private boolean destroyed;
 
-    @PostInitialize
-    public void onPostInitialize() {
+    public VisualBlockService(BukkitNMSManager nmsManager) {
+        this.nmsManager = nmsManager;
         this.claimPositionTable = HashBasedTable.create();
         this.claimCache = CacheBuilder.newBuilder()
                 .maximumSize(8000)
@@ -94,14 +98,13 @@ public class VisualBlockService implements TaskRunnable {
                         }
                     }
                 });
+    }
+
+    @PostInitialize
+    public void onPostInitialize() {
+        this.visualBlockSender = new VisualBlockSender(nmsManager);
+
         Task.asyncRepeated(this, 1L);
-        Imanity.registerMovementListener(new MovementListener() {
-            @Override
-            public void handleUpdateLocation(Player player, Location from, Location to) {
-                handlePositionChanged(player, to);
-            }
-        })
-        .ignoreSameBlock();
 
         this.mainGenerator = (player, location, positions) -> {
             final int minHeight = location.getBlockY() - 5;
@@ -166,6 +169,14 @@ public class VisualBlockService implements TaskRunnable {
         this.destroyed = true;
     }
 
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        if (!Events.IGNORE_SAME_BLOCK.test(event))
+            return;
+
+        handlePositionChanged(event.getPlayer(), event.getTo());
+    }
+
     public void registerGenerator(VisualBlockGenerator blockGenerator) {
         Plugin plugin = PluginManager.INSTANCE.getPluginByClass(blockGenerator.getClass());
 
@@ -205,7 +216,7 @@ public class VisualBlockService implements TaskRunnable {
 
     public void clearAll(final Player player, final boolean send) {
         table.rowMap().remove(player.getUniqueId());
-        VisualUtil.clearFakeBlocks(player, send);
+        this.visualBlockSender.clearFakeBlocks(player, send);
     }
 
     public void clearVisualType(final Player player, final VisualType visualType, final boolean send) {
@@ -226,17 +237,12 @@ public class VisualBlockService implements TaskRunnable {
                 }
             }
         }
-        VisualUtil.setFakeBlocks(player, Collections.emptyMap(), removeFromClient, send);
+        this.visualBlockSender.send(player, Collections.emptyMap(), removeFromClient, send);
     }
 
     public Map<BlockPosition, XMaterial> addVisualType(final Player player, final Collection<VisualPosition> locations, final boolean send) {
         final Map<BlockPosition, XMaterial> sendToClient = new HashMap<>();
-        locations.removeIf(blockPosition -> {
-            final World world = player.getWorld();
-            final Block block = world.getBlockAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
-            final Material material = block.getType();
-            return material.isSolid();
-        });
+        this.removeBlockFromSolid(player, locations);
         synchronized (table) {
             for (VisualPosition blockPosition : locations) {
                 VisualType visualType = blockPosition.getType();
@@ -245,19 +251,14 @@ public class VisualBlockService implements TaskRunnable {
                 table.put(player.getUniqueId(), blockPosition, new VisualBlock(visualType, material, blockPosition));
             }
         }
-        VisualUtil.setFakeBlocks(player, sendToClient, Collections.emptyList(), send);
+        this.visualBlockSender.send(player, sendToClient, Collections.emptyList(), send);
         return sendToClient;
     }
 
     public Map<BlockPosition, XMaterial> setVisualType(final Player player, final Collection<VisualPosition> locations, final boolean send) {
         final Map<BlockPosition, XMaterial> sendToClient = new HashMap<>();
         final List<BlockPosition> removeFromClient = new ArrayList<>();
-        locations.removeIf(blockPosition -> {
-            final World world = player.getWorld();
-            final Block block = world.getBlockAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
-            final Material material = block.getType();
-            return material.isSolid();
-        });
+        this.removeBlockFromSolid(player, locations);
         synchronized (table) {
             final Map<VisualPosition, VisualBlock> currentBlocks = table.row(player.getUniqueId());
             for (final Map.Entry<VisualPosition, VisualBlock> entry : new ArrayList<>(currentBlocks.entrySet())) {
@@ -278,8 +279,19 @@ public class VisualBlockService implements TaskRunnable {
                 table.put(player.getUniqueId(), blockPosition, new VisualBlock(visualType, material, blockPosition));
             }
         }
-        VisualUtil.setFakeBlocks(player, sendToClient, removeFromClient, send);
+        this.visualBlockSender.send(player, sendToClient, removeFromClient, send);
         return sendToClient;
+    }
+
+    private void removeBlockFromSolid(Player player, Collection<VisualPosition> locations) {
+        locations.removeIf(blockPosition -> {
+            if (!blockPosition.getType().isBlockedBySolid(player, blockPosition))
+                return false;
+            final World world = player.getWorld();
+            final Block block = world.getBlockAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
+            final Material material = block.getType();
+            return material.isSolid();
+        });
     }
 
     public VisualBlockClaim getClaimAt(final Location location) {

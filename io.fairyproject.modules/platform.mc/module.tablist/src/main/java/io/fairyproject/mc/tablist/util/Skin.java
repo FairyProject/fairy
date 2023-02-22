@@ -24,58 +24,26 @@
 
 package io.fairyproject.mc.tablist.util;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.util.Property;
+import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import io.fairyproject.util.thread.ServerThreadLock;
 import lombok.Setter;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Setter
 public class Skin {
 
-    private static final LoadingCache<UUID, Skin> SKIN_CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(60L, TimeUnit.SECONDS)
-            .initialCapacity(60)
-            .build(new CacheLoader<UUID, Skin>() {
-                @Override
-                public @Nullable Skin load(@NonNull UUID key) throws Exception {
-                    MCPlayer player = MCPlayer.find(key);
-                    if (player != null) {
-                        try (ServerThreadLock ignored = ServerThreadLock.obtain()) {
-                            final MCGameProfile gameProfile = player.getGameProfile();
-                            if (!gameProfile.hasProperty("textures")) {
-                                Property property = gameProfile.getProperties().stream()
-                                        .filter(p -> p.getName().equals("textures"))
-                                        .findFirst().orElse(null);
-                                if (property == null) {
-                                    // Offline player I suppose
-                                    return Skin.GRAY;
-                                }
-                                String texture = property.getValue();
-                                String signature = property.getSignature();
-
-                                return new Skin(texture, signature);
-                            }
-                        }
-                    }
-
-                    return Skin.download(key);
-                }
-            });
+    private static final Map<UUID, Skin> SKIN_CACHE = new ConcurrentHashMap<>();
     public static Skin GRAY = new Skin(
             "eyJ0aW1lc3RhbXAiOjE0MTEyNjg3OTI3NjUsInByb2ZpbGVJZCI6IjNmYmVjN2RkMGE1ZjQwYmY5ZDExODg1YTU0NTA3MTEyIiwicHJvZmlsZU5hbWUiOiJsYXN0X3VzZXJuYW1lIiwidGV4dHVyZXMiOnsiU0tJTiI6eyJ1cmwiOiJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzg0N2I1Mjc5OTg0NjUxNTRhZDZjMjM4YTFlM2MyZGQzZTMyOTY1MzUyZTNhNjRmMzZlMTZhOTQwNWFiOCJ9fX0=",
             "u8sG8tlbmiekrfAdQjy4nXIcCfNdnUZzXSx9BE1X5K27NiUvE1dDNIeBBSPdZzQG1kHGijuokuHPdNi/KXHZkQM7OJ4aCu5JiUoOY28uz3wZhW4D+KG3dH4ei5ww2KwvjcqVL7LFKfr/ONU5Hvi7MIIty1eKpoGDYpWj3WjnbN4ye5Zo88I2ZEkP1wBw2eDDN4P3YEDYTumQndcbXFPuRRTntoGdZq3N5EBKfDZxlw4L3pgkcSLU5rWkd5UH4ZUOHAP/VaJ04mpFLsFXzzdU4xNZ5fthCwxwVBNLtHRWO26k/qcVBzvEXtKGFJmxfLGCzXScET/OjUBak/JEkkRG2m+kpmBMgFRNtjyZgQ1w08U6HHnLTiAiio3JswPlW5v56pGWRHQT5XWSkfnrXDalxtSmPnB5LmacpIImKgL8V9wLnWvBzI7SHjlyQbbgd+kUOkLlu7+717ySDEJwsFJekfuR6N/rpcYgNZYrxDwe4w57uDPlwNL6cJPfNUHV7WEbIU1pMgxsxaXe8WSvV87qLsR7H06xocl2C0JFfe2jZR4Zh3k9xzEnfCeFKBgGb4lrOWBu1eDWYgtKV67M2Y+B3W5pjuAjwAxn0waODtEn/3jKPbc/sxbPvljUCw65X+ok0UUN1eOwXV5l2EGzn05t3Yhwq19/GxARg63ISGE8CKw="
@@ -114,11 +82,7 @@ public class Skin {
 
     public static Skin fromPlayer(MCPlayer player) {
         Skin skin = null;
-        try {
-            skin = SKIN_CACHE.get(player.getUUID());
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
+        skin = SKIN_CACHE.computeIfAbsent(player.getUUID(), Skin::load);
 
         return skin == null ? Skin.GRAY : skin;
     }
@@ -131,5 +95,29 @@ public class Skin {
         String signature = textureProperty.get("signature").getAsString();
 
         return new Skin(texture, signature);
+    }
+
+    public static Skin load(UUID key) {
+        MCPlayer player = MCPlayer.find(key);
+        if (player != null) {
+            try (ServerThreadLock ignored = ServerThreadLock.obtain()) {
+                final MCGameProfile gameProfile = player.getGameProfile();
+                if (!gameProfile.hasProperty("textures")) {
+                    Property property = gameProfile.getProperties().stream()
+                            .filter(p -> p.getName().equals("textures"))
+                            .findFirst().orElse(null);
+                    if (property == null) {
+                        // Offline player I suppose
+                        return Skin.GRAY;
+                    }
+                    String texture = property.getValue();
+                    String signature = property.getSignature();
+
+                    return new Skin(texture, signature);
+                }
+            }
+        }
+
+        return ThrowingSupplier.sneaky(() -> Skin.download(key)).get();
     }
 }

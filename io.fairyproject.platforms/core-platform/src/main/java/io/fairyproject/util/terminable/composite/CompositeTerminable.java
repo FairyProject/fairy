@@ -26,9 +26,8 @@ package io.fairyproject.util.terminable.composite;
 
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Represents a {@link Terminable} made up of several other {@link Terminable}s.
@@ -47,7 +46,7 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      *
      * @return a new {@link CompositeTerminable}
      */
-    @Nonnull
+    @NotNull
     static CompositeTerminable create() {
         return new AbstractCompositeTerminable();
     }
@@ -58,7 +57,7 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      *
      * @return a new {@link CompositeTerminable}
      */
-    @Nonnull
+    @NotNull
     static CompositeTerminable createWeak() {
         return new AbstractWeakCompositeTerminable();
     }
@@ -101,11 +100,11 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      * terminables. If a single {@link AutoCloseable} is added twice, it will be
      * {@link AutoCloseable#close() closed} twice.</p>
      *
-     * @param autoCloseable the closable to bind
+     * @param terminable the closable to bind
      * @throws NullPointerException if the closable is null
      * @return this (for chaining)
      */
-    CompositeTerminable with(AutoCloseable autoCloseable);
+    CompositeTerminable with(Terminable terminable);
 
     /**
      * Binds all given {@link AutoCloseable} with this composite closable.
@@ -116,15 +115,15 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      *
      * <p>Ignores null values.</p>
      *
-     * @param autoCloseables the closables to bind
+     * @param terminables the closables to bind
      * @return this (for chaining)
      */
-    default CompositeTerminable withAll(AutoCloseable... autoCloseables) {
-        for (AutoCloseable autoCloseable : autoCloseables) {
-            if (autoCloseable == null) {
+    default CompositeTerminable withAll(Terminable... terminables) {
+        for (Terminable terminable : terminables) {
+            if (terminable == null) {
                 continue;
             }
-            bind(autoCloseable);
+            bind(terminable);
         }
         return this;
     }
@@ -138,22 +137,22 @@ public interface CompositeTerminable extends Terminable, TerminableConsumer {
      *
      * <p>Ignores null values.</p>
      *
-     * @param autoCloseables the closables to bind
+     * @param terminables the closables to bind
      * @return this (for chaining)
      */
-    default CompositeTerminable withAll(Iterable<? extends AutoCloseable> autoCloseables) {
-        for (AutoCloseable autoCloseable : autoCloseables) {
-            if (autoCloseable == null) {
+    default CompositeTerminable withAll(Iterable<? extends Terminable> terminables) {
+        for (Terminable terminable : terminables) {
+            if (terminable == null) {
                 continue;
             }
-            bind(autoCloseable);
+            bind(terminable);
         }
         return this;
     }
 
-    @Nonnull
+    @NotNull
     @Override
-    default <T extends AutoCloseable> T bind(@Nonnull T terminable) {
+    default <T extends Terminable> T bind(@NotNull T terminable) {
         with(terminable);
         return terminable;
     }

@@ -1,18 +1,19 @@
 package io.fairytest.config.filter;
 
-import com.google.common.collect.ImmutableList;
 import io.fairyproject.config.filter.FieldFilters;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class FieldFilterTest {
 
     @Test
     public void filterDeclaredFieldsOf() throws NoSuchFieldException {
-        List<? extends Field> fields = ImmutableList.of(
+        List<? extends Field> fields = Arrays.asList(
                 DummyClassB.class.getDeclaredField("c"),
                 DummyClassA.class.getDeclaredField("a")
         );
@@ -23,7 +24,7 @@ public class FieldFilterTest {
 
     @Test
     public void filterDeclaredFieldsOfNoNested() throws NoSuchFieldException {
-        List<? extends Field> fields = ImmutableList.of(
+        List<? extends Field> fields = Collections.singletonList(
                 DummyClassC.class.getDeclaredField("c")
         );
 

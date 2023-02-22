@@ -26,9 +26,9 @@ package io.fairyproject.bukkit.visibility;
 
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.collection.ContainerObjCollector;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import io.fairyproject.container.PreInitialize;
-import io.fairyproject.bukkit.Imanity;
 import io.fairyproject.container.Service;
 
 import java.util.LinkedList;
@@ -71,7 +71,7 @@ public class VisibilityService {
             return;
         }
 
-        for (Player player : Imanity.getPlayers()) {
+        for (Player player : Bukkit.getOnlinePlayers()) {
             this.updateFromThirdSide(player);
         }
     }
@@ -84,7 +84,7 @@ public class VisibilityService {
     }
 
     public void updateFromFirstSide(Player player) {
-        for (Player target : Imanity.getPlayers()) {
+        for (Player target : Bukkit.getOnlinePlayers()) {
 
             if (target == player) {
                 continue;
@@ -100,7 +100,7 @@ public class VisibilityService {
     }
 
     public void updateFromThirdSide(Player player) {
-        for (Player target : Imanity.getPlayers()) {
+        for (Player target : Bukkit.getOnlinePlayers()) {
             if (target == player) {
                 continue;
             }

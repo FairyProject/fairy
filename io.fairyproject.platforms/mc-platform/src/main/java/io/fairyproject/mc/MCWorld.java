@@ -37,10 +37,12 @@ public interface MCWorld extends AudienceProxy {
     List<MCPlayer> getPlayers();
 
     @UtilityClass
+    @Deprecated
     class Companion {
         public Bridge BRIDGE;
     }
 
+    @Deprecated
     interface Bridge {
 
         MCWorld from(Object world);

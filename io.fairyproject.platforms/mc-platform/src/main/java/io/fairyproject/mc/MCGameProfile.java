@@ -83,10 +83,12 @@ public interface MCGameProfile {
      */
     void clearProperties();
 
+    @Deprecated
     class Companion {
         public static Bridge BRIDGE;
     }
 
+    @Deprecated
     interface Bridge {
         MCGameProfile create(String name, UUID uuid);
 

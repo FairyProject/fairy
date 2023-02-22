@@ -1,6 +1,5 @@
 package io.fairyproject.discord.message;
 
-import com.google.common.collect.HashMultimap;
 import io.fairyproject.discord.DCBot;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.terminable.Terminable;
@@ -15,6 +14,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -22,7 +22,7 @@ public class NextMessageReader {
 
     private static final Exception TIMEOUT = new TimeoutException();
 
-    private final HashMultimap<KeyPair, FuturePair> pending = HashMultimap.create();
+    private final Map<KeyPair, Set<FuturePair>> pending = new ConcurrentHashMap<>();
     private final DCBot bot;
 
     public NextMessageReader(DCBot bot) {
@@ -36,18 +36,21 @@ public class NextMessageReader {
             return;
         }
 
-        synchronized (this.pending) {
-            final Iterator<Map.Entry<KeyPair, FuturePair>> iterator = this.pending.entries().iterator();
-            final long timeMillis = System.currentTimeMillis();
-            while (iterator.hasNext()) {
-                final Map.Entry<KeyPair, FuturePair> entry = iterator.next();
-                final FuturePair futurePair = entry.getValue();
+        long timeMillis = System.currentTimeMillis();
 
-                if (futurePair.getExpiration() > 0 && timeMillis > futurePair.getStart() + futurePair.getExpiration()) {
+        for (Map.Entry<KeyPair, Set<FuturePair>> entry : this.pending.entrySet()) {
+            Iterator<FuturePair> iterator = entry.getValue().iterator();
+
+            while (iterator.hasNext()) {
+                FuturePair pair = iterator.next();
+                if (pair.getExpiration() > 0 && timeMillis > pair.getStart() + pair.getExpiration()) {
                     iterator.remove();
-                    futurePair.getFuture().completeExceptionally(TIMEOUT);
+                    pair.getFuture().completeExceptionally(TIMEOUT);
                 }
             }
+
+            if (entry.getValue().isEmpty())
+                this.pending.remove(entry.getKey());
         }
     }
 
@@ -73,9 +76,7 @@ public class NextMessageReader {
         CompletableFuture<Message> completableFuture = new CompletableFuture<>();
         FuturePair futurePair = new FuturePair(completableFuture, System.currentTimeMillis(), timeUnit != null ? timeUnit.toMillis(expiration) : expiration);
 
-        synchronized (this.pending) {
-            this.pending.put(keyPair, futurePair);
-        }
+        this.pending.computeIfAbsent(keyPair, k -> ConcurrentHashMap.newKeySet()).add(futurePair);
 
         return completableFuture;
     }
@@ -103,9 +104,7 @@ public class NextMessageReader {
 
     private boolean completeKey(KeyPair keyPair, Message message) {
         Set<FuturePair> futures;
-        synchronized (this.pending) {
-            futures = this.pending.removeAll(keyPair);
-        }
+        futures = this.pending.remove(keyPair);
         boolean processed = false;
         for (FuturePair futurePair : futures) {
             futurePair.getFuture().complete(message);

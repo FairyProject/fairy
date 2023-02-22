@@ -2,17 +2,15 @@ package io.fairytest.container;
 
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.node.ContainerNode;
-import io.fairyproject.container.node.ContainerNodeScanner;
-import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.node.loader.ContainerNodeLoader;
+import io.fairyproject.container.node.scanner.ContainerNodeClassScanner;
 import io.fairyproject.tests.base.JUnitJupiterBase;
+import io.fairyproject.util.entry.Entry;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import io.fairytest.container.annotated.AnnotatedRegistration;
-import io.fairytest.container.annotated.BeanInterface;
-import io.fairytest.container.annotated.BeanInterfaceImpl;
 import io.fairytest.container.service.ServiceMock;
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,16 +19,19 @@ public class ContainerTest extends JUnitJupiterBase {
 
     @Test
     public void syncLifeCycle() {
-        final ContainerContext containerContext = ContainerContext.get();
+        final ContainerContext context = ContainerContext.get();
         final Thread mainThread = Thread.currentThread();
 
         ThrowingRunnable.sneaky(() -> {
-            final ContainerNodeScanner classPathScanner = containerContext.scanClasses();
-            classPathScanner.name("test");
-            classPathScanner.classLoader(ContainerTest.class.getClassLoader());
-            classPathScanner.url(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation());
-            classPathScanner.classPath("io.fairytest.container.service");
-            final ContainerNode node = classPathScanner.scan();
+            ContainerNode node = ContainerNode.create("test");
+            ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(context, "test", node);
+            classScanner.getClassLoaders().add(ContainerTest.class.getClassLoader());
+            classScanner.getUrls().add(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation());
+            classScanner.getClassPaths().add("io.fairytest.container.service");
+            classScanner.scan();
+
+            new ContainerNodeLoader(context, node).load();
+
             assertEquals(1, node.all().size());
             assertEquals(ServiceMock.class, node.all().iterator().next().type());
         }).run();
@@ -43,12 +44,12 @@ public class ContainerTest extends JUnitJupiterBase {
         assertNotEquals(-1, serviceMock.getPostInitializeMs());
 
         LifeCycle[] lifeCycleOrder = Stream.of(
-                        Pair.of(LifeCycle.CONSTRUCT, serviceMock.getConstructMs()),
-                        Pair.of(LifeCycle.PRE_INITIALIZE, serviceMock.getPreInitializeMs()),
-                        Pair.of(LifeCycle.POST_INITIALIZE, serviceMock.getPostInitializeMs())
+                        new Entry<>(LifeCycle.CONSTRUCT, serviceMock.getConstructMs()),
+                        new Entry<>(LifeCycle.PRE_INITIALIZE, serviceMock.getPreInitializeMs()),
+                        new Entry<>(LifeCycle.POST_INITIALIZE, serviceMock.getPostInitializeMs())
                 )
-                .sorted(java.util.Map.Entry.comparingByValue())
-                .map(Pair::getKey)
+                .sorted(Comparator.comparing(Entry::getValue))
+                .map(Entry::getKey)
                 .toArray(LifeCycle[]::new);
 
         assertArrayEquals(new LifeCycle[]{
@@ -84,29 +85,6 @@ public class ContainerTest extends JUnitJupiterBase {
 //
 //        assertEquals(mainThread, serviceMock.getPreDestroyThread());
 //        assertEquals(mainThread, serviceMock.getPostDestroyThread());
-    }
-
-    @Test
-    public void annotatedBeanRegistration() {
-        final ContainerContext containerContext = ContainerContext.get();
-
-        ThrowingRunnable.sneaky(() -> {
-            final ContainerNodeScanner classPathScanner = containerContext.scanClasses();
-            classPathScanner.name("test");
-            classPathScanner.classLoader(ContainerTest.class.getClassLoader());
-            classPathScanner.url(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation());
-            classPathScanner.classPath("io.fairytest.container.annotated");
-            final ContainerNode node = classPathScanner.scan();
-
-            assertEquals(1, node.all().size());
-            final ContainerObj obj = node.all().iterator().next();
-
-            assertEquals(BeanInterface.class, obj.type());
-            assertEquals(BeanInterfaceImpl.class, obj.instance().getClass());
-        }).run();
-
-        assertNotNull(containerContext.getContainerObject(BeanInterface.class));
-        assertNotNull(AnnotatedRegistration.INTERFACE);
     }
 
     private enum LifeCycle {

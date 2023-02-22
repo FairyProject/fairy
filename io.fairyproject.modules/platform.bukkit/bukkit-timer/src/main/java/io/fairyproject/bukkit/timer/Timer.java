@@ -205,7 +205,7 @@ public abstract class Timer implements Terminable, TerminableConsumer {
 
     @NotNull
     @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+    public <T extends Terminable> T bind(@NotNull T terminable) {
         return this.compositeTerminable.bind(terminable);
     }
 

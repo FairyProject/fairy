@@ -25,7 +25,7 @@
 package io.fairyproject.container.object.resolver;
 
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.ContainerRef;
+import io.fairyproject.container.ContainerReference;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
@@ -40,13 +40,15 @@ public class ContainerResolverBase implements ContainerResolver {
         if (this.types == null)
             throw new IllegalArgumentException("No parameters found!");
         Object[] args = new Object[this.types.length];
+
         for (int i = 0; i < args.length; i++) {
-            ContainerObj obj = ContainerRef.getObj(this.types[i]);
+            ContainerObj obj = ContainerReference.getObj(this.types[i]);
             ConditionUtils.notNull(obj, String.format("Couldn't find container object %s!", this.types[i].getName()));
             ConditionUtils.notNull(obj.instance(), String.format("Container obj %s has no instance!", obj.type()));
 
             args[i] = obj.instance();
         }
+
         return args;
     }
 }

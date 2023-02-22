@@ -1,13 +1,15 @@
 package io.fairyproject.container.controller;
 
+import io.fairyproject.container.controller.node.NodeController;
+import io.fairyproject.container.controller.node.NodeControllerNoOp;
+import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.object.ContainerObj;
-import io.github.classgraph.ScanResult;
 
 // Internal class
 public interface ContainerController {
 
-    default void init(ScanResult scanResult) {
-        // to be overwritten
+    default NodeController initNode(ContainerNode node) {
+        return NodeControllerNoOp.INSTANCE;
     }
 
     void applyContainerObject(ContainerObj containerObj) throws Exception;

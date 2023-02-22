@@ -24,14 +24,16 @@
 
 package io.fairyproject.bukkit.reflection.resolver.minecraft;
 
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
-import io.fairyproject.bukkit.reflection.minecraft.OBCVersion;
 import io.fairyproject.bukkit.reflection.resolver.ClassResolver;
+import lombok.RequiredArgsConstructor;
 
 /**
  * {@link ClassResolver} for <code>net.minecraft.server.*</code> classes
  */
+@RequiredArgsConstructor
 public class NMSClassResolver extends ClassResolver {
+
+	private final String nmsClassPrefix;
 
 	@Override
 	public Class resolve(String... names) throws ClassNotFoundException {
@@ -39,31 +41,9 @@ public class NMSClassResolver extends ClassResolver {
 			if(names[i].startsWith("net.minecraft"))
 				continue;
 
-			if(names[i].contains(".") && OBCVersion.get().hasNMSVersionPrefix()) {
-				/* use class name only */
-				String[] path = names[i].split("\\.");
-				names[i] = MinecraftReflection.getNMSPackage() + "." + path[path.length - 1];
-				continue;
-			}
-
-			/* use the whole name */
-			names[i] = MinecraftReflection.getNMSPackage() + "." + names[i];
+			names[i] = nmsClassPrefix + names[i];
 		}
-		return super.resolve(names);
-	}
 
-	@Override
-	public Class resolveSubClass(Class<?> mainClass, String... names) throws ClassNotFoundException {
-		String prefix = mainClass.getName() + "$";
-
-		if(prefix.contains(".") && OBCVersion.get().hasNMSVersionPrefix()) {
-			String[] path = prefix.split("\\.");
-			prefix = MinecraftReflection.getNMSPackage() + "." + path[path.length - 1];
-		} else if(!prefix.startsWith("net.minecraft")) prefix = MinecraftReflection.getNMSPackage() + "." + prefix;
-
-		for (int i = 0; i < names.length; i++) {
-			names[i] = prefix + names[i];
-		}
 		return super.resolve(names);
 	}
 }

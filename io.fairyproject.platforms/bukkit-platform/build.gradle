@@ -24,22 +24,27 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 
 dependencies {
-    api project(":io.fairyproject.platforms:mc-platform")
+    api(project(":io.fairyproject.platforms:mc-platform")) {
+        exclude group: "com.google.code.gson", module: "gson"
+        exclude group: "org.yaml", module: "snakeyaml"
+    }
     implementation libs.adventure.platform.bukkit
     api libs.adventure.platform.text.serializer.bungee
+    api libs.packetevents.spigot
 
     compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
     compileOnly "com.mojang:authlib:1.5.21"
     compileOnly "io.netty:netty-all:4.1.60.Final"
     compileOnly "com.viaversion:viaversion:4.0.1"
-    compileOnly "com.github.dmulloy2:ProtocolLib:4.6.0"
     compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
     compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
     compileOnly name: "ProtocolSupport"
+
+    testImplementation libs.mockito
 }
 
 repositories {
-    maven {url "https://libraries.minecraft.net/"}
+    maven { url "https://libraries.minecraft.net/" }
     maven {
         url = uri("https://papermc.io/repo/repository/maven-public/")
     }
@@ -49,4 +54,10 @@ processResources {
     filter ReplaceTokens, tokens: [
             "version": project.version
     ]
+}
+
+shadowJar {
+    exclude("com/google/gson/**")
+    exclude("assets/**")
+    exclude("plugin.yml")
 }

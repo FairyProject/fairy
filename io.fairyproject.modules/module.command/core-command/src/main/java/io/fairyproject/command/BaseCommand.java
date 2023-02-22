@@ -24,7 +24,6 @@
 
 package io.fairyproject.command;
 
-import com.google.common.collect.HashMultimap;
 import io.fairyproject.command.annotation.Command;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.argument.ArgProperty;
@@ -32,21 +31,22 @@ import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.util.CoreCommandUtil;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.util.entry.Entry;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class BaseCommand implements ICommand {
 
     @Autowired
     private static CommandService COMMAND_SERVICE;
 
-    protected final HashMultimap<String, ICommand> subCommands = HashMultimap.create();
+    protected final Map<String, Set<ICommand>> subCommands = new ConcurrentHashMap<>();
     protected final List<ICommand> sortedCommands = new ArrayList<>();
     protected ICommand noArgCommand;
     protected Map<String, ArgCompletionHolder> tabCompletion;
@@ -170,14 +170,14 @@ public abstract class BaseCommand implements ICommand {
             return;
         }
 
-        final Pair<ICommand, String[]> pair = this.findSubCommand(commandContext, false);
+        final Entry<ICommand, String[]> pair = this.findSubCommand(commandContext, false);
         if (pair == null) {
             this.onHelp(commandContext);
             return;
         }
 
-        commandContext.setArgs(pair.getRight());
-        pair.getLeft().execute(commandContext);
+        commandContext.setArgs(pair.getValue());
+        pair.getKey().execute(commandContext);
     }
 
     public boolean resolveBaseArguments(CommandContext commandContext) {
@@ -231,10 +231,10 @@ public abstract class BaseCommand implements ICommand {
             commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
         }
 
-        final Pair<List<String>, Boolean> pair = this.completeArguments(commandContext);
+        final Entry<List<String>, Boolean> pair = this.completeArguments(commandContext);
 
-        List<String> result = pair.getLeft();
-        if (pair.getRight()) {
+        List<String> result = pair.getKey();
+        if (pair.getValue()) {
             result = new ArrayList<>(result);
             result.addAll(this.getCommandsForCompletion(commandContext));
         }
@@ -242,23 +242,23 @@ public abstract class BaseCommand implements ICommand {
         return result;
     }
 
-    private Pair<List<String>, Boolean> completeArguments(CommandContext commandContext) {
+    private Entry<List<String>, Boolean> completeArguments(CommandContext commandContext) {
         if (commandContext.getArgs().length == 0) {
-            return Pair.of(Collections.emptyList(), true);
+            return new Entry<>(Collections.emptyList(), true);
         }
 
         final List<String> base = this.completeBaseArguments(commandContext);
         if (base != null) {
             commandContext.setArgs(CoreCommandUtil.arrayFromRange(commandContext.getArgs(), this.baseArgs.length, commandContext.getArgs().length - 1));
-            return Pair.of(base, false);
+            return new Entry<>(base, false);
         }
 
-        final Pair<ICommand, String[]> subCommand = this.findSubCommand(commandContext, true);
+        final Entry<ICommand, String[]> subCommand = this.findSubCommand(commandContext, true);
         if (subCommand != null) {
-            commandContext.setArgs(subCommand.getRight());
-            return Pair.of(subCommand.getLeft().completeCommand(commandContext), false);
+            commandContext.setArgs(subCommand.getValue());
+            return new Entry<>(subCommand.getKey().completeCommand(commandContext), false);
         }
-        return Pair.of(Collections.emptyList(), true);
+        return new Entry<>(Collections.emptyList(), true);
     }
 
     public List<String> completeBaseArguments(CommandContext commandContext) {
@@ -297,30 +297,31 @@ public abstract class BaseCommand implements ICommand {
         final String[] args = commandContext.getArgs();
         final Set<String> commands = new HashSet<>();
         final int cmdIndex = Math.max(0, args.length - 1);
-        String argString = StringUtils.join(args, " ").toLowerCase();
-        for (Map.Entry<String, ICommand> entry : subCommands.entries()) {
-            final String key = entry.getKey();
-            if (key.startsWith(argString)) {
-                final ICommand value = entry.getValue();
-                if (!value.canAccess(commandContext)) {
-                    continue;
-                }
+        String argString = joinStringArray(args, args.length);
+        for (Map.Entry<String, Set<ICommand>> entry : subCommands.entrySet()) {
+            for (ICommand value : entry.getValue()) {
+                final String key = entry.getKey();
+                if (key.startsWith(argString)) {
+                    if (!value.canAccess(commandContext)) {
+                        continue;
+                    }
 
-                String[] split = key.split(" ");
-                commands.add(split[cmdIndex]);
+                    String[] split = key.split(" ");
+                    commands.add(split[cmdIndex]);
+                }
             }
         }
         return new ArrayList<>(commands);
     }
 
-    private Pair<ICommand, String[]> findSubCommand(CommandContext commandContext, boolean completion) {
+    private Entry<ICommand, String[]> findSubCommand(CommandContext commandContext, boolean completion) {
         final String[] args = commandContext.getArgs();
         final PossibleSearches possibleSubCommands = this.findPossibleSubCommands(commandContext, args);
 
         if (possibleSubCommands == null) {
             return null;
         } else if (possibleSubCommands.getPossibleCommands().size() == 1) {
-            return Pair.of(getFirstElement(possibleSubCommands.getPossibleCommands()), possibleSubCommands.getArgs());
+            return new Entry<>(getFirstElement(possibleSubCommands.getPossibleCommands()), possibleSubCommands.getArgs());
         } else {
             Optional<ICommand> optional = possibleSubCommands.getPossibleCommands().stream()
                     .filter(c -> isProbableMatch(c, args, completion))
@@ -334,7 +335,7 @@ public abstract class BaseCommand implements ICommand {
                         return a < b ? 1 : -1;
                     });
             if (optional.isPresent()) {
-                return Pair.of(optional.get(), possibleSubCommands.getArgs());
+                return new Entry<>(optional.get(), possibleSubCommands.getArgs());
             }
         }
 
@@ -353,8 +354,9 @@ public abstract class BaseCommand implements ICommand {
             }
         } else {
             for (int i = args.length; i >= 0; i--) {
-                String subcommand = StringUtils.join(args, " ", 0, i).toLowerCase();
-                Set<ICommand> commands = subCommands.get(subcommand);
+                final String subcommand = joinStringArray(args, i);
+
+                Set<ICommand> commands = subCommands.getOrDefault(subcommand, Collections.emptySet());
 
                 if (!commands.isEmpty()) {
                     return new PossibleSearches(commands, CoreCommandUtil.arrayFromRange(args, i, args.length - 1), subcommand);
@@ -365,6 +367,18 @@ public abstract class BaseCommand implements ICommand {
             return new PossibleSearches(Collections.singleton(this.noArgCommand), args, "");
         }
         return null;
+    }
+
+    @NotNull
+    private static String joinStringArray(String[] args, int i) {
+        final StringBuilder builder = new StringBuilder();
+        for (int j = 0; j < i; j++) {
+            builder.append(args[j]);
+            if (j != i - 1) {
+                builder.append(" ");
+            }
+        }
+        return builder.toString().toLowerCase();
     }
 
     private static <T> T getFirstElement(Iterable<T> iterable) {

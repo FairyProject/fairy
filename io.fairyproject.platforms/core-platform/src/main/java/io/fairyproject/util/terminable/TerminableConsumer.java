@@ -25,11 +25,10 @@
 package io.fairyproject.util.terminable;
 
 import io.fairyproject.util.terminable.module.TerminableModule;
-
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Accepts {@link AutoCloseable}s (and by inheritance {@link Terminable}s),
+ * Accepts {@link Terminable},
  * as well as {@link TerminableModule}s.
  *
  * @author lucko
@@ -44,8 +43,8 @@ public interface TerminableConsumer {
      * @param <T> the terminable type
      * @return the same terminable
      */
-    @Nonnull
-    <T extends AutoCloseable> T bind(@Nonnull T terminable);
+    @NotNull
+    <T extends Terminable> T bind(@NotNull T terminable);
 
     /**
      * Binds with the given terminable module.
@@ -54,8 +53,8 @@ public interface TerminableConsumer {
      * @param <T> the module type
      * @return the same module
      */
-    @Nonnull
-    default <T extends TerminableModule> T bindModule(@Nonnull T module) {
+    @NotNull
+    default <T extends TerminableModule> T bindModule(@NotNull T module) {
         module.setup(this);
         return module;
     }

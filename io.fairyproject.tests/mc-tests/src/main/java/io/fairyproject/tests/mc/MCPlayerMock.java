@@ -7,7 +7,8 @@ import io.fairyproject.mc.MCEventFilter;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
+import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.netty.channel.Channel;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -15,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -23,8 +25,10 @@ public abstract class MCPlayerMock implements MCPlayer {
     private final UUID uuid;
     private final String name;
     private final MCVersion version;
-    private final Object originalInstance;
+    private final MCVersionMappingRegistry versionMappingRegistry;
 
+    @Nullable
+    private Object originalInstance;
     @Nullable
     private Component displayName;
     @Setter
@@ -50,6 +54,11 @@ public abstract class MCPlayerMock implements MCPlayer {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public InetAddress getAddress() {
+        throw new UnsupportedOperationException("Not Implemented.");
     }
 
     @Override
@@ -103,11 +112,6 @@ public abstract class MCPlayerMock implements MCPlayer {
     }
 
     @Override
-    public int getProtocolId() {
-        return this.version.getRawVersion()[0];
-    }
-
-    @Override
     public <T> T as(Class<T> playerClass) {
         if (playerClass.isAssignableFrom(originalInstance.getClass())) {
             return playerClass.cast(this.originalInstance);
@@ -115,4 +119,8 @@ public abstract class MCPlayerMock implements MCPlayer {
         throw new IllegalArgumentException();
     }
 
+    @Override
+    public void setNative(@NotNull Object nativeObject) {
+        this.originalInstance = nativeObject;
+    }
 }

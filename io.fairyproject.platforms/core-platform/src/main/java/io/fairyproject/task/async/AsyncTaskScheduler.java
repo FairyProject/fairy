@@ -1,10 +1,10 @@
 package io.fairyproject.task.async;
 
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.task.TaskRunnable;
 import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.terminable.Terminable;
+import io.fairyproject.util.thread.NamedThreadFactory;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -26,16 +26,16 @@ public class AsyncTaskScheduler implements ITaskScheduler {
     private final ExecutorService threadedExecutorService;
 
     public AsyncTaskScheduler() {
-        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder()
-                .setDaemon(true)
-                .setNameFormat("Task Scheduler Thread")
-                .setUncaughtExceptionHandler((thread, throwable) -> Stacktrace.print(throwable))
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(NamedThreadFactory.builder()
+                .daemon(true)
+                .name("Task Scheduler Thread")
+                .uncaughtExceptionHandler((thread, throwable) -> Stacktrace.print(throwable))
                 .build()
         );
-        this.threadedExecutorService = Executors.newFixedThreadPool(4, new ThreadFactoryBuilder()
-                .setDaemon(true)
-                .setNameFormat("Task Thread - %d")
-                .setUncaughtExceptionHandler((thread, throwable) -> Stacktrace.print(throwable))
+        this.threadedExecutorService = Executors.newFixedThreadPool(4, NamedThreadFactory.builder()
+                .daemon(true)
+                .name("Task Thread - %d")
+                .uncaughtExceptionHandler((thread, throwable) -> Stacktrace.print(throwable))
                 .build()
         );
         executorService.scheduleAtFixedRate(() -> {

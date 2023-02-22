@@ -24,14 +24,13 @@
 
 package io.fairyproject.bukkit.timer;
 
-import com.google.common.cache.RemovalCause;
+import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.util.Cooldown;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.Plugin;
-import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.util.Cooldown;
 
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class PlayerCooldown extends Cooldown<Player> {
 
@@ -39,7 +38,7 @@ public class PlayerCooldown extends Cooldown<Player> {
         this(defaultCooldown, null, plugin);
     }
 
-    public PlayerCooldown(long defaultCooldown, BiConsumer<Player, RemovalCause> removalListener, Plugin plugin) {
+    public PlayerCooldown(long defaultCooldown, Consumer<Player> removalListener, Plugin plugin) {
         super(defaultCooldown, removalListener);
 
         Events.subscribe(PlayerQuitEvent.class)

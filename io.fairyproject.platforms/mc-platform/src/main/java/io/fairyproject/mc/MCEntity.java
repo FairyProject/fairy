@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.UUID;
 
-public interface MCEntity {
+public interface MCEntity extends MCObject {
 
     static <T> MCEntity from(T world) {
         return MCEntity.Companion.BRIDGE.from(world);
@@ -28,20 +28,19 @@ public interface MCEntity {
 
     boolean teleport(Position pos);
 
-    <T> T as(Class<T> entityClass);
-
     @NotNull List<EntityData> data();
 
     @UtilityClass
+    @Deprecated
     class Companion {
         public MCEntity.Bridge BRIDGE;
     }
 
+    @Deprecated
     interface Bridge {
 
         MCEntity from(Object entity);
 
-        int newEntityId();
 
     }
 

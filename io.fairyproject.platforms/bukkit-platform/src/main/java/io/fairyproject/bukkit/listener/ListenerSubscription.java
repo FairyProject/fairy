@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.listener;
 
 import com.google.common.collect.ImmutableList;
 import io.fairyproject.log.Log;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
@@ -36,7 +37,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ListenerSubscription implements AutoCloseable {
+public class ListenerSubscription implements Terminable {
 
     private final AtomicBoolean registered;
     private final List<Listener> listeners;

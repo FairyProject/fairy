@@ -24,14 +24,13 @@
 
 package io.fairyproject.util;
 
-import com.google.common.cache.RemovalCause;
 import io.fairyproject.task.Task;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 /**
  * The Simple Cooldown Utility for Fairy
@@ -42,13 +41,13 @@ public class Cooldown<T> implements Terminable {
     private final Map<T, Long> cache;
     private final long defaultCooldown;
     private final Terminable task;
-    private BiConsumer<T, RemovalCause> removalListener;
+    private Consumer<T> removalListener;
 
     public Cooldown(long defaultCooldown) {
         this(defaultCooldown, null);
     }
 
-    public Cooldown(long defaultCooldown, BiConsumer<T, RemovalCause> removalListener) {
+    public Cooldown(long defaultCooldown, Consumer<T> removalListener) {
         this.removalListener = removalListener;
         this.cache = new ConcurrentHashMap<>();
 
@@ -58,12 +57,13 @@ public class Cooldown<T> implements Terminable {
             for (Map.Entry<T, Long> entry : this.cache.entrySet()) {
                 if (time >= entry.getValue()) {
                     this.cache.remove(entry.getKey());
+                    this.removalListener.accept(entry.getKey());
                 }
             }
         }, 1L);
     }
 
-    public void removalListener(BiConsumer<T, RemovalCause> consumer) {
+    public void removalListener(Consumer<T> consumer) {
         this.removalListener = consumer;
     }
 

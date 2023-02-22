@@ -24,34 +24,27 @@
 
 package io.fairyproject.container;
 
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
-import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.collection.ContainerObjCollectorRegistry;
 import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.container.controller.ContainerController;
 import io.fairyproject.container.controller.SubscribeEventContainerController;
 import io.fairyproject.container.node.ContainerNode;
-import io.fairyproject.container.node.ContainerNodeScanner;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.lifecycle.LifeCycleHandlerRegistry;
-import io.fairyproject.container.object.lifecycle.impl.annotation.FairyLifeCycleAnnotationProcessor;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
-import io.fairyproject.log.Log;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.thread.executor.ListeningDecorator;
+import io.fairyproject.util.thread.NamedThreadFactory;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static io.fairyproject.Debug.log;
@@ -59,12 +52,7 @@ import static io.fairyproject.Debug.log;
 @Accessors(fluent = true)
 public class ContainerContext {
     private static ContainerContext INSTANCE;
-    public static boolean SINGLE_THREADED = Runtime.getRuntime().availableProcessors() < 2 || Boolean.getBoolean("fairy.singlethreaded");
-    public static ListeningExecutorService EXECUTOR = ListeningDecorator.create(Executors.newCachedThreadPool(new ThreadFactoryBuilder()
-            .setNameFormat("Container Thread - %d")
-            .setDaemon(true)
-            .setUncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
-            .build()));
+
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
 
     @Getter
@@ -73,9 +61,13 @@ public class ContainerContext {
             new SubscribeEventContainerController()
     ).toArray(new ContainerController[0]);
 
-    /**
-     * The global node of containers
-     */
+    @Getter
+    public final ExecutorService executor = Executors.newCachedThreadPool(NamedThreadFactory.builder()
+            .name("Container Thread - %d")
+            .daemon(true)
+            .uncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
+            .build());
+
     @Getter
     private ContainerNode node;
 
@@ -91,37 +83,11 @@ public class ContainerContext {
         this.lifeCycleHandlerRegistry = new LifeCycleHandlerRegistry();
         this.objectCollectorRegistry = new ContainerObjCollectorRegistry();
 
-        this.node = ContainerNode.create("global");
-        this.node.addObj(ContainerObj.of(this.getClass(), this));
-        log("ContainerContext has been registered as ContainerObject.");
-
-        final ContainerObj platform = ContainerObj.of(FairyPlatform.class, Fairy.getPlatform());
-        platform.addLifeCycleHandler(new FairyLifeCycleAnnotationProcessor(platform));
-        this.node.addObj(platform);
-        log("FairyPlatform has been registered as ContainerObject.");
-
-        try {
-            ContainerNodeScanner scanner = new ContainerNodeScanner();
-            scanner.name("framework");
-            scanner.node(this.node);
-            scanner.classPath(Fairy.getFairyPackage());
-            if (!Debug.UNIT_TEST) {
-                scanner.url(this.getClass().getProtectionDomain().getCodeSource().getLocation());
-                scanner.classLoader(ContainerContext.class.getClassLoader());
-            }
-
-            scanner.scan();
-        } catch (Throwable throwable) {
-            final Throwable stacktrace = Stacktrace.simplifyStacktrace(throwable);
-            Log.error("Error while scanning classes for framework", stacktrace);
-            stacktrace.printStackTrace();
-            Fairy.getPlatform().shutdown();
-            return;
-        }
+        this.node = new RootNodeLoader(this).load();
 
         if (PluginManager.isInitialized()) {
             log("Find PluginManager, attempt to register Plugin Listeners");
-            PluginManager.INSTANCE.registerListener(new ContainerPluginListener(this));
+            PluginManager.INSTANCE.registerListener(new ContainerNodePluginListener(this));
         }
 
         Fairy.getPlatform().onPostServicesInitial();
@@ -137,13 +103,13 @@ public class ContainerContext {
     }
 
     public @Nullable Object getContainerObject(@NonNull Class<?> type) {
-        ContainerObj obj = ContainerRef.getObj(type);
+        ContainerObj obj = ContainerReference.getObj(type);
         return obj == null ? null : obj.instance();
     }
 
     public boolean isRegisteredObject(Class<?>... types) {
         for (Class<?> type : types) {
-            ContainerObj dependencyDetails = ContainerRef.getObj(type);
+            ContainerObj dependencyDetails = ContainerReference.getObj(type);
             if (dependencyDetails == null || dependencyDetails.instance() == null) {
                 return false;
             }
@@ -152,7 +118,7 @@ public class ContainerContext {
     }
 
     public boolean isObject(Class<?> objectClass) {
-        return ContainerRef.getObj(objectClass) != null;
+        return ContainerReference.getObj(objectClass) != null;
     }
 
     public boolean isObject(Object object) {
@@ -163,14 +129,10 @@ public class ContainerContext {
         ClasspathScan annotation = plugin.getAnnotation(ClasspathScan.class);
 
         if (annotation != null) {
-            return Lists.newArrayList(annotation.value());
+            return Arrays.asList(annotation.value());
         }
 
-        return Lists.newArrayList();
-    }
-
-    public ContainerNodeScanner scanClasses() {
-        return new ContainerNodeScanner();
+        return Collections.emptyList();
     }
 
     public static ContainerContext get() {

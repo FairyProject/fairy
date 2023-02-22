@@ -24,7 +24,6 @@
 
 package io.fairyproject.util;
 
-import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -131,7 +130,7 @@ public class CC {
     }
 
     public static String getLastColors(@NotNull String input) {
-        Validate.notNull(input, "Cannot get last colors from null text");
+        ConditionUtils.notNull(input, "Cannot get last colors from null text");
 
         StringBuilder result = new StringBuilder();
         int length = input.length();

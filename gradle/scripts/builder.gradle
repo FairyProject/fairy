@@ -49,4 +49,10 @@ project.afterEvaluate(p -> {
 
 shadowJar {
     configurations = [project.configurations.runtimeClasspath]
+    manifest {
+        attributes(
+                "Implementation-Title": project.name,
+                "Implementation-Version": project.version
+        )
+    }
 }

@@ -29,10 +29,14 @@ import org.bukkit.entity.Player;
 import io.fairyproject.mc.util.BlockPosition;
 
 public abstract class VisualType {
-	@Deprecated
-	XMaterial generate(final Player player, final int x, final int y, final int z) {
-		return generate(player, new BlockPosition(x, y, z));
-	}
+    @Deprecated
+    XMaterial generate(final Player player, final int x, final int y, final int z) {
+        return generate(player, new BlockPosition(x, y, z));
+    }
 
-	public abstract XMaterial generate(Player paramPlayer, BlockPosition paramLocation);
+    public boolean isBlockedBySolid(final Player player, final BlockPosition blockPosition) {
+        return true;
+    }
+
+    public abstract XMaterial generate(Player paramPlayer, BlockPosition paramLocation);
 }

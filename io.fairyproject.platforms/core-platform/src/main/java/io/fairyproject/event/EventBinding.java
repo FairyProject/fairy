@@ -1,6 +1,5 @@
 package io.fairyproject.event;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.val;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +41,7 @@ public interface EventBinding<E extends Event> {
         }
 
         public @NotNull EventBinding<E> build() {
-            final Map<Class<? extends Event>, BiConsumer<Object, E>> copy = ImmutableMap.copyOf(mapped);
+            final Map<Class<? extends Event>, BiConsumer<Object, E>> copy = new HashMap<>(mapped);
             final Set<Class<? extends Event>> eventTypes = copy.keySet();
 
             Map<Class<? extends Event>, Consumer<E>> consumers = new HashMap<>(eventTypes.size());

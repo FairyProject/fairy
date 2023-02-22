@@ -24,9 +24,6 @@
 
 package io.fairyproject.metadata;
 
-import com.google.common.reflect.TypeToken;
-import io.fairyproject.util.TypeAware;
-
 import java.util.Objects;
 import java.util.UUID;
 
@@ -37,7 +34,7 @@ import java.util.UUID;
  *
  * @param <T> the value type
  */
-public interface MetadataKey<T> extends TypeAware<T> {
+public interface MetadataKey<T> {
 
     /**
      * Creates a MetadataKey with the given id and type
@@ -47,22 +44,10 @@ public interface MetadataKey<T> extends TypeAware<T> {
      * @param <T> the value type
      * @return a new metadata key
      */
-    static <T> MetadataKey<T> create(String id, TypeToken<T> type) {
+    static <T> MetadataKey<T> create(String id, Class<T> type) {
         Objects.requireNonNull(id, "id");
         Objects.requireNonNull(type, "type");
         return new MetadataKeyImpl<>(id, type);
-    }
-
-    /**
-     * Creates a MetadataKey with the given id and type
-     *
-     * @param id the id of the key
-     * @param clazz the class type of the value mapped to this key
-     * @param <T> the value type
-     * @return a new metadata key
-     */
-    static <T> MetadataKey<T> create(String id, Class<T> clazz) {
-        return create(id, TypeToken.of(clazz));
     }
 
     static MetadataKey<Empty> createEmptyKey(String id) {
@@ -117,8 +102,7 @@ public interface MetadataKey<T> extends TypeAware<T> {
      *
      * @return the type of the value
      */
-    @Override
-    TypeToken<T> getType();
+    Class<T> getType();
 
     /**
      * Attempts to cast the given object to the return type of the key

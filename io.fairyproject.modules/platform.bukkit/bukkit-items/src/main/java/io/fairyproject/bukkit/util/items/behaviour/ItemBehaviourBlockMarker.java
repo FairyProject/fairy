@@ -33,6 +33,7 @@ import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -83,6 +84,7 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
 
         this.addHandHeldItemDurability(player, 1);
         event.setCancelled(true);
+        block.setType(Material.AIR);
         final ItemStack itemStack = item.provide(MCPlayer.from(player))
                 .amount(1)
                 .build();

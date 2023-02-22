@@ -24,29 +24,25 @@
 
 package io.fairyproject.container.object.resolver;
 
+import io.fairyproject.container.ContainerContext;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import io.fairyproject.container.ContainerContext;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 
 @Getter
 public class MethodContainerResolver extends ContainerResolverBase {
 
+    private final ContainerContext context;
     private final Method method;
 
     @SneakyThrows
-    public MethodContainerResolver(Method method, ContainerContext containerContext) {
+    public MethodContainerResolver(Method method, ContainerContext context) {
+        this.context = context;
         this.method = method;
 
         this.types = this.method.getParameterTypes();
-        for (Class<?> type : this.types) {
-            if (!containerContext.isObject(type)) {
-                throw new IllegalArgumentException("The type " + type.getName() + " is not a bean!, it's not supposed to be in bean method!");
-            }
-        }
     }
 
     public String name() {
@@ -57,9 +53,14 @@ public class MethodContainerResolver extends ContainerResolverBase {
         return this.method.getReturnType();
     }
 
-    public Object invoke(Object instance, ContainerContext containerContext) throws InvocationTargetException, IllegalAccessException {
-        Object[] parameters = this.resolve(containerContext);
+    public Object invoke(Object instance) throws InvocationTargetException, IllegalAccessException {
+        for (Class<?> type : this.types) {
+            if (!context.isObject(type)) {
+                throw new IllegalArgumentException("The type " + type.getName() + " is not a bean!, it's not supposed to be in bean method!");
+            }
+        }
 
+        Object[] parameters = this.resolve(context);
         return this.method.invoke(instance, parameters);
     }
 

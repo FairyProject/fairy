@@ -54,6 +54,7 @@ public class TablistService {
     public static TablistService INSTANCE;
 
     private static final MetadataKey<Tablist> TABLIST_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "TabList", Tablist.class);
+    private final TablistSender tablistSender = new TablistSender();
 
     private List<TablistAdapter> adapters;
     private ScheduledExecutorService thread;
@@ -132,7 +133,7 @@ public class TablistService {
     }
 
     public void registerPlayerTablist(MCPlayer player) {
-        Tablist tablist = new Tablist(player);
+        Tablist tablist = new Tablist(player, this, this.tablistSender);
 
         player.metadata().put(TABLIST_KEY, tablist);
     }

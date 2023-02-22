@@ -3,7 +3,6 @@ package io.fairyproject.gradle.compile;
 import com.google.common.collect.ImmutableList;
 import io.fairyproject.gradle.file.ClassModifier;
 import io.fairyproject.gradle.file.ClassModifierCancellable;
-import io.fairyproject.gradle.file.ClassModifierEvent;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.compile.AbstractCompile;
@@ -20,7 +19,6 @@ import java.util.List;
 public class ModuleCompilerAction implements Action<Task> {
 
     private static final List<ClassModifier> MODIFIERS = ImmutableList.of(
-            new ClassModifierEvent(),
             new ClassModifierCancellable()
     );
 

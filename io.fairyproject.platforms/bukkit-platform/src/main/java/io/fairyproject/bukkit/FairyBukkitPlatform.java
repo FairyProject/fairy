@@ -32,23 +32,24 @@ import io.fairyproject.bukkit.impl.BukkitPluginHandler;
 import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
 import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.ListenerSubscription;
+import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
-import io.fairyproject.bukkit.mc.BukkitMCInitializer;
-import io.fairyproject.bukkit.reflection.MinecraftReflection;
+import io.fairyproject.bukkit.configuration.BukkitMCConfiguration;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.log.Log;
-import io.fairyproject.mc.MCInitializer;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
+import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
+import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
@@ -66,15 +67,18 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     private final URLClassLoaderAccess classLoader;
     private final File dataFolder;
     private final CompositeTerminable compositeTerminable;
+    @Getter
+    private BukkitMCConfiguration mcInitializer;
 
     @NotNull
     @Override
-    public <T extends AutoCloseable> T bind(@NotNull T terminable) {
+    public <T extends Terminable> T bind(@NotNull T terminable) {
         return this.compositeTerminable.bind(terminable);
     }
 
     public FairyBukkitPlatform(File dataFolder) {
         FairyPlatform.INSTANCE = this;
+
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
         this.classLoader = URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
@@ -89,8 +93,6 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     public void load(Plugin plugin) {
         super.load(plugin);
 
-        MinecraftReflection.init();
-        this.createMCInitializer().apply();
     }
 
     @Override
@@ -103,10 +105,14 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
     @PreInitialize
     public void onPreInitialize() {
+        // TODO: move these to DI container when DI is improved
         ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(Listener.class))
                 .withFilter(ContainerObjCollector.inherits(FilteredListener.class).negate())
                 .withAddHandler(containerObj -> {
+                    if (!containerObj.type().isAnnotationPresent(RegisterAsListener.class))
+                        return;
+
                     Listener listener = (Listener) containerObj.instance();
                     ListenerSubscription subscription = Events.subscribe(listener);
 
@@ -117,10 +123,6 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @Override
     public void onPostServicesInitial() {
         Events.call(new PostServicesInitialEvent());
-    }
-
-    public MCInitializer createMCInitializer() {
-        return new BukkitMCInitializer();
     }
 
     @Override

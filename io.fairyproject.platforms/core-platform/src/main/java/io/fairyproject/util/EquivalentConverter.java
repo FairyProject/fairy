@@ -25,8 +25,7 @@
 package io.fairyproject.util;
 
 import lombok.Getter;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Interface that converts generic objects into types and back.

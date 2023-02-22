@@ -24,12 +24,13 @@
 
 package io.fairyproject.bukkit.metadata;
 
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.ImmutableMap;
+import io.fairyproject.bukkit.mc.EntityUUIDFinder;
 import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.PlayerMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.WorldMetadataRegistry;
+import io.fairyproject.container.Containers;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.metadata.*;
@@ -48,7 +49,7 @@ import java.util.UUID;
 
 /**
  * The Metadata registries provided by helper.
- *
+ * <p>
  * These instances can be accessed through {@link Metadata}.
  */
 final class BukkitMetadataRegistries {
@@ -91,7 +92,7 @@ final class BukkitMetadataRegistries {
         public <K> Map<Player, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<Player, K> ret = ImmutableMap.builder();
-            this.uuids.cache().asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            this.uuids.cache().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null) {
                     ret.put(player, t);
@@ -123,7 +124,7 @@ final class BukkitMetadataRegistries {
         }
 
         @Override
-        public LoadingCache<UUID, MetadataMap> cache() {
+        public Map<UUID, MetadataMap> cache() {
             return this.uuids.cache();
         }
     }
@@ -149,8 +150,9 @@ final class BukkitMetadataRegistries {
         public <K> Map<Entity, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<Entity, K> ret = ImmutableMap.builder();
-            this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
-                Entity entity = MCServer.current().getEntity(uuid).as(Entity.class);
+            this.cache().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+                EntityUUIDFinder entityUUIDFinder = Containers.get(EntityUUIDFinder.class);
+                Entity entity = entityUUIDFinder.findEntityByUuid(uuid);
                 if (entity != null) {
                     ret.put(entity, t);
                 }
@@ -180,7 +182,7 @@ final class BukkitMetadataRegistries {
         public <K> Map<BlockPosition, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<BlockPosition, K> ret = ImmutableMap.builder();
-            this.cache.asMap().forEach((pos, map) -> map.get(key).ifPresent(t -> ret.put(pos, t)));
+            this.cache().forEach((pos, map) -> map.get(key).ifPresent(t -> ret.put(pos, t)));
             return ret.build();
         }
     }
@@ -206,7 +208,7 @@ final class BukkitMetadataRegistries {
         public <K> Map<World, K> getAllWithKey(@Nonnull MetadataKey<K> key) {
             Objects.requireNonNull(key, "key");
             ImmutableMap.Builder<World, K> ret = ImmutableMap.builder();
-            this.cache.asMap().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
+            this.cache().forEach((uuid, map) -> map.get(key).ifPresent(t -> {
                 World world = Bukkit.getWorld(uuid);
                 if (world != null) {
                     ret.put(world, t);

@@ -1,6 +1,6 @@
 package io.fairyproject.mc;
 
-import io.fairyproject.mc.protocol.MCVersion;
+import io.fairyproject.mc.version.MCVersion;
 
 import java.util.UUID;
 
@@ -10,12 +10,11 @@ public interface MCServer {
         return Companion.CURRENT;
     }
 
-    MCEntity getEntity(UUID entityUuid);
-
     boolean isMainThread();
 
     MCVersion getVersion();
 
+    @Deprecated
     class Companion {
 
         public static MCServer CURRENT;

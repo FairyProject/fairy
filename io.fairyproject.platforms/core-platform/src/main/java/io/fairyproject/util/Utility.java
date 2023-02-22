@@ -24,13 +24,12 @@
 
 package io.fairyproject.util;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import io.fairyproject.task.Task;
 
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -40,12 +39,12 @@ import java.util.stream.Stream;
 public class Utility {
 
     public static <T> CompletableFuture<Void> forEachSlowly(Consumer<T> consumer, Collection<? extends T> collection) {
-        ImmutableList<T> list = ImmutableList.copyOf(collection);
+        List<T> list = new ArrayList<>(collection);
         int size = collection.size();
         int diff = (int) Math.ceil(collection.size() / 20.0);
 
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        for (int i = 0, ticks = 0; i < size; i+= diff) {
+        for (int i = 0, ticks = 0; i < size; i += diff) {
             int start = i;
             int end = i + diff;
             CompletableFuture<Void> future = new CompletableFuture<>();
@@ -129,6 +128,7 @@ public class Utility {
 
         return superclasses;
     }
+
     public static Collection<Class<?>> getSuperAndInterfaces(Class<?> type) {
         Set<Class<?>> superclasses = getSuperClasses(type);
         Set<Class<?>> result = new HashSet<>(superclasses);
@@ -166,17 +166,19 @@ public class Utility {
     }
 
     private static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS
-            = new ImmutableMap.Builder<Class<?>, Class<?>>()
-            .put(boolean.class, Boolean.class)
-            .put(byte.class, Byte.class)
-            .put(char.class, Character.class)
-            .put(double.class, Double.class)
-            .put(float.class, Float.class)
-            .put(int.class, Integer.class)
-            .put(long.class, Long.class)
-            .put(short.class, Short.class)
-            .put(void.class, Void.class)
-            .build();
+            = new ConcurrentHashMap<>();
+
+    static {
+        PRIMITIVES_TO_WRAPPERS.put(boolean.class, Boolean.class);
+        PRIMITIVES_TO_WRAPPERS.put(byte.class, Byte.class);
+        PRIMITIVES_TO_WRAPPERS.put(char.class, Character.class);
+        PRIMITIVES_TO_WRAPPERS.put(double.class, Double.class);
+        PRIMITIVES_TO_WRAPPERS.put(float.class, Float.class);
+        PRIMITIVES_TO_WRAPPERS.put(int.class, Integer.class);
+        PRIMITIVES_TO_WRAPPERS.put(long.class, Long.class);
+        PRIMITIVES_TO_WRAPPERS.put(short.class, Short.class);
+        PRIMITIVES_TO_WRAPPERS.put(void.class, Void.class);
+    }
 
     /**
      * Returns the name of the class, as the JVM would output it. For instance, for an int, "I" is returned, for an
@@ -186,28 +188,28 @@ public class Utility {
      * @return
      */
     public static String getJVMName(Class clazz) {
-        if(clazz == null) {
+        if (clazz == null) {
             return null;
         }
         //For arrays, .getName() is fine.
-        if(clazz.isArray()) {
+        if (clazz.isArray()) {
             return clazz.getName().replace('.', '/');
         }
-        if(clazz == boolean.class) {
+        if (clazz == boolean.class) {
             return "Z";
-        } else if(clazz == byte.class) {
+        } else if (clazz == byte.class) {
             return "B";
-        } else if(clazz == short.class) {
+        } else if (clazz == short.class) {
             return "S";
-        } else if(clazz == int.class) {
+        } else if (clazz == int.class) {
             return "I";
-        } else if(clazz == long.class) {
+        } else if (clazz == long.class) {
             return "J";
-        } else if(clazz == float.class) {
+        } else if (clazz == float.class) {
             return "F";
-        } else if(clazz == double.class) {
+        } else if (clazz == double.class) {
             return "D";
-        } else if(clazz == char.class) {
+        } else if (clazz == char.class) {
             return "C";
         } else {
             return "L" + clazz.getName().replace('.', '/') + ";";
@@ -217,6 +219,7 @@ public class Utility {
     /**
      * Generically and dynamically returns the array class type for the given class type. The dynamic equivalent of
      * sending {@code String.class} and getting {@code String[].class}. Works with array types as well.
+     *
      * @param clazz The class to convert to an array type.
      * @return The array type of the input class.
      */
@@ -224,7 +227,7 @@ public class Utility {
         Objects.requireNonNull(clazz);
         try {
             return Class.forName("[" + getJVMName(clazz).replace('/', '.'));
-        } catch(ClassNotFoundException ex) {
+        } catch (ClassNotFoundException ex) {
             // This cannot naturally happen, as we are simply creating an array type for a real type that has
             // clearly already been loaded.
             throw new NoClassDefFoundError(ex.getMessage());

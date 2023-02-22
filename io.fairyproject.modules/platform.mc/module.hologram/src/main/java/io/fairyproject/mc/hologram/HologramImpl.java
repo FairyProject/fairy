@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.fairyproject.event.EventListener;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.*;
+import io.fairyproject.mc.entity.EntityIDCounter;
 import io.fairyproject.mc.event.MCPlayerChangedWorldEvent;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerMoveEvent;
@@ -17,9 +18,9 @@ import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.event.trait.MCPlayerEvent;
 import io.fairyproject.mc.hologram.line.HologramLine;
 import io.fairyproject.mc.protocol.MCProtocol;
-import io.fairyproject.mc.protocol.MCVersion;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
 import io.fairyproject.mc.util.Position;
+import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.util.ConditionUtils;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
 
 public class HologramImpl implements Hologram {
 
-
+    private final MCServer server;
     private final MCWorld world;
     private Position pos;
     private MCEntity attached;
@@ -51,7 +52,8 @@ public class HologramImpl implements Hologram {
     private final List<HologramLine> lines;
     private final List<HologramEntity> entities;
 
-    public HologramImpl(@NotNull Position pos) {
+    public HologramImpl(@NotNull MCServer server, @NotNull Position pos) {
+        this.server = server;
         this.world = pos.getMCWorld();
         this.pos = pos;
         this.autoViewable = true;
@@ -219,7 +221,7 @@ public class HologramImpl implements Hologram {
             HologramEntity entity;
             if (index >= this.entities.size()) {
                 entity = new HologramEntity();
-                entity.setEntityId(MCEntity.Companion.BRIDGE.newEntityId());
+                entity.setEntityId(EntityIDCounter.current().next());
                 entity.setEntityUuid(UUID.randomUUID());
                 entity.setY(-this.verticalSpacing * index);
                 entity.setLine(line);
@@ -459,28 +461,28 @@ public class HologramImpl implements Hologram {
             entityDataList.add(new EntityData(0, EntityDataTypes.BYTE, (byte) 0x20));
 
             // custom name
-            MCVersion version = MCServer.current().getVersion();
-            if (version.isOrAbove(MCVersion.V1_13)) {
+            MCVersion version = server.getVersion();
+            if (version.isHigherOrEqual(MCVersion.of(13))) {
                 entityDataList.add(new EntityData(2, EntityDataTypes.OPTIONAL_COMPONENT, Optional.ofNullable(this.line.render(player))));
             } else {
                 entityDataList.add(new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale())));
             }
 
             // always show name tag
-            if (version.isOrAbove(MCVersion.V1_9)) {
+            if (version.isHigherOrEqual(MCVersion.of(9))) {
                 entityDataList.add(new EntityData(3, EntityDataTypes.BOOLEAN, true));
             } else {
                 entityDataList.add(new EntityData(3, EntityDataTypes.BYTE, (byte) 1));
             }
 
             // armorstand status bit mask
-            if (version.isOrAbove(MCVersion.V1_17))
+            if (version.isHigherOrEqual(MCVersion.of(17)))
                 entityDataList.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x11));
-            else if (version.isOrAbove(MCVersion.V1_15))
+            else if (version.isHigherOrEqual(MCVersion.of(15)))
                 entityDataList.add(new EntityData(14, EntityDataTypes.BYTE, (byte) 0x11));
-            else if (version.isOrAbove(MCVersion.V1_14))
+            else if (version.isHigherOrEqual(MCVersion.of(14)))
                 entityDataList.add(new EntityData(13, EntityDataTypes.BYTE, (byte) 0x11));
-            else if (version.isOrAbove(MCVersion.V1_10))
+            else if (version.isHigherOrEqual(MCVersion.of(10)))
                 entityDataList.add(new EntityData(11, EntityDataTypes.BYTE, (byte) 0x11));
             else
                 entityDataList.add(new EntityData(10, EntityDataTypes.BYTE, (byte) 0x11));

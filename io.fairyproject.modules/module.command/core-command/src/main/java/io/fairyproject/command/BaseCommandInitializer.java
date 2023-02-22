@@ -18,6 +18,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class BaseCommandInitializer {
@@ -60,7 +62,9 @@ public class BaseCommandInitializer {
 
         if (baseCommand.noArgCommand != null)
             baseCommand.sortedCommands.add(baseCommand.noArgCommand);
-        baseCommand.sortedCommands.addAll(baseCommand.subCommands.values());
+        baseCommand.sortedCommands.addAll(baseCommand.subCommands.values().stream()
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList()));
         baseCommand.sortedCommands.sort(Comparator.comparingInt(ICommand::order));
     }
 
@@ -124,7 +128,9 @@ public class BaseCommandInitializer {
                         } else if (baseCommand.subCommands.containsKey(name.toLowerCase())) {
                             Log.error("Duplicate sub command name " + name);
                         } else {
-                            baseCommand.subCommands.put(name.toLowerCase(), commandMeta);
+                            baseCommand.subCommands
+                                    .computeIfAbsent(name.toLowerCase(), k -> ConcurrentHashMap.newKeySet())
+                                    .add(commandMeta);
                             register = true;
                         }
                     }
@@ -246,7 +252,9 @@ public class BaseCommandInitializer {
         }
 
         for (String commandName : subCommand.getCommandNames()) {
-            baseCommand.subCommands.put(commandName.toLowerCase(), subCommand);
+            baseCommand.subCommands
+                    .computeIfAbsent(commandName.toLowerCase(), k -> ConcurrentHashMap.newKeySet())
+                    .add(subCommand);
         }
         baseCommand.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), baseCommand.maxParameterCount);
         baseCommand.requireInputParameterCount = Math.max(subCommand.getRequireInputParameterCount(), baseCommand.requireInputParameterCount);

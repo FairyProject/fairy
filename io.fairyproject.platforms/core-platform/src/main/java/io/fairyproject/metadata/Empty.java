@@ -24,7 +24,8 @@
 
 package io.fairyproject.metadata;
 
-import javax.annotation.Nonnull;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.function.Supplier;
 
 /**
@@ -39,12 +40,12 @@ public final class Empty {
     private static final Empty INSTANCE = new Empty();
     private static final Supplier<Empty> SUPPLIER = () -> INSTANCE;
 
-    @Nonnull
+    @NotNull
     public static Empty instance() {
         return INSTANCE;
     }
 
-    @Nonnull
+    @NotNull
     public static Supplier<Empty> supplier() {
         return SUPPLIER;
     }

@@ -24,9 +24,9 @@
 
 package io.fairyproject.metadata;
 
-import com.google.common.base.Preconditions;
+import io.fairyproject.util.ConditionUtils;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -39,7 +39,7 @@ import java.util.function.Supplier;
 public final class ExpiringValue<T> implements TransientValue<T> {
 
     public static <T> ExpiringValue<T> of(T value, long duration, TimeUnit unit) {
-        Preconditions.checkArgument(duration >= 0, "duration must be >= 0");
+        ConditionUtils.is(duration >= 0, "duration must be >= 0");
         Objects.requireNonNull(value, "value");
         Objects.requireNonNull(unit, "unit");
 
@@ -48,7 +48,7 @@ public final class ExpiringValue<T> implements TransientValue<T> {
     }
 
     public static <T> Supplier<ExpiringValue<T>> supplied(Supplier<? extends T> supplier, long duration, TimeUnit unit) {
-        Preconditions.checkArgument(duration >= 0, "duration must be >= 0");
+        ConditionUtils.is(duration >= 0, "duration must be >= 0");
         Objects.requireNonNull(supplier, "supplier");
         Objects.requireNonNull(unit, "unit");
 
