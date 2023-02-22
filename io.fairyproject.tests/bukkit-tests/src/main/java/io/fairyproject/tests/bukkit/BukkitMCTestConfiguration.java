@@ -6,7 +6,6 @@ import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.TestConfiguration;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.tests.bukkit.mc.operator.BukkitMCPlayerOperatorMock;
@@ -28,10 +27,9 @@ public class BukkitMCTestConfiguration {
     @InjectableComponent
     public MCPlayerPlatformOperator provideMCPlayerPlatformOperator(
             MCServer mcServer,
-            MCProtocol mcProtocol,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        return new BukkitMCPlayerPlatformOperatorMock(mcServer, mcProtocol, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayerPlatformOperatorMock(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 }
