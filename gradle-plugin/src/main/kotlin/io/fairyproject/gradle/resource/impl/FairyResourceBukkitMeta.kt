@@ -17,7 +17,7 @@ class FairyResourceBukkitMeta : FairyResource {
         classMapper: Map<ClassType, ClassInfo>
     ): ResourceInfo? {
         val hasBukkitPlatform = project.configurations.flatMap { it.dependencies }.any {
-            it.isFairyBukkitPlatform()
+            it.isClassBukkitPlatform()
         }
         if (!hasBukkitPlatform)
             return null
@@ -42,8 +42,10 @@ class FairyResourceBukkitMeta : FairyResource {
 
     /**
      * Check if the dependency is a fairy bukkit platform.
+     *
+     * @return true if the dependency is a fairy bukkit platform.
      */
-    private fun Dependency.isFairyBukkitPlatform() =
+    private fun Dependency.isClassBukkitPlatform() =
         group == "io.fairyproject" &&
                 (name == "bukkit-platform" || name == "bukkit-bundles")
 }

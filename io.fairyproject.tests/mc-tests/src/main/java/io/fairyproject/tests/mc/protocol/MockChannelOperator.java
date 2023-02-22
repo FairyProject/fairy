@@ -118,7 +118,7 @@ public class MockChannelOperator implements ChannelOperator {
 
     @Override
     public void runInEventLoop(Object o, Runnable runnable) {
-
+        // Do nothing
     }
 
     @Override

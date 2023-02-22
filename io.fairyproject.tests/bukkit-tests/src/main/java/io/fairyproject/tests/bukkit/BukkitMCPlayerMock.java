@@ -10,7 +10,6 @@ import io.fairyproject.tests.mc.MCPlayerMock;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.InetAddress;
 import java.util.List;
 import java.util.UUID;
 

@@ -38,7 +38,7 @@ public class ClassModifierCancellable implements ClassModifier {
     public boolean hasIsCancelledMethod(ClassNode classNode) {
         for (MethodNode method : classNode.methods) {
             final Type[] types = Type.getArgumentTypes(method.desc);
-            if (types.length == 1 && types[0] == Type.BOOLEAN_TYPE) {
+            if (types.length == 1 && Objects.equals(types[0], Type.BOOLEAN_TYPE)) {
                 return true;
             }
         }

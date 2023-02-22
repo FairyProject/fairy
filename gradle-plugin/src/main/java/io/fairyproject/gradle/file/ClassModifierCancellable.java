@@ -56,7 +56,7 @@ public class ClassModifierCancellable implements ClassModifier {
 
     public boolean hasCancelledField(ClassNode classNode) {
         for (FieldNode field : classNode.fields) {
-            if (field.name.equals("cancelled") && Type.getType(field.desc) == Type.BOOLEAN_TYPE) {
+            if (field.name.equals("cancelled") && Objects.equals(Type.getType(field.desc), Type.BOOLEAN_TYPE)) {
                 return true;
             }
         }

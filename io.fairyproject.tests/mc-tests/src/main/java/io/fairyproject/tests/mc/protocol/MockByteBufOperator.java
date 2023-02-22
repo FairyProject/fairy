@@ -101,22 +101,22 @@ public class MockByteBufOperator implements ByteBufOperator {
 
     @Override
     public void writeByte(Object o, int i) {
-
+        // do nothing
     }
 
     @Override
     public void writeShort(Object o, int i) {
-
+        // do nothing
     }
 
     @Override
     public void writeInt(Object o, int i) {
-
+        // do nothing
     }
 
     @Override
     public void writeLong(Object o, long l) {
-
+        // do nothing
     }
 
     @Override
@@ -181,7 +181,7 @@ public class MockByteBufOperator implements ByteBufOperator {
 
     @Override
     public void readBytes(Object o, byte[] bytes) {
-
+        // do nothing
     }
 
     @Override

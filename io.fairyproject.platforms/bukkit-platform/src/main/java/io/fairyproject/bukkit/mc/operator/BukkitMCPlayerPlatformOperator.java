@@ -29,7 +29,6 @@ import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +42,6 @@ import java.util.UUID;
 public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator {
 
     private final MCServer mcServer;
-    private final MCProtocol mcProtocol;
     private final BukkitDataWatcherConverter dataWatcherConverter;
     private final BukkitMCPlayerOperator playerOperator;
     protected final MCVersionMappingRegistry versionMappingRegistry;
@@ -69,7 +67,7 @@ public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator 
             @NotNull String name,
             @NotNull UUID uuid,
             @NotNull InetAddress address) {
-        return new BukkitMCPlayer(uuid, name, address, mcServer, mcProtocol, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayer(uuid, name, address, mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
 }

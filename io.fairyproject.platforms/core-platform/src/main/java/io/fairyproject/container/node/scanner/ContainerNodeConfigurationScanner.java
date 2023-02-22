@@ -59,7 +59,7 @@ public class ContainerNodeConfigurationScanner {
 
             this.instance = constructor.newInstance();
         } catch (ReflectiveOperationException ex) {
-            throw new RuntimeException("Failed to create configuration instance", ex);
+            throw new IllegalStateException("Failed to create configuration instance.", ex);
         }
     }
 

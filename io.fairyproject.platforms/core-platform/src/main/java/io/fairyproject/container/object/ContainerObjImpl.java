@@ -7,7 +7,6 @@ import io.fairyproject.container.object.lifecycle.LifeCycleHandler;
 import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.AsyncUtils;
-import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.jetbrains.annotations.NotNull;

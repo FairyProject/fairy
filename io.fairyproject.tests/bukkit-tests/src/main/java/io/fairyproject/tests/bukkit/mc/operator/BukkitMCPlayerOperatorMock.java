@@ -49,7 +49,7 @@ public class BukkitMCPlayerOperatorMock implements BukkitMCPlayerOperator {
 
     @Override
     public void setDisplayName(MCPlayer player, Component displayName) {
-
+        // do nothing
     }
 
     @Override

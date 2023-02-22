@@ -23,7 +23,7 @@
  */
 
 package io.fairyproject.reflect;
-;
+
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.NonNull;

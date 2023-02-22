@@ -40,7 +40,6 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
             String name,
             InetAddress address,
             MCServer server,
-            MCProtocol protocol,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator operator,
             MCVersionMappingRegistry versionMappingRegistry

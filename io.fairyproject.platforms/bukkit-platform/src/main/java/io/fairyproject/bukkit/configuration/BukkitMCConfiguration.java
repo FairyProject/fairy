@@ -105,11 +105,10 @@ public class BukkitMCConfiguration {
     @InjectableComponent
     public MCPlayerPlatformOperator provideMCPlayerPlatformOperator(
             MCServer mcServer,
-            MCProtocol mcProtocol,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        return new BukkitMCPlayerPlatformOperator(mcServer, mcProtocol, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayerPlatformOperator(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
     @InjectableComponent
