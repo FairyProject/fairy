@@ -32,7 +32,6 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
     private final String name;
     private final InetAddress address;
     private final MCServer server;
-    private final MCProtocol protocol;
     private final BukkitMCPlayerOperator operator;
     private final MCVersionMappingRegistry versionMappingRegistry;
 
@@ -51,9 +50,13 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
         this.name = name;
         this.address = address;
         this.server = server;
-        this.protocol = protocol;
         this.operator = operator;
         this.versionMappingRegistry = versionMappingRegistry;
+    }
+
+    @Override
+    public InetAddress getAddress() {
+        return this.address;
     }
 
     @Override

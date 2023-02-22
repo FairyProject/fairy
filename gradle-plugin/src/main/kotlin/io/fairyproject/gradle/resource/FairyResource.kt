@@ -10,6 +10,9 @@ import org.gradle.api.Project
  */
 interface FairyResource {
 
+    /**
+     * Generate the resource.
+     */
     fun generate(
         project: Project,
         fairyExtension: FairyExtension,
@@ -27,8 +30,14 @@ interface FairyResource {
 
 }
 
+/**
+ * Create a new [ResourceInfo] instance.
+ */
 fun resourceOf(name: String, byteArray: ByteArray): ResourceInfo = ResourceInfo(name, byteArray)
 
+/**
+ * The resource info.
+ */
 data class ResourceInfo(val name: String, val byteArray: ByteArray) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

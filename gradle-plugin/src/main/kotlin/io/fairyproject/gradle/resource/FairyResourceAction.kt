@@ -98,13 +98,17 @@ open class FairyResourceAction : Action<Task> {
         // The class has been marked with @FairyInternalIdentityMeta
         if (hasInternalMetadata(classInfo)) {
             // Try mapping it to exist class type
-            ClassType.values().forEach { classType ->
-                if (classType.names.contains(classInfo.name.substringAfterLast("/"))) {
-                    // Duplicated class types
-                    if (classMapper.contains(classType))
-                        throw IllegalStateException("a project are not suppose to have 2 or more classes that are $classType")
-                    classMapper[classType] = classInfo
-                }
+            pushClassToMapping(classInfo, classMapper)
+        }
+    }
+
+    private fun pushClassToMapping(classInfo: ClassInfo, classMapper: MutableMap<ClassType, ClassInfo>) {
+        ClassType.values().forEach { classType ->
+            if (classType.names.contains(classInfo.name.substringAfterLast("/"))) {
+                // Duplicated class types
+                if (classMapper.contains(classType))
+                    throw IllegalStateException("a project are not suppose to have 2 or more classes that are $classType")
+                classMapper[classType] = classInfo
             }
         }
     }

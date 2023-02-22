@@ -55,6 +55,7 @@ public class TablistSender {
                     WrapperPlayServerPlayerInfoUpdate.Action.ADD_PLAYER,
                     tabEntries.stream().map(this::createModern).collect(Collectors.toList())
             );
+            MCProtocol.sendPacket(player, packet);
         } else {
             WrapperPlayServerPlayerInfo packet = new WrapperPlayServerPlayerInfo(
                     WrapperPlayServerPlayerInfo.Action.ADD_PLAYER,

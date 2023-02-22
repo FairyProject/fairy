@@ -24,13 +24,12 @@
 
 package io.fairyproject.mc.nametag;
 
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams.NameTagVisibility;
-import net.kyori.adventure.text.Component;
+import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import lombok.Getter;
-import io.fairyproject.container.Autowired;
+import net.kyori.adventure.text.Component;
 
 @Getter
 public abstract class NameTagAdapter {

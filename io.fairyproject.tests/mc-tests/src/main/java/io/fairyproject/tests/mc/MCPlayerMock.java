@@ -16,6 +16,7 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -53,6 +54,11 @@ public abstract class MCPlayerMock implements MCPlayer {
     @Override
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public InetAddress getAddress() {
+        throw new UnsupportedOperationException("Not Implemented.");
     }
 
     @Override

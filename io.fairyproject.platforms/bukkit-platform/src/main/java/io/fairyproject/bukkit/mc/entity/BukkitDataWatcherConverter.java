@@ -31,6 +31,7 @@ public class BukkitDataWatcherConverter {
     private FieldWrapper<?> dataWatcherField;
     private MethodWrapper<?> dataWatcherWriteMethod;
     private ConstructorWrapper<?> packetDataSerializerConstructor;
+    private Function<Entity, List<EntityData>> converter;
 
     public Class<?> getPacketDataSerializerClass() throws ClassNotFoundException {
         return this.bukkitNMSManager.getNmsClassResolver().resolve("network.PacketDataSerializer", "network.FriendlyByteBuf", "PacketDataSerializer");
@@ -47,8 +48,6 @@ public class BukkitDataWatcherConverter {
                 "DataWatcher"
         );
     }
-
-    private Function<Entity, List<EntityData>> converter;
 
     public @NotNull List<EntityData> convert(@NotNull Entity entity) throws ReflectiveOperationException {
         if (converter == null) {

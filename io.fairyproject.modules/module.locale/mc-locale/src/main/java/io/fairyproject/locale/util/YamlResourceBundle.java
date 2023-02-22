@@ -12,7 +12,6 @@ import java.io.Reader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -86,36 +85,6 @@ public class YamlResourceBundle extends ResourceBundle {
         newList.add(value);
         return value.entrySet().stream()
                 .flatMap(entry -> parseNode(key + "." + entry.getKey(), entry.getValue(), newList));
-    }
-
-    private Stream<Entry<String, Object>> parseListNode(String key, List<Object> value, List<Object> ancestors) {
-        if (ancestors.stream().anyMatch(it -> it == value)) return Stream.empty();
-        final ArrayList<Object> newList = new ArrayList<>(ancestors);
-        newList.add(value);
-
-        Stream<Entry<String, Object>> strings;
-        if (value.isEmpty()) {
-            strings = Stream.empty();
-        } else {
-            label: {
-                List<String> list = new ArrayList<>();
-                for (Object o : value) {
-                    if (!(o instanceof String)) {
-                        strings = Stream.empty();
-                        break label;
-                    }
-                    list.add((String) o);
-                }
-                strings = Stream.of(new Entry<>(key, list.toArray(new Object[0])));
-            }
-        }
-
-        AtomicInteger indexes = new AtomicInteger(0);
-        final Stream<Entry<String, Object>> stream = Stream.of(value.toArray(new Object[0]))
-                .flatMap(item -> {
-                    return parseNode(key + "[" + indexes.getAndIncrement() + "]", item, newList);
-                });
-        return Stream.of(strings, stream).flatMap(s -> s);
     }
 
     @Override

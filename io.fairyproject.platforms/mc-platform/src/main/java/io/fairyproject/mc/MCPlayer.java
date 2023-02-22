@@ -13,6 +13,7 @@ import net.kyori.adventure.translation.Translator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.UUID;
@@ -53,6 +54,13 @@ public interface MCPlayer extends MCEntity, Audience {
      * @return name
      */
     String getName();
+
+    /**
+     * get player's IP address
+     *
+     * @return IP address
+     */
+    InetAddress getAddress();
 
     /**
      * is player online
