@@ -8,7 +8,6 @@ import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
-import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.util.AudienceProxy;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMapping;

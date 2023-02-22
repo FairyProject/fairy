@@ -40,11 +40,6 @@ class FairyResourceBukkitMeta : FairyResource {
         return resourceOf("plugin.yml", stringJoiner.toString().encodeToByteArray())
     }
 
-    /**
-     * Check if the dependency is a fairy bukkit platform.
-     *
-     * @return true if the dependency is a fairy bukkit platform.
-     */
     private fun Dependency.isClassBukkitPlatform() =
         group == "io.fairyproject" &&
                 (name == "bukkit-platform" || name == "bukkit-bundles")
