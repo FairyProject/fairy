@@ -30,10 +30,11 @@ import lombok.Data;
 @Data
 public final class Relocation {
 
+    private final String pattern;
+    private final String relocatedPattern;
+
     public static Relocation of(String pattern, String relocatedPattern) {
         return new Relocation(pattern.replace("{}", "."), relocatedPattern);
     }
 
-    private final String pattern;
-    private final String relocatedPattern;
 }

@@ -42,6 +42,6 @@ public class LibraryHandlerNoOp implements LibraryHandler {
 
     @Override
     public void loadLibrary(Library library, boolean addToUCP, Relocation... relocations) {
-
+        // do nothing
     }
 }
