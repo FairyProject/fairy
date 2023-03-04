@@ -35,7 +35,7 @@ public class PluginDescription {
         this.libraries = new ArrayList<>();
         if (jsonObject.has("libraries")) {
             for (JsonElement jsonElement : jsonObject.getAsJsonArray("libraries")) {
-                this.libraries.add(Library.fromJsonObject(jsonElement.getAsJsonObject(), this.shadedPackage));
+                this.libraries.add(Library.fromJsonObject(jsonElement.getAsJsonObject()));
             }
         }
     }

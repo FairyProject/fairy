@@ -9,7 +9,3 @@ dependencies {
     
     testImplementation libs.mockito
 }
-
-shadowJar {
-    exclude("assets/**")
-}

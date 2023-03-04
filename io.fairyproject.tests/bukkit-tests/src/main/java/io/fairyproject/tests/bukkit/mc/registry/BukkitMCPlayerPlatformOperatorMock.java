@@ -32,6 +32,7 @@ import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.tests.bukkit.BukkitMCPlayerMock;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
@@ -41,10 +42,11 @@ public class BukkitMCPlayerPlatformOperatorMock extends BukkitMCPlayerPlatformOp
 
     public BukkitMCPlayerPlatformOperatorMock(
             MCServer mcServer,
+            BukkitAudiences bukkitAudiences,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        super(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        super(mcServer, bukkitAudiences, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
     @Override

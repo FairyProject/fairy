@@ -26,6 +26,8 @@ package io.fairyproject;
 
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.library.LibraryHandler;
+import io.fairyproject.library.LibraryHandlerImpl;
+import io.fairyproject.library.LibraryHandlerNoOp;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
@@ -66,7 +68,11 @@ public abstract class FairyPlatform implements TerminableConsumer {
     }
 
     public void preload() {
-        this.libraryHandler = new LibraryHandler();
+        if (Debug.UNIT_TEST) {
+            this.libraryHandler = new LibraryHandlerNoOp();
+        } else {
+            this.libraryHandler = new LibraryHandlerImpl(this);
+        }
     }
 
     public void load(Plugin mainPlugin) {
@@ -77,8 +83,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
     }
 
     public void enable() {
-        this.loadBindable();
-
         this.containerContext = new ContainerContext();
         this.containerContext.init();
     }
@@ -92,11 +96,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
 
         this.containerContext.stop();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
-    }
-
-    private void loadBindable() {
-//        this.bind(CacheableAspect.CLEANER_SERVICE);
-//        this.bind(CacheableAspect.UPDATER_SERVICE);
     }
 
     @Override

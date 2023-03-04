@@ -1,18 +1,13 @@
 apply plugin: "maven-publish"
 
 project.afterEvaluate {
-    def shadowJar = project.tasks.findByName("shadowJar")
 
     publishing {
         publications {
             maven(MavenPublication) { publication ->
-                if (shadowJar != null)
-                    from project.shadow.component(publication)
-                else {
                     def java = components.findByName("java")
                     if (java != null)
                         from java
-                }
 
                 pom {
 
@@ -68,12 +63,6 @@ project.afterEvaluate {
         }
     }
 
-    if (shadowJar != null) {
-        tasks.withType(AbstractPublishToMaven).forEach(t -> {
-            t.dependsOn(shadowJar)
-        })
-    }
-
     /* -------------------------------------------------------
      * Last edit: 03/03/2022
      * Fixes modules not properly being published with
@@ -82,8 +71,6 @@ project.afterEvaluate {
     def moduleTask = project.tasks.findByName("module")
     if (moduleTask != null) {
         moduleTask.finalizedBy(publishAllPublicationsToDevRepository)
-    } else if (shadowJar != null) {
-        shadowJar.finalizedBy(publishAllPublicationsToDevRepository)
     } else {
         build.finalizedBy(publishAllPublicationsToDevRepository)
     }

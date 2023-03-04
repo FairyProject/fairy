@@ -25,19 +25,18 @@
 package io.fairyproject.library;
 
 import com.google.gson.JsonObject;
-import lombok.Getter;
+import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.Base64;
 
-@Getter
+@Data
 public class Library {
-    public static final String IMANITY_LIB_PACKAGE = "org.imanity.framework.libs.";
+    public static final String FAIRY_LIB_PACKAGE = "io.fairyproject.libs.";
+    private static final String MAVEN_FORMAT = "%s/%s/%s/%s-%s.jar";
 
     private final String groupId;
     private final String artifactId;
@@ -47,39 +46,73 @@ public class Library {
     private final byte[] checksum;
     private final LibraryRepository repository;
 
-    private static final String MAVEN_FORMAT = "%s/%s/%s/%s-%s.jar";
 
-    public Library(String groupId, String artifactId, String version, String checksum) {
-        this(groupId, artifactId, version, version, checksum);
+    public Library(
+            String groupId,
+            String artifactId,
+            String version,
+            String checksum) {
+        this(groupId,
+                artifactId,
+                version,
+                version,
+                checksum);
     }
 
-    public Library(String groupId, String artifactId, String version, String checksum, LibraryRepository repository) {
-        this(groupId, artifactId, version, version, checksum, repository);
+    public Library(
+            String groupId,
+            String artifactId,
+            String version,
+            String checksum,
+            LibraryRepository repository) {
+        this(groupId,
+                artifactId,
+                version,
+                version,
+                checksum,
+                repository);
     }
 
-    public Library(String groupId, String artifactId, String versionPackage, String version, String checksum) {
-        this(groupId, artifactId, version, versionPackage, checksum, null);
+    public Library(
+            String groupId,
+            String artifactId,
+            String versionPackage,
+            String version,
+            String checksum) {
+        this(groupId,
+                artifactId,
+                version,
+                versionPackage,
+                checksum,
+                null);
     }
 
-    public Library(String groupId, String artifactId, String versionPackage, String version, String checksum, LibraryRepository repository) {
+    public Library(
+            String groupId,
+            String artifactId,
+            String versionPackage,
+            String version,
+            String checksum,
+            LibraryRepository repository) {
         this.groupId = rewriteEscaping(groupId);
         this.artifactId = rewriteEscaping(artifactId);
         this.name = rewriteEscaping(artifactId);
         this.version = version;
-        this.versionPackage = versionPackage == null ? version : versionPackage;
-        if (checksum != null && !checksum.isEmpty()) {
+        this.versionPackage = versionPackage == null
+                ? version
+                : versionPackage;
+        if (checksum != null && !checksum.isEmpty())
             this.checksum = Base64.getDecoder().decode(checksum);
-        } else {
+        else
             this.checksum = null;
-        }
+
         this.repository = repository != null ? repository : LibraryRepository.MAVEN_CENTRAL;
     }
 
     public URL getUrl(LibraryRepository repository) throws MalformedURLException {
         String repo = repository.getUrl();
-        if (!repo.endsWith("/")) {
+        if (!repo.endsWith("/"))
             repo += "/";
-        }
         repo += "%s/%s/%s/%s-%s.jar";
 
         String url = String.format(repo, this.groupId.replace(".", "/"), this.artifactId, this.versionPackage, this.artifactId, this.version);
@@ -90,27 +123,8 @@ public class Library {
         return s.replace("{}", ".");
     }
 
-    public String name() {
-        return this.name;
-    }
-
     public String getFileName() {
         return this.name.toLowerCase().replace('_', '-') + "-" + this.version;
-    }
-
-    public boolean checksumMatches(byte[] hash) {
-        if (this.checksum == null) {
-            return true;
-        }
-        return Arrays.equals(this.checksum, hash);
-    }
-
-    public static MessageDigest createDigest() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -118,7 +132,7 @@ public class Library {
         return this.name;
     }
 
-    public static Library fromJsonObject(JsonObject jsonObject, String shadedPackage) {
+    public static Library fromJsonObject(JsonObject jsonObject) {
         final String groupId;
         final String artifactId;
         final String version;
@@ -151,21 +165,6 @@ public class Library {
         }
 
         return new Library(groupId, artifactId, null, version, checksum, libraryRepository);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Library library = (Library) o;
-        return Objects.equals(version, library.version) && Objects.equals(name, library.name) && Arrays.equals(checksum, library.checksum) && Objects.equals(repository, library.repository);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hash(version, name, repository);
-        result = 31 * result + Arrays.hashCode(checksum);
-        return result;
     }
 
     public static Builder builder() {

@@ -32,6 +32,7 @@ import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,6 +43,7 @@ import java.util.UUID;
 public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator {
 
     private final MCServer mcServer;
+    private final BukkitAudiences bukkitAudiences;
     private final BukkitDataWatcherConverter dataWatcherConverter;
     private final BukkitMCPlayerOperator playerOperator;
     protected final MCVersionMappingRegistry versionMappingRegistry;
@@ -67,7 +69,7 @@ public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator 
             @NotNull String name,
             @NotNull UUID uuid,
             @NotNull InetAddress address) {
-        return new BukkitMCPlayer(uuid, name, address, mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayer(uuid, name, address, mcServer, bukkitAudiences, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
 }

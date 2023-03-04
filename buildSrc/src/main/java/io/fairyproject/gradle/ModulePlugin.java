@@ -28,7 +28,7 @@ public class ModulePlugin implements Plugin<Project> {
 
                 Dependency dependency = project.getDependencies().create(module);
 
-                project.getDependencies().add("implementation", dependency);
+                project.getDependencies().add("api", dependency);
                 project.getDependencies().add("testImplementation", dependency);
 
                 final ModuleExtension moduleExtension = module.getExtensions().getByType(ModuleExtension.class);
@@ -67,7 +67,7 @@ public class ModulePlugin implements Plugin<Project> {
                 }
                 final Dependency dependency = project.getDependencies().create(library.getDependency());
                 if (libraryEntry.getValue()) {
-                    project.getDependencies().add("implementation", dependency);
+                    project.getDependencies().add("api", dependency);
                 } else {
                     project.getDependencies().add("compileOnlyApi", dependency);
                 }

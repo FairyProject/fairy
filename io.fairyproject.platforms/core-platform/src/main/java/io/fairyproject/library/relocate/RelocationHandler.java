@@ -22,27 +22,13 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.protocol;
+package io.fairyproject.library.relocate;
 
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.mc.protocol.PacketEventsBuilder;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
-import lombok.RequiredArgsConstructor;
-import org.bukkit.plugin.Plugin;
+import java.nio.file.Path;
+import java.util.List;
 
-@RequiredArgsConstructor
-public class BukkitPacketEventsBuilder implements PacketEventsBuilder {
+public interface RelocationHandler {
 
-    public final FairyPlatform platform;
-
-    @Override
-    public PacketEventsAPI<?> build() {
-        PacketEventsAPI<Plugin> packetEventsAPI = SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
-        packetEventsAPI.getSettings().debug(true);
-
-        return packetEventsAPI;
-    }
+    void remap(Path input, Path output, List<Relocation> relocations) throws Exception;
 
 }

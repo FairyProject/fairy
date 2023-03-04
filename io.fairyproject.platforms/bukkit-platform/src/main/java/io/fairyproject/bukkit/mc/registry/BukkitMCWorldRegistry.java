@@ -29,15 +29,19 @@ import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.registry.MCWorldRegistry;
 import io.fairyproject.metadata.MetadataKey;
+import lombok.RequiredArgsConstructor;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class BukkitMCWorldRegistry implements MCWorldRegistry {
 
     private final MetadataKey<MCWorld> KEY = MetadataKey.create("fairy:mc-world", MCWorld.class);
+    private final BukkitAudiences bukkitAudiences;
 
     @Override
     public MCWorld convert(Object worldObj) {
@@ -45,7 +49,7 @@ public class BukkitMCWorldRegistry implements MCWorldRegistry {
             throw new UnsupportedOperationException();
         }
         World world = (World) worldObj;
-        return Metadata.provideForWorld(world).getOrPut(KEY, () -> new BukkitMCWorld(world));
+        return Metadata.provideForWorld(world).getOrPut(KEY, () -> new BukkitMCWorld(world, bukkitAudiences));
     }
 
     @Override
