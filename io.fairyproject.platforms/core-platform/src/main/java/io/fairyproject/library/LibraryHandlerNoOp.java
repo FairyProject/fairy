@@ -22,27 +22,26 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.protocol;
+package io.fairyproject.library;
 
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.mc.protocol.PacketEventsBuilder;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
-import lombok.RequiredArgsConstructor;
-import org.bukkit.plugin.Plugin;
+import io.fairyproject.library.classloader.IsolatedClassLoader;
+import io.fairyproject.library.relocate.Relocation;
 
-@RequiredArgsConstructor
-public class BukkitPacketEventsBuilder implements PacketEventsBuilder {
+import java.util.Collection;
 
-    public final FairyPlatform platform;
-
+public class LibraryHandlerNoOp implements LibraryHandler {
     @Override
-    public PacketEventsAPI<?> build() {
-        PacketEventsAPI<Plugin> packetEventsAPI = SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
-        packetEventsAPI.getSettings().debug(true);
-
-        return packetEventsAPI;
+    public IsolatedClassLoader obtainClassLoaderWith(Collection<Library> libraries) {
+        return null;
     }
 
+    @Override
+    public IsolatedClassLoader obtainClassLoaderWith(Library... libraries) {
+        return null;
+    }
+
+    @Override
+    public void loadLibrary(Library library, boolean addToUCP, Relocation... relocations) {
+        // do nothing
+    }
 }

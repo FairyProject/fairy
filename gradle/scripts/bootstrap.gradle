@@ -10,11 +10,6 @@ configurations {
 processResources {
     expand projectVersion: project.version
 }
-shadowJar.dependsOn build
-
-if (project.name != "gradle-plugin" && project.name != "test-plugin") {
-    shadowJar.dependsOn build
-}
 
 tasks.withType(JavaCompile) {
     sourceCompatibility = targetCompatibility = "1.8"

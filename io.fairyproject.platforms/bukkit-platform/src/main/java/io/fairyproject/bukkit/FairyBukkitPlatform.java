@@ -35,7 +35,6 @@ import io.fairyproject.bukkit.listener.ListenerSubscription;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
-import io.fairyproject.bukkit.configuration.BukkitMCConfiguration;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.ContainerContext;
@@ -49,8 +48,6 @@ import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
-import lombok.Getter;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -62,13 +59,10 @@ import java.net.URLClassLoader;
 public class FairyBukkitPlatform extends FairyPlatform implements TerminableConsumer {
 
     public static JavaPlugin PLUGIN = JavaPluginUtil.getProvidingPlugin(FairyBukkitPlatform.class);
-    public static BukkitAudiences AUDIENCES;
 
     private final URLClassLoaderAccess classLoader;
     private final File dataFolder;
     private final CompositeTerminable compositeTerminable;
-    @Getter
-    private BukkitMCConfiguration mcInitializer;
 
     @NotNull
     @Override
@@ -92,13 +86,10 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @Override
     public void load(Plugin plugin) {
         super.load(plugin);
-
     }
 
     @Override
     public void enable() {
-        AUDIENCES = BukkitAudiences.create(PLUGIN);
-
         SpigotUtil.init();
         super.enable();
     }

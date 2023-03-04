@@ -10,6 +10,7 @@ import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.tests.bukkit.mc.operator.BukkitMCPlayerOperatorMock;
 import io.fairyproject.tests.bukkit.mc.registry.BukkitMCPlayerPlatformOperatorMock;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 
 @TestConfiguration
 public class BukkitMCTestConfiguration {
@@ -27,9 +28,10 @@ public class BukkitMCTestConfiguration {
     @InjectableComponent
     public MCPlayerPlatformOperator provideMCPlayerPlatformOperator(
             MCServer mcServer,
+            BukkitAudiences bukkitAudiences,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        return new BukkitMCPlayerPlatformOperatorMock(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayerPlatformOperatorMock(mcServer, bukkitAudiences, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 }

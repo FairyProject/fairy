@@ -190,11 +190,6 @@ project.afterEvaluate {
         task runDebugApp(type: RunDebugApp) {
             group = "debug"
 
-            subprojects.each {
-                def task = it.tasks.findByName("shadowJar")
-                if (task != null)
-                    dependsOn(task)
-            }
             if (project.childProjects["test-plugin"] != null) {
                 dependsOn(":test-plugin:build")
             }
@@ -205,11 +200,6 @@ project.afterEvaluate {
         task runDebugBukkit(type: RunDebugBukkit) {
             group = "debug"
 
-            subprojects.each {
-                def task = it.tasks.findByName("shadowJar")
-                if (task != null)
-                    dependsOn(task)
-            }
             if (project.childProjects["test-plugin"] != null) {
                 dependsOn(":test-plugin:build")
             }

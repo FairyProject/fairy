@@ -1,7 +1,6 @@
 import io.fairyproject.gradle.ProjectCompilePlugin
 
 apply plugin: "java-library"
-apply plugin: "com.github.johnrengelman.shadow"
 apply plugin: ProjectCompilePlugin
 
 sourceCompatibility = 1.8
@@ -18,37 +17,7 @@ test {
 compileJava.options.compilerArgs.add '-parameters'
 compileTestJava.options.compilerArgs.add '-parameters'
 
-// setup directory per version
-project.afterEvaluate(p -> {
-    if (project.name != "gradle-plugin") {
-        tasks.jar.archiveClassifier.set("sources")
-        tasks.shadowJar.archiveClassifier.set(null)
-
-        var directoryProperty = tasks.shadowJar.destinationDirectory
-        var jarProperty = tasks.jar.destinationDirectory
-        var directory = directoryProperty.get().dir(p.version.toString())
-        directoryProperty.set(directory)
-        jarProperty.set(directory)
-
-        tasks.jar.archiveFileName.set("${p.ext.archieveName}-sources.jar")
-        tasks.shadowJar.archiveFileName.set("${p.ext.archieveName}.jar")
-    }
-
-    shadowJar {
-        // XSeries
-        exclude("com/cryptomorin/xseries/messages/*")
-
-        Properties props = new Properties()
-        props.load(new FileInputStream(file("$rootProject.rootDir/gradle/relocate.properties")))
-
-        for (def prop in props) [
-                relocate(prop.key.toString(), prop.value.toString())
-        ]
-    }
-})
-
-shadowJar {
-    configurations = [project.configurations.runtimeClasspath]
+jar {
     manifest {
         attributes(
                 "Implementation-Title": project.name,

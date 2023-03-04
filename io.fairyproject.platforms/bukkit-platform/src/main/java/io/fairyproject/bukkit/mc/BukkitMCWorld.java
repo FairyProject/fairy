@@ -10,6 +10,7 @@ import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.event.trait.MCWorldEvent;
 import io.fairyproject.metadata.MetadataMap;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.World;
 
 import java.util.List;
@@ -19,9 +20,11 @@ public class BukkitMCWorld implements MCWorld {
 
     private final World world;
     private final EventNode<MCWorldEvent> eventNode;
+    private final BukkitAudiences audiences;
 
-    public BukkitMCWorld(World world) {
+    public BukkitMCWorld(World world, BukkitAudiences bukkitAudiences) {
         this.world = world;
+        this.audiences = bukkitAudiences;
         this.eventNode = GlobalEventNode.get().map(this, MCEventFilter.WORLD);
     }
 
@@ -67,6 +70,6 @@ public class BukkitMCWorld implements MCWorld {
 
     @Override
     public Audience audience() {
-        return FairyBukkitPlatform.AUDIENCES.all();
+        return this.audiences.all();
     }
 }

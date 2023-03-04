@@ -28,7 +28,7 @@ dependencies {
         exclude group: "com.google.code.gson", module: "gson"
         exclude group: "org.yaml", module: "snakeyaml"
     }
-    implementation libs.adventure.platform.bukkit
+    api libs.adventure.platform.bukkit
     api libs.adventure.platform.text.serializer.bungee
     api libs.packetevents.spigot
 
@@ -54,10 +54,4 @@ processResources {
     filter ReplaceTokens, tokens: [
             "version": project.version
     ]
-}
-
-shadowJar {
-    exclude("com/google/gson/**")
-    exclude("assets/**")
-    exclude("plugin.yml")
 }

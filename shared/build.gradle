@@ -1,6 +1,7 @@
 version = rootProject.version
 
 apply plugin: "java"
+apply from: "${rootDir}/gradle/scripts/publish.gradle"
 
 dependencies {
     compileOnly libs.lombok

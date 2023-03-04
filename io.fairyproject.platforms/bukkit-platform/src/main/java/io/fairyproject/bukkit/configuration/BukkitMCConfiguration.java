@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.configuration;
 
+import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.mc.BukkitMCServer;
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.bukkit.mc.entity.BukkitEntityIDCounter;
@@ -46,6 +47,7 @@ import io.fairyproject.mc.registry.MCWorldRegistry;
 import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.Getter;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
@@ -97,21 +99,27 @@ public class BukkitMCConfiguration {
     }
 
     @InjectableComponent
-    public MCWorldRegistry provideWorldRegistry() {
-        return new BukkitMCWorldRegistry();
+    public MCWorldRegistry provideWorldRegistry(BukkitAudiences bukkitAudiences) {
+        return new BukkitMCWorldRegistry(bukkitAudiences);
     }
 
     @InjectableComponent
     public MCPlayerPlatformOperator provideMCPlayerPlatformOperator(
             MCServer mcServer,
+            BukkitAudiences audiences,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
             MCVersionMappingRegistry versionMappingRegistry) {
-        return new BukkitMCPlayerPlatformOperator(mcServer, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayerPlatformOperator(mcServer, audiences, dataWatcherConverter, playerOperator, versionMappingRegistry);
     }
 
     @InjectableComponent
     public MCGameProfileRegistry provideGameProfileBridge() {
         return new BukkitMCGameProfileRegistry();
+    }
+
+    @InjectableComponent
+    public BukkitAudiences provideBukkitAudiences() {
+        return BukkitAudiences.create(FairyBukkitPlatform.PLUGIN);
     }
 }

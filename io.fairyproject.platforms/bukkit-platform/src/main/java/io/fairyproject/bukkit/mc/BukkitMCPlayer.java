@@ -14,6 +14,7 @@ import io.fairyproject.mc.version.MCVersionMapping;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.netty.channel.Channel;
 import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -31,6 +32,7 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
     private final String name;
     private final InetAddress address;
     private final MCServer server;
+    private final BukkitAudiences audiences;
     private final BukkitMCPlayerOperator operator;
     private final MCVersionMappingRegistry versionMappingRegistry;
 
@@ -39,6 +41,7 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
             String name,
             InetAddress address,
             MCServer server,
+            BukkitAudiences bukkitAudiences,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator operator,
             MCVersionMappingRegistry versionMappingRegistry
@@ -48,6 +51,7 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
         this.name = name;
         this.address = address;
         this.server = server;
+        this.audiences = bukkitAudiences;
         this.operator = operator;
         this.versionMappingRegistry = versionMappingRegistry;
     }
@@ -135,7 +139,7 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
     public void setNative(@NotNull Object nativeObject) {
         super.setNative(nativeObject);
         this.player = (Player) nativeObject;
-        this.audience = FairyBukkitPlatform.AUDIENCES.player(player);
+        this.audience = this.audiences.player(this.player);
     }
 
     @Override
