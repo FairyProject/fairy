@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
+import io.fairyproject.bukkit.listener.ListenerRegistry;
 import lombok.NonNull;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -36,7 +37,8 @@ public class ItemBehaviourInteract extends ItemBehaviourListener {
     private final Callback callback;
     private final Action[] actions;
 
-    public ItemBehaviourInteract(@NonNull Callback callback, Action... actions) {
+    public ItemBehaviourInteract(ListenerRegistry listenerRegistry, @NonNull Callback callback, Action... actions) {
+        super(listenerRegistry);
         this.callback = callback;
         this.actions = actions;
     }

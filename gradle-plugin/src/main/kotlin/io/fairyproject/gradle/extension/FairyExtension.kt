@@ -11,6 +11,7 @@ import org.gradle.api.provider.Property
  */
 open class FairyExtension(objectFactory: ObjectFactory) {
 
+    val name: Property<String> = objectFactory.property(String::class.java)
     val mainPackage: Property<String> = objectFactory.property(String::class.java)
 
     private val properties = mutableMapOf<PlatformType, Properties>()

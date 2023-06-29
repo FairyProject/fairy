@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,19 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.items.behaviour;
+package io.fairyproject.bukkit.nbt.configuration;
 
-import io.fairyproject.bukkit.listener.ListenerRegistry;
-import io.fairyproject.bukkit.util.items.FairyItem;
-import org.bukkit.event.Listener;
+import io.fairyproject.bukkit.nbt.NBTModifier;
+import io.fairyproject.bukkit.nbt.impl.NBTModifierNMS;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.configuration.Configuration;
 
-public abstract class ItemBehaviourListener extends ItemBehaviour implements Listener {
+@Configuration
+public class NMSConfiguration {
 
-    private final ListenerRegistry listenerRegistry;
-
-    protected ItemBehaviourListener(ListenerRegistry listenerRegistry) {
-        this.listenerRegistry = listenerRegistry;
+    @InjectableComponent
+    public NBTModifier nbtModifier() {
+        return new NBTModifierNMS();
     }
 
-    @Override
-    public void onInit(FairyItem item) {
-        this.listenerRegistry.register(this);
-    }
-
-    @Override
-    public void unregister() {
-        super.unregister();
-        this.listenerRegistry.unregister(this);
-    }
 }

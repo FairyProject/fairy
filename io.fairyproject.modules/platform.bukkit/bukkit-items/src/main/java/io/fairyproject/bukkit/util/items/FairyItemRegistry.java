@@ -2,22 +2,32 @@ package io.fairyproject.bukkit.util.items;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.nbt.NBTKey;
+import io.fairyproject.bukkit.nbt.NBTModifier;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.Service;
 import io.fairyproject.util.ConditionUtils;
+import org.bukkit.Material;
 import org.bukkit.event.server.PluginDisableEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
+@InjectableComponent
 public class FairyItemRegistry {
 
+    private final NBTKey itemNbtKey = NBTKey.create("fairy", "item", "name");
     private final Map<String, FairyItem> itemByName = new ConcurrentHashMap<>();
     private final Map<Plugin, List<FairyItem>> itemsByPlugin = new ConcurrentHashMap<>();
+    private final NBTModifier nbtModifier;
+
+    public FairyItemRegistry(NBTModifier nbtModifier) {
+        this.nbtModifier = nbtModifier;
+    }
 
     @PostInitialize
     public void onPostInitialize() {
@@ -57,7 +67,15 @@ public class FairyItemRegistry {
     }
 
     public FairyItem get(ItemStack itemStack) {
-        return FairyItemRef.get(itemStack);
+        if (itemStack == null || itemStack.getType() == Material.AIR)
+            return null;
+
+        String key = this.nbtModifier.getString(itemStack, itemNbtKey);
+        return key == null ? null : this.get(key);
+    }
+
+    public ItemStack set(@NotNull ItemStack itemStack, @NotNull FairyItem fairyItem) {
+        return this.nbtModifier.setTag(itemStack, this.itemNbtKey, fairyItem.getName());
     }
 
 }

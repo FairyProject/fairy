@@ -25,6 +25,7 @@
 
 package io.fairyproject.bukkit.util.items;
 
+import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.version.MCVersion;
 import lombok.Getter;
@@ -138,6 +139,8 @@ public class ItemSet implements Cloneable {
     public interface Slot extends Cloneable {
         ItemStack getItem(Player player);
 
+        ItemStack getItem(MCPlayer player);
+
         Slot clone();
     }
 
@@ -152,6 +155,11 @@ public class ItemSet implements Cloneable {
 
         @Override
         public ItemStack getItem(Player player) {
+            return this.itemStack;
+        }
+
+        @Override
+        public ItemStack getItem(MCPlayer player) {
             return this.itemStack;
         }
 
@@ -183,6 +191,14 @@ public class ItemSet implements Cloneable {
         }
 
         @Override
+        public ItemStack getItem(MCPlayer player) {
+            return this.fairyItem.provide(player)
+                    .amount(this.amount)
+                    .durability(this.durability)
+                    .build();
+        }
+
+        @Override
         public Slot clone() {
             return new FairyItemSlot(this.fairyItem, this.amount, this.durability);
         }
@@ -192,6 +208,11 @@ public class ItemSet implements Cloneable {
 
         @Override
         public ItemStack getItem(Player player) {
+            return null;
+        }
+
+        @Override
+        public ItemStack getItem(MCPlayer player) {
             return null;
         }
 

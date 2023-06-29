@@ -116,14 +116,22 @@ public interface FairyItem extends Terminable {
 
         @Deprecated
         public FairyItem build() {
-            FairyItem fairyItem = new FairyItemImpl(this.name, this.metadataMap, this.behaviours, this.itemProvider);
+            FairyItem fairyItem = new FairyItemImpl(REGISTRY, this.name, this.metadataMap, this.behaviours, this.itemProvider);
             REGISTRY.register(fairyItem);
 
             return fairyItem;
         }
 
+        @Deprecated
         public FairyItem create() {
-            return new FairyItemImpl(this.name, this.metadataMap, this.behaviours, this.itemProvider);
+            return new FairyItemImpl(REGISTRY, this.name, this.metadataMap, this.behaviours, this.itemProvider);
+        }
+
+        public FairyItem create(FairyItemRegistry itemRegistry) {
+            FairyItem fairyItem = new FairyItemImpl(itemRegistry, this.name, this.metadataMap, this.behaviours, this.itemProvider);
+            itemRegistry.register(fairyItem);
+
+            return fairyItem;
         }
     }
 
