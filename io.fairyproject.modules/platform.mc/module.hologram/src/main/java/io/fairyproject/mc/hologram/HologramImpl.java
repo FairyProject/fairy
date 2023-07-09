@@ -463,7 +463,12 @@ public class HologramImpl implements Hologram {
             // custom name
             MCVersion version = server.getVersion();
             if (version.isHigherOrEqual(MCVersion.of(13))) {
-                entityDataList.add(new EntityData(2, EntityDataTypes.OPTIONAL_COMPONENT, Optional.ofNullable(this.line.render(player))));
+                entityDataList.add(new EntityData(
+                        2,
+                        EntityDataTypes.OPTIONAL_COMPONENT,
+                        Optional.ofNullable(this.line.render(player))
+                                .map(e -> MCAdventure.asItemString(e, player.getLocale()))
+                ));
             } else {
                 entityDataList.add(new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale())));
             }
