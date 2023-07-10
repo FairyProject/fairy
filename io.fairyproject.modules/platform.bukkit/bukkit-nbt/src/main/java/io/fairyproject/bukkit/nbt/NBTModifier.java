@@ -6,6 +6,7 @@ import io.fairyproject.bukkit.nbt.impl.NBTModifierNMS;
 
 public interface NBTModifier {
 
+    @Deprecated
     static NBTModifier get() {
         if (Companion.INSTANCE == null) {
             if (Debug.UNIT_TEST) {
@@ -35,6 +36,7 @@ public interface NBTModifier {
 
     <T> T setTag(T holder, NBTKey key, Object value);
 
+    @Deprecated
     class Companion {
 
         public static NBTModifier INSTANCE;

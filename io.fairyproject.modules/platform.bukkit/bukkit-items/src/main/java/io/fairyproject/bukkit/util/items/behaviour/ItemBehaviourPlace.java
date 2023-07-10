@@ -24,17 +24,21 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
-import lombok.RequiredArgsConstructor;
+import io.fairyproject.bukkit.listener.ListenerRegistry;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.ItemStack;
 
-@RequiredArgsConstructor
 public class ItemBehaviourPlace extends ItemBehaviourListener {
 
     private final Callback callback;
+
+    protected ItemBehaviourPlace(ListenerRegistry listenerRegistry, Callback callback) {
+        super(listenerRegistry);
+        this.callback = callback;
+    }
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {

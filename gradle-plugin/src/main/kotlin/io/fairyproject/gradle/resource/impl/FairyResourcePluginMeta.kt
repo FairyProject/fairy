@@ -20,7 +20,7 @@ open class FairyResourcePluginMeta: FairyResource {
     ): ResourceInfo {
         val jsonObject = JsonObject()
 
-        jsonObject.addProperty("name", project.name)
+        jsonObject.addProperty("name", fairyExtension.name.getOrElse(project.name))
         val classInfo = classMapper[ClassType.MAIN_CLASS]
         if (classInfo != null) {
             jsonObject.addProperty("mainClass", classInfo.name.replace('/', '.'))

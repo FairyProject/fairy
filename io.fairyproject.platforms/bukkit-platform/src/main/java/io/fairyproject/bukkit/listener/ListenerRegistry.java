@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,28 +22,14 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.util.items.behaviour;
+package io.fairyproject.bukkit.listener;
 
-import io.fairyproject.bukkit.listener.ListenerRegistry;
-import io.fairyproject.bukkit.util.items.FairyItem;
 import org.bukkit.event.Listener;
 
-public abstract class ItemBehaviourListener extends ItemBehaviour implements Listener {
+public interface ListenerRegistry {
 
-    private final ListenerRegistry listenerRegistry;
+    void register(Listener listener);
 
-    protected ItemBehaviourListener(ListenerRegistry listenerRegistry) {
-        this.listenerRegistry = listenerRegistry;
-    }
+    void unregister(Listener listener);
 
-    @Override
-    public void onInit(FairyItem item) {
-        this.listenerRegistry.register(this);
-    }
-
-    @Override
-    public void unregister() {
-        super.unregister();
-        this.listenerRegistry.unregister(this);
-    }
 }

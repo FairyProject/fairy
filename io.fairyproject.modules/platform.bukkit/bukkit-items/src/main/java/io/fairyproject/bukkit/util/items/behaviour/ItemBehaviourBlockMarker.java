@@ -25,12 +25,14 @@
 package io.fairyproject.bukkit.util.items.behaviour;
 
 import com.cryptomorin.xseries.XSound;
+import io.fairyproject.bukkit.listener.ListenerRegistry;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.util.items.FairyItem;
 import io.fairyproject.bukkit.util.items.FairyItemRef;
 import io.fairyproject.bukkit.util.items.FairyItemRegistry;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 import org.bukkit.Material;
@@ -44,10 +46,19 @@ import org.bukkit.inventory.ItemStack;
 
 public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
 
-    @Autowired
-    private static FairyItemRegistry REGISTRY;
-
     private static final MetadataKey<String> METADATA = MetadataKey.createStringKey("fairy:block-marker");
+
+    private final FairyItemRegistry fairyItemRegistry;
+    private final MCPlayerRegistry mcPlayerRegistry;
+
+    public ItemBehaviourBlockMarker(
+            ListenerRegistry listenerRegistry,
+            FairyItemRegistry fairyItemRegistry,
+            MCPlayerRegistry mcPlayerRegistry) {
+        super(listenerRegistry);
+        this.fairyItemRegistry = fairyItemRegistry;
+        this.mcPlayerRegistry = mcPlayerRegistry;
+    }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
@@ -59,7 +70,7 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
             return;
         }
 
-        FairyItem item = FairyItemRef.get(itemInHand);
+        FairyItem item = this.fairyItemRegistry.get(itemInHand);
         if (item != this.item)
             return;
 
@@ -78,14 +89,14 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         }
 
         metadataMap.remove(METADATA);
-        final FairyItem item = REGISTRY.get(itemKey);
+        final FairyItem item = this.fairyItemRegistry.get(itemKey);
         if (item == null)
             return;
 
         this.addHandHeldItemDurability(player, 1);
         event.setCancelled(true);
         block.setType(Material.AIR);
-        final ItemStack itemStack = item.provide(MCPlayer.from(player))
+        final ItemStack itemStack = item.provide(this.mcPlayerRegistry.findPlayerByUuid(player.getUniqueId()))
                 .amount(1)
                 .build();
         player.getWorld().dropItemNaturally(block.getLocation(), itemStack);

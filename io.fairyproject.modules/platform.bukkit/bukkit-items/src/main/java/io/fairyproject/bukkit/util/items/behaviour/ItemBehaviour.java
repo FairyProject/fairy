@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.util.items.behaviour;
 
+import io.fairyproject.bukkit.listener.ListenerRegistry;
 import io.fairyproject.bukkit.util.items.FairyItem;
 import lombok.Getter;
 import org.bukkit.entity.Player;
@@ -40,12 +41,12 @@ import java.util.function.BiPredicate;
 @Getter
 public abstract class ItemBehaviour {
 
-    public static ItemBehaviour interact(ItemBehaviourInteract.Callback callback, Action... allowedActions) {
-        return new ItemBehaviourInteract(callback, allowedActions);
+    public static ItemBehaviour interact(ListenerRegistry listenerRegistry, ItemBehaviourInteract.Callback callback, Action... allowedActions) {
+        return new ItemBehaviourInteract(listenerRegistry, callback, allowedActions);
     }
 
-    public static ItemBehaviour blockPlace(ItemBehaviourPlace.Callback callback) {
-        return new ItemBehaviourPlace(callback);
+    public static ItemBehaviour blockPlace(ListenerRegistry listenerRegistry, ItemBehaviourPlace.Callback callback) {
+        return new ItemBehaviourPlace(listenerRegistry, callback);
     }
 
     public static <E extends Event> ItemBehaviour ofEvent(Class<E> classToRegister, BiConsumer<E, ItemBehaviourEvent<E>> listener) {
