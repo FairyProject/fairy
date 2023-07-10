@@ -9,7 +9,7 @@ annotations = "19.0.0"
 lombok = "1.18.24"
 persistence-api = "2.2"
 asm = "9.3"
-packetevents = "2.0.17-SNAPSHOT"
+packetevents = "2.0-SNAPSHOT"
 bukkit-api = "1.16.5-R0.1-SNAPSHOT"
 
 # Adventure
@@ -39,8 +39,8 @@ junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 mockito = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 
 # PacketEvents
-packetevents-api = { module = "io.fairyproject.packetevents:api", version.ref = "packetevents" }
-packetevents-spigot = { module = "io.fairyproject.packetevents:spigot", version.ref = "packetevents" }
+packetevents-api = { module = "com.github.retrooper.packetevents:api", version.ref = "packetevents" }
+packetevents-spigot = { module = "com.github.retrooper.packetevents:spigot", version.ref = "packetevents" }
 
 # ASM
 asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }

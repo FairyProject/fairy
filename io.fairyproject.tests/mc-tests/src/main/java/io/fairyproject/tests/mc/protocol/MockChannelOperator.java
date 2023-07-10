@@ -28,13 +28,8 @@ import com.github.retrooper.packetevents.netty.channel.ChannelOperator;
 
 import java.net.SocketAddress;
 import java.util.List;
-import java.util.Set;
 
 public class MockChannelOperator implements ChannelOperator {
-    @Override
-    public Set<Class<? extends Throwable>> getIgnoredHandlerExceptions() {
-        return null;
-    }
 
     @Override
     public SocketAddress remoteAddress(Object o) {
