@@ -14,6 +14,9 @@ import io.fairyproject.util.exceptionally.ThrowingSupplier;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 public class AutowiredContainerController implements ContainerController {
@@ -43,7 +46,14 @@ public class AutowiredContainerController implements ContainerController {
     }
 
     public void applyObject(Object instance) throws ReflectiveOperationException {
-        Field[] fields = instance.getClass().getDeclaredFields();
+        List<Field> fields = new ArrayList<>();
+
+        // make sure we get all fields from superclasses
+        Class<?> clazz = instance.getClass();
+        while (clazz != Object.class) {
+            fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+            clazz = clazz.getSuperclass();
+        }
 
         for (Field field : fields) {
             int modifiers = field.getModifiers();
