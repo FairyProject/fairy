@@ -45,44 +45,63 @@ public abstract class AccessUtil {
      * @throws ReflectiveOperationException (usually never)
      */
     public static Field setAccessible(Field field) throws ReflectiveOperationException {
+        return setAccessible(field, false);
+    }
+
+    /**
+     * Sets the field accessible and removes final modifiers
+     *
+     * @param field Field to set accessible
+     * @param removeFinalKeyword Should the final keyword be removed?
+     * @return the Field
+     * @throws ReflectiveOperationException (usually never)
+     */
+    public static Field setAccessible(Field field, boolean removeFinalKeyword) throws ReflectiveOperationException {
         if (!field.isAccessible()) {
             field.setAccessible(true);
         }
+        if (!removeFinalKeyword)
+            return field;
+
         int modifiers = field.getModifiers();
         if (!Modifier.isFinal(modifiers)) {
             return field;
         }
         try {
-            Field modifiersField = Field.class.getDeclaredField("modifiers");
-            modifiersField.setAccessible(true);
-            modifiersField.setInt(field, modifiers & ~Modifier.FINAL);
-        } catch (Throwable e) {
-            if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
-                // Java 16 compatibility
-                try {
-                    final Method method = ReflectWrapper.get().findMethod(Field.class, "setAccessible0", boolean.class);
-                    ReflectWrapper.get().invokeMethod(field, method, true);
-                } catch (NoSuchMethodException ex) {
-                    Log.warn("Unable to find setAccessible0 method in Field class.");
-                    return field;
-                }
-            }
-            if ("modifiers".equals(e.getMessage()) || (e.getCause() != null && e.getCause().getMessage() != null && e.getCause().getMessage().equals("modifiers"))) {
-                // https://github.com/ViaVersion/ViaVersion/blob/e07c994ddc50e00b53b728d08ab044e66c35c30f/bungee/src/main/java/us/myles/ViaVersion/bungee/platform/BungeeViaInjector.java
-                // Java 12 compatibility *this is fine*
-                Field[] fields;
-                final Method getDeclaredFields0 = ReflectWrapper.get().findMethod(Class.class, "getDeclaredFields0", boolean.class);
-                final Object o = ReflectWrapper.get().invokeMethod(Field.class, getDeclaredFields0, false);
-                fields = (Field[]) o;
-                for (Field classField : fields) {
-                    if ("modifiers".equals(classField.getName())) {
-                        ReflectWrapper.get().setField(field, classField, modifiers & ~Modifier.FINAL);
-                        break;
+            try {
+                Field modifiersField = Field.class.getDeclaredField("modifiers");
+                modifiersField.setAccessible(true);
+                modifiersField.setInt(field, modifiers & ~Modifier.FINAL);
+            } catch (Throwable e) {
+                if (e.getClass().getName().equals("java.lang.reflect.InaccessibleObjectException")) {
+                    // Java 16 compatibility
+                    try {
+                        final Method method = ReflectWrapper.get().findMethod(Field.class, "setAccessible0", boolean.class);
+                        ReflectWrapper.get().invokeMethod(field, method, true);
+                    } catch (NoSuchMethodException ex) {
+                        Log.warn("Unable to find setAccessible0 method in Field class.");
+                        return field;
                     }
                 }
-            } else {
-                throw e;
+                if ("modifiers".equals(e.getMessage()) || (e.getCause() != null && e.getCause().getMessage() != null && e.getCause().getMessage().equals("modifiers"))) {
+                    // https://github.com/ViaVersion/ViaVersion/blob/e07c994ddc50e00b53b728d08ab044e66c35c30f/bungee/src/main/java/us/myles/ViaVersion/bungee/platform/BungeeViaInjector.java
+                    // Java 12 compatibility *this is fine*
+                    Field[] fields;
+                    final Method getDeclaredFields0 = ReflectWrapper.get().findMethod(Class.class, "getDeclaredFields0", boolean.class);
+                    final Object o = ReflectWrapper.get().invokeMethod(Field.class, getDeclaredFields0, false);
+                    fields = (Field[]) o;
+                    for (Field classField : fields) {
+                        if ("modifiers".equals(classField.getName())) {
+                            ReflectWrapper.get().setField(field, classField, modifiers & ~Modifier.FINAL);
+                            break;
+                        }
+                    }
+                } else {
+                    throw e;
+                }
             }
+        } catch (Throwable e) {
+            Log.warn("Unable to remove final modifier from field " + field.getName() + " in class " + field.getDeclaringClass().getName());
         }
         return field;
     }
