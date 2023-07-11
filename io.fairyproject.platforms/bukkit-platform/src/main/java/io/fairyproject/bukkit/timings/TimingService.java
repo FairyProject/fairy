@@ -25,19 +25,25 @@
 package io.fairyproject.bukkit.timings;
 
 import io.fairyproject.Debug;
-import org.bukkit.plugin.Plugin;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PreInitialize;
-import io.fairyproject.container.Service;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.version.MCVersion;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-@Service(name = "timings")
+@InjectableComponent
+@RequiredArgsConstructor
 public class TimingService {
 
-    private TimingType timingType;
     private final Map<String, MCTiming> timingCache = new HashMap<>(0);
+    private final MCServer mcServer;
+
+    private TimingType timingType;
 
     @PreInitialize
     public void onPreInitialize() {
@@ -49,7 +55,11 @@ public class TimingService {
             try {
                 Class<?> clazz = Class.forName("co.aikar.timings.Timing");
                 Method startTiming = clazz.getMethod("startTiming");
-                if (startTiming.getReturnType() != clazz) {
+
+                // ever since 1.19.4, aikar's timing has been deprecated
+                if (mcServer.getVersion().isHigherOrEqual(MCVersion.of(19, 4))) {
+                    timingType = TimingType.EMPTY;
+                } else if (startTiming.getReturnType() != clazz) {
                     timingType = TimingType.MINECRAFT_18;
                 } else {
                     timingType = TimingType.MINECRAFT;
