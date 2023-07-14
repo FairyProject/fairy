@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 @UtilityClass
 public class EventSubscribeRegistry {
 
-    public @Nullable EventNode<?> create(@NotNull Object listener) {
+    public @Nullable EventNode<? extends Event> create(@NotNull Object listener) {
         EventNode<Event> eventNode = EventNode.all(listener.getClass().getName());
         AtomicInteger count = new AtomicInteger(0);
         Utility.getSuperClasses(listener.getClass()).stream()
@@ -47,7 +47,7 @@ public class EventSubscribeRegistry {
         return null;
     }
 
-    private static class AnnotatedHandler<T extends Event> implements Consumer<T> {
+    private static class AnnotatedHandler<T> implements Consumer<T> {
 
         private final Object listener;
         private final MethodHandle method;

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,17 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.listener.events;
+package io.fairyproject.bukkit.events;
 
-/**
- * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
- */
-@Deprecated
-public enum ExpiryStage {
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.event.EventNodeImpl;
+import org.bukkit.event.Event;
 
-    BEOFORE,
-    POST_FILTER,
-    POST_EXECUTE
+@InjectableComponent
+public class BukkitEventNode extends EventNodeImpl<Event> {
+    public BukkitEventNode(GlobalEventListener eventListener) {
+        super("bukkit-global", BukkitEventFilter.ALL, null);
 
+        eventListener.addListener(this::call);
+    }
 }

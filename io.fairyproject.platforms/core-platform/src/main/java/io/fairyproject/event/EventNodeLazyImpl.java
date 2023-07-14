@@ -6,7 +6,7 @@ import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-final class EventNodeLazyImpl<E extends Event> extends EventNodeImpl<E> {
+final class EventNodeLazyImpl<E> extends EventNodeImpl<E> {
 
     private final EventNodeImpl<? super E> holder;
     private final WeakReference<Object> owner;

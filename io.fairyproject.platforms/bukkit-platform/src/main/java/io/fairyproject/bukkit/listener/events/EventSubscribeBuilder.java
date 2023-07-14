@@ -47,6 +47,10 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
+ */
+@Deprecated
 @Getter
 public class EventSubscribeBuilder<T extends Event> {
 

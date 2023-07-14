@@ -16,10 +16,10 @@ import java.util.function.Function;
  * @param <E> The event type to filter
  * @param <H> The handler type to filter on.
  */
-public interface EventFilter<E extends Event, H> {
+public interface EventFilter<E, H> {
 
     EventFilter<Event, ?> ALL = from(Event.class, null, null);
-    static <E extends Event, H> EventFilter<E, H> from(@NotNull Class<E> eventType,
+    static <E, H> EventFilter<E, H> from(@NotNull Class<E> eventType,
                                                        @Nullable Class<H> handlerType,
                                                        @Nullable Function<E, H> handlerGetter) {
         return new EventFilter<E, H>() {

@@ -1,6 +1,7 @@
 package io.fairyproject.container.controller;
 
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.event.Event;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.event.EventSubscribeRegistry;
 import io.fairyproject.event.GlobalEventNode;
@@ -15,7 +16,7 @@ public class SubscribeEventContainerController implements ContainerController {
         final Object instance = containerObj.instance();
         if (instance == null)
             return;
-        final EventNode<?> eventNode = EventSubscribeRegistry.create(instance);
+        final EventNode<? extends Event> eventNode = EventSubscribeRegistry.create(instance);
         if (eventNode != null) {
             GlobalEventNode.get().addChild(eventNode);
             containerObj.metadata().put(KEY, eventNode);

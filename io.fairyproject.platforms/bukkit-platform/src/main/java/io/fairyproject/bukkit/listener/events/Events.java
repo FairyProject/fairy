@@ -50,6 +50,10 @@ import javax.annotation.Nullable;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+/**
+ * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
+ */
+@Deprecated
 @UtilityClass
 public class Events {
 

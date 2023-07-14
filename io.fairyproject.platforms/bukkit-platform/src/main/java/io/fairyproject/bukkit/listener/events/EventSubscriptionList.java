@@ -26,6 +26,10 @@ package io.fairyproject.bukkit.listener.events;
 
 import java.util.LinkedHashMap;
 
+/**
+ * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
+ */
+@Deprecated
 public class EventSubscriptionList extends LinkedHashMap<String, EventSubscription<?>> {
 
     @Override
