@@ -52,6 +52,10 @@ public class EventNodeImpl<T> implements EventNode<T> {
         this.eventType = filter.eventType();
     }
 
+    protected boolean isGlobalNode() {
+        return false;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public <E extends T> @NotNull ListenerHandle<E> getHandle(@NotNull Class<E> handleType) {
@@ -263,8 +267,8 @@ public class EventNodeImpl<T> implements EventNode<T> {
         if (this.isClosed())
             return;
 
-        this.parent = null;
         this.parent.removeChild(this);
+        this.parent = null;
         for (EventNodeImpl<T> child : this.children) {
             child.close();
         }
@@ -272,6 +276,8 @@ public class EventNodeImpl<T> implements EventNode<T> {
 
     @Override
     public boolean isClosed() {
+        if (this.isGlobalNode())
+            return false;
         return this.parent == null || this.parent.isClosed();
     }
 

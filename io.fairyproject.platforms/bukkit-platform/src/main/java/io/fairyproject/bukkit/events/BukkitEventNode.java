@@ -35,4 +35,9 @@ public class BukkitEventNode extends EventNodeImpl<Event> {
 
         eventListener.addListener(this::call);
     }
+
+    @Override
+    protected boolean isGlobalNode() {
+        return true;
+    }
 }

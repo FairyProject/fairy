@@ -400,23 +400,51 @@ public class HologramImpl implements Hologram {
 
         public void show(@NotNull MCPlayer player) {
             // spawn packet
-            WrapperPlayServerSpawnLivingEntity packet = new WrapperPlayServerSpawnLivingEntity(
-                    this.entityId,
-                    this.entityUuid,
-                    EntityTypes.ARMOR_STAND,
-                    this.packetPosition(),
-                    pos.getYaw(),
-                    pos.getPitch(),
-                    0,
-                    new Vector3d(),
-                    this.createEntityData(player)
-            );
+            if (MCServer.current().getVersion().isHigherOrEqual(MCVersion.of(1, 19))) {
+                WrapperPlayServerSpawnEntity packet = new WrapperPlayServerSpawnEntity(
+                        this.entityId,
+                        Optional.of(this.entityUuid),
+                        EntityTypes.ARMOR_STAND,
+                        this.packetPosition(),
+                        pos.getPitch(),
+                        pos.getYaw(),
+                        pos.getYaw(),
+                        0,
+                        Optional.of(new Vector3d())
+                );
 
-            MCProtocol.sendPacket(player, packet);
+                WrapperPlayServerEntityMetadata metadataPacket = new WrapperPlayServerEntityMetadata(
+                        this.entityId,
+                        this.createEntityData(player)
+                );
+
+                MCProtocol.sendPacket(player, packet);
+            } else {
+                WrapperPlayServerSpawnLivingEntity packet = new WrapperPlayServerSpawnLivingEntity(
+                        this.entityId,
+                        this.entityUuid,
+                        EntityTypes.ARMOR_STAND,
+                        this.packetPosition(),
+                        pos.getYaw(),
+                        pos.getPitch(),
+                        0,
+                        new Vector3d(),
+                        this.createEntityData(player)
+                );
+
+                MCProtocol.sendPacket(player, packet);
+            }
+
             this.update(player);
         }
 
         public void update(@NotNull MCPlayer player) {
+            // metadata packet
+            WrapperPlayServerEntityMetadata metadataPacket = new WrapperPlayServerEntityMetadata(
+                    this.entityId,
+                    this.createEntityData(player)
+            );
+
             // teleport packet
             WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(
                     this.entityId,
@@ -424,12 +452,6 @@ public class HologramImpl implements Hologram {
                     pos.getYaw(),
                     pos.getPitch(),
                     false
-            );
-
-            // metadata packet
-            WrapperPlayServerEntityMetadata metadataPacket = new WrapperPlayServerEntityMetadata(
-                    this.entityId,
-                    this.createEntityData(player)
             );
 
             // attach entity packet

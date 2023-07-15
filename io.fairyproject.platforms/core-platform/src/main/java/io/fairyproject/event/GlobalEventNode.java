@@ -15,4 +15,9 @@ public class GlobalEventNode extends EventNodeImpl<Event> {
     public GlobalEventNode() {
         super("global", EventFilter.ALL, null);
     }
+
+    @Override
+    protected boolean isGlobalNode() {
+        return true;
+    }
 }
