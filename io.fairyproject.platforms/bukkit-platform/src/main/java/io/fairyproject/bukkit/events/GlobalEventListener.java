@@ -28,6 +28,7 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
+import io.fairyproject.util.Stacktrace;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
@@ -62,12 +63,17 @@ public class GlobalEventListener implements Listener {
     @EventHandler
     public void onPluginEnable(PluginEnableEvent event) {
         Plugin plugin = event.getPlugin();
-        URL url = plugin.getClass()
-                .getProtectionDomain()
-                .getCodeSource()
-                .getLocation();
+        URL url = getClassLoaderURLFromClass(plugin.getClass());
+        URL bukkitUrl = getClassLoaderURLFromClass(Server.class);
 
-        register(Collections.singletonList(url));
+        register(Arrays.asList(
+                url,
+                bukkitUrl
+        ));
+    }
+
+    private URL getClassLoaderURLFromClass(Class<?> clazz) {
+        return clazz.getProtectionDomain().getCodeSource().getLocation();
     }
 
     public void addListener(Consumer<Event> listener) {
@@ -89,7 +95,7 @@ public class GlobalEventListener implements Listener {
                 registerClass(mainPlugin, listener, classInfo);
             }
         } catch (Throwable throwable) {
-            throw new IllegalStateException(throwable);
+            Stacktrace.print(throwable);
         }
     }
 
@@ -97,7 +103,7 @@ public class GlobalEventListener implements Listener {
         Class<? extends Event> eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
         EventExecutor eventExecutor = (ignored, event) -> this.onEventFired(event);
 
-        if (!Arrays.stream(eventClass.getDeclaredMethods()).anyMatch(method -> method.getParameterCount() == 0 && method.getName().equals("getHandlers")))
+        if (Arrays.stream(eventClass.getDeclaredMethods()).noneMatch(method -> method.getParameterCount() == 0 && method.getName().equals("getHandlers")))
             return;
 
         if (this.registeredEvents.contains(eventClass))
@@ -109,8 +115,9 @@ public class GlobalEventListener implements Listener {
 
     private ClassInfoList scan(List<URL> urls) {
         ClassGraph classGraph = new ClassGraph();
-        if (!urls.isEmpty())
+        if (!urls.isEmpty()) {
             classGraph.overrideClasspath(urls.toArray(new URL[0]));
+        }
 
         return classGraph.enableClassInfo().scan()
                 .getClassInfo(Event.class.getName())
