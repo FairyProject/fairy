@@ -16,6 +16,8 @@ import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerMoveEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.event.trait.MCPlayerEvent;
+import io.fairyproject.mc.hologram.entity.HologramEntity;
+import io.fairyproject.mc.hologram.entity.factory.HologramEntityFactory;
 import io.fairyproject.mc.hologram.line.HologramLine;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
@@ -23,6 +25,7 @@ import io.fairyproject.mc.util.Position;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.util.ConditionUtils;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,8 +37,10 @@ import java.util.stream.Stream;
 
 public class HologramImpl implements Hologram {
 
+    @Getter
     private final MCServer server;
     private final MCWorld world;
+    private final HologramEntityFactory entityFactory;
     private Position pos;
     private MCEntity attached;
     private boolean spawned;
@@ -52,8 +57,9 @@ public class HologramImpl implements Hologram {
     private final List<HologramLine> lines;
     private final List<HologramEntity> entities;
 
-    public HologramImpl(@NotNull MCServer server, @NotNull Position pos) {
+    public HologramImpl(@NotNull MCServer server, @NotNull HologramEntityFactory entityFactory, @NotNull Position pos) {
         this.server = server;
+        this.entityFactory = entityFactory;
         this.world = pos.getMCWorld();
         this.pos = pos;
         this.autoViewable = true;
@@ -220,7 +226,7 @@ public class HologramImpl implements Hologram {
 
             HologramEntity entity;
             if (index >= this.entities.size()) {
-                entity = new HologramEntity();
+                entity = this.entityFactory.create(this);
                 entity.setEntityId(EntityIDCounter.current().next());
                 entity.setEntityUuid(UUID.randomUUID());
                 entity.setY(-this.verticalSpacing * index);
@@ -338,7 +344,7 @@ public class HologramImpl implements Hologram {
      */
     private boolean isEntity(int entityId) {
         synchronized (this) {
-            return this.entities.stream().anyMatch(entity -> entity.entityId == entityId);
+            return this.entities.stream().anyMatch(entity -> entity.getEntityId() == entityId);
         }
     }
 
@@ -389,111 +395,4 @@ public class HologramImpl implements Hologram {
         return Math.sqrt(Math.pow(hologramChunkX - targetChunkX, 2) + Math.pow(hologramChunkZ - targetChunkZ, 2));
     }
 
-    @Data
-    @NoArgsConstructor
-    private class HologramEntity {
-
-        private HologramLine line;
-        private double y;
-        private int entityId;
-        private UUID entityUuid;
-
-        public void show(@NotNull MCPlayer player) {
-            // spawn packet
-            WrapperPlayServerSpawnLivingEntity packet = new WrapperPlayServerSpawnLivingEntity(
-                    this.entityId,
-                    this.entityUuid,
-                    EntityTypes.ARMOR_STAND,
-                    this.packetPosition(),
-                    pos.getYaw(),
-                    pos.getPitch(),
-                    0,
-                    new Vector3d(),
-                    this.createEntityData(player)
-            );
-
-            MCProtocol.sendPacket(player, packet);
-            this.update(player);
-        }
-
-        public void update(@NotNull MCPlayer player) {
-            // teleport packet
-            WrapperPlayServerEntityTeleport teleportPacket = new WrapperPlayServerEntityTeleport(
-                    this.entityId,
-                    this.packetPosition(),
-                    pos.getYaw(),
-                    pos.getPitch(),
-                    false
-            );
-
-            // metadata packet
-            WrapperPlayServerEntityMetadata metadataPacket = new WrapperPlayServerEntityMetadata(
-                    this.entityId,
-                    this.createEntityData(player)
-            );
-
-            // attach entity packet
-            WrapperPlayServerAttachEntity attachEntityPacket = new WrapperPlayServerAttachEntity(
-                    this.entityId,
-                    attached != null ? attached.getId() : -1,
-                    false
-            );
-
-            MCProtocol.sendPacket(player, teleportPacket);
-            MCProtocol.sendPacket(player, metadataPacket);
-            MCProtocol.sendPacket(player, attachEntityPacket);
-        }
-
-        public void hide(@NotNull MCPlayer player) {
-            // remove entity packet
-            WrapperPlayServerDestroyEntities packet = new WrapperPlayServerDestroyEntities(this.entityId);
-            MCProtocol.sendPacket(player, packet);
-        }
-
-        private Vector3d packetPosition() {
-            return new Vector3d(pos.getX(), pos.getY() + y, pos.getZ());
-        }
-
-        private List<EntityData> createEntityData(MCPlayer player) {
-            List<EntityData> entityDataList = new ArrayList<>();
-
-            // entity data bit mask
-            entityDataList.add(new EntityData(0, EntityDataTypes.BYTE, (byte) 0x20));
-
-            // custom name
-            MCVersion version = server.getVersion();
-            if (version.isHigherOrEqual(MCVersion.of(13))) {
-                entityDataList.add(new EntityData(
-                        2,
-                        EntityDataTypes.OPTIONAL_COMPONENT,
-                        Optional.ofNullable(this.line.render(player))
-                                .map(e -> MCAdventure.asItemString(e, player.getLocale()))
-                ));
-            } else {
-                entityDataList.add(new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale())));
-            }
-
-            // always show name tag
-            if (version.isHigherOrEqual(MCVersion.of(9))) {
-                entityDataList.add(new EntityData(3, EntityDataTypes.BOOLEAN, true));
-            } else {
-                entityDataList.add(new EntityData(3, EntityDataTypes.BYTE, (byte) 1));
-            }
-
-            // armorstand status bit mask
-            if (version.isHigherOrEqual(MCVersion.of(17)))
-                entityDataList.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x11));
-            else if (version.isHigherOrEqual(MCVersion.of(15)))
-                entityDataList.add(new EntityData(14, EntityDataTypes.BYTE, (byte) 0x11));
-            else if (version.isHigherOrEqual(MCVersion.of(14)))
-                entityDataList.add(new EntityData(13, EntityDataTypes.BYTE, (byte) 0x11));
-            else if (version.isHigherOrEqual(MCVersion.of(10)))
-                entityDataList.add(new EntityData(11, EntityDataTypes.BYTE, (byte) 0x11));
-            else
-                entityDataList.add(new EntityData(10, EntityDataTypes.BYTE, (byte) 0x11));
-
-            return entityDataList;
-        }
-
-    }
 }

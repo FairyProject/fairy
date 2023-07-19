@@ -18,14 +18,14 @@ import java.util.function.Predicate;
  *
  * @param <T> The event type being handled.
  */
-public interface EventListener<T extends Event> {
+public interface EventListener<T> {
 
     @NotNull Class<T> eventType();
 
     @NotNull Result run(@NotNull T event);
 
     @Contract(pure = true)
-    static @NotNull <T extends Event> Builder<T> builder(@NotNull Class<T> eventType) {
+    static @NotNull <T> Builder<T> builder(@NotNull Class<T> eventType) {
         return new Builder<>(eventType);
     }
 
@@ -39,11 +39,11 @@ public interface EventListener<T extends Event> {
      * @return An event listener with the given properties
      */
     @Contract(pure = true)
-    static <T extends Event> @NotNull EventListener<T> of(@NotNull Class<T> eventType, @NotNull Consumer<@NotNull T> listener) {
+    static <T> @NotNull EventListener<T> of(@NotNull Class<T> eventType, @NotNull Consumer<@NotNull T> listener) {
         return builder(eventType).handler(listener).build();
     }
 
-    class Builder<T extends Event> {
+    class Builder<T> {
         private final Class<T> eventType;
         private final List<Predicate<T>> filters = new ArrayList<>();
         private boolean ignoreCancelled = true;
@@ -133,7 +133,7 @@ public interface EventListener<T extends Event> {
     }
 
     @RequiredArgsConstructor
-    class EventListenerImpl<T extends Event> implements EventListener<T> {
+    class EventListenerImpl<T> implements EventListener<T> {
 
         private final Class<T> eventType;
         private final boolean ignoreCancelled;

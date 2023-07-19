@@ -69,7 +69,7 @@ public class PageButton extends Button {
 		}
 	}
 
-	boolean hasNext() {
+	public boolean hasNext() {
 		final int pg = this.menu.getPage() + this.getModByAction();
 		return pg > 0 && this.menu.getMaxPages() >= pg;
 	}

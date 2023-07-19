@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,15 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.listener.events;
+package io.fairyproject.mc.hologram.entity.factory;
 
-/**
- * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
- */
-@Deprecated
-public enum ExpiryStage {
+import io.fairyproject.mc.hologram.HologramImpl;
+import io.fairyproject.mc.hologram.entity.impl.ArmorStandHologramEntity;
+import io.fairyproject.mc.hologram.entity.HologramEntity;
 
-    BEOFORE,
-    POST_FILTER,
-    POST_EXECUTE
-
+public class LegacyHologramEntityFactory implements HologramEntityFactory {
+    @Override
+    public HologramEntity create(HologramImpl hologram) {
+        return new ArmorStandHologramEntity(hologram);
+    }
 }

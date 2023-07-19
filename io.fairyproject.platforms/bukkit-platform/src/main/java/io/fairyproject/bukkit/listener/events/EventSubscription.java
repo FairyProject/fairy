@@ -41,6 +41,10 @@ import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Predicate;
 
+/**
+ * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
+ */
+@Deprecated
 @Getter
 public class EventSubscription<T extends Event> implements Listener, EventExecutor, Terminable {
 

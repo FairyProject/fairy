@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,28 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.listener.events;
+package io.fairyproject.mc.hologram.entity;
 
-/**
- * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
- */
-@Deprecated
-public enum ExpiryStage {
+import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.hologram.line.HologramLine;
 
-    BEOFORE,
-    POST_FILTER,
-    POST_EXECUTE
+import java.util.UUID;
 
+public interface HologramEntity {
+
+    void show(MCPlayer player);
+
+    void update(MCPlayer player);
+
+    void hide(MCPlayer player);
+
+    void setLine(HologramLine line);
+
+    void setY(double y);
+
+    void setEntityId(int entityId);
+
+    void setEntityUuid(UUID entityUuid);
+
+    int getEntityId();
 }

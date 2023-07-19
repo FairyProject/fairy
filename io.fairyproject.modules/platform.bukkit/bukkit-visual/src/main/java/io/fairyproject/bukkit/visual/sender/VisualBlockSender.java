@@ -31,6 +31,7 @@ import com.google.common.collect.HashMultimap;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.visual.sender.impl.BukkitVisualData;
 import io.fairyproject.bukkit.visual.sender.impl.NewVisualData;
 import io.fairyproject.bukkit.visual.sender.impl.OldVisualData;
 import io.fairyproject.bukkit.visual.util.BlockPositionData;
@@ -51,6 +52,7 @@ public class VisualBlockSender {
 
     public VisualBlockSender(BukkitNMSManager nmsManager) {
         this.visualDataList = Arrays.asList(
+                new BukkitVisualData(),
                 new OldVisualData(nmsManager),
                 new NewVisualData(nmsManager)
         );
@@ -86,13 +88,12 @@ public class VisualBlockSender {
                 final int z2 = blockPosition.getZ();
                 final org.bukkit.block.Block blockData = player.getWorld().getBlockAt(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ());
                 final Material type = blockData.getType();
-                final byte data = blockData.getData();
                 final int chunkX2 = x2 >> 4;
                 final int chunkY2 = y2 >> 4;
                 final int chunkZ2 = z2 >> 4;
                 final int posX2 = x2 - (chunkX2 << 4);
                 final int posZ2 = z2 - (chunkZ2 << 4);
-                map.put(new BlockPosition(chunkX2, chunkY2, chunkZ2), new BlockPositionData(new BlockPosition(posX2, y2, posZ2), XMaterial.matchXMaterial(type.getId(), data).orElse(null)));
+                map.put(new BlockPosition(chunkX2, chunkY2, chunkZ2), new BlockPositionData(new BlockPosition(posX2, y2, posZ2), XMaterial.matchXMaterial(type)));
             }
         }
 

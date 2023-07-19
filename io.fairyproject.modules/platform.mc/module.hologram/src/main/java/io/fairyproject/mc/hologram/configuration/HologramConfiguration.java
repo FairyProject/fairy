@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,16 +22,32 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.listener.events;
+package io.fairyproject.mc.hologram.configuration;
 
-/**
- * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
- */
-@Deprecated
-public enum ExpiryStage {
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.configuration.Configuration;
+import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.hologram.entity.factory.HologramEntityFactory;
+import io.fairyproject.mc.hologram.entity.factory.LegacyHologramEntityFactory;
+import io.fairyproject.mc.hologram.entity.factory.ModernHologramEntityFactory;
+import io.fairyproject.mc.version.MCVersion;
 
-    BEOFORE,
-    POST_FILTER,
-    POST_EXECUTE
+@Configuration
+public class HologramConfiguration {
+
+    // THIS IS FINE
+    @Autowired
+    @Deprecated
+    public static HologramEntityFactory hologramEntityFactory;
+
+    @InjectableComponent
+    public HologramEntityFactory hologramEntityFactory(MCServer mcServer) {
+        if (mcServer.getVersion().isHigherOrEqual(MCVersion.of(19))) {
+            return new ModernHologramEntityFactory();
+        } else {
+            return new LegacyHologramEntityFactory();
+        }
+    }
 
 }

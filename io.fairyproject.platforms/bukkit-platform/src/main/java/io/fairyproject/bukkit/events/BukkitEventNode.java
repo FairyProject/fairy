@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,46 +22,22 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.listener.events;
+package io.fairyproject.bukkit.events;
 
-import java.util.LinkedHashMap;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.event.EventNodeImpl;
+import org.bukkit.event.Event;
 
-/**
- * @deprecated Use {@link io.fairyproject.bukkit.events.BukkitEventNode} instead.
- */
-@Deprecated
-public class EventSubscriptionList extends LinkedHashMap<String, EventSubscription<?>> {
+@InjectableComponent
+public class BukkitEventNode extends EventNodeImpl<Event> {
+    public BukkitEventNode(GlobalEventListener eventListener) {
+        super("bukkit-global", BukkitEventFilter.ALL, null);
 
-    @Override
-    public EventSubscription<?> get(Object key) {
-        return super.getOrDefault(key, null);
+        eventListener.addListener(this::call);
     }
 
     @Override
-    public EventSubscription<?> remove(Object key) {
-        return this.remove(key, true);
-    }
-
-    public EventSubscription<?> remove(Object key, boolean unregister) {
-        EventSubscription<?> subscription = super.remove(key);
-        if (unregister && subscription != null && subscription.isActive()) {
-            subscription.unregister();
-        }
-        return subscription;
-    }
-
-    @Override
-    public void clear() {
-
-        synchronized (this) {
-            for (EventSubscription<?> eventSubscription : this.values()) {
-                if (eventSubscription.isActive()) {
-                    eventSubscription.unregister();
-                }
-            }
-        }
-
-        super.clear();
-
+    protected boolean isGlobalNode() {
+        return true;
     }
 }

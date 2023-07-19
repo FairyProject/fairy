@@ -1,5 +1,6 @@
 package io.fairyproject.event;
 
+import io.fairyproject.util.terminable.Terminable;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -20,7 +21,7 @@ import java.util.function.Predicate;
  *
  * @param <T> The event type accepted by this node
  */
-public interface EventNode<T extends Event> {
+public interface EventNode<T> extends Terminable {
 
     /**
      * Creates an event node which accepts any event type with no filtering.
@@ -48,7 +49,7 @@ public interface EventNode<T extends Event> {
      * @return A node with just an event type filter
      */
     @Contract(value = "_, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull String name,
+    static <E, V> @NotNull EventNode<E> type(@NotNull String name,
                                                            @NotNull EventFilter<E, V> filter) {
         return create(name, filter, null);
     }
@@ -73,7 +74,7 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> event(@NotNull String name,
+    static <E, V> @NotNull EventNode<E> event(@NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<E> predicate) {
         return create(name, filter, (e, h) -> predicate.test(e));
@@ -101,7 +102,7 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> type(@NotNull String name,
+    static <E, V> @NotNull EventNode<E> type(@NotNull String name,
                                                            @NotNull EventFilter<E, V> filter,
                                                            @NotNull BiPredicate<E, V> predicate) {
         return create(name, filter, predicate);
@@ -126,12 +127,12 @@ public interface EventNode<T extends Event> {
      * @return A node with an event type filter as well as a condition on the event.
      */
     @Contract(value = "_, _, _ -> new", pure = true)
-    static <E extends Event, V> @NotNull EventNode<E> value(@NotNull String name,
+    static <E, V> @NotNull EventNode<E> value(@NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @NotNull Predicate<V> predicate) {
         return create(name, filter, (e, h) -> predicate.test(h));
     }
-    static <E extends Event, V> EventNode<E> create(@NotNull String name,
+    static <E, V> EventNode<E> create(@NotNull String name,
                                                             @NotNull EventFilter<E, V> filter,
                                                             @Nullable BiPredicate<E, V> predicate) {
         //noinspection unchecked

@@ -13,20 +13,20 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @ApiStatus.Experimental
-public interface EventBinding<E extends Event> {
+public interface EventBinding<E> {
 
-    static <E extends Event, T> @NotNull FilteredBuilder<E, T> filtered(@NotNull EventFilter<E, T> filter, @NotNull Predicate<T> predicate) {
+    static <E, T> @NotNull FilteredBuilder<E, T> filtered(@NotNull EventFilter<E, T> filter, @NotNull Predicate<T> predicate) {
         return new FilteredBuilder<>(filter, predicate);
     }
 
-    @NotNull Collection<Class<? extends Event>> eventTypes();
+    @NotNull Collection<Class<?>> eventTypes();
 
-    @NotNull Consumer<@NotNull E> consumer(@NotNull Class<? extends Event> eventType);
+    @NotNull Consumer<@NotNull E> consumer(@NotNull Class<?> eventType);
 
-    class FilteredBuilder<E extends Event, T> {
+    class FilteredBuilder<E, T> {
         private final EventFilter<E, T> filter;
         private final Predicate<T> predicate;
-        private final Map<Class<? extends Event>, BiConsumer<Object, E>> mapped = new HashMap<>();
+        private final Map<Class<?>, BiConsumer<Object, E>> mapped = new HashMap<>();
 
         FilteredBuilder(EventFilter<E, T> filter, Predicate<T> predicate) {
             this.filter = filter;
@@ -41,10 +41,10 @@ public interface EventBinding<E extends Event> {
         }
 
         public @NotNull EventBinding<E> build() {
-            final Map<Class<? extends Event>, BiConsumer<Object, E>> copy = new HashMap<>(mapped);
-            final Set<Class<? extends Event>> eventTypes = copy.keySet();
+            final Map<Class<?>, BiConsumer<Object, E>> copy = new HashMap<>(mapped);
+            final Set<Class<?>> eventTypes = copy.keySet();
 
-            Map<Class<? extends Event>, Consumer<E>> consumers = new HashMap<>(eventTypes.size());
+            Map<Class<?>, Consumer<E>> consumers = new HashMap<>(eventTypes.size());
             for (val eventType : eventTypes) {
                 val consumer = copy.get(eventType);
                 consumers.put(eventType, event -> {
@@ -55,12 +55,12 @@ public interface EventBinding<E extends Event> {
             }
             return new EventBinding<E>() {
                 @Override
-                public @NotNull Collection<Class<? extends Event>> eventTypes() {
+                public @NotNull Collection<Class<?>> eventTypes() {
                     return eventTypes;
                 }
 
                 @Override
-                public @NotNull Consumer<E> consumer(@NotNull Class<? extends Event> eventType) {
+                public @NotNull Consumer<E> consumer(@NotNull Class<?> eventType) {
                     return consumers.get(eventType);
                 }
             };

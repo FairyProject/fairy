@@ -21,7 +21,7 @@ import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class EventNodeImpl<T extends Event> implements EventNode<T> {
+public class EventNodeImpl<T> implements EventNode<T> {
     static final Object GLOBAL_CHILD_LOCK = new Object();
 
     private final ClassValue<Handle<T>> handleMap = new ClassValue<Handle<T>>() {
@@ -43,13 +43,17 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
     volatile int priority;
     volatile EventNodeImpl<? super T> parent;
 
-    EventNodeImpl(@NotNull String name,
+    public EventNodeImpl(@NotNull String name,
                   @NotNull EventFilter<T, ?> filter,
                   @Nullable BiPredicate<T, Object> predicate) {
         this.name = name;
         this.filter = filter;
         this.predicate = predicate;
         this.eventType = filter.eventType();
+    }
+
+    protected boolean isGlobalNode() {
+        return false;
     }
 
     @Override
@@ -258,6 +262,25 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
         }
     }
 
+    @Override
+    public void close() throws Exception {
+        if (this.isClosed())
+            return;
+
+        this.parent.removeChild(this);
+        this.parent = null;
+        for (EventNodeImpl<T> child : this.children) {
+            child.close();
+        }
+    }
+
+    @Override
+    public boolean isClosed() {
+        if (this.isGlobalNode())
+            return false;
+        return this.parent == null || this.parent.isClosed();
+    }
+
     @Data
     public static class Graph {
 
@@ -314,13 +337,13 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
 //        }
     }
 
-    private static class ListenerEntry<T extends Event> {
+    private static class ListenerEntry<T> {
         final List<EventListener<T>> listeners = new CopyOnWriteArrayList<>();
         final Set<Consumer<T>> bindingConsumers = new CopyOnWriteArraySet<>();
     }
 
     @SuppressWarnings("unchecked")
-    final class Handle<E extends Event> implements ListenerHandle<E> {
+    final class Handle<E> implements ListenerHandle<E> {
         private final Class<E> eventType;
         private Consumer<E> listener = null;
         private volatile boolean updated;
@@ -513,7 +536,7 @@ public class EventNodeImpl<T extends Event> implements EventNode<T> {
         }
     }
 
-    private static class AnnotatedHandler<T extends Event> implements Consumer<T> {
+    private static class AnnotatedHandler<T> implements Consumer<T> {
 
         private final Object listener;
         private final MethodHandle method;
