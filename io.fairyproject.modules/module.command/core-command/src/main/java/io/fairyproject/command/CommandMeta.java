@@ -143,12 +143,14 @@ public class CommandMeta implements ICommand {
 
         PresenceProvider<?> presenceProviderMethod = null;
         CommandPresence annotationMethod = method.getAnnotation(CommandPresence.class);
-        if (annotationMethod != null) {
+        if (annotationMethod != null)
             presenceProviderMethod = COMMAND_SERVICE.getPresenceProviderByAnnotation(annotationMethod);
-        }
-        if (presenceProviderMethod == null) {
+
+        else if (command.presenceProvider != null)
+            presenceProviderMethod = command.presenceProvider;
+
+        if (presenceProviderMethod == null)
             presenceProviderMethod = COMMAND_SERVICE.getPresenceProviderByType(parametersClasses[0]);
-        }
 
         if (presenceProviderMethod == null) {
             throw new IllegalArgumentException("The method " + method + " with first parameters " + parametersClasses[0].getSimpleName() + " doesn't have match presence provider!");

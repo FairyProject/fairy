@@ -28,15 +28,17 @@ import com.cryptomorin.xseries.XMaterial;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.listener.events.Events;
+import io.fairyproject.bukkit.events.BukkitEventFilter;
+import io.fairyproject.bukkit.events.BukkitEventNode;
+import io.fairyproject.bukkit.menu.event.ButtonClickEvent;
+import io.fairyproject.bukkit.menu.event.MenuCloseEvent;
 import io.fairyproject.bukkit.metadata.Metadata;
-import io.fairyproject.bukkit.util.BukkitUtil;
-import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.event.EventNode;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.task.Task;
 import io.fairyproject.util.CC;
-import io.fairyproject.util.Stacktrace;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -44,7 +46,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
+import org.bukkit.event.Event;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -52,7 +54,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryView;
-import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,19 +66,119 @@ import java.util.function.Function;
 @Setter
 public abstract class Menu implements TerminableConsumer {
 
-    private static final MetadataKey<Menu> METADATA = MetadataKey.create("imanity:menu", Menu.class);
+    private static final MetadataKey<Menu> METADATA = MetadataKey.create("fairy:menu", Menu.class);
     private static final Map<Class<? extends Menu>, List<Menu>> MENU_BY_TYPE = new ConcurrentHashMap<>();
 
-    private Map<Integer, Button> buttonsMap = new HashMap<>();
-    private final CompositeTerminable compositeTerminable = CompositeTerminable.create();
+    @Deprecated
+    @Autowired
+    private static BukkitEventNode bukkitEventNode;
+
+    private final CompositeTerminable compositeTerminable;
+    @Getter
+    private final EventNode<Event> eventNode;
+    private final Map<Integer, Button> buttonsMap;
 
     protected Player player;
     private Inventory inventory;
 
-    private boolean opening, rendering, reopening;
-    private long openMillis, lastAccessMillis;
+    private boolean opening;
+    private boolean rendering;
+    private boolean rerendering;
+    private boolean reopening;
+    private long openMillis;
+    private long lastAccessMillis;
     private int updateCount;
+
     private Button placeholderButton = Button.placeholder(XMaterial.GRAY_STAINED_GLASS_PANE, " ");
+
+    public Menu() {
+        this.compositeTerminable = CompositeTerminable.create();
+        this.buttonsMap = new HashMap<>();
+
+        this.eventNode = EventNode.create("fairy:menu", BukkitEventFilter.ALL, null);
+        this.eventNode.addListener(PlayerQuitEvent.class, this::onPlayerQuit);
+        this.eventNode.addListener(PlayerDeathEvent.class, this::onPlayerDeath);
+        this.eventNode.addListener(InventoryClickEvent.class, this::onInventoryClick);
+        this.eventNode.addListener(InventoryCloseEvent.class, this::onInventoryClose);
+
+        this.eventNode.bindWith(this);
+    }
+
+    private void onInventoryClose(@NotNull InventoryCloseEvent event) {
+        if (event.getInventory().getHolder() != this.player)
+            return;
+
+        if (this.isRerendering())
+            return;
+
+        this.remove();
+    }
+
+    private void onInventoryClick(@NotNull InventoryClickEvent event) {
+        if (event.getInventory().getHolder() != this.player)
+            return;
+
+        int slot = event.getSlot();
+        boolean shiftClick = event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT;
+
+        if (slot != event.getRawSlot()) {
+            if (shiftClick)
+                event.setCancelled(true);
+            return;
+        }
+
+        Button button = this.buttonsMap.getOrDefault(slot, null);
+        if (button == null) {
+            if (shiftClick)
+                event.setCancelled(true);
+            return;
+        }
+
+        boolean cancel = button.shouldCancel(player, slot, event.getClick());
+        if (!cancel && shiftClick) {
+            event.setCancelled(true);
+
+            if (event.getCurrentItem() != null)
+                player.getInventory().addItem(event.getCurrentItem());
+        } else {
+            event.setCancelled(cancel);
+        }
+
+        button.clicked(player, slot, event.getClick(), event.getHotbarButton());
+        ButtonClickEvent buttonClickEvent = new ButtonClickEvent(
+                player,
+                this,
+                button,
+                slot
+        );
+        buttonClickEvent.call();
+
+        if (!this.opening)
+            return;
+
+        this.lastAccessMillis = System.currentTimeMillis();
+
+        if (event.isCancelled())
+            Task.runMainLater(player::updateInventory, 1L);
+    }
+
+    private void onPlayerDeath(@NotNull PlayerDeathEvent event) {
+        Player player = event.getEntity();
+        if (player != this.player)
+            return;
+
+        player.closeInventory();
+        this.remove();
+    }
+
+    private void onPlayerQuit(@NotNull PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        if (player != this.player)
+            return;
+
+        player.closeInventory();
+        this.remove();
+    }
 
     @NotNull
     @Override
@@ -254,114 +355,21 @@ public abstract class Menu implements TerminableConsumer {
         this.compositeTerminable.closeAndReportException();
         this.onClose(player);
 
+        MenuCloseEvent event = new MenuCloseEvent(player, this);
+        event.call();
+
         this.player = null;
         this.buttonsMap.clear();
         this.inventory.clear();
     }
 
     private void registerListeners() {
-        Plugin plugin;
-
-        try {
-            plugin = JavaPluginUtil.getProvidingPlugin(this.getClass());
-        } catch (Throwable ignored) {
-            plugin = FairyBukkitPlatform.PLUGIN;
-        }
-
-        Events.subscribe(PlayerQuitEvent.class)
-                .priority(EventPriority.HIGH)
-                .filter(event -> event.getPlayer() == this.player)
-                .listen(event -> {
-                    Player player = event.getPlayer();
-                    player.closeInventory();
-                    this.remove();
-                })
-                .build(plugin)
-                .bindWith(this);
-
-        Events.subscribe(PlayerDeathEvent.class)
-                .priority(EventPriority.HIGH)
-                .filter(event -> event.getEntity() == this.player)
-                .listen(event -> {
-                    Player player = event.getEntity();
-                    player.closeInventory();
-                    this.remove();
-                })
-                .build(plugin)
-                .bindWith(this);
-
-        Events.subscribe(InventoryClickEvent.class)
-                .priority(EventPriority.MONITOR)
-                .filter(event -> event.getInventory().getHolder() != null)
-                .filter(event -> event.getInventory().getHolder().equals(this.player))
-                .listen(event -> {
-                    if (this.player == null) {
-                        return;
-                    }
-
-                    int slot = event.getSlot();
-                    if (slot != event.getRawSlot()) {
-                        if ((event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT)) {
-                            event.setCancelled(true);
-                        }
-                        return;
-                    }
-
-                    if (this.buttonsMap.containsKey(slot)) {
-                        Button button = this.buttonsMap.get(slot);
-                        boolean cancel = button.shouldCancel(player, slot, event.getClick());
-
-                        if (!cancel && (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT)) {
-                            event.setCancelled(true);
-
-                            if (event.getCurrentItem() != null) {
-                                player.getInventory().addItem(event.getCurrentItem());
-                            }
-                        } else {
-                            event.setCancelled(cancel);
-                        }
-
-                        button.clicked(player, slot, event.getClick(), event.getHotbarButton());
-                        if (!this.opening) {
-                            return;
-                        }
-                        this.lastAccessMillis = System.currentTimeMillis();
-
-                        if (event.isCancelled()) {
-                            BukkitUtil.delayedUpdateInventory(player);
-                        }
-                    } else {
-                        if ((event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT)) {
-                            event.setCancelled(true);
-                        }
-                    }
-                })
-                .build(plugin)
-                .bindWith(this);
-
-        Events.subscribe(InventoryCloseEvent.class)
-                .priority(EventPriority.HIGH)
-                .filter(event -> event.getInventory().getHolder() != null)
-                .filter(event -> event.getInventory().getHolder().equals(this.player))
-                .listen(event -> {
-                    try {
-                        if (this.rerendering) {
-                            return;
-                        }
-                        this.remove();
-                    } catch (Throwable throwable) {
-                        Stacktrace.print(throwable);
-                    }
-                })
-                .build(plugin)
-                .bindWith(this);
+        bukkitEventNode.addChild(this.eventNode);
     }
 
     public final void render() {
         this.render(false);
     }
-
-    private boolean rerendering = false;
 
     private void render(boolean firstInitial) {
         if (this.rendering) {
@@ -449,7 +457,7 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     public final <T> List<Button> transformToButtons(Iterable<T> list,
-                                                       Function<T, @Nullable Button> function) {
+                                                     Function<T, @Nullable Button> function) {
         final ImmutableList.Builder<Button> listBuilder = new ImmutableList.Builder<>();
 
         for (T t : list) {
