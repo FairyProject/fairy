@@ -22,30 +22,45 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.menu.sequence.condition;
+package io.fairyproject.bukkit.menu.node.condition;
 
 import io.fairyproject.bukkit.events.BukkitEventFilter;
 import io.fairyproject.bukkit.menu.Menu;
 import io.fairyproject.bukkit.menu.event.MenuCloseEvent;
-import io.fairyproject.bukkit.menu.sequence.MenuNode;
+import io.fairyproject.bukkit.menu.node.MenuNode;
 import io.fairyproject.event.EventNode;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.player.PlayerEvent;
 
 public class CloseCondition implements Condition {
+
     @Override
-    public void setup(MenuNode menuNode) {
+    public void setup(MenuNode menuNode, ConditionTarget target) {
         Menu menu = menuNode.getMenu();
         EventNode<Event> parent = menu.getEventNode();
 
         EventNode<PlayerEvent> eventNode = EventNode.value("fairy:menu:close-condition", BukkitEventFilter.PLAYER, player -> menu.getPlayer() == player);
-        eventNode.addListener(MenuCloseEvent.class, event -> onMenuClose(event, menuNode));
+        eventNode.addListener(MenuCloseEvent.class, event -> onMenuClose(event, menuNode, target));
 
         parent.addChild(eventNode);
         menu.bind(eventNode);
     }
 
-    private void onMenuClose(MenuCloseEvent event, MenuNode menuNode) {
-        menuNode.next(event.getPlayer(), this);
+    private void onMenuClose(MenuCloseEvent event, MenuNode menuNode, ConditionTarget target) {
+        Player player = event.getPlayer();
+
+        this.onConditionMeet(player, menuNode, target);
+    }
+
+    private void onConditionMeet(Player player, MenuNode menuNode, ConditionTarget target) {
+        switch (target) {
+            case NEXT:
+                menuNode.openNext(player, this);
+                break;
+            case PREVIOUS:
+                menuNode.openPrevious(player);
+                break;
+        }
     }
 }

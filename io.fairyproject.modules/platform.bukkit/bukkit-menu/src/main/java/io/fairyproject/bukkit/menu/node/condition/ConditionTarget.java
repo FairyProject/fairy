@@ -22,32 +22,9 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.menu.sequence;
+package io.fairyproject.bukkit.menu.node.condition;
 
-import io.fairyproject.bukkit.menu.Menu;
-import io.fairyproject.bukkit.menu.sequence.condition.Condition;
-import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Contract;
-
-public interface MenuNode {
-
-    static MenuNode of(Menu menu) {
-        return new MenuNodeImpl(menu);
-    }
-
-    Menu getMenu();
-
-    void setParent(MenuNode node);
-
-    @Contract("_, _ -> param2")
-    MenuNode setChild(Condition condition, MenuNode node);
-
-    default MenuNode setChild(Condition condition, Menu menu) {
-        return this.setChild(condition, MenuNode.of(menu));
-    }
-
-    void next(Player player, Condition condition);
-
-    void open(Player player);
-
+public enum ConditionTarget {
+    PREVIOUS,
+    NEXT
 }

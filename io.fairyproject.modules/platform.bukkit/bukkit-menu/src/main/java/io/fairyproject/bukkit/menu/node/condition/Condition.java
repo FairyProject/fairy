@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.menu.sequence.condition;
+package io.fairyproject.bukkit.menu.node.condition;
 
-import io.fairyproject.bukkit.menu.sequence.MenuNode;
+import io.fairyproject.bukkit.menu.node.MenuNode;
 
 public interface Condition {
 
@@ -40,6 +40,6 @@ public interface Condition {
         return new CloseCondition();
     }
 
-    void setup(MenuNode menu);
+    void setup(MenuNode menu, ConditionTarget target);
 
 }

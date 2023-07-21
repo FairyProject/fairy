@@ -22,16 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.menu.sequence;
+package io.fairyproject.bukkit.menu.node;
 
 import io.fairyproject.bukkit.menu.Menu;
-import io.fairyproject.bukkit.menu.sequence.condition.Condition;
+import io.fairyproject.bukkit.menu.node.condition.Condition;
+import io.fairyproject.bukkit.menu.node.condition.ConditionTarget;
+import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -40,12 +44,14 @@ public class MenuNodeImpl implements MenuNode {
 
     private final Menu menu;
     private final Map<Condition, MenuNode> children;
+    private final List<Condition> previous;
     @Nullable
     private MenuNode parent;
 
     public MenuNodeImpl(Menu menu) {
         this.menu = menu;
         this.children = new HashMap<>();
+        this.previous = new ArrayList<>();
     }
 
     @Override
@@ -55,21 +61,35 @@ public class MenuNodeImpl implements MenuNode {
 
     public MenuNode setChild(Condition condition, MenuNode child) {
         this.children.put(condition, child);
+        child.setParent(this);
         return child;
     }
 
-    public void next(Player player, Condition condition) {
-        MenuNode child = this.children.getOrDefault(condition, null);
+    @Override
+    public MenuNode setParentCondition(Condition condition) {
+        this.previous.add(condition);
+        return this;
+    }
 
-        if (child != null) {
-            child.open(player);
-        }
+    @Override
+    public void openPrevious(Player player) {
+        ConditionUtils.notNull(this.parent, "The parent node cannot be null.");
+
+        this.parent.open(player);
+    }
+
+    @Override
+    public void openNext(Player player, Condition condition) {
+        MenuNode child = this.children.getOrDefault(condition, null);
+        ConditionUtils.notNull(child, "The child node cannot be null.");
+
+        child.open(player);
     }
 
     @Override
     public void open(Player player) {
         for (Condition condition : children.keySet()) {
-            condition.setup(this);
+            condition.setup(this, ConditionTarget.NEXT);
         }
         this.menu.open(player);
     }

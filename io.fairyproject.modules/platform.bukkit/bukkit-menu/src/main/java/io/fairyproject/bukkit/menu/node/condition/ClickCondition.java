@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.menu.sequence.condition;
+package io.fairyproject.bukkit.menu.node.condition;
 
 import io.fairyproject.bukkit.events.BukkitEventFilter;
 import io.fairyproject.bukkit.menu.Menu;
 import io.fairyproject.bukkit.menu.event.ButtonClickEvent;
-import io.fairyproject.bukkit.menu.sequence.MenuNode;
+import io.fairyproject.bukkit.menu.node.MenuNode;
 import io.fairyproject.event.EventNode;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.Player;
@@ -41,30 +41,41 @@ public class ClickCondition implements Condition {
     private final int[] slots;
 
     @Override
-    public void setup(MenuNode menuNode) {
+    public void setup(MenuNode menuNode, ConditionTarget target) {
         Menu menu = menuNode.getMenu();
         EventNode<Event> parent = menu.getEventNode();
 
         EventNode<PlayerEvent> eventNode = EventNode.value("fairy:menu:click-condition", BukkitEventFilter.PLAYER, player -> menu.getPlayer() == player);
-        eventNode.addListener(ButtonClickEvent.class, event -> onButtonClick(event, menuNode));
+        eventNode.addListener(ButtonClickEvent.class, event -> onButtonClick(event, menuNode, target));
 
         parent.addChild(eventNode);
         menu.bind(eventNode);
     }
 
-    private void onButtonClick(@NotNull ButtonClickEvent event, MenuNode menuNode) {
+    private void onButtonClick(@NotNull ButtonClickEvent event, MenuNode menuNode, ConditionTarget target) {
         Player player = event.getPlayer();
 
         if (slots.length == 0) {
-            menuNode.next(player, this);
+            this.onConditionMeet(player, menuNode, target);
             return;
         }
 
         for (int slot : slots) {
             if (slot == event.getSlot()) {
-                menuNode.next(player, this);
+                this.onConditionMeet(player, menuNode, target);
                 break;
             }
+        }
+    }
+
+    private void onConditionMeet(Player player, MenuNode menuNode, ConditionTarget target) {
+        switch (target) {
+            case NEXT:
+                menuNode.openNext(player, this);
+                break;
+            case PREVIOUS:
+                menuNode.openPrevious(player);
+                break;
         }
     }
 }
