@@ -134,6 +134,11 @@ public abstract class Menu implements TerminableConsumer {
             return;
         }
 
+        handleInventoryClickCancel(event, slot, shiftClick, button);
+        handleButtonClick(event, slot, button);
+    }
+
+    private void handleInventoryClickCancel(@NotNull InventoryClickEvent event, int slot, boolean shiftClick, Button button) {
         boolean cancel = button.shouldCancel(player, slot, event.getClick());
         if (!cancel && shiftClick) {
             event.setCancelled(true);
@@ -143,7 +148,9 @@ public abstract class Menu implements TerminableConsumer {
         } else {
             event.setCancelled(cancel);
         }
+    }
 
+    private void handleButtonClick(@NotNull InventoryClickEvent event, int slot, Button button) {
         button.clicked(player, slot, event.getClick(), event.getHotbarButton());
         ButtonClickEvent buttonClickEvent = new ButtonClickEvent(
                 player,

@@ -61,6 +61,8 @@ public class CloseCondition implements Condition {
             case PREVIOUS:
                 menuNode.openPrevious(player);
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + target);
         }
     }
 }
