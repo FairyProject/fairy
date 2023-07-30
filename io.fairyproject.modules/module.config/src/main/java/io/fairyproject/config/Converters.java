@@ -407,18 +407,18 @@ final class Converters {
                 return inst;
             };
         } else if ((element instanceof String) && currentLevelSameAsExpected) {
-            return createNonSimpleConverter(element, info);
+            return createNonSimpleConverter(info.getElementType(), element, info);
         } else {
             info.incCurrentNestingLevel();
-            return createNonSimpleConverter(element, info);
+            return createNonSimpleConverter(info.getElementType(), element, info);
         }
     }
 
     private static Function<Object, ?> createNonSimpleConverter(
-            Object element, Converter.ConversionInfo info
+            Class<?> elementType, Object element, Converter.ConversionInfo info
     ) {
         Converter<?, Object> converter = selectNonSimpleConverter(
-                element.getClass(), info
+                elementType, info
         );
         return o -> converter.convertFrom(o, info);
     }
