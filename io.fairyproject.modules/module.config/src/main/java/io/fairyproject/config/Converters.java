@@ -113,13 +113,6 @@ final class Converters {
             Class<?> valueType, Converter.ConversionInfo info
     ) {
         Converter<?, ?> converter;
-        if (SERIALIZER_FACTORY != null) {
-            ObjectSerializer<?, ?> serializer = SERIALIZER_FACTORY.findSerializer(valueType);
-
-            if (serializer != null) {
-                return new SerializerConverter(serializer);
-            }
-        }
 
         if (Reflect.hasNoConvert(info.getField())) {
             converter = IDENTITY_CONVERTER;
@@ -136,6 +129,14 @@ final class Converters {
     private static Converter<Object, Object> selectNonSimpleConverter(
             Class<?> valueType, Converter.ConversionInfo info
     ) {
+        if (SERIALIZER_FACTORY != null) {
+            ObjectSerializer<?, ?> serializer = SERIALIZER_FACTORY.findSerializer(valueType);
+
+            if (serializer != null) {
+                return new SerializerConverter(serializer);
+            }
+        }
+
         Converter<?, ?> converter;
         if (Reflect.isEnumType(valueType) ||
                 /* type is a string when converting back */
