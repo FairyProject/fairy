@@ -24,6 +24,9 @@
 
 package io.fairyproject.config;
 
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.SerializerFactory;
+
 import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.List;
@@ -31,6 +34,9 @@ import java.util.Map;
 import java.util.Set;
 
 final class Validator {
+
+    @Autowired
+    private static SerializerFactory serializerFactory;
 
     static void checkNotNull(Object o, String fn) {
         if (o == null) {
@@ -215,6 +221,8 @@ final class Validator {
 
     static void checkElementType(Converter.ConversionInfo info) {
         Class<?> elementType = info.getElementType();
+        if (serializerFactory.findSerializer(elementType) != null)
+            return;
         if (!elementType.isEnum())
             checkElementTypeIsConfigurationElement(info);
         checkElementTypeIsConcrete(info);

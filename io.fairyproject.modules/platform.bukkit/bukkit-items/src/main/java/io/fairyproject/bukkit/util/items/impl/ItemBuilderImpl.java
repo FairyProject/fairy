@@ -73,13 +73,23 @@ public class ItemBuilderImpl implements ItemBuilder {
     }
 
     @Override
-    public ItemBuilder lores(Locale locale, Iterable<Component> lore) {
-        return this.editMeta(meta -> ItemBuilderUtil.setLore(meta, locale, lore));
+    public ItemBuilder lores(Locale locale, Iterable<Component> lores) {
+        return this.editMeta(meta -> {
+            List<Component> loreList = ItemBuilderUtil.getLore(meta);
+            if (loreList == null)
+                loreList = new ArrayList<>();
+
+            for (Component s : lores) {
+                loreList.add(s);
+            }
+
+            ItemBuilderUtil.setLore(meta, locale, loreList);
+        });
     }
 
     @Override
-    public ItemBuilder lores(Locale locale, Component... lore) {
-        return this.lores(locale, Arrays.asList(lore));
+    public ItemBuilder lores(Locale locale, Component... lores) {
+        return this.lores(locale, Arrays.asList(lores));
     }
 
     @Override

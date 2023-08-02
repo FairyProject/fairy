@@ -113,13 +113,6 @@ final class Converters {
             Class<?> valueType, Converter.ConversionInfo info
     ) {
         Converter<?, ?> converter;
-        if (SERIALIZER_FACTORY != null) {
-            ObjectSerializer<?, ?> serializer = SERIALIZER_FACTORY.findSerializer(valueType);
-
-            if (serializer != null) {
-                return new SerializerConverter(serializer);
-            }
-        }
 
         if (Reflect.hasNoConvert(info.getField())) {
             converter = IDENTITY_CONVERTER;
@@ -136,6 +129,14 @@ final class Converters {
     private static Converter<Object, Object> selectNonSimpleConverter(
             Class<?> valueType, Converter.ConversionInfo info
     ) {
+        if (SERIALIZER_FACTORY != null) {
+            ObjectSerializer<?, ?> serializer = SERIALIZER_FACTORY.findSerializer(valueType);
+
+            if (serializer != null) {
+                return new SerializerConverter(serializer);
+            }
+        }
+
         Converter<?, ?> converter;
         if (Reflect.isEnumType(valueType) ||
                 /* type is a string when converting back */
@@ -406,18 +407,18 @@ final class Converters {
                 return inst;
             };
         } else if ((element instanceof String) && currentLevelSameAsExpected) {
-            return createNonSimpleConverter(element, info);
+            return createNonSimpleConverter(info.getElementType(), element, info);
         } else {
             info.incCurrentNestingLevel();
-            return createNonSimpleConverter(element, info);
+            return createNonSimpleConverter(info.getElementType(), element, info);
         }
     }
 
     private static Function<Object, ?> createNonSimpleConverter(
-            Object element, Converter.ConversionInfo info
+            Class<?> elementType, Object element, Converter.ConversionInfo info
     ) {
         Converter<?, Object> converter = selectNonSimpleConverter(
-                element.getClass(), info
+                elementType, info
         );
         return o -> converter.convertFrom(o, info);
     }
