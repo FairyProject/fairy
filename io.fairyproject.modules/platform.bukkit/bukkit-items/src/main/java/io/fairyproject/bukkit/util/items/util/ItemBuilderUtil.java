@@ -6,6 +6,7 @@ import io.fairyproject.bukkit.nms.BukkitNMSManagerImpl;
 import io.fairyproject.bukkit.reflection.MinecraftReflection;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
+import io.fairyproject.bukkit.util.LegacyAdventureUtil;
 import io.fairyproject.container.Containers;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.util.AccessUtil;
@@ -22,16 +23,19 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @ApiStatus.Internal
 @UtilityClass
-@SuppressWarnings({"ResultOfMethodCallIgnored", "LambdaCanBeMethodReference"})
+@SuppressWarnings({"ResultOfMethodCallIgnored", "LambdaCanBeMethodReference", "deprecation"})
 public class ItemBuilderUtil {
 
     private static Field GAME_PROFILE_FIELD;
@@ -81,6 +85,30 @@ public class ItemBuilderUtil {
             .find()
             .orElseThrow(() -> new IllegalStateException("No valid set display name can be found."));
 
+    private static final Function<ItemMeta, List<Component>> GET_LORE = FilterUnit.<Function<ItemMeta, List<Component>>>create()
+            .add(FilterUnit.Item.<Function<ItemMeta, List<Component>>>create(itemMeta -> {
+                List<BaseComponent[]> loreComponents = itemMeta.getLoreComponents();
+                if (loreComponents == null)
+                    return null;
+
+                BungeeComponentSerializer serializer = BungeeComponentSerializer.get();
+                return loreComponents.stream()
+                        .map(serializer::deserialize)
+                        .collect(Collectors.toCollection(ArrayList::new));
+            }).predicate(FilterUnit.test(t -> ItemMeta.class.getDeclaredMethod("getLoreComponents"), NoSuchMethodException.class)))
+            .add(itemMeta -> {
+                List<String> lore = itemMeta.getLore();
+                if (lore == null)
+                    return null;
+
+                return lore.stream()
+                        .map(LegacyAdventureUtil::decode)
+                        .collect(Collectors.toCollection(ArrayList::new));
+            })
+            .find()
+            .orElseThrow(() -> new IllegalStateException("No valid get lore can be found."));
+
+
     private static final TriConsumer<ItemMeta, Locale, List<Component>> SET_LORE = FilterUnit.<TriConsumer<ItemMeta, Locale, List<Component>>>create()
             // modern 1.16+
             .add(FilterUnit.Item.<TriConsumer<ItemMeta, Locale, List<Component>>>create((itemMeta, locale, components) -> {
@@ -104,6 +132,10 @@ public class ItemBuilderUtil {
 
     public static void setDisplayName(ItemMeta itemMeta, Locale locale, Component component) {
         SET_DISPLAY_NAME.accept(itemMeta, locale, component);
+    }
+
+    public static @Nullable List<Component> getLore(ItemMeta itemMeta) {
+        return GET_LORE.apply(itemMeta);
     }
 
     public static void setLore(ItemMeta itemMeta, Locale locale, Iterable<Component> components) {
