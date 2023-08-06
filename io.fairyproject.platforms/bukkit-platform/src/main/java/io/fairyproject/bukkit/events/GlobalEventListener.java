@@ -101,7 +101,8 @@ public class GlobalEventListener implements Listener {
 
     private void registerClass(Plugin mainPlugin, Listener listener, ClassInfo classInfo) throws ClassNotFoundException {
         Class<? extends Event> eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
-        EventExecutor eventExecutor = (ignored, event) -> this.onEventFired(event);
+        if (!shouldRegisterEventClass(eventClass))
+            return;
 
         if (Arrays.stream(eventClass.getDeclaredMethods()).noneMatch(method -> method.getParameterCount() == 0 && method.getName().equals("getHandlers")))
             return;
@@ -109,8 +110,18 @@ public class GlobalEventListener implements Listener {
         if (this.registeredEvents.contains(eventClass))
             return;
 
+        EventExecutor eventExecutor = (ignored, event) -> this.onEventFired(event);
+
         this.registeredEvents.add(eventClass);
         this.server.getPluginManager().registerEvent(eventClass, listener, EventPriority.NORMAL, eventExecutor, mainPlugin);
+    }
+
+    private boolean shouldRegisterEventClass(Class<?> aClass) {
+        // https://github.com/PaperMC/Paper/blob/d6d2b6f4e51b24867b609cf747ac6d8c6345c449/patches/server/0089-Add-handshake-event-to-allow-plugins-to-handle-clien.patch#L20C114-L20C114
+        // NEVER register PlayerHandshakeEvent by paper, if there is 1 registered listener of this, it requires one of the listener to handle everything
+        // which causes bungee cord IP forwarding to just, stop working...
+        // what a stupid shit
+        return !aClass.getName().equals("com.destroystokyo.paper.event.player.PlayerHandshakeEvent");
     }
 
     private ClassInfoList scan(List<URL> urls) {
