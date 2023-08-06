@@ -74,9 +74,10 @@ public abstract class Menu implements TerminableConsumer {
     private static BukkitEventNode bukkitEventNode;
 
     private final CompositeTerminable compositeTerminable;
-    @Getter
-    private final EventNode<Event> eventNode;
     private final Map<Integer, Button> buttonsMap;
+
+    @Getter
+    private EventNode<Event> eventNode;
 
     protected Player player;
     private Inventory inventory;
@@ -94,14 +95,6 @@ public abstract class Menu implements TerminableConsumer {
     public Menu() {
         this.compositeTerminable = CompositeTerminable.create();
         this.buttonsMap = new HashMap<>();
-
-        this.eventNode = EventNode.create("fairy:menu", BukkitEventFilter.ALL, null);
-        this.eventNode.addListener(PlayerQuitEvent.class, this::onPlayerQuit);
-        this.eventNode.addListener(PlayerDeathEvent.class, this::onPlayerDeath);
-        this.eventNode.addListener(InventoryClickEvent.class, this::onInventoryClick);
-        this.eventNode.addListener(InventoryCloseEvent.class, this::onInventoryClose);
-
-        this.eventNode.bindWith(this);
     }
 
     private void onInventoryClose(@NotNull InventoryCloseEvent event) {
@@ -371,7 +364,20 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     private void registerListeners() {
+        this.eventNode = EventNode.create("fairy:menu", BukkitEventFilter.ALL, null);
+        this.eventNode.addListener(PlayerQuitEvent.class, this::onPlayerQuit);
+        this.eventNode.addListener(PlayerDeathEvent.class, this::onPlayerDeath);
+        this.eventNode.addListener(InventoryClickEvent.class, this::onInventoryClick);
+        this.eventNode.addListener(InventoryCloseEvent.class, this::onInventoryClose);
+        onEventNodeCreation();
+
+        this.eventNode.bindWith(this);
+
         bukkitEventNode.addChild(this.eventNode);
+    }
+
+    protected void onEventNodeCreation() {
+        // TODO: to be overridden
     }
 
     public final void render() {
