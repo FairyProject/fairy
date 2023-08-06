@@ -34,13 +34,23 @@ open class FairyResourceAction : Action<Task> {
 
                 // Second loop to identify main class
                 val mainClassInterface = classMapper[ClassType.MAIN_CLASS_INTERFACE]
-                mainClassInterface ?: return // maybe it's not shaded.
 
                 classes.forEach {
-                    if (it.classNode.superName == mainClassInterface.name) {
+                    val isMainClass = mainClassInterface?.name == it.classNode.superName || hasFairyLaunch(it)
+                    if (isMainClass) {
                         // the super class was main class interface, so it's main class
                         classMapper[ClassType.MAIN_CLASS] = it
                     }
+                }
+
+                classMapper[ClassType.MAIN_CLASS] ?: run {
+                    println("[Fairy] Main class not found, no resources will be generated.")
+                    return
+                }
+
+                classMapper[ClassType.BUKKIT_PLUGIN] ?: run {
+                    println("[Fairy] Bukkit plugin class not found, no resources will be generated.")
+                    return
                 }
 
                 // Generate resource
@@ -127,6 +137,9 @@ open class FairyResourceAction : Action<Task> {
 
     private fun hasInternalMetadata(classInfo: ClassInfo): Boolean =
         classInfo.classNode.visibleAnnotations?.any { annotation -> annotation.desc.contains(ClassConstants.INTERNAL_META) } ?: false
+
+    private fun hasFairyLaunch(classInfo: ClassInfo): Boolean =
+        classInfo.classNode.visibleAnnotations?.any { annotation -> annotation.desc.contains(ClassConstants.FAIRY_LAUNCH) } ?: false
 }
 
 /**

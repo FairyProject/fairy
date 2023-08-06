@@ -5,6 +5,7 @@ package io.fairyproject.gradle.constants
  */
 object ClassConstants {
 
-    const val INTERNAL_META = "FairyInternalIdentityMeta";
+    const val INTERNAL_META = "FairyInternalIdentityMeta"
+    const val FAIRY_LAUNCH = "FairyLaunch"
 
 }

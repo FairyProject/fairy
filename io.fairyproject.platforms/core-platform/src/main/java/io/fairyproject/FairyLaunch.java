@@ -22,27 +22,15 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.protocol;
+package io.fairyproject;
 
-import com.github.retrooper.packetevents.PacketEventsAPI;
-import io.fairyproject.FairyPlatform;
-import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.mc.protocol.PacketEventsBuilder;
-import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
-import lombok.RequiredArgsConstructor;
-import org.bukkit.plugin.Plugin;
 
-@RequiredArgsConstructor
-public class BukkitPacketEventsBuilder implements PacketEventsBuilder {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    public final FairyPlatform platform;
-
-    @Override
-    public PacketEventsAPI<?> build() {
-        PacketEventsAPI<Plugin> packetEventsAPI = SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
-        packetEventsAPI.getSettings().reEncodeByDefault(false);
-
-        return packetEventsAPI;
-    }
-
+@Target({ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface FairyLaunch {
 }
