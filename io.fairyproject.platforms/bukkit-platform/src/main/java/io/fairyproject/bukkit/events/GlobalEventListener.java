@@ -41,6 +41,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.util.*;
@@ -101,10 +102,7 @@ public class GlobalEventListener implements Listener {
 
     private void registerClass(Plugin mainPlugin, Listener listener, ClassInfo classInfo) throws ClassNotFoundException {
         Class<? extends Event> eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
-        if (!shouldRegisterEventClass(eventClass))
-            return;
-
-        if (Arrays.stream(eventClass.getDeclaredMethods()).noneMatch(method -> method.getParameterCount() == 0 && method.getName().equals("getHandlers")))
+        if (!this.shouldRegisterEventClass(eventClass))
             return;
 
         if (this.registeredEvents.contains(eventClass))
@@ -116,12 +114,32 @@ public class GlobalEventListener implements Listener {
         this.server.getPluginManager().registerEvent(eventClass, listener, EventPriority.NORMAL, eventExecutor, mainPlugin);
     }
 
-    private boolean shouldRegisterEventClass(Class<?> aClass) {
+    private boolean shouldRegisterEventClass(Class<?> eventClass) {
+        if (getRegistrationClass(eventClass) == null)
+            // you can't register this class, ignore it
+            return false;
+
         // https://github.com/PaperMC/Paper/blob/d6d2b6f4e51b24867b609cf747ac6d8c6345c449/patches/server/0089-Add-handshake-event-to-allow-plugins-to-handle-clien.patch#L20C114-L20C114
         // NEVER register PlayerHandshakeEvent by paper, if there is 1 registered listener of this, it requires one of the listener to handle everything
         // which causes bungee cord IP forwarding to just, stop working...
         // what a stupid shit
-        return !aClass.getName().equals("com.destroystokyo.paper.event.player.PlayerHandshakeEvent");
+        return !eventClass.getName().equals("com.destroystokyo.paper.event.player.PlayerHandshakeEvent");
+    }
+
+    // copied from bukkit's SimplePluginManager
+    private @Nullable Class<?> getRegistrationClass(Class<?> clazz) {
+        try {
+            clazz.getDeclaredMethod("getHandlerList");
+            return clazz;
+        } catch (NoSuchMethodException e) {
+            if (clazz.getSuperclass() != null
+                    && !clazz.getSuperclass().equals(Event.class)
+                    && Event.class.isAssignableFrom(clazz.getSuperclass())) {
+                return getRegistrationClass(clazz.getSuperclass().asSubclass(Event.class));
+            } else {
+                return null;
+            }
+        }
     }
 
     private ClassInfoList scan(List<URL> urls) {
