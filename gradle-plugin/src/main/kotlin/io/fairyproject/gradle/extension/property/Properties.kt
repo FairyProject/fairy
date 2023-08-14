@@ -18,6 +18,14 @@ class BukkitProperties : Properties(PlatformType.BUKKIT) {
         get() = this["api-version"] as String
         set(value) { this["api-version"] = value }
 
+    var description: String
+        get() = this["description"] as String
+        set(value) { this["description"] = value }
+
+    var website: String
+        get() = this["website"] as String
+        set(value) { this["website"] = value }
+
     val authors: MutableList<String> by lazy {
         val list = mutableListOf<String>()
         this["authors"] = list
@@ -26,13 +34,19 @@ class BukkitProperties : Properties(PlatformType.BUKKIT) {
 
     val depends: MutableList<String> by lazy {
         val list = mutableListOf<String>()
-        this["depends"] = list
+        this["depend"] = list
         list
     }
 
     val softDepends: MutableList<String> by lazy {
         val list = mutableListOf<String>()
-        this["softDepends"] = list
+        this["softdepend"] = list
+        list
+    }
+
+    val loadBefore: MutableList<String> by lazy {
+        val list = mutableListOf<String>()
+        this["loadbefore"] = list
         list
     }
 
