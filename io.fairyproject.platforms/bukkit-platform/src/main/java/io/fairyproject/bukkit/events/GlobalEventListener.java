@@ -28,6 +28,7 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
+import io.fairyproject.log.Log;
 import io.fairyproject.util.Stacktrace;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
@@ -64,6 +65,10 @@ public class GlobalEventListener implements Listener {
     @EventHandler
     public void onPluginEnable(PluginEnableEvent event) {
         Plugin plugin = event.getPlugin();
+        if (!plugin.isEnabled())
+            // funny hahna
+            return;
+
         URL url = getClassLoaderURLFromClass(plugin.getClass());
         URL bukkitUrl = getClassLoaderURLFromClass(Server.class);
 
@@ -100,8 +105,14 @@ public class GlobalEventListener implements Listener {
         }
     }
 
-    private void registerClass(Plugin mainPlugin, Listener listener, ClassInfo classInfo) throws ClassNotFoundException {
-        Class<? extends Event> eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
+    private void registerClass(Plugin mainPlugin, Listener listener, ClassInfo classInfo) {
+        Class<? extends Event> eventClass;
+        try {
+            eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
+        } catch (ClassNotFoundException ex) {
+            Log.error("Failed to load class " + classInfo.getName() + " while registering global events");
+            return;
+        }
         if (!this.shouldRegisterEventClass(eventClass))
             return;
 
