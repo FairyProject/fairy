@@ -29,6 +29,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class TransitionBuilderImpl implements TransitionBuilder {
@@ -62,7 +63,7 @@ public class TransitionBuilderImpl implements TransitionBuilder {
         return signal -> {
             TransitionHandleImpl handle = (TransitionHandleImpl) this.transitions.getOrDefault(signal, null);
             if (handle != null) {
-                handle.function.accept(stateMachine);
+                handle.callback.accept(stateMachine, signal);
             }
         };
     }
@@ -70,7 +71,7 @@ public class TransitionBuilderImpl implements TransitionBuilder {
     public static class TransitionHandleImpl implements TransitionHandle {
 
         private final Signal signal;
-        private Consumer<StateMachine> function;
+        private BiConsumer<StateMachine, Signal> callback;
 
         public TransitionHandleImpl(Signal signal) {
             this.signal = signal;
@@ -78,7 +79,7 @@ public class TransitionBuilderImpl implements TransitionBuilder {
 
         @Override
         public @NotNull TransitionHandle to(@NotNull State state) {
-            this.function = stateMachine -> stateMachine.transform(state, signal);
+            this.callback = (stateMachine, signal) -> stateMachine.transform(state, signal);
             return this;
         }
 
@@ -89,7 +90,7 @@ public class TransitionBuilderImpl implements TransitionBuilder {
 
         @Override
         public @NotNull TransitionHandle run(@NotNull Runnable runnable) {
-            this.function = stateMachine -> runnable.run();
+            this.callback = (stateMachine, signal) -> runnable.run();
             return this;
         }
     }
