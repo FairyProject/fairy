@@ -119,7 +119,10 @@ public class GlobalEventListener implements Listener {
         if (this.registeredEvents.contains(eventClass))
             return;
 
-        EventExecutor eventExecutor = (ignored, event) -> this.onEventFired(event);
+        EventExecutor eventExecutor = (ignored, event) -> {
+            if (eventClass.isInstance(event)) // only fire if the event is instance of the class, avoid duplicate firing
+                this.onEventFired(event);
+        };
 
         this.registeredEvents.add(eventClass);
         this.server.getPluginManager().registerEvent(eventClass, listener, EventPriority.NORMAL, eventExecutor, mainPlugin);
