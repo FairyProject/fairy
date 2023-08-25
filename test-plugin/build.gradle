@@ -1,15 +1,8 @@
-buildscript {
-    repositories {
-        mavenCentral()
-        maven {
-            url file("$rootDir/libs/local")
-        }
-    }
-}
-
 plugins {
     id "java"
-    id "io.fairyproject" version "1.1.0b3"
+    id "io.fairyproject" version "0.6.6b10-SNAPSHOT"
+    id "xyz.jpenilla.run-paper" version "1.0.6"
+    id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
 repositories {
@@ -17,16 +10,25 @@ repositories {
 }
 
 fairy {
-    name = "debugPlugin"
-    version = "1.0.0"
-    mainPackage = "io.example.debug"
+    name.set("test-plugin")
+    mainPackage.set("io.example.debug")
+}
 
-    fairyIde = true
-
-    platform("bukkit")
-//    module("locale")
+dependencies {
+    implementation(project(":io.fairyproject.bundles:bukkit-bundles"))
 }
 
 test {
     useJUnitPlatform()
+}
+
+tasks {
+    shadowJar {
+        relocate("io.fairyproject", "io.example.debug.fairy")
+    }
+
+    runServer {
+        minecraftVersion("1.8.8")
+        legacyPluginLoading()
+    }
 }

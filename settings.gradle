@@ -26,9 +26,7 @@ pluginManagement {
     repositories {
         mavenLocal()
         gradlePluginPortal()
-        maven {
-            url file("$rootDir/libs/local")
-        }
+        maven { url "https://repo.imanity.dev/imanity-libraries/" }
     }
 }
 
