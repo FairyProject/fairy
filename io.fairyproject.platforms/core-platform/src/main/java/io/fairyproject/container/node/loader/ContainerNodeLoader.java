@@ -52,10 +52,12 @@ public class ContainerNodeLoader {
     private final ContainerContext context;
     private final ContainerNode node;
 
-    public void load() {
+    public boolean load() {
         BlockingThreadAwaitQueue queue = BlockingThreadAwaitQueue.create();
 
         this.node.resolve();
+        if (!this.node.isResolved())
+            return false;
         CompletableFuture<?> completableFuture = this.initProvider()
                 .thenCompose(directlyCompose(this::initLifeCycleHandlers))
                 .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.CONSTRUCT)), queue)
@@ -66,6 +68,7 @@ public class ContainerNodeLoader {
 
         queue.await(completableFuture::isDone);
         ThrowingRunnable.sneaky(completableFuture::get).run();
+        return true;
     }
 
     private CompletableFuture<?> initProvider() {
@@ -108,7 +111,7 @@ public class ContainerNodeLoader {
         try {
             return obj.setLifeCycle(lifeCycle);
         } catch (Throwable throwable) {
-            ContainerLogger.reportComponent(obj, "initializing life cycle " + lifeCycle, throwable);
+            ContainerLogger.report(this.node, obj, throwable, "initializing life cycle " + lifeCycle);
             return AsyncUtils.failureOf(throwable);
         }
     }
@@ -128,7 +131,7 @@ public class ContainerNodeLoader {
                 try {
                     return this.handleControllerForObject(controller, obj);
                 } catch (Throwable throwable) {
-                    ContainerLogger.reportComponent(obj, "initializing controller", throwable);
+                    ContainerLogger.report(this.node, obj, throwable, "initializing controller: " + controller.getClass().getName());
                     return AsyncUtils.failureOf(throwable);
                 }
             }));
@@ -142,7 +145,7 @@ public class ContainerNodeLoader {
             try {
                 controller.applyContainerObject(obj);
             } catch (Throwable throwable) {
-                ContainerLogger.reportComponent(obj, "Applying controller", throwable);
+                ContainerLogger.report(this.node, obj, throwable, "applying controller: " + controller.getClass().getName());
                 SneakyThrowUtil.sneakyThrow(throwable);
             }
         });
@@ -156,7 +159,7 @@ public class ContainerNodeLoader {
         try {
             runnable.run();
         } catch (Throwable throwable) {
-            ContainerLogger.reportComponent(obj, "initializing", throwable);
+            ContainerLogger.report(this.node, obj, throwable, "initializing");
         }
     }
 
@@ -164,7 +167,7 @@ public class ContainerNodeLoader {
         try {
             return function.apply(obj);
         } catch (Throwable throwable) {
-            ContainerLogger.reportComponent(obj, "initializing", throwable);
+            ContainerLogger.report(this.node, obj, throwable, "initializing");
             return null;
         }
     }

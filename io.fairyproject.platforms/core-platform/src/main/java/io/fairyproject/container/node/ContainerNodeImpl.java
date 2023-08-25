@@ -113,22 +113,30 @@ public class ContainerNodeImpl implements ContainerNode {
         if (this.isResolved())
             return this;
 
+        boolean success = true;
         for (ContainerObj obj : this.objects.values()) {
+            if (!success)
+                break;
+
             for (ContainerObj.DependEntry entry : obj.dependEntries()) {
                 final Class<?> dependClass = entry.getDependClass();
-                final ServiceDependencyType type = entry.getDependType();
 
-                if (ContainerReference.hasObj(dependClass))
-                    continue;
-                if (type == ServiceDependencyType.FORCE) {
-                    ContainerLogger.reportNode(this);
-                    ContainerLogger.reportComponent(obj, "cannot be resolved because of missing dependency: " + dependClass.getName(), new IllegalArgumentException());
-                } else {
-                    // TODO - sub disable
+                if (!ContainerReference.hasObj(dependClass)) {
+                    ContainerLogger.report(this, obj, null,
+                            "Unknown dependency: " + dependClass.getName(),
+                            " ",
+                            "Maybe you forgot to register it? Make sure the dependency is marked as @InjectableComponent",
+                            "and you have the class in the classpath.");
+                    success = false;
+                    break;
                 }
             }
             this.graph.add(obj);
         }
+
+        if (!success)
+            return this;
+
         this.graph.resolve();
 
         for (ContainerNode childNode : this.childNodes) {

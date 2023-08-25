@@ -53,8 +53,8 @@ public class RootNodeLoader {
         return node;
     }
 
-    private void loadNode() {
-        new ContainerNodeLoader(this.context, this.node).load();
+    private boolean loadNode() {
+        return new ContainerNodeLoader(this.context, this.node).load();
     }
 
     private void runClassScanner() {

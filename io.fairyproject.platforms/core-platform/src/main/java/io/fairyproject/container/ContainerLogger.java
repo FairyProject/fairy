@@ -28,43 +28,101 @@ import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 public class ContainerLogger {
 
-    public static void reportComponent(@NotNull ContainerObj obj, @Nullable String message, @Nullable Throwable throwable) {
-        // write as much information about obj as possible
-        if (message != null) {
-            // write message
-            Log.error(String.format("Component %s: %s", obj.type().getName(), message));
-        } else {
-            Log.error(String.format("Component %s", obj.type().getName()));
+    public static void report(ContainerNode node, ContainerObj obj, @Nullable Throwable throwable, String... messages) {
+        Log.error("!-------------------!");
+        Log.error("An error was reported with Fairy container system!!");
+        Log.error("Node: " + node.name());
+        Log.error("Component: " + obj.type().getName());
+        Log.error(" ");
+        Log.error("Messages:");
+        for (String message : messages) {
+            Log.error(">    " + message);
         }
-
-        Log.error(String.format("Component life cycle: %s", obj.lifeCycle()));
-        Log.error(String.format("Component dependencies: %s", obj.dependEntries()));
-        Log.error(String.format("Component instance provider: %s", obj.provider()));
-        Log.error(String.format("Component instance: %s", obj.instance()));
-        Log.error(String.format("Component thread mode: %s", obj.threadingMode()));
-        Log.error(String.format("Component life cycle handlers: %s", obj.lifeCycleHandlers().stream()
-                .map(handler -> handler.getClass().getName())
-                .collect(Collectors.toList())));
+        Path path = write(node, obj, messages, throwable);
 
         if (throwable != null) {
-            SneakyThrowUtil.sneakyThrow(Stacktrace.simplifyStacktrace(throwable));
+            Log.error(" ");
+            Log.error("The error stacktrace: ");
+            Log.error(Stacktrace.simplifyStacktrace(throwable));
         }
+
+        Log.error(" ");
+        if (path != null) {
+            Log.error("The error has been written to the log file.");
+            Log.error("Path: " + path.toAbsolutePath());
+        }
+        Log.error("!-------------------!");
     }
 
-    public static void reportNode(@NotNull ContainerNode node) {
-        Log.error("Node: " + node.name());
-        Log.error(String.format("Node classes: %s", node.all().stream()
-                .map(obj -> obj.type().getName())
-                .collect(Collectors.toList())
-        ));
+    public static Path write(ContainerNode node, @Nullable ContainerObj obj, @Nullable String[] messages, @Nullable Throwable throwable) {
+        String time = DateTimeFormatter.ISO_LOCAL_DATE.format(LocalDate.now());
+
+        Path directory = Paths.get("fairy");
+        Path path = directory.resolve(time + ".log");
+        int counter = 2;
+        while (Files.exists(path)) {
+            path = directory.resolve(time + "-" + counter + ".log");
+            counter++;
+        }
+
+        try {
+            Files.createDirectories(directory);
+
+            StringWriter out = new StringWriter();
+            PrintWriter builder = new PrintWriter(out);
+            builder.append("Node: ").append(node.name()).append("\n");
+            builder.append("Classes: ").append("\n");
+            for (ContainerObj chain : node.all()) {
+                builder.append("  ").append(chain.type().getName()).append("\n");
+            }
+
+            if (obj != null) {
+                builder.append(String.format("Node Object: %s\n", obj.type().getName()));
+                builder.append(String.format("  Life Cycle: %s\n", obj.lifeCycle()));
+                builder.append(String.format("  dependencies: %s\n", obj.dependEntries()));
+                builder.append(String.format("  Component instance provider: %s\n", obj.provider()));
+                builder.append(String.format("  Component instance: %s\n", obj.instance()));
+                builder.append(String.format("  Component thread mode: %s\n", obj.threadingMode()));
+                builder.append(String.format("  Component life cycle handlers: %s\n", obj.lifeCycleHandlers().stream()
+                        .map(handler -> handler.getClass().getName())
+                        .collect(Collectors.toList())));
+            }
+
+            builder.append("--------------------\n");
+
+            if (messages != null) {
+                for (String message : messages) {
+                    builder.append(message).append("\n");
+                }
+            }
+
+            if (throwable != null) {
+                throwable.printStackTrace(builder);
+            }
+
+            Files.write(path, out.toString().getBytes(), StandardOpenOption.CREATE_NEW);
+
+            return path;
+        } catch (IOException ex) {
+            Log.error("Cannot write error log file", ex);
+        }
+
+        return null;
     }
 
 }
