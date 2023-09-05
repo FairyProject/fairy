@@ -38,7 +38,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class PacketEventsGithubResourceProvider implements Function<String, InputStream> {
 
-    private final String url = "https://raw.githubusercontent.com/FairyProject/packetevents/2.0/api/src/main/resources/%s";
+    private final String url = "https://raw.githubusercontent.com/retrooper/packetevents/2.0/api/src/main/resources/%s";
     private final Path cacheDirectory;
 
     @Override
