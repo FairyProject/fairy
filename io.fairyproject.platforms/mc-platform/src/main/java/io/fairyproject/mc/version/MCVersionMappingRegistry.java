@@ -88,6 +88,8 @@ public class MCVersionMappingRegistry {
         File dataFolder = Fairy.getPlatform().getDataFolder();
         Path path = new File(dataFolder, "cache-protocol-versions.json").toPath();
         try {
+            if (Files.exists(path))
+                Files.delete(path);
             Files.write(path, gson.toJson(jsonElements).getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
         } catch (IOException e) {
             Log.error("Failed to write version mappings to file", e);
@@ -126,6 +128,8 @@ public class MCVersionMappingRegistry {
             JsonObject object = element.getAsJsonObject();
             this.loadVersionFromMinecraftData(object);
         }
+
+        return jsonArray;
     }
 
     protected void loadVersionFromMinecraftData(JsonObject object) {
