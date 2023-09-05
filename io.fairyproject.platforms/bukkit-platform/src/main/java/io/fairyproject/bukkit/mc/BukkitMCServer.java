@@ -9,6 +9,7 @@ import org.bukkit.Server;
 public class BukkitMCServer implements MCServer {
 
     private final Server server;
+    private MCVersion mcVersion;
 
     public BukkitMCServer(Server server) {
         this.server = server;
@@ -21,8 +22,10 @@ public class BukkitMCServer implements MCServer {
 
     @Override
     public MCVersion getVersion() {
-        BukkitVersionDecoder bukkitVersionDecoder = BukkitVersionDecoder.create();
-
-        return bukkitVersionDecoder.decode(this.server);
+        if (mcVersion == null) {
+            BukkitVersionDecoder bukkitVersionDecoder = BukkitVersionDecoder.create();
+            this.mcVersion = bukkitVersionDecoder.decode(this.server);
+        }
+        return this.mcVersion;
     }
 }

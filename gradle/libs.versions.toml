@@ -8,13 +8,13 @@ common-io = "2.7"
 annotations = "19.0.0"
 lombok = "1.18.24"
 persistence-api = "2.2"
-asm = "9.3"
+asm = "9.5"
 packetevents = "2.0.0"
 bukkit-api = "1.16.5-R0.1-SNAPSHOT"
 
 # Adventure
-adventure = "4.11.0"
-adventure-platform = "4.1.2"
+adventure = "4.14.0"
+adventure-platform = "4.3.0"
 
 # testing
 junit = "5.8.1"

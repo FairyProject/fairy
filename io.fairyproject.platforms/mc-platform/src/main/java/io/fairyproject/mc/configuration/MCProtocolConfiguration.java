@@ -30,6 +30,7 @@ import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.PacketEventsBuilder;
 import io.fairyproject.mc.protocol.packet.PacketSender;
 import io.fairyproject.mc.protocol.packet.impl.PacketSenderImpl;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 
 @Configuration
@@ -37,11 +38,12 @@ public class MCProtocolConfiguration {
 
     @InjectableComponent
     public MCProtocol provideMCProtocol(
+            MCPlayerRegistry playerRegistry,
             MCVersionMappingRegistry versionMappingRegistry,
             PacketEventsBuilder packetEventsBuilder,
             PacketSender packetSender
     ) {
-        return new MCProtocol(versionMappingRegistry, packetEventsBuilder, packetSender);
+        return new MCProtocol(playerRegistry, versionMappingRegistry, packetEventsBuilder, packetSender);
     }
 
     @InjectableComponent

@@ -39,6 +39,7 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketSendEvent;
 import io.fairyproject.mc.protocol.packet.PacketSender;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
@@ -52,6 +53,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MCProtocol {
     public static MCProtocol INSTANCE;
 
+    private final MCPlayerRegistry playerRegistry;
     private final MCVersionMappingRegistry mappingRegistry;
     private final PacketEventsBuilder packetEventsBuilder;
     private final PacketSender packetSender;
@@ -75,6 +77,15 @@ public class MCProtocol {
         Log.info("Loaded MCProtocol with PacketEvents version %s on minecraft version %s", packetEvents.getVersion(), packetEvents.getServerManager().getVersion());
     }
 
+    @PostInitialize
+    public void onPostInitialize() {
+        this.packetEvents.getSettings()
+                .debug(false)
+                .bStats(false)
+                .checkForUpdates(false);
+        this.packetEvents.init();
+    }
+
     private void registerMCEventTransformer() {
         this.packetEvents.getEventManager().registerListener(new PacketListener() {
 
@@ -84,7 +95,7 @@ public class MCProtocol {
                 if (player == null)
                     return;
 
-                MCPlayer mcPlayer = MCPlayer.from(player);
+                MCPlayer mcPlayer = playerRegistry.findPlayerByPlatformPlayer(player);
                 GlobalEventNode.get().call(new MCPlayerPacketReceiveEvent(mcPlayer, event));
             }
 
@@ -94,7 +105,7 @@ public class MCProtocol {
                 if (player == null)
                     return;
 
-                MCPlayer mcPlayer = MCPlayer.from(player);
+                MCPlayer mcPlayer = playerRegistry.findPlayerByPlatformPlayer(player);
                 GlobalEventNode.get().call(new MCPlayerPacketSendEvent(mcPlayer, event));
             }
 
@@ -126,15 +137,6 @@ public class MCProtocol {
                     }
                 }))
         );
-    }
-
-    @PostInitialize
-    public void onPostInitialize() {
-        this.packetEvents.getSettings()
-                .debug(false)
-                .bStats(false)
-                .checkForUpdates(false);
-        this.packetEvents.init();
     }
 
     @PostDestroy
