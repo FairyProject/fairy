@@ -26,6 +26,7 @@ package io.fairyproject.container.node.scanner;
 
 import io.fairyproject.Debug;
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.ContainerLogger;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.Configuration;
 import io.fairyproject.container.configuration.TestConfiguration;
@@ -136,11 +137,15 @@ public class ContainerNodeClassScanner {
 
             ContainerObj containerObj = this.addComponentClass(javaClass, node, closure);
 
-            ConstructorInstanceProvider provider = new ConstructorInstanceProvider(
-                    context,
-                    new ConstructorContainerResolver(javaClass)
-            );
-            containerObj.setProvider(provider);
+            try {
+                ConstructorInstanceProvider provider = new ConstructorInstanceProvider(
+                        context,
+                        new ConstructorContainerResolver(javaClass)
+                );
+                containerObj.setProvider(provider);
+            } catch (Throwable t) {
+                ContainerLogger.report(node, containerObj, t, "An error occurred while creating the component instance provider");
+            }
         }
     }
 
