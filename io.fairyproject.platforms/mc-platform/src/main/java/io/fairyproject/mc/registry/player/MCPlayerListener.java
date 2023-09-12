@@ -24,6 +24,8 @@
 
 package io.fairyproject.mc.registry.player;
 
+import io.fairyproject.Fairy;
+import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.event.GlobalEventNode;
@@ -32,6 +34,8 @@ import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.event.NativePlayerLoginEvent;
 import lombok.RequiredArgsConstructor;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 @InjectableComponent
 @RequiredArgsConstructor
 public class MCPlayerListener {
@@ -39,6 +43,7 @@ public class MCPlayerListener {
     private final MCPlayerRegistry registry;
     private final MCPlayerPlatformOperator platformOperator;
     private final GlobalEventNode eventNode;
+    private final ReentrantLock lock = new ReentrantLock();
 
     @PostInitialize
     public void onPostInitialize() {
@@ -55,13 +60,34 @@ public class MCPlayerListener {
         Object nativePlayer = event.getNativePlayer();
         mcPlayer.setNative(nativePlayer);
 
-        this.registry.addPlayer(mcPlayer);
+        lock.lock();
+        try {
+            this.registry.addPlayer(mcPlayer);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void onPlayerQuit(MCPlayerQuitEvent event) {
         MCPlayer player = event.getPlayer();
 
-        this.registry.removePlayer(player.getUUID());
+        lock.lock();
+        if (!FairyPlatform.INSTANCE.isRunning()) {
+            try {
+                this.registry.removePlayer(player.getUUID());
+            } finally {
+                lock.unlock();
+            }
+            return;
+        }
+
+        Fairy.getTaskScheduler().runScheduled(() -> {
+            try {
+                this.registry.removePlayer(player.getUUID());
+            } finally {
+                lock.unlock();
+            }
+        }, 1L);
     }
 
 }

@@ -85,8 +85,7 @@ public class ContainerNodeLoader {
             try {
                 instance = instanceProvider.provide();
             } catch (Exception e) {
-                SneakyThrowUtil.sneakyThrow(e);
-                return;
+                throw new IllegalStateException("Failed to provide instance for " + containerObj.type().getName(), e);
             }
 
             containerObj.setInstance(instance);

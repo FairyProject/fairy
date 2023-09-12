@@ -33,6 +33,7 @@ import lombok.SneakyThrows;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 
 @Getter
 public class ConstructorContainerResolver extends ContainerResolverBase {
@@ -51,6 +52,10 @@ public class ConstructorContainerResolver extends ContainerResolverBase {
     private Constructor<?> findConstructor() throws ReflectiveOperationException {
         Constructor<?> constructor = null;
         int priority = -1;
+
+        if (Modifier.isAbstract(this.type.getModifiers())) {
+            throw new IllegalArgumentException("The type " + this.type.getName() + " it's abstract!");
+        }
 
         for (Constructor<?> current : this.type.getDeclaredConstructors()) {
             AccessUtil.setAccessible(current);
