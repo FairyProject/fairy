@@ -575,6 +575,9 @@ public final class NBTEditor {
         try {
             Object stack = null;
             stack = getMethod( "asNMSCopy" ).invoke( null, item );
+            // Imanity - prevent NPE
+            if (stack == null)
+                return null;
 
             Object tag = null;
 
