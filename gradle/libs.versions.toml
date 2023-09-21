@@ -17,7 +17,7 @@ adventure = "4.14.0"
 adventure-platform = "4.3.0"
 
 # testing
-junit = "5.8.1"
+junit = "5.9.0"
 mockito = "4.11.0"
 
 [libraries]
