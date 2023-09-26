@@ -7,7 +7,6 @@ import io.fairyproject.container.PostInitialize;
 import io.fairyproject.bukkit.command.util.CommandUtil;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandListener;
-import io.fairyproject.container.object.Obj;
 import io.fairyproject.metadata.MetadataKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -27,21 +26,19 @@ public class BukkitCommandListener implements CommandListener {
     private Map<String, Command> knownMap;
 
     @PostInitialize
-    public void onPostInitialize() {
+    @SuppressWarnings("unchecked")
+    public void onPostInitialize() throws NoSuchFieldException, IllegalAccessException {
         if (Debug.UNIT_TEST) {
             this.knownMap = new HashMap<>();
             return;
         }
 
         this.commandMap = CommandUtil.getCommandMap();
-        try {
-            Field knownMapField = SimpleCommandMap.class.getDeclaredField("knownCommands");
-            knownMapField.setAccessible(true);
 
-            this.knownMap = (Map<String, Command>) knownMapField.get(this.commandMap);
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-        }
+        Field knownMapField = SimpleCommandMap.class.getDeclaredField("knownCommands");
+        knownMapField.setAccessible(true);
+
+        this.knownMap = (Map<String, Command>) knownMapField.get(this.commandMap);
     }
 
     @Override
@@ -53,6 +50,9 @@ public class BukkitCommandListener implements CommandListener {
 
         commandMap.register(bukkitCommandExecutor.getFallbackPrefix(), bukkitCommandExecutor);
         command.getMetadata().put(metadata, bukkitCommandExecutor);
+
+        // Synchronize commands
+        CommandUtil.syncCommands();
     }
 
     @Override
@@ -66,5 +66,8 @@ public class BukkitCommandListener implements CommandListener {
                 knownMap.remove(alias);
             }
         });
+
+        // Synchronize commands
+        CommandUtil.syncCommands();
     }
 }

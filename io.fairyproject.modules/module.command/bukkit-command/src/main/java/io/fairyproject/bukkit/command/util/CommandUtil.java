@@ -2,18 +2,23 @@ package io.fairyproject.bukkit.command.util;
 
 import com.cryptomorin.xseries.XMaterial;
 import io.fairyproject.Debug;
+import io.fairyproject.util.AccessUtil;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
+import org.bukkit.Server;
 import org.bukkit.command.CommandMap;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.SimplePluginManager;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.function.Supplier;
 
 @UtilityClass
 public class CommandUtil {
+
+    private Supplier<CommandMap> COMMAND_MAP_SUPPLIER;
 
     public boolean isInteger(String input) {
         try {
@@ -57,8 +62,6 @@ public class CommandUtil {
         return material.parseItem();
     }
 
-    private Supplier<CommandMap> COMMAND_MAP_SUPPLIER;
-
     public CommandMap getCommandMap() {
         if (Debug.UNIT_TEST)
             return null;
@@ -83,6 +86,18 @@ public class CommandUtil {
         }
 
         return COMMAND_MAP_SUPPLIER.get();
+    }
+
+    public void syncCommands() {
+        Server server = Bukkit.getServer();
+        try {
+            Method syncCommands = server.getClass().getDeclaredMethod("syncCommands");
+            AccessUtil.setAccessible(syncCommands);
+
+            syncCommands.invoke(server);
+        } catch (Throwable ignored) {
+            // maybe it's not a CraftBukkit server or older version
+        }
     }
 
 }
