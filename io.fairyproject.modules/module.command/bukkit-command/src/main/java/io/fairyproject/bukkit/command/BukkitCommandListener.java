@@ -66,5 +66,8 @@ public class BukkitCommandListener implements CommandListener {
                 knownMap.remove(alias);
             }
         });
+
+        // Synchronize commands
+        CommandUtil.syncCommands();
     }
 }
