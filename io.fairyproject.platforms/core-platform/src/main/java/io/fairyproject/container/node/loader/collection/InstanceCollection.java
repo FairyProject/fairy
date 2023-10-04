@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,20 +22,22 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container;
+package io.fairyproject.container.node.loader.collection;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.fairyproject.container.object.ContainerObj;
 
-@Deprecated
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ServiceDependency {
+public interface InstanceCollection extends Iterable<InstanceEntry> {
 
-    Class<?>[] value();
+    static InstanceCollection create() {
+        return new InstanceCollectionImpl();
+    }
 
-    ServiceDependencyType type() default ServiceDependencyType.FORCE;
+    /**
+     * Add an instance to the collection.
+     *
+     * @param instance The instance to add.
+     * @return {@code true} if the instance is not already in the collection.
+     */
+    boolean add(Object instance, ContainerObj containerObject);
 
 }

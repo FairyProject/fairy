@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,18 +22,21 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container;
+package io.fairyproject.container.processor;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 
-@Deprecated
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface DependencyType {
+import java.util.concurrent.CompletableFuture;
 
-    ServiceDependencyType value() default ServiceDependencyType.FORCE;
+public interface ContainerObjInitProcessor {
+
+    default void processPreInitialization(ContainerObj object, Object instance) {
+        // to be overridden
+    }
+
+    default void processPostInitialization(ContainerObj object, Object instance) {
+        // to be overridden
+    }
 
 }

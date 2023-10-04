@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2022 Fairy Project
+ * Copyright (c) 2021 Imanity
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,17 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.controller.node;
+package io.fairyproject.container;
 
-public class NodeControllerNoOp implements NodeController {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    public static final NodeController INSTANCE = new NodeControllerNoOp();
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface DependsOn {
+
+    Class<?>[] value();
 
 }

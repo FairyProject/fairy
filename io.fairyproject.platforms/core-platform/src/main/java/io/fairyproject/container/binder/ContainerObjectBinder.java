@@ -22,18 +22,36 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.controller.node;
+package io.fairyproject.container.binder;
 
-import io.github.classgraph.ScanResult;
+import io.fairyproject.container.binder.impl.ContainerDefinitionBindingImpl;
+import io.fairyproject.container.object.ContainerObj;
+import org.jetbrains.annotations.Nullable;
 
-public interface NodeController {
+public class ContainerObjectBinder {
 
-    default void onClassScan(ScanResult scanResult) {
-        // to be overridden
+    private final ClassValue<ContainerDefinitionBinding> bindings = new ClassValue<ContainerDefinitionBinding>() {
+        @Override
+        protected ContainerDefinitionBinding computeValue(Class<?> type) {
+            return new ContainerDefinitionBindingImpl(type);
+        }
+    };
+
+    @Nullable
+    public ContainerObj getBinding(Class<?> type) {
+        return bindings.get(type).getBinding();
     }
 
-    default void onInit() {
-        // to be overridden
+    public boolean isBound(Class<?> type) {
+        return bindings.get(type).getBinding() != null;
+    }
+
+    public void bind(Class<?> type, ContainerObj object) {
+        this.bindings.get(type).setBinding(object);
+    }
+
+    public void unbind(Class<?> type) {
+        this.bindings.get(type).setBinding(null);
     }
 
 }

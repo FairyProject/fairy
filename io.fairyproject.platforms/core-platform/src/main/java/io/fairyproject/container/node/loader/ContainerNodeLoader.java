@@ -26,17 +26,23 @@ package io.fairyproject.container.node.loader;
 
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.ContainerLogger;
-import io.fairyproject.container.controller.ContainerController;
-import io.fairyproject.container.controller.node.NodeController;
 import io.fairyproject.container.node.ContainerNode;
+import io.fairyproject.container.node.loader.collection.InstanceCollection;
+import io.fairyproject.container.node.loader.collection.InstanceEntry;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.provider.InstanceProvider;
+import io.fairyproject.container.object.resolver.ContainerObjectResolver;
+import io.fairyproject.container.object.singleton.SingletonObjectRegistry;
+import io.fairyproject.container.processor.ContainerNodeInitProcessor;
+import io.fairyproject.container.processor.ContainerObjConstructProcessor;
+import io.fairyproject.container.processor.ContainerObjInitProcessor;
+import io.fairyproject.container.scope.InjectableScope;
 import io.fairyproject.util.AsyncUtils;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.thread.BlockingThreadAwaitQueue;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +50,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class ContainerNodeLoader {
@@ -52,86 +57,78 @@ public class ContainerNodeLoader {
     private final ContainerContext context;
     private final ContainerNode node;
 
+    private ContainerObjectResolver containerObjectResolver;
+    private InstanceCollection collection;
+
     public boolean load() {
+        this.containerObjectResolver = ContainerObjectResolver.create(
+                this.context.containerObjectBinder(),
+                this::findSingletonInstance,
+                this::findPrototypeInstance
+        );
+        this.collection = InstanceCollection.create();
+
         BlockingThreadAwaitQueue queue = BlockingThreadAwaitQueue.create();
 
         this.node.resolve();
         if (!this.node.isResolved())
             return false;
-        CompletableFuture<?> completableFuture = this.initProvider()
-                .thenCompose(directlyCompose(this::initLifeCycleHandlers))
-                .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.CONSTRUCT)), queue)
-                .thenCompose(directlyCompose(this::handleController))
-                .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.PRE_INIT)), queue)
+        CompletableFuture<?> completableFuture = this.provideInstances()
+                .thenRun(this::callNodePreInitProcessors)
+                .thenComposeAsync(directlyCompose(this::callPreInitProcessors), queue)
                 .thenRun(this::handleObjCollector)
-                .thenComposeAsync(directlyCompose(() -> this.handleLifeCycle(LifeCycle.POST_INIT)), queue);
+                .thenComposeAsync(directlyCompose(this::callPostInitProcessors), queue);
 
         queue.await(completableFuture::isDone);
         ThrowingRunnable.sneaky(completableFuture::get).run();
         return true;
     }
 
-    private CompletableFuture<?> initProvider() {
-        return this.node.forEachClockwiseAwait(this::initProviderForComponent);
-    }
-
-    private CompletableFuture<?> initProviderForComponent(ContainerObj containerObj) {
-        InstanceProvider instanceProvider = containerObj.provider();
-        if (instanceProvider == null)
-            return AsyncUtils.empty();
-
-        return containerObj.threadingMode().execute(() -> {
-            Object instance;
-            try {
-                instance = instanceProvider.provide();
-            } catch (Exception e) {
-                throw new IllegalStateException("Failed to provide instance for " + containerObj.type().getName(), e);
-            }
-
-            containerObj.setInstance(instance);
-        });
-    }
-
-    private CompletableFuture<?> initLifeCycleHandlers() {
-        return AsyncUtils.allOf(this.node.all().stream()
-                .map(ContainerObj::initLifeCycleHandlers)
-                .collect(Collectors.toList()));
-    }
-
-    private CompletableFuture<?> handleLifeCycle(LifeCycle lifeCycle) {
-        if (lifeCycle.isReverseOrder()) {
-            return this.node.forEachCounterClockwiseAwait(obj -> handleLifeCycleForComponent(obj, lifeCycle));
-        } else {
-            return this.node.forEachClockwiseAwait(obj -> handleLifeCycleForComponent(obj, lifeCycle));
+    private void callNodePreInitProcessors() {
+        for (ContainerNodeInitProcessor nodeInitProcessor : context.nodeInitProcessors()) {
+            nodeInitProcessor.processNodePreInitialization(this.node, this.containerObjectResolver);
         }
     }
 
-    private CompletableFuture<?> handleLifeCycleForComponent(ContainerObj obj, LifeCycle lifeCycle) {
+    private void callNodePostInitProcessors() {
+        for (ContainerNodeInitProcessor nodeInitProcessor : context.nodeInitProcessors()) {
+            nodeInitProcessor.processNodePostInitialization(this.node, this.containerObjectResolver);
+        }
+    }
+
+    private CompletableFuture<Object> findSingletonInstance(Class<?> type) {
+        SingletonObjectRegistry singletonObjectRegistry = this.context.singletonObjectRegistry();
+        Object instance = singletonObjectRegistry.getSingleton(type);
+        if (instance == null)
+            throw new IllegalStateException("Singleton instance for " + type.getName() + " is null!");
+
+        return CompletableFuture.completedFuture(instance);
+    }
+
+    private CompletableFuture<Object> findPrototypeInstance(Class<?> type) {
+        ContainerObj obj = this.context.containerObjectBinder().getBinding(type);
+        if (obj == null)
+            throw new IllegalStateException("Container object for " + type.getName() + " is null!");
+
         try {
-            return obj.setLifeCycle(lifeCycle);
-        } catch (Throwable throwable) {
-            ContainerLogger.report(this.node, obj, throwable, "initializing life cycle " + lifeCycle);
-            return AsyncUtils.failureOf(throwable);
+            return this.provideInstance(obj);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to provide instance for " + type.getName(), e);
         }
     }
 
-    private void handleObjCollector() {
-        this.node.all().forEach(obj -> handleThrow(obj, () -> this.context.objectCollectorRegistry().collect(obj)));
-    }
-
-    private CompletableFuture<?> handleController() {
-        for (NodeController nodeController : this.node.controllers()) {
-            nodeController.onInit();
-        }
-
+    private CompletableFuture<?> callPreInitProcessors() {
         List<CompletableFuture<?>> futures = new ArrayList<>();
-        for (ContainerController controller : ContainerContext.get().controllers()) {
-            futures.add(this.node.forEachClockwiseAwait(obj -> {
-                try {
-                    return this.handleControllerForObject(controller, obj);
-                } catch (Throwable throwable) {
-                    ContainerLogger.report(this.node, obj, throwable, "initializing controller: " + controller.getClass().getName());
-                    return AsyncUtils.failureOf(throwable);
+
+        for (InstanceEntry entry : this.collection) {
+            Object instance = entry.getInstance();
+            ContainerObj object = entry.getContainerObject();
+            if (!this.trySetLifeCycle(object, LifeCycle.PRE_INIT))
+                continue;
+
+            futures.add(object.getThreadingMode().execute(() -> {
+                for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
+                    initProcessor.processPreInitialization(object, instance);
                 }
             }));
         }
@@ -139,15 +136,106 @@ public class ContainerNodeLoader {
         return AsyncUtils.allOf(futures);
     }
 
-    private CompletableFuture<?> handleControllerForObject(ContainerController controller, ContainerObj obj) {
-        return CompletableFuture.runAsync(() -> {
+    private CompletableFuture<?> callPostInitProcessors() {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        for (InstanceEntry entry : this.collection) {
+            Object instance = entry.getInstance();
+            ContainerObj object = entry.getContainerObject();
+            if (!this.trySetLifeCycle(object, LifeCycle.POST_INIT))
+                continue;
+
+            futures.add(object.getThreadingMode().execute(() -> {
+                for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
+                    initProcessor.processPostInitialization(object, instance);
+                }
+            }));
+        }
+
+        return AsyncUtils.allOf(futures);
+    }
+
+    private CompletableFuture<?> provideInstances() {
+        return this.node.forEachClockwiseAwait(obj -> {
+            if (obj.isPrototypeScope())
+                return AsyncUtils.empty();
+
             try {
-                controller.applyContainerObject(obj);
+                return this.provideInstance(obj);
             } catch (Throwable throwable) {
-                ContainerLogger.report(this.node, obj, throwable, "applying controller: " + controller.getClass().getName());
-                SneakyThrowUtil.sneakyThrow(throwable);
+                ContainerLogger.report(this.node, obj, throwable, "providing instance");
+                return AsyncUtils.failureOf(throwable);
             }
         });
+    }
+
+    private CompletableFuture<Object> provideInstance(ContainerObj obj) throws Exception {
+        if (obj.isSingletonScope()) {
+            if (!this.trySetLifeCycle(obj, LifeCycle.CONSTRUCT))
+                return AsyncUtils.empty();
+
+            if (this.context.singletonObjectRegistry().containsSingleton(obj.getType())) {
+                return AsyncUtils.empty();
+            }
+        }
+
+        InstanceProvider instanceProvider = obj.getInstanceProvider();
+        if (instanceProvider == null) {
+            throw new IllegalStateException("Instance provider for " + obj.getType().getName() + " is null!");
+        }
+
+        CompletableFuture<Object[]> future = this.containerObjectResolver.resolveInstances(instanceProvider.getDependencies());
+        return future
+                .thenApplyAsync(objects -> createInstance(obj, objects, instanceProvider), obj.getThreadingMode().getExecutor())
+                .thenCompose(this::callConstructProcessors)
+                .thenApply(instance -> {
+                    if (obj.isSingletonScope()) {
+                        this.context.singletonObjectRegistry().registerSingleton(obj.getType(), instance);
+                    }
+
+                    this.collection.add(instance, obj);
+                    return instance;
+                });
+    }
+
+    @NotNull
+    private static Object createInstance(ContainerObj obj, Object[] dependencies, InstanceProvider instanceProvider) {
+        Object instance;
+        try {
+            instance = instanceProvider.provide(dependencies);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to provide instance for " + obj.getType().getName(), ex);
+        }
+
+        return instance;
+    }
+
+    private CompletableFuture<Object> callConstructProcessors(Object instance) {
+        List<CompletableFuture<?>> futures = new ArrayList<>();
+
+        for (ContainerObjConstructProcessor constructProcessor : this.context.constructProcessors()) {
+            futures.add(constructProcessor.processConstruction(instance, containerObjectResolver));
+        }
+
+        return AsyncUtils.allOf(futures).thenApply($ -> instance);
+    }
+
+    private boolean trySetLifeCycle(ContainerObj obj, LifeCycle lifeCycle) {
+        if (obj.getScope() != InjectableScope.SINGLETON)
+            return true;
+
+        Class<?> type = obj.getType();
+        SingletonObjectRegistry singletonObjectRegistry = this.context.singletonObjectRegistry();
+        LifeCycle current = singletonObjectRegistry.getSingletonLifeCycle(type);
+        if (current.isAfter(lifeCycle))
+            return false;
+
+        singletonObjectRegistry.setSingletonLifeCycle(type, lifeCycle);
+        return true;
+    }
+
+    private void handleObjCollector() {
+        this.node.all().forEach(obj -> handleThrow(obj, () -> this.context.objectCollectorRegistry().addToCollectors(obj)));
     }
 
     private <T, U> Function<T, CompletionStage<U>> directlyCompose(Supplier<CompletionStage<U>> supplier) {

@@ -23,7 +23,7 @@ public class ContainerTest extends JUnitJupiterBase {
         final Thread mainThread = Thread.currentThread();
 
         ThrowingRunnable.sneaky(() -> {
-            ContainerNode node = ContainerNode.create("test");
+            ContainerNode node = ContainerNode.create("test", context.containerObjectBinder());
             ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(context, "test", node);
             classScanner.getClassLoaders().add(ContainerTest.class.getClassLoader());
             classScanner.getUrls().add(ContainerTest.class.getProtectionDomain().getCodeSource().getLocation());
@@ -33,7 +33,7 @@ public class ContainerTest extends JUnitJupiterBase {
             new ContainerNodeLoader(context, node).load();
 
             assertEquals(1, node.all().size());
-            assertEquals(ServiceMock.class, node.all().iterator().next().type());
+            assertEquals(ServiceMock.class, node.all().iterator().next().getType());
         }).run();
 
         final ServiceMock serviceMock = ServiceMock.STATIC_WIRED;

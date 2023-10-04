@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,33 +22,16 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.object.resolver;
+package io.fairyproject.container.processor.annotation;
 
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.ContainerReference;
-import io.fairyproject.container.object.ContainerObj;
-import io.fairyproject.util.ConditionUtils;
-import lombok.Getter;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
-public class ContainerResolverBase implements ContainerResolver {
+public class CommonLifeCycleAnnotationProcessor extends LifeCycleAnnotationProcessor {
 
-    @Getter
-    protected Class<?>[] types;
-
-    @Override
-    public Object[] resolve(ContainerContext containerContext) {
-        if (this.types == null)
-            throw new IllegalArgumentException("No parameters found!");
-        Object[] args = new Object[this.types.length];
-
-        for (int i = 0; i < args.length; i++) {
-            ContainerObj obj = ContainerReference.getObj(this.types[i]);
-            ConditionUtils.notNull(obj, String.format("Couldn't find container object %s!", this.types[i].getName()));
-            ConditionUtils.notNull(obj.instance(), String.format("Container obj %s has no instance!", obj.type()));
-
-            args[i] = obj.instance();
-        }
-
-        return args;
+    public CommonLifeCycleAnnotationProcessor() {
+        this.setPostInitAnnotation(PostConstruct.class);
+        this.setPreDestroyAnnotation(PreDestroy.class);
     }
+
 }

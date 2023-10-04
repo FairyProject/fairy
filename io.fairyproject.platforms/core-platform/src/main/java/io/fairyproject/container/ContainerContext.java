@@ -25,21 +25,21 @@
 package io.fairyproject.container;
 
 import io.fairyproject.Fairy;
+import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.collection.ContainerObjCollectorRegistry;
-import io.fairyproject.container.controller.AutowiredContainerController;
-import io.fairyproject.container.controller.ContainerController;
-import io.fairyproject.container.controller.SubscribeEventContainerController;
 import io.fairyproject.container.node.ContainerNode;
-import io.fairyproject.container.object.ContainerObj;
-import io.fairyproject.container.object.lifecycle.LifeCycleHandlerRegistry;
+import io.fairyproject.container.node.destroyer.ContainerNodeDestroyer;
+import io.fairyproject.container.object.singleton.SingletonObjectRegistry;
+import io.fairyproject.container.processor.*;
+import io.fairyproject.container.processor.annotation.FairyLifeCycleAnnotationProcessor;
+import io.fairyproject.container.processor.injection.AutowiredAnnotationProcessor;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.thread.NamedThreadFactory;
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.experimental.Accessors;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,39 +49,47 @@ import java.util.concurrent.Executors;
 
 import static io.fairyproject.Debug.log;
 
+@Getter
 @Accessors(fluent = true)
 public class ContainerContext {
+    @Deprecated
     private static ContainerContext INSTANCE;
-
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
 
-    @Getter
-    private final ContainerController[] controllers = Arrays.asList(
-            new AutowiredContainerController(),
-            new SubscribeEventContainerController()
-    ).toArray(new ContainerController[0]);
-
-    @Getter
-    public final ExecutorService executor = Executors.newCachedThreadPool(NamedThreadFactory.builder()
-            .name("Container Thread - %d")
-            .daemon(true)
-            .uncaughtExceptionHandler((thread, throwable) -> throwable.printStackTrace())
-            .build());
-
-    @Getter
+    public final ExecutorService executor;
+    private final ContainerObjCollectorRegistry objectCollectorRegistry;
+    private final ContainerObjectBinder containerObjectBinder;
+    private final SingletonObjectRegistry singletonObjectRegistry;
+    private final ContainerNodeDestroyer nodeDestroyer;
+    private final ContainerObjConstructProcessor[] constructProcessors;
+    private final ContainerObjInitProcessor[] initProcessors;
+    private final ContainerObjDestroyProcessor[] destroyProcessors;
+    private final ContainerNodeClassScanProcessor[] nodeClassScanProcessors;
+    private final ContainerNodeInitProcessor[] nodeInitProcessors;
     private ContainerNode node;
 
-    @Getter
-    private LifeCycleHandlerRegistry lifeCycleHandlerRegistry;
+    public ContainerContext() {
+        this.executor = Executors.newCachedThreadPool(NamedThreadFactory.builder()
+                .name("Container Thread - %d")
+                .daemon(true)
+                .uncaughtExceptionHandler((thread, throwable) -> Log.error("Exception occurred in Container Thread", throwable))
+                .build());
+        this.containerObjectBinder = new ContainerObjectBinder();
+        this.objectCollectorRegistry = new ContainerObjCollectorRegistry();
+        this.singletonObjectRegistry = SingletonObjectRegistry.create();
+        this.nodeDestroyer = new ContainerNodeDestroyer(this);
 
-    @Getter
-    private ContainerObjCollectorRegistry objectCollectorRegistry;
+        FairyLifeCycleAnnotationProcessor annotationProcessor = new FairyLifeCycleAnnotationProcessor();
+        AutowiredAnnotationProcessor autowiredAnnotationProcessor = new AutowiredAnnotationProcessor();
+        this.constructProcessors = new ContainerObjConstructProcessor[] { autowiredAnnotationProcessor };
+        this.initProcessors = new ContainerObjInitProcessor[] { annotationProcessor };
+        this.destroyProcessors = new ContainerObjDestroyProcessor[] { annotationProcessor };
+        this.nodeClassScanProcessors = new ContainerNodeClassScanProcessor[] { autowiredAnnotationProcessor };
+        this.nodeInitProcessors = new ContainerNodeInitProcessor[] { autowiredAnnotationProcessor };
+    }
 
     public void init() {
         INSTANCE = this;
-
-        this.lifeCycleHandlerRegistry = new LifeCycleHandlerRegistry();
-        this.objectCollectorRegistry = new ContainerObjCollectorRegistry();
 
         this.node = new RootNodeLoader(this).load();
 
@@ -96,33 +104,22 @@ public class ContainerContext {
 
     public void stop() {
         try {
-            this.node.closeAndReportException();
+            this.nodeDestroyer.destroy(this.node);
         } finally {
             INSTANCE = null;
         }
     }
 
-    public @Nullable Object getContainerObject(@NonNull Class<?> type) {
-        ContainerObj obj = ContainerReference.getObj(type);
-        return obj == null ? null : obj.instance();
-    }
-
-    public boolean isRegisteredObject(Class<?>... types) {
-        for (Class<?> type : types) {
-            ContainerObj dependencyDetails = ContainerReference.getObj(type);
-            if (dependencyDetails == null || dependencyDetails.instance() == null) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     public boolean isObject(Class<?> objectClass) {
-        return ContainerReference.getObj(objectClass) != null;
+        return this.containerObjectBinder.isBound(objectClass);
     }
 
     public boolean isObject(Object object) {
         return this.isObject(object.getClass());
+    }
+
+    public Object getSingleton(Class<?> objectClass) {
+        return this.singletonObjectRegistry.getSingleton(objectClass);
     }
 
     public List<String> findClassPaths(Class<?> plugin) {
@@ -135,6 +132,7 @@ public class ContainerContext {
         return Collections.emptyList();
     }
 
+    @Deprecated
     public static ContainerContext get() {
         return INSTANCE;
     }

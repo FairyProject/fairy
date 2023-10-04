@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,11 +24,10 @@
 
 package io.fairyproject.container.object.resolver;
 
-import io.fairyproject.container.ContainerContext;
+import java.util.concurrent.CompletableFuture;
 
-public interface ContainerResolver {
+public interface ContainerObjectFactory {
 
-    Object[] resolve(ContainerContext containerContext);
+    CompletableFuture<Object> createInstance(Class<?> type) throws Exception;
 
-    Class<?>[] getTypes();
 }

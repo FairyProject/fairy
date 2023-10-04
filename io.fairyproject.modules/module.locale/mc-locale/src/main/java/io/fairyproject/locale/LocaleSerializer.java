@@ -25,18 +25,17 @@
 package io.fairyproject.locale;
 
 import io.fairyproject.ObjectSerializer;
-import io.fairyproject.container.*;
-import io.fairyproject.container.object.Obj;
+import io.fairyproject.container.InjectableComponent;
+import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.translation.Translator;
 
 import java.util.Locale;
 
-@Obj
-@ServiceDependency(value = LocaleService.class, type = ServiceDependencyType.SUB_DISABLE)
+@InjectableComponent
+@RequiredArgsConstructor
 public class LocaleSerializer implements ObjectSerializer<Locale, String> {
 
-    @Autowired
-    private LocaleService localeService;
+    private final LocaleService localeService;
 
     @Override
     public String serialize(Locale input) {

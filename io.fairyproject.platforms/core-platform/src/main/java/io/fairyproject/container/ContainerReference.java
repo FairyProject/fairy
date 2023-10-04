@@ -6,6 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 @ApiStatus.Internal
+@Deprecated
 public class ContainerReference {
 
     private static final ClassValue<ContainerReference> GLOBAL = new ClassValue<ContainerReference>() {

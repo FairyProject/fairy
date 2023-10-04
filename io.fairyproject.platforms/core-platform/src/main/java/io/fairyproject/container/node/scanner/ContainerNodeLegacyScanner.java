@@ -24,15 +24,13 @@
 
 package io.fairyproject.container.node.scanner;
 
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.Register;
 import io.fairyproject.container.Service;
-import io.fairyproject.container.ServiceDependency;
-import io.fairyproject.container.ServiceDependencyType;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.Obj;
+import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.object.provider.MethodInvokeInstanceProvider;
-import io.fairyproject.container.object.resolver.MethodContainerResolver;
-import io.fairyproject.util.Utility;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
 import io.github.classgraph.MethodInfo;
@@ -46,6 +44,7 @@ import java.lang.reflect.Method;
 public class ContainerNodeLegacyScanner {
 
     private final ScanResult scanResult;
+    private final ContainerContext context;
     private final ContainerNodeClassScanner scanner;
 
     void load() {
@@ -56,31 +55,12 @@ public class ContainerNodeLegacyScanner {
 
     private void loadServiceClasses() {
         ClassInfoList serviceClasses = scanResult.getClassesWithAnnotation(Service.class);
-        scanner.loadComponentClasses(serviceClasses, scanner.getNode(), obj -> {
-            Service service = obj.type().getDeclaredAnnotation(Service.class);
-
-            for (Class<?> depend : service.depends()) {
-                obj.addDepend(depend, ServiceDependencyType.FORCE);
-            }
-
-            this.addDependFromAnnotation(obj);
-        });
+        scanner.loadComponentClasses(serviceClasses, scanner.getNode(), $ -> {});
     }
 
     private void loadObjClasses() {
         ClassInfoList objClasses = scanResult.getClassesWithAnnotation(Obj.class);
-        scanner.loadComponentClasses(objClasses, scanner.getObjNode(), this::addDependFromAnnotation);
-    }
-
-    private void addDependFromAnnotation(ContainerObj obj) {
-        for (Class<?> superClass : Utility.getSuperAndInterfaces(obj.type())) {
-            ServiceDependency annotation = superClass.getDeclaredAnnotation(ServiceDependency.class);
-            if (annotation != null) {
-                for (Class<?> depend : annotation.value()) {
-                    obj.addDepend(depend, annotation.type());
-                }
-            }
-        }
+        scanner.loadComponentClasses(objClasses, scanner.getObjNode(), $ -> {});
     }
 
     private void loadRegisterMethods() {
@@ -98,10 +78,16 @@ public class ContainerNodeLegacyScanner {
             return;
 
         Method method = methodInfo.loadClassAndGetMethod();
-        MethodContainerResolver resolver = new MethodContainerResolver(method, scanner.getContext());
+        InstanceProvider instanceProvider = new MethodInvokeInstanceProvider(null, method);
+        Class<?> type = instanceProvider.getType();
 
-        ContainerObj containerObj = scanner.addComponentClass(resolver.returnType(), scanner.getNode());
-        containerObj.setProvider(new MethodInvokeInstanceProvider(null, resolver));
+        ContainerObj object = context.containerObjectBinder().getBinding(type);
+        if (object == null) {
+            object = scanner.createObject(type);
+            object.setInstanceProvider(instanceProvider);
+        }
+
+        scanner.addComponentClass(object, scanner.getNode());
     }
 
 }

@@ -50,7 +50,7 @@ public class PluginNodeLoader {
     private ContainerNode node;
 
     public ContainerNode load() {
-        this.node = ContainerNode.create(this.plugin.getName());
+        this.node = ContainerNode.create(this.plugin.getName(), context.containerObjectBinder());
 
         this.addPluginAsComponent();
         this.runClassScanner();
@@ -64,7 +64,9 @@ public class PluginNodeLoader {
     }
 
     private void addPluginAsComponent() {
-        ContainerObj pluginObj = ContainerObj.of(this.plugin.getClass(), plugin);
+        ContainerObj pluginObj = ContainerObj.create(this.plugin.getClass());
+        context.singletonObjectRegistry().registerSingleton(this.plugin.getClass(), this.plugin);
+        context.containerObjectBinder().bind(this.plugin.getClass(), pluginObj);
         node.addObj(pluginObj);
 
         Debug.log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");

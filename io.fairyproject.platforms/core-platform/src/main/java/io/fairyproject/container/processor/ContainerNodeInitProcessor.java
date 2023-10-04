@@ -22,9 +22,19 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.scope;
+package io.fairyproject.container.processor;
 
-public enum LoadScope {
-    LAZY,
-    EAGER
+import io.fairyproject.container.node.ContainerNode;
+import io.fairyproject.container.object.resolver.ContainerObjectResolver;
+
+public interface ContainerNodeInitProcessor {
+
+    default void processNodePreInitialization(ContainerNode node, ContainerObjectResolver containerObjectResolver) {
+        // to be overridden
+    }
+
+    default void processNodePostInitialization(ContainerNode node, ContainerObjectResolver containerObjectResolver) {
+        // to be overridden
+    }
+
 }

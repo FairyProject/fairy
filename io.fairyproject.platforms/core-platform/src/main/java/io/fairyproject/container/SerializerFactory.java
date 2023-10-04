@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This service is widely used in modules such as storage and config.
  * It's like a wildcard service, so you only need to register one serializer and use everywhere.
  */
-@Service
+@InjectableComponent
 @Getter
 public class SerializerFactory {
 

@@ -24,10 +24,11 @@
 
 package io.fairyproject.container.node.scanner;
 
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.object.provider.MethodInvokeInstanceProvider;
-import io.fairyproject.container.object.resolver.MethodContainerResolver;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Constructor;
@@ -36,6 +37,7 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class ContainerNodeConfigurationScanner {
 
+    private final ContainerContext context;
     private final Class<?> configurationClass;
     private final boolean override;
     private final ContainerNodeClassScanner scanner;
@@ -64,22 +66,27 @@ public class ContainerNodeConfigurationScanner {
     }
 
     private void loadConfigurationMethod(Method method, boolean override) {
-        MethodContainerResolver resolver = new MethodContainerResolver(method, scanner.getContext());
-        MethodInvokeInstanceProvider provider = new MethodInvokeInstanceProvider(this.instance, resolver);
+        InstanceProvider provider = new MethodInvokeInstanceProvider(this.instance, method);
 
-        Class<?> javaClass = resolver.returnType();
+        Class<?> javaClass = provider.getType();
+        ContainerObj object = context.containerObjectBinder().getBinding(javaClass);
+        if (object != null) {
+            if (override) {
+                object.setInstanceProvider(provider);
+            }
+        } else {
+            object = scanner.createObject(javaClass);
+            object.setInstanceProvider(provider);
+        }
+
         ContainerObj containerObj = scanner.getNode().getObj(javaClass);
         if (containerObj != null) {
-            if (override) {
-                containerObj.setProvider(provider);
+            if (override)
                 return;
-            }
-
             throw new IllegalStateException("Component already exists: " + javaClass.getName());
         }
 
-        containerObj = this.scanner.addComponentClass(javaClass, scanner.getNode());
-        containerObj.setProvider(provider);
+        this.scanner.addComponentClass(object, scanner.getNode());
     }
 
 }

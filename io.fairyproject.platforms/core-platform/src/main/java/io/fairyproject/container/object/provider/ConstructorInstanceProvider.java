@@ -24,27 +24,63 @@
 
 package io.fairyproject.container.object.provider;
 
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.object.resolver.ConstructorContainerResolver;
-import lombok.RequiredArgsConstructor;
+import io.fairyproject.container.ContainerConstruct;
+import io.fairyproject.util.AccessUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
-@RequiredArgsConstructor
 public class ConstructorInstanceProvider implements InstanceProvider {
 
-    private final ContainerContext context;
-    private final ConstructorContainerResolver resolver;
+    private final Class<?> type;
+    private final Constructor<?> constructor;
 
-    @Override
-    public @NotNull Collection<Class<?>> dependencies() {
-        return Arrays.asList(this.resolver.getTypes());
+    public ConstructorInstanceProvider(Class<?> type) throws ReflectiveOperationException {
+        if (Modifier.isAbstract(type.getModifiers()))
+            throw new IllegalArgumentException("The type " + type.getName() + " is abstract!");
+
+        this.type = type;
+        this.constructor = this.resolveConstructor();
     }
 
     @Override
-    public @NotNull Object provide() throws Exception {
-        return this.resolver.newInstance(context);
+    public Class<?> getType() {
+        return this.type;
     }
+
+    @Override
+    public Class<?>[] getDependencies() {
+        return constructor.getParameterTypes();
+    }
+
+    @Override
+    public @NotNull Object provide(Object[] objects) throws Exception {
+        return this.constructor.newInstance(objects);
+    }
+
+    private Constructor<?> resolveConstructor() throws ReflectiveOperationException {
+        Constructor<?> bestConstructor = null;
+        int bestPriority = -1;
+
+        for (Constructor<?> constructor : this.type.getDeclaredConstructors()) {
+            AccessUtil.setAccessible(constructor);
+
+            int priority = -1;
+            ContainerConstruct annotation = constructor.getAnnotation(ContainerConstruct.class);
+            if (annotation != null)
+                priority = annotation.priority();
+
+            if (bestConstructor == null || bestPriority < priority) {
+                bestConstructor = constructor;
+                bestPriority = priority;
+            }
+        }
+
+        if (bestConstructor == null)
+            bestConstructor = this.type.getDeclaredConstructor();
+
+        return bestConstructor;
+    }
+
 }

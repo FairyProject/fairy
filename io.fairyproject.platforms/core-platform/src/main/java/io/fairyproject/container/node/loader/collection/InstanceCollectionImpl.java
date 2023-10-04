@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,13 +22,30 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container;
+package io.fairyproject.container.node.loader.collection;
 
-@Deprecated
-public enum ServiceDependencyType {
+import io.fairyproject.container.object.ContainerObj;
+import org.jetbrains.annotations.NotNull;
 
-    FORCE,
-    SUB,
-    SUB_DISABLE
+import java.util.*;
 
+public class InstanceCollectionImpl implements InstanceCollection {
+
+    private final Set<Object> set = new HashSet<>();
+    private final List<InstanceEntry> entries = new ArrayList<>();
+
+    @Override
+    public boolean add(Object instance, ContainerObj containerObject) {
+        if (set.add(instance)) {
+            entries.add(new InstanceEntry(instance, containerObject));
+            return true;
+        }
+        return false;
+    }
+
+    @NotNull
+    @Override
+    public Iterator<InstanceEntry> iterator() {
+        return this.entries.iterator();
+    }
 }

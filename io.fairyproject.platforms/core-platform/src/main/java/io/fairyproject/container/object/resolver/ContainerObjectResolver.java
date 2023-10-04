@@ -24,44 +24,22 @@
 
 package io.fairyproject.container.object.resolver;
 
-import io.fairyproject.container.ContainerContext;
-import lombok.Getter;
-import lombok.SneakyThrows;
+import io.fairyproject.container.binder.ContainerObjectBinder;
+import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.util.concurrent.CompletableFuture;
 
-@Getter
-public class MethodContainerResolver extends ContainerResolverBase {
+public interface ContainerObjectResolver {
 
-    private final ContainerContext context;
-    private final Method method;
-
-    @SneakyThrows
-    public MethodContainerResolver(Method method, ContainerContext context) {
-        this.context = context;
-        this.method = method;
-
-        this.types = this.method.getParameterTypes();
+    static ContainerObjectResolver create(
+            ContainerObjectBinder binder,
+            ContainerObjectFactory singletonObjectFactory,
+            ContainerObjectFactory prototypeObjectFactory) {
+        return new ContainerObjectResolverImpl(binder, singletonObjectFactory, prototypeObjectFactory);
     }
 
-    public String name() {
-        return this.method.getName();
-    }
+    @NotNull CompletableFuture<Object[]> resolveInstances(@NotNull Class<?>[] types) throws Exception;
 
-    public Class<?> returnType() {
-        return this.method.getReturnType();
-    }
-
-    public Object invoke(Object instance) throws InvocationTargetException, IllegalAccessException {
-        for (Class<?> type : this.types) {
-            if (!context.isObject(type)) {
-                throw new IllegalArgumentException("The type " + type.getName() + " is not a bean!, it's not supposed to be in bean method!");
-            }
-        }
-
-        Object[] parameters = this.resolve(context);
-        return this.method.invoke(instance, parameters);
-    }
+    @NotNull CompletableFuture<Object> resolveInstance(@NotNull Class<?> type) throws Exception;
 
 }

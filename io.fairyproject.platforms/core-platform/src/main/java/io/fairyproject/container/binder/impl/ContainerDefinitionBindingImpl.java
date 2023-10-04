@@ -22,39 +22,32 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.controller.node;
+package io.fairyproject.container.binder.impl;
 
-import io.fairyproject.container.Autowired;
-import io.fairyproject.container.controller.AutowiredContainerController;
-import io.fairyproject.util.ClassGraphUtil;
-import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import io.github.classgraph.ScanResult;
-import lombok.RequiredArgsConstructor;
+import io.fairyproject.container.binder.ContainerDefinitionBinding;
+import io.fairyproject.container.object.ContainerObj;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
+public class ContainerDefinitionBindingImpl implements ContainerDefinitionBinding {
 
-@RequiredArgsConstructor
-public class AutowiredNodeController implements NodeController {
+    private final Class<?> type;
+    private ContainerObj obj;
 
-    private final AutowiredContainerController containerController;
-    private final List<Field> fields = new ArrayList<>();
-
-    @Override
-    public void onClassScan(ScanResult scanResult) {
-        ClassGraphUtil.fieldWithAnnotation(scanResult, Autowired.class)
-                .filter(field -> Modifier.isStatic(field.getModifiers()))
-                .forEach(this.fields::add);
+    public ContainerDefinitionBindingImpl(Class<?> type) {
+        this.type = type;
     }
 
     @Override
-    public void onInit() {
-        ThrowingRunnable.sneaky(() -> {
-            for (Field field : fields) {
-                this.containerController.applyField(field, null);
-            }
-        }).run();
+    public Class<?> getType() {
+        return type;
+    }
+
+    @Override
+    public ContainerObj getBinding() {
+        return obj;
+    }
+
+    @Override
+    public void setBinding(ContainerObj binding) {
+        this.obj = binding;
     }
 }

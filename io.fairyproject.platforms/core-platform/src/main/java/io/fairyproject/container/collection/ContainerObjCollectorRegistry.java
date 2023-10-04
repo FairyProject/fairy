@@ -18,10 +18,14 @@ public class ContainerObjCollectorRegistry {
         return this.collectors.remove(collector);
     }
 
-    public void collect(@NotNull ContainerObj obj) {
+    public void addToCollectors(@NotNull ContainerObj obj) {
         this.collectors.stream()
                 .filter(collector -> collector.test(obj))
                 .forEach(collector -> collector.add(obj));
+    }
+
+    public void removeFromCollectors(@NotNull ContainerObj obj) {
+        this.collectors.forEach(collector -> collector.remove(obj));
     }
 
 }

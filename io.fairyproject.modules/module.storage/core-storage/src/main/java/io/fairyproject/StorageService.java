@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-@ServiceDependency({GlobalStorageConfiguration.class, SerializerFactory.class})
+@DependsOn({GlobalStorageConfiguration.class, SerializerFactory.class})
 @RequiredArgsConstructor
 public class StorageService {
 

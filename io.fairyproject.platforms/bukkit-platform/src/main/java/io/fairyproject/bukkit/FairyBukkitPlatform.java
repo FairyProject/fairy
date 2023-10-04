@@ -49,6 +49,7 @@ import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -97,18 +98,16 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @PreInitialize
     public void onPreInitialize() {
         // TODO: move these to DI container when DI is improved
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.getContainerContext().objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(Listener.class))
                 .withFilter(ContainerObjCollector.inherits(FilteredListener.class).negate())
-                .withAddHandler(containerObj -> {
-                    if (!containerObj.type().isAnnotationPresent(RegisterAsListener.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(Listener.class, listener -> {
+                    if (!listener.getClass().isAnnotationPresent(RegisterAsListener.class))
                         return;
 
-                    Listener listener = (Listener) containerObj.instance();
-                    ListenerSubscription subscription = Events.subscribe(listener);
-
-                    containerObj.bind(subscription);
-                }));
+                    Events.subscribe(listener);
+                }))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(Listener.class, HandlerList::unregisterAll)));
     }
 
     @Override

@@ -60,7 +60,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @param <T> the Data Class
  */
-@ServiceDependency(StorageService.class)
+@DependsOn(StorageService.class)
 public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
     private final Object lock = new Object();
@@ -200,8 +200,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     }
                     this.unload(player.getUniqueId());
                 })
-                .build(this.getPlugin())
-                .bindWith(containerObj);
+                .build(this.getPlugin());
     }
 
     private void registerPlayerLoginMonitor(ContainerObj containerObj) {
@@ -216,8 +215,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                             }
                         }
                     }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
     private void registerPlayerLoginLow(ContainerObj containerObj) {
@@ -244,8 +242,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     }
 
                     this.onLoadedMain(player, t);
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
     private void registerAsnycPlayerPreLoginMonitor(ContainerObj containerObj) {
@@ -260,8 +257,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                             }
                         }
                     }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
     private void registerAsyncPlayerPreLoginLow(ContainerObj containerObj) {
@@ -304,8 +300,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
                         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, this.storageConfiguration.getLoginRejectMessage(uuid, name, LoginRejectReason.ERROR));
                     }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
     @Override

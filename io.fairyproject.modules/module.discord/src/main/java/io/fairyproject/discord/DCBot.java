@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @AnnotateSuggest("io.fairyproject.discord.DCIndex")
-@ServiceDependency(DCInitializer.class)
+@DependsOn(DCInitializer.class)
 @Getter
 public abstract class DCBot implements ProxyJDA {
 
