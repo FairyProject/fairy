@@ -22,17 +22,21 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.binder;
+package io.fairytest.container.components;
 
-import io.fairyproject.container.object.ContainerObj;
-import org.jetbrains.annotations.Nullable;
+import io.fairyproject.container.InjectableComponent;
+import lombok.Getter;
 
-public interface ContainerObjectBinder {
-    @Nullable ContainerObj getBinding(Class<?> type);
+@InjectableComponent
+@Getter
+public class AccessPrototypeClass {
 
-    boolean isBound(Class<?> type);
+    private final PrototypeClass a;
+    private final PrototypeClass b;
 
-    void bind(Class<?> type, ContainerObj object);
+    public AccessPrototypeClass(PrototypeClass a, PrototypeClass b) {
+        this.a = a;
+        this.b = b;
+    }
 
-    void unbind(Class<?> type);
 }

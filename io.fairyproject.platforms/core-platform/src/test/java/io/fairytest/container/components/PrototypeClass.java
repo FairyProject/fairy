@@ -22,17 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.binder;
+package io.fairytest.container.components;
 
-import io.fairyproject.container.object.ContainerObj;
-import org.jetbrains.annotations.Nullable;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.scope.InjectableScope;
+import lombok.Getter;
 
-public interface ContainerObjectBinder {
-    @Nullable ContainerObj getBinding(Class<?> type);
+@InjectableComponent(scope = InjectableScope.PROTOTYPE)
+@Getter
+public class PrototypeClass {
 
-    boolean isBound(Class<?> type);
+    private final SingletonClass singleton;
 
-    void bind(Class<?> type, ContainerObj object);
+    public PrototypeClass(SingletonClass singleton) {
+        this.singleton = singleton;
+    }
 
-    void unbind(Class<?> type);
 }

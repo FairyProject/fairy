@@ -26,6 +26,7 @@ package io.fairyproject.container;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.container.binder.ContainerObjectBinder;
+import io.fairyproject.container.binder.ContainerObjectBinderImpl;
 import io.fairyproject.container.collection.ContainerObjCollectorRegistry;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.node.destroyer.ContainerNodeDestroyer;
@@ -51,7 +52,7 @@ import static io.fairyproject.Debug.log;
 
 @Getter
 @Accessors(fluent = true)
-public class ContainerContext {
+public class ContainerContext implements ContainerProcessors {
     @Deprecated
     private static ContainerContext INSTANCE;
     public static final int PLUGIN_LISTENER_PRIORITY = 100;
@@ -74,7 +75,7 @@ public class ContainerContext {
                 .daemon(true)
                 .uncaughtExceptionHandler((thread, throwable) -> Log.error("Exception occurred in Container Thread", throwable))
                 .build());
-        this.containerObjectBinder = new ContainerObjectBinder();
+        this.containerObjectBinder = new ContainerObjectBinderImpl();
         this.objectCollectorRegistry = new ContainerObjCollectorRegistry();
         this.singletonObjectRegistry = SingletonObjectRegistry.create();
         this.nodeDestroyer = new ContainerNodeDestroyer(this);

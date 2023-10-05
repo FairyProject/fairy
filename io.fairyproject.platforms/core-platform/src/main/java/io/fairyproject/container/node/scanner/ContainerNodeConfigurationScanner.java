@@ -24,8 +24,8 @@
 
 package io.fairyproject.container.node.scanner;
 
-import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.object.provider.MethodInvokeInstanceProvider;
@@ -37,7 +37,7 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class ContainerNodeConfigurationScanner {
 
-    private final ContainerContext context;
+    private final ContainerObjectBinder binder;
     private final Class<?> configurationClass;
     private final boolean override;
     private final ContainerNodeClassScanner scanner;
@@ -69,7 +69,7 @@ public class ContainerNodeConfigurationScanner {
         InstanceProvider provider = new MethodInvokeInstanceProvider(this.instance, method);
 
         Class<?> javaClass = provider.getType();
-        ContainerObj object = context.containerObjectBinder().getBinding(javaClass);
+        ContainerObj object = this.binder.getBinding(javaClass);
         if (object != null) {
             if (override) {
                 object.setInstanceProvider(provider);
@@ -77,13 +77,19 @@ public class ContainerNodeConfigurationScanner {
         } else {
             object = scanner.createObject(javaClass);
             object.setInstanceProvider(provider);
+
         }
 
-        ContainerObj containerObj = scanner.getNode().getObj(javaClass);
-        if (containerObj != null) {
+        ContainerObj previous = scanner.getNode().getObj(javaClass);
+        if (previous != null) {
             if (override)
                 return;
             throw new IllegalStateException("Component already exists: " + javaClass.getName());
+        }
+
+        InjectableComponent annotation = method.getAnnotation(InjectableComponent.class);
+        if (annotation != null) {
+            object.setScope(annotation.scope());
         }
 
         this.scanner.addComponentClass(object, scanner.getNode());

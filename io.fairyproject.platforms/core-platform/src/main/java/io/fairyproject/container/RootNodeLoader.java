@@ -58,7 +58,7 @@ public class RootNodeLoader {
 
     private void runClassScanner() {
         try {
-            ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(this.context, "framework", this.node);
+            ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(this.context, this.context.containerObjectBinder(), "framework", this.node);
             classScanner.getClassPaths().add(Fairy.getFairyPackage());
             if (!Debug.UNIT_TEST) {
                 classScanner.getUrls().add(this.getClass().getProtectionDomain().getCodeSource().getLocation());

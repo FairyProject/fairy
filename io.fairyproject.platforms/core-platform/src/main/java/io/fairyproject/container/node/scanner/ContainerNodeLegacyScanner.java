@@ -24,9 +24,9 @@
 
 package io.fairyproject.container.node.scanner;
 
-import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.Register;
 import io.fairyproject.container.Service;
+import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.Obj;
 import io.fairyproject.container.object.provider.InstanceProvider;
@@ -44,7 +44,7 @@ import java.lang.reflect.Method;
 public class ContainerNodeLegacyScanner {
 
     private final ScanResult scanResult;
-    private final ContainerContext context;
+    private final ContainerObjectBinder binder;
     private final ContainerNodeClassScanner scanner;
 
     void load() {
@@ -81,7 +81,7 @@ public class ContainerNodeLegacyScanner {
         InstanceProvider instanceProvider = new MethodInvokeInstanceProvider(null, method);
         Class<?> type = instanceProvider.getType();
 
-        ContainerObj object = context.containerObjectBinder().getBinding(type);
+        ContainerObj object = this.binder.getBinding(type);
         if (object == null) {
             object = scanner.createObject(type);
             object.setInstanceProvider(instanceProvider);

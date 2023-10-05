@@ -73,11 +73,14 @@ public class ContainerNodeLoader {
         this.node.resolve();
         if (!this.node.isResolved())
             return false;
+
+        node.graph().forEachClockwise(obj -> System.out.println(obj.getType().getName()));
         CompletableFuture<?> completableFuture = this.provideInstances()
                 .thenRun(this::callNodePreInitProcessors)
                 .thenComposeAsync(directlyCompose(this::callPreInitProcessors), queue)
                 .thenRun(this::handleObjCollector)
-                .thenComposeAsync(directlyCompose(this::callPostInitProcessors), queue);
+                .thenComposeAsync(directlyCompose(this::callPostInitProcessors), queue)
+                .thenRun(this::callNodePostInitProcessors);
 
         queue.await(completableFuture::isDone);
         ThrowingRunnable.sneaky(completableFuture::get).run();

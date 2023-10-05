@@ -27,12 +27,47 @@ package io.fairyproject.container.binder;
 import io.fairyproject.container.object.ContainerObj;
 import org.jetbrains.annotations.Nullable;
 
-public interface ContainerObjectBinder {
-    @Nullable ContainerObj getBinding(Class<?> type);
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-    boolean isBound(Class<?> type);
+public class ContainerObjectBinderImpl implements ContainerObjectBinder {
 
-    void bind(Class<?> type, ContainerObj object);
+    private final Map<Class<?>, ContainerObj> bindings = new ConcurrentHashMap<>();
 
-    void unbind(Class<?> type);
+    @Override
+    @Nullable
+    public ContainerObj getBinding(Class<?> type) {
+        ContainerObj obj = this.bindings.get(type);
+        if (obj == null) {
+            obj = findBindingAssignableByType(type, obj);
+        }
+        return obj;
+    }
+
+    private ContainerObj findBindingAssignableByType(Class<?> type, ContainerObj obj) {
+        for (ContainerObj value : this.bindings.values()) {
+            Class<?> valueType = value.getType();
+            if (type.isAssignableFrom(valueType)) {
+                obj = value;
+                break;
+            }
+        }
+        return obj;
+    }
+
+    @Override
+    public boolean isBound(Class<?> type) {
+        return this.getBinding(type) != null;
+    }
+
+    @Override
+    public void bind(Class<?> type, ContainerObj object) {
+        this.bindings.put(type, object);
+    }
+
+    @Override
+    public void unbind(Class<?> type) {
+        this.bindings.remove(type);
+    }
+
 }

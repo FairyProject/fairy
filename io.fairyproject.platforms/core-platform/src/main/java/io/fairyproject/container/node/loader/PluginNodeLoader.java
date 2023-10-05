@@ -74,7 +74,7 @@ public class PluginNodeLoader {
 
     private void runClassScanner() {
         try {
-            ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(this.context, this.plugin.getName(), this.node);
+            ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(this.context, this.context.containerObjectBinder(), this.plugin.getName(), this.node);
             classScanner.getClassLoaders().add(plugin.getPluginClassLoader());
             classScanner.getClassPaths().addAll(this.findClassPaths());
             classScanner.getExcludedClassPaths().add(Fairy.getFairyPackage());

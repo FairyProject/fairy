@@ -1,16 +1,14 @@
-package io.fairytest.container.service;
+package io.fairytest.container.components;
 
 import io.fairyproject.container.*;
 import lombok.Getter;
 
-@Service
+@InjectableComponent
 @Getter
-public class ServiceMock {
+public class SingletonClass {
 
     @Autowired
-    public static ServiceMock STATIC_WIRED;
-
-    public ContainerContext containerContext;
+    public static SingletonClass STATIC_WIRED;
 
     private final long constructMs;
     private long preInitializeMs = -1;
@@ -25,10 +23,9 @@ public class ServiceMock {
     private Thread postDestroyThread;
 
     @ContainerConstruct
-    public ServiceMock(ContainerContext containerContext) {
+    public SingletonClass() {
         this.constructMs = System.nanoTime();
         this.constructThread = Thread.currentThread();
-        this.containerContext = containerContext;
     }
 
     @PreInitialize

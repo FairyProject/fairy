@@ -25,9 +25,10 @@
 package io.fairyproject.container.node.scanner;
 
 import io.fairyproject.Debug;
-import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.DependsOn;
 import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.binder.ContainerObjectBinder;
+import io.fairyproject.container.binder.ContainerObjectBinderImpl;
 import io.fairyproject.container.configuration.Configuration;
 import io.fairyproject.container.configuration.TestConfiguration;
 import io.fairyproject.container.node.ContainerNode;
@@ -35,6 +36,7 @@ import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.provider.ConstructorInstanceProvider;
 import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.processor.ContainerNodeClassScanProcessor;
+import io.fairyproject.container.processor.ContainerProcessors;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.Utility;
 import io.github.classgraph.ClassGraph;
@@ -54,7 +56,8 @@ import java.util.function.Consumer;
 @Getter
 public class ContainerNodeClassScanner {
 
-    private final ContainerContext context;
+    private final ContainerProcessors processors;
+    private final ContainerObjectBinder binder;
     private final String name;
     private final ContainerNode node;
     private final List<String> classPaths = new ArrayList<>();
@@ -65,7 +68,7 @@ public class ContainerNodeClassScanner {
     private ContainerNode objNode;
 
     public void scan() {
-        this.objNode = ContainerNode.create(this.name + ":obj", context.containerObjectBinder());
+        this.objNode = ContainerNode.create(this.name + ":obj", this.binder);
         this.node.addChild(this.objNode);
 
         final ClassGraph classGraph = createClassGraph();
@@ -82,13 +85,13 @@ public class ContainerNodeClassScanner {
     }
 
     private void callProcessors(ScanResult scanResult) {
-        for (ContainerNodeClassScanProcessor nodeClassScanProcessor : this.context.nodeClassScanProcessors()) {
+        for (ContainerNodeClassScanProcessor nodeClassScanProcessor : this.processors.nodeClassScanProcessors()) {
             nodeClassScanProcessor.processClassScan(this.node, scanResult);
         }
     }
 
     private void loadLegacyComponentClasses(ScanResult scanResult) {
-        new ContainerNodeLegacyScanner(scanResult, context, this).load();
+        new ContainerNodeLegacyScanner(scanResult, this.binder, this).load();
     }
 
 
@@ -109,7 +112,7 @@ public class ContainerNodeClassScanner {
     }
 
     private void loadConfigurationClass(Class<?> javaClass, boolean override) {
-        new ContainerNodeConfigurationScanner(context, javaClass, override, this).load();
+        new ContainerNodeConfigurationScanner(this.binder, javaClass, override, this).load();
     }
 
     private void loadComponentClasses(ScanResult scanResult) {
@@ -139,11 +142,16 @@ public class ContainerNodeClassScanner {
     }
 
     private ContainerObj getOrLoadComponentObject(Class<?> javaClass) {
-        ContainerObj binding = this.context.containerObjectBinder().getBinding(javaClass);
+        ContainerObj binding = this.binder.getBinding(javaClass);
         if (binding != null)
             return binding;
 
         ContainerObj object = this.createObject(javaClass);
+        InjectableComponent annotation = object.getType().getAnnotation(InjectableComponent.class);
+        if (annotation != null) {
+            object.setScope(annotation.scope());
+        }
+
         try {
             InstanceProvider provider = new ConstructorInstanceProvider(javaClass);
 
@@ -173,7 +181,7 @@ public class ContainerNodeClassScanner {
 
     ContainerObj createObject(Class<?> javaClass) {
         ContainerObj object = ContainerObj.create(javaClass);
-        this.context.containerObjectBinder().bind(javaClass, object);
+        this.binder.bind(javaClass, object);
 
         return object;
     }

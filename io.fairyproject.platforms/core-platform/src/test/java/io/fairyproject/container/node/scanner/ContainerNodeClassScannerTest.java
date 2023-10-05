@@ -22,17 +22,27 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.binder;
+package io.fairyproject.container.node.scanner;
 
-import io.fairyproject.container.object.ContainerObj;
-import org.jetbrains.annotations.Nullable;
+import io.fairyproject.container.processor.ContainerProcessors;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public interface ContainerObjectBinder {
-    @Nullable ContainerObj getBinding(Class<?> type);
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
-    boolean isBound(Class<?> type);
+class ContainerNodeClassScannerTest {
 
-    void bind(Class<?> type, ContainerObj object);
+    private ContainerNodeClassScanner classScanner;
 
-    void unbind(Class<?> type);
+    @BeforeEach
+    public void setUp() {
+        ContainerProcessors processors = mock(ContainerProcessors.class);
+
+//        classScanner = new ContainerNodeClassScanner();
+    }
+
+    @Test
+    void scan() {
+    }
 }

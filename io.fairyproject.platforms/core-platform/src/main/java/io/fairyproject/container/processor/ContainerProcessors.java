@@ -22,17 +22,16 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container.binder;
+package io.fairyproject.container.processor;
 
-import io.fairyproject.container.object.ContainerObj;
-import org.jetbrains.annotations.Nullable;
+public interface ContainerProcessors {
+    ContainerObjConstructProcessor[] constructProcessors();
 
-public interface ContainerObjectBinder {
-    @Nullable ContainerObj getBinding(Class<?> type);
+    ContainerObjInitProcessor[] initProcessors();
 
-    boolean isBound(Class<?> type);
+    ContainerObjDestroyProcessor[] destroyProcessors();
 
-    void bind(Class<?> type, ContainerObj object);
+    ContainerNodeClassScanProcessor[] nodeClassScanProcessors();
 
-    void unbind(Class<?> type);
+    ContainerNodeInitProcessor[] nodeInitProcessors();
 }
