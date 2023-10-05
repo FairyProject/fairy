@@ -24,7 +24,7 @@
 
 package io.fairytest.container.components;
 
-import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.*;
 import io.fairyproject.container.scope.InjectableScope;
 import lombok.Getter;
 
@@ -34,8 +34,44 @@ public class PrototypeClass {
 
     private final SingletonClass singleton;
 
+    @Autowired
+    private SingletonClass singletonAutowired;
+
+    private final Thread mainThreadConstruct;
+    private Thread mainThreadPreInit;
+    private Thread mainThreadPostInit;
+
+    private final long constructTime;
+    private long preInitTime;
+    private long postInitTime;
+
     public PrototypeClass(SingletonClass singleton) {
         this.singleton = singleton;
+
+        this.mainThreadConstruct = Thread.currentThread();
+        this.constructTime = System.nanoTime();
+    }
+
+    @PreInitialize
+    public void preInit() {
+        this.mainThreadPreInit = Thread.currentThread();
+        this.preInitTime = System.nanoTime();
+    }
+
+    @PostInitialize
+    public void postInit() {
+        this.mainThreadPostInit = Thread.currentThread();
+        this.postInitTime = System.nanoTime();
+    }
+
+    @PreDestroy
+    public void preDestroy() {
+        throw new IllegalStateException("PreDestroy should not be called on PrototypeClass");
+    }
+
+    @PostDestroy
+    public void postDestroy() {
+        throw new IllegalStateException("PostDestroy should not be called on PrototypeClass");
     }
 
 }

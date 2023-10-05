@@ -65,7 +65,10 @@ public class ContainerObjImpl implements ContainerObj {
 
     @Override
     public @NotNull Collection<Class<?>> getDependencies() {
-        return Collections.unmodifiableCollection(this.dependencies);
+        Set<Class<?>> dependencies = new HashSet<>(this.dependencies);
+        if (this.instanceProvider != null)
+            dependencies.addAll(Arrays.asList(this.instanceProvider.getDependencies()));
+        return dependencies;
     }
 
     @Override
@@ -108,9 +111,7 @@ public class ContainerObjImpl implements ContainerObj {
         if (o == null || getClass() != o.getClass())
             return false;
         ContainerObjImpl that = (ContainerObjImpl) o;
-        if (this.getType() != that.getType())
-            return false;
-        return true;
+        return this.getType() == that.getType();
     }
 
     @Override

@@ -59,7 +59,7 @@ public class ContainerObjectResolverImpl implements ContainerObjectResolver {
         ContainerObj object = this.binder.getBinding(type);
         ConditionUtils.notNull(object, String.format("Couldn't find container object %s!", type.getName()));
 
-        CompletableFuture<Object> future = null;
+        CompletableFuture<Object> future;
         switch (object.getScope()) {
             case SINGLETON:
                 future = singletonObjectFactory.createInstance(object.getType());
@@ -67,6 +67,8 @@ public class ContainerObjectResolverImpl implements ContainerObjectResolver {
             case PROTOTYPE:
                 future = prototypeObjectFactory.createInstance(object.getType());
                 break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + object.getScope());
         }
 
         return future;

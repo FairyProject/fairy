@@ -39,20 +39,19 @@ public class ContainerObjectBinderImpl implements ContainerObjectBinder {
     public ContainerObj getBinding(Class<?> type) {
         ContainerObj obj = this.bindings.get(type);
         if (obj == null) {
-            obj = findBindingAssignableByType(type, obj);
+            obj = findBindingAssignableByType(type);
         }
         return obj;
     }
 
-    private ContainerObj findBindingAssignableByType(Class<?> type, ContainerObj obj) {
+    private ContainerObj findBindingAssignableByType(Class<?> type) {
         for (ContainerObj value : this.bindings.values()) {
             Class<?> valueType = value.getType();
             if (type.isAssignableFrom(valueType)) {
-                obj = value;
-                break;
+                return value;
             }
         }
-        return obj;
+        return null;
     }
 
     @Override

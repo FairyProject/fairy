@@ -31,12 +31,17 @@ import lombok.Getter;
 @Getter
 public class AccessPrototypeClass {
 
-    private final PrototypeClass a;
-    private final PrototypeClass b;
+    private PrototypeClass a;
+    private PrototypeClass b;
 
     public AccessPrototypeClass(PrototypeClass a, PrototypeClass b) {
         this.a = a;
         this.b = b;
+    }
+
+    public void clear() {
+        this.a = null;
+        this.b = null;
     }
 
 }

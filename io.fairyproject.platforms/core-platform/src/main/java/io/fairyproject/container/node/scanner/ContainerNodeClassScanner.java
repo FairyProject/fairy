@@ -28,7 +28,6 @@ import io.fairyproject.Debug;
 import io.fairyproject.container.DependsOn;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.binder.ContainerObjectBinder;
-import io.fairyproject.container.binder.ContainerObjectBinderImpl;
 import io.fairyproject.container.configuration.Configuration;
 import io.fairyproject.container.configuration.TestConfiguration;
 import io.fairyproject.container.node.ContainerNode;
@@ -157,7 +156,7 @@ public class ContainerNodeClassScanner {
 
             object.setInstanceProvider(provider);
         } catch (Throwable t) {
-            throw new RuntimeException("An error occurred while creating the component instance provider", t);
+            throw new IllegalStateException("An error occurred while creating the component instance provider", t);
         }
 
         this.processDependsOn(object);

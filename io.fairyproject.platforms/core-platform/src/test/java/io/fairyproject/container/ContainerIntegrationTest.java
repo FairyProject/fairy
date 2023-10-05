@@ -29,11 +29,14 @@ import io.fairyproject.container.node.loader.ContainerNodeLoader;
 import io.fairyproject.container.node.scanner.ContainerNodeClassScanner;
 import io.fairyproject.util.entry.Entry;
 import io.fairytest.container.components.AccessPrototypeClass;
+import io.fairytest.container.components.PrototypeClass;
 import io.fairytest.container.components.SingletonClass;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import java.lang.ref.WeakReference;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
@@ -88,6 +91,51 @@ public class ContainerIntegrationTest {
                 @Test
                 public void checkGeneratedTwoDifferentPrototypes() {
                     assertNotSame(accessPrototypeClass.getA(), accessPrototypeClass.getB());
+                }
+
+                @Test
+                public void checkLifeCycleAnnotationIsCalledInEachPrototype() {
+                    checkLifeCycleAnnotationIsCalled(accessPrototypeClass.getA());
+                    checkLifeCycleAnnotationIsCalled(accessPrototypeClass.getB());
+                }
+
+                @Test
+                public void checkPrototypeIsProperlyInjected() {
+                    SingletonClass singleton = (SingletonClass) context.singletonObjectRegistry().getSingleton(SingletonClass.class);
+
+                    assertEquals(accessPrototypeClass.getA().getSingleton(), singleton);
+                    assertEquals(accessPrototypeClass.getB().getSingleton(), singleton);
+
+                    assertEquals(accessPrototypeClass.getA().getSingletonAutowired(), singleton);
+                    assertEquals(accessPrototypeClass.getB().getSingletonAutowired(), singleton);
+                }
+
+                /**
+                 * Basically, after the nodes are loaded, the prototype objects should not be held by any strong references within Fairy.
+                 * That's why I coded this test, to make sure that the prototype objects are not held by any strong references.
+                 * But, I'm not sure if this is needed at all, it's currently quite stable but is it safe to test garbage collection?
+                 */
+                @Test
+                @Disabled
+                public void checkIfPrototypeCanBeGarbageCollected() {
+                    WeakReference<PrototypeClass> prototypeWeakReference = new WeakReference<>(accessPrototypeClass.getA());
+                    accessPrototypeClass.clear();
+                    System.gc();
+
+                    assertNull(prototypeWeakReference.get());
+                }
+
+                private void checkLifeCycleAnnotationIsCalled(PrototypeClass prototype) {
+                    assertNotEquals(-1, prototype.getConstructTime());
+                    assertNotEquals(-1, prototype.getPreInitTime());
+                    assertNotEquals(-1, prototype.getPostInitTime());
+
+                    assertTrue(prototype.getConstructTime() < prototype.getPreInitTime());
+                    assertTrue(prototype.getPreInitTime() < prototype.getPostInitTime());
+
+                    assertEquals(mainThread, prototype.getMainThreadConstruct());
+                    assertEquals(mainThread, prototype.getMainThreadPreInit());
+                    assertEquals(mainThread, prototype.getMainThreadPostInit());
                 }
 
             }

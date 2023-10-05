@@ -25,9 +25,6 @@
 package io.fairyproject.container.processor;
 
 import io.fairyproject.container.object.ContainerObj;
-import io.fairyproject.container.object.resolver.ContainerObjectResolver;
-
-import java.util.concurrent.CompletableFuture;
 
 public interface ContainerObjInitProcessor {
 
