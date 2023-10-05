@@ -55,7 +55,9 @@ public interface Converter<S, T> {
      *
      * @param info information about the current conversion step
      */
-    default void preConvertTo(ConversionInfo info) {}
+    default void preConvertTo(ConversionInfo info) {
+        // to be overridden
+    }
 
     /**
      * Converts a converted field value back to its original representation.
@@ -75,7 +77,9 @@ public interface Converter<S, T> {
      *
      * @param info information about the current conversion step
      */
-    default void preConvertFrom(ConversionInfo info) {}
+    default void preConvertFrom(ConversionInfo info) {
+        // to be overridden
+    }
 
     /**
      * Instances of this class contain information about the currently converted

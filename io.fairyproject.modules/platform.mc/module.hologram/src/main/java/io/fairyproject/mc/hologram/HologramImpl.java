@@ -1,12 +1,7 @@
 package io.fairyproject.mc.hologram;
 
-import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
-import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
-import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.fairyproject.event.EventListener;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.*;
@@ -19,14 +14,10 @@ import io.fairyproject.mc.event.trait.MCPlayerEvent;
 import io.fairyproject.mc.hologram.entity.HologramEntity;
 import io.fairyproject.mc.hologram.entity.factory.HologramEntityFactory;
 import io.fairyproject.mc.hologram.line.HologramLine;
-import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
 import io.fairyproject.mc.util.Position;
-import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.util.ConditionUtils;
-import lombok.Data;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

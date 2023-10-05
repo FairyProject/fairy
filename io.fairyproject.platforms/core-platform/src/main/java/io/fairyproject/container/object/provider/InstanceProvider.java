@@ -26,8 +26,6 @@ package io.fairyproject.container.object.provider;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-
 /**
  * A provider that provides an instance of a class.
  * This method does NOT cache the instance,

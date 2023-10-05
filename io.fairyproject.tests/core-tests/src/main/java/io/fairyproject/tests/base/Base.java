@@ -3,7 +3,6 @@ package io.fairyproject.tests.base;
 import io.fairyproject.tests.RuntimeMode;
 import io.fairyproject.tests.TestingContext;
 import io.fairyproject.tests.TestingHandle;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
