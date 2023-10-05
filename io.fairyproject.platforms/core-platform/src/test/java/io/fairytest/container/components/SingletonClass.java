@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @InjectableComponent
 @Getter
-public class SingletonClass {
+public class SingletonClass implements InterfaceClass {
 
     @Autowired
     public static SingletonClass STATIC_WIRED;

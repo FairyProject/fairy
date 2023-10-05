@@ -35,7 +35,7 @@ public class PrototypeClass {
     private final SingletonClass singleton;
 
     @Autowired
-    private SingletonClass singletonAutowired;
+    private InterfaceClass singletonAutowired;
 
     private final Thread mainThreadConstruct;
     private Thread mainThreadPreInit;
