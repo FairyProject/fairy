@@ -40,7 +40,7 @@ public class ContainerObjectResolverImpl implements ContainerObjectResolver {
     private final ContainerObjectFactory prototypeObjectFactory;
 
     @Override
-    public CompletableFuture<Object[]> resolveInstances(@NotNull Class<?>[] types) throws Exception {
+    public @NotNull CompletableFuture<Object[]> resolveInstances(@NotNull Class<?>[] types) throws Exception {
         Object[] args = new Object[types.length];
         CompletableFuture<?>[] futures = new CompletableFuture<?>[types.length];
 
@@ -55,7 +55,7 @@ public class ContainerObjectResolverImpl implements ContainerObjectResolver {
     }
 
     @Override
-    public CompletableFuture<Object> resolveInstance(@NotNull Class<?> type) throws Exception {
+    public @NotNull CompletableFuture<Object> resolveInstance(@NotNull Class<?> type) throws Exception {
         ContainerObj object = this.binder.getBinding(type);
         ConditionUtils.notNull(object, String.format("Couldn't find container object %s!", type.getName()));
 
