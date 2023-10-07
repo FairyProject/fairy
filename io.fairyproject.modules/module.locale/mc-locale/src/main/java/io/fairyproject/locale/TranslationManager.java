@@ -3,7 +3,7 @@ package io.fairyproject.locale;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
-import io.fairyproject.container.ServiceDependency;
+import io.fairyproject.container.DependsOn;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.FileUtil;
 import io.fairyproject.util.entry.Entry;
@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@ServiceDependency(
+@DependsOn(
         value = LocaleService.class
 )
 public abstract class TranslationManager {

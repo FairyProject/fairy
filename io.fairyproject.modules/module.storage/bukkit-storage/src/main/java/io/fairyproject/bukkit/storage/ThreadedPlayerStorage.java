@@ -28,8 +28,10 @@ import com.google.common.collect.Lists;
 import io.fairyproject.StorageService;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
-import io.fairyproject.container.*;
-import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.Autowired;
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.DependsOn;
+import io.fairyproject.container.PostInitialize;
 import io.fairyproject.log.Log;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
@@ -60,7 +62,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @param <T> the Data Class
  */
-@ServiceDependency(StorageService.class)
+@DependsOn(StorageService.class)
 public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
     private final Object lock = new Object();
@@ -171,8 +173,6 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
     @PostInitialize
     public final void onPostInitializeStorage() {
-        final ContainerObj containerObj = ContainerReference.getObj(this.getClass());
-
         this.storedObjects = new ConcurrentHashMap<>();
         this.asyncLoginReject = new HashSet<>();
         this.syncLoginReject = new HashSet<>();
@@ -183,14 +183,14 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
             return;
         }
 
-        registerAsyncPlayerPreLoginLow(containerObj);
-        registerAsnycPlayerPreLoginMonitor(containerObj);
-        registerPlayerLoginLow(containerObj);
-        registerPlayerLoginMonitor(containerObj);
-        registerPlayerQuit(containerObj);
+        registerAsyncPlayerPreLoginLow();
+        registerAsnycPlayerPreLoginMonitor();
+        registerPlayerLoginLow();
+        registerPlayerLoginMonitor();
+        registerPlayerQuit();
     }
 
-    private void registerPlayerQuit(ContainerObj containerObj) {
+    private void registerPlayerQuit() {
         Events.subscribe(PlayerQuitEvent.class)
                 .priority(EventPriority.MONITOR)
                 .listen(event -> {
@@ -200,11 +200,10 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     }
                     this.unload(player.getUniqueId());
                 })
-                .build(this.getPlugin())
-                .bindWith(containerObj);
+                .build(this.getPlugin());
     }
 
-    private void registerPlayerLoginMonitor(ContainerObj containerObj) {
+    private void registerPlayerLoginMonitor() {
         Events.subscribe(PlayerLoginEvent.class)
                 .priority(EventPriority.MONITOR)
                 .listen(event -> {
@@ -216,11 +215,10 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                             }
                         }
                     }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
-    private void registerPlayerLoginLow(ContainerObj containerObj) {
+    private void registerPlayerLoginLow() {
         Events.subscribe(PlayerLoginEvent.class)
                 .priority(EventPriority.LOWEST)
                 .listen(event -> {
@@ -244,11 +242,10 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                     }
 
                     this.onLoadedMain(player, t);
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
-    private void registerAsnycPlayerPreLoginMonitor(ContainerObj containerObj) {
+    private void registerAsnycPlayerPreLoginMonitor() {
         Events.subscribe(AsyncPlayerPreLoginEvent.class)
                 .priority(EventPriority.MONITOR)
                 .listen(event -> {
@@ -260,11 +257,10 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
                             }
                         }
                     }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
-    private void registerAsyncPlayerPreLoginLow(ContainerObj containerObj) {
+    private void registerAsyncPlayerPreLoginLow() {
         Events.subscribe(AsyncPlayerPreLoginEvent.class)
                 .priority(EventPriority.LOW)
                 .listen(event -> {
@@ -304,8 +300,7 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
                         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, this.storageConfiguration.getLoginRejectMessage(uuid, name, LoginRejectReason.ERROR));
                     }
-                }).build(this.getPlugin())
-                .bindWith(containerObj);
+                }).build(this.getPlugin());
     }
 
     @Override

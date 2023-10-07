@@ -39,6 +39,11 @@ public enum InjectableScope {
     /**
      * Indicates that the injectable component is a prototype, and a new instance of the component
      * will be created each time it is injected.
+     * <p>
+     * Lifecycle of prototype scoped components is not managed by the dependency injection container.
+     * PRE_INIT and POST_INIT will be called, but PRE_DESTROY and POST_DESTROY will not be called.
+     * PRE_INIT and POST_INIT is called everytime the instance were created, that means PRE_INIT MAY be called after current node is loaded.
+     * It can happen for example if somehow a new node containing an object that is depending on a prototype scoped component of an already loaded node.
      */
     PROTOTYPE
 }

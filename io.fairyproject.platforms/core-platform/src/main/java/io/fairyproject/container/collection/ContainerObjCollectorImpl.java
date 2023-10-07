@@ -40,14 +40,15 @@ public class ContainerObjCollectorImpl implements ContainerObjCollector {
     public void add(@NotNull ContainerObj containerObj) {
         this.objs.add(containerObj);
         this.addHandlers.forEach(consumer -> consumer.accept(containerObj));
-        containerObj.addCollector(this);
     }
 
     @Override
-    public void remove(@NotNull ContainerObj containerObj) {
-        this.objs.remove(containerObj);
-        this.removeHandlers.forEach(consumer -> consumer.accept(containerObj));
-        containerObj.removeCollector(this);
+    public boolean remove(@NotNull ContainerObj containerObj) {
+        if (this.objs.remove(containerObj)) {
+            this.removeHandlers.forEach(consumer -> consumer.accept(containerObj));
+            return true;
+        }
+        return false;
     }
 
     @Override

@@ -3,7 +3,6 @@ package io.fairyproject.discord.command;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandListener;
 import io.fairyproject.command.CommandService;
-import io.fairyproject.container.Autowired;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
@@ -13,6 +12,7 @@ import io.fairyproject.discord.event.DCBotInitializedEvent;
 import io.fairyproject.discord.event.DCMessageReceivedEvent;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.metadata.MetadataKey;
+import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.entities.User;
 
 import java.util.ArrayList;
@@ -20,15 +20,13 @@ import java.util.Arrays;
 import java.util.Collection;
 
 @InjectableComponent
+@RequiredArgsConstructor
 public class DCCommandListener implements CommandListener {
 
     private final MetadataKey<DCCommandMap> METADATA = MetadataKey.create("discord:command-map", DCCommandMap.class);
 
-    @Autowired
-    private ContainerContext containerContext;
-
-    @Autowired
-    private CommandService commandService;
+    private final ContainerContext containerContext;
+    private final CommandService commandService;
 
     @PostInitialize
     private void onPostInitialize() {
@@ -87,9 +85,9 @@ public class DCCommandListener implements CommandListener {
         if (annotation != null) {
             bots = new ArrayList<>();
             for (Class<? extends DCBot> botClass : annotation.value()) {
-                final Object bot = this.containerContext.getContainerObject(botClass);
+                final Object bot = this.containerContext.getSingleton(botClass);
                 if (bot != null) {
-                    bots.add(( DCBot ) bot);
+                    bots.add((DCBot) bot);
                 } else {
                     throw new IllegalArgumentException("Couldn't find container instance for " + botClass.getName());
                 }

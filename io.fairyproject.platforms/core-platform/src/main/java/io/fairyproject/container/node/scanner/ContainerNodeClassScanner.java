@@ -25,18 +25,19 @@
 package io.fairyproject.container.node.scanner;
 
 import io.fairyproject.Debug;
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.ContainerLogger;
+import io.fairyproject.container.DependsOn;
 import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.configuration.Configuration;
 import io.fairyproject.container.configuration.TestConfiguration;
-import io.fairyproject.container.controller.ContainerController;
-import io.fairyproject.container.controller.node.NodeController;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.provider.ConstructorInstanceProvider;
-import io.fairyproject.container.object.resolver.ConstructorContainerResolver;
+import io.fairyproject.container.object.provider.InstanceProvider;
+import io.fairyproject.container.processor.ContainerNodeClassScanProcessor;
+import io.fairyproject.container.processor.ContainerProcessors;
 import io.fairyproject.log.Log;
+import io.fairyproject.util.Utility;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
@@ -54,7 +55,8 @@ import java.util.function.Consumer;
 @Getter
 public class ContainerNodeClassScanner {
 
-    private final ContainerContext context;
+    private final ContainerProcessors processors;
+    private final ContainerObjectBinder binder;
     private final String name;
     private final ContainerNode node;
     private final List<String> classPaths = new ArrayList<>();
@@ -65,7 +67,7 @@ public class ContainerNodeClassScanner {
     private ContainerNode objNode;
 
     public void scan() {
-        this.objNode = ContainerNode.create(this.name + ":obj");
+        this.objNode = ContainerNode.create(this.name + ":obj", this.binder);
         this.node.addChild(this.objNode);
 
         final ClassGraph classGraph = createClassGraph();
@@ -77,21 +79,18 @@ public class ContainerNodeClassScanner {
                 this.loadComponentConfigurations(scanResult, TestConfiguration.class, true);
 
             this.loadLegacyComponentClasses(scanResult);
-            this.loadControllers(scanResult);
+            this.callProcessors(scanResult);
         }
     }
 
-    private void loadControllers(ScanResult scanResult) {
-        for (ContainerController controller : this.context.controllers()) {
-            NodeController nodeController = controller.initNode(node);
-            nodeController.onClassScan(scanResult);
-
-            this.node.addController(nodeController);
+    private void callProcessors(ScanResult scanResult) {
+        for (ContainerNodeClassScanProcessor nodeClassScanProcessor : this.processors.nodeClassScanProcessors()) {
+            nodeClassScanProcessor.processClassScan(this.node, scanResult);
         }
     }
 
     private void loadLegacyComponentClasses(ScanResult scanResult) {
-        new ContainerNodeLegacyScanner(scanResult, this).load();
+        new ContainerNodeLegacyScanner(scanResult, this.binder, this).load();
     }
 
 
@@ -112,7 +111,7 @@ public class ContainerNodeClassScanner {
     }
 
     private void loadConfigurationClass(Class<?> javaClass, boolean override) {
-        new ContainerNodeConfigurationScanner(javaClass, override, this).load();
+        new ContainerNodeConfigurationScanner(this.binder, javaClass, override, this).load();
     }
 
     private void loadComponentClasses(ScanResult scanResult) {
@@ -135,34 +134,63 @@ public class ContainerNodeClassScanner {
                 continue;
             }
 
-            ContainerObj containerObj = this.addComponentClass(javaClass, node, closure);
+            ContainerObj object = this.getOrLoadComponentObject(javaClass);
 
-            try {
-                ConstructorInstanceProvider provider = new ConstructorInstanceProvider(
-                        context,
-                        new ConstructorContainerResolver(javaClass)
-                );
-                containerObj.setProvider(provider);
-            } catch (Throwable t) {
-                ContainerLogger.report(node, containerObj, t, "An error occurred while creating the component instance provider");
+           this.addComponentClass(object, node, closure);
+        }
+    }
+
+    private ContainerObj getOrLoadComponentObject(Class<?> javaClass) {
+        ContainerObj binding = this.binder.getBinding(javaClass);
+        if (binding != null)
+            return binding;
+
+        ContainerObj object = this.createObject(javaClass);
+        InjectableComponent annotation = object.getType().getAnnotation(InjectableComponent.class);
+        if (annotation != null) {
+            object.setScope(annotation.scope());
+        }
+
+        try {
+            InstanceProvider provider = new ConstructorInstanceProvider(javaClass);
+
+            object.setInstanceProvider(provider);
+        } catch (Throwable t) {
+            throw new IllegalStateException("An error occurred while creating the component instance provider", t);
+        }
+
+        this.processDependsOn(object);
+
+        return object;
+    }
+
+    private void processDependsOn(ContainerObj object) {
+        Class<?> type = object.getType();
+
+        for (Class<?> superClass : Utility.getSuperAndInterfaces(type)) {
+            DependsOn annotation = superClass.getDeclaredAnnotation(DependsOn.class);
+            if (annotation == null)
+                continue;
+
+            for (Class<?> dependency : annotation.value()) {
+                object.addDependency(dependency);
             }
         }
     }
 
-    ContainerObj addComponentClass(Class<?> javaClass, ContainerNode node) {
-        return addComponentClass(javaClass, node, obj -> {});
+    ContainerObj createObject(Class<?> javaClass) {
+        ContainerObj object = ContainerObj.create(javaClass);
+        this.binder.bind(javaClass, object);
+
+        return object;
     }
 
-    ContainerObj addComponentClass(Class<?> javaClass, ContainerNode node, Consumer<ContainerObj> closure) {
-        if (this.node.getObj(javaClass) != null)
-            throw new IllegalStateException("Component class " + javaClass.getName() + " already exists");
+    void addComponentClass(ContainerObj object, ContainerNode node) {
+        addComponentClass(object, node, $ -> {});
+    }
 
-        ContainerObj containerObj = ContainerObj.of(javaClass);
-        closure.accept(containerObj);
-        this.context.lifeCycleHandlerRegistry().handle(containerObj);
-
-        node.addObj(containerObj);
-        return containerObj;
+    void addComponentClass(ContainerObj object, ContainerNode node, Consumer<ContainerObj> closure) {
+        node.addObj(object);
     }
 
     private ClassGraph createClassGraph() {

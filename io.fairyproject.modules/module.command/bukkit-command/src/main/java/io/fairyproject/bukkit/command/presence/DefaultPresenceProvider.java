@@ -40,6 +40,7 @@ public class DefaultPresenceProvider implements PresenceProvider<BukkitCommandCo
     public void sendMessage(BukkitCommandContext commandContext, MessageType messageType, String... messages) {
         switch (messageType) {
             case INFO:
+            default:
                 for (String message : messages) {
                     commandContext.getSender().sendMessage(ChatColor.AQUA + message);
                 }
@@ -54,6 +55,7 @@ public class DefaultPresenceProvider implements PresenceProvider<BukkitCommandCo
                     commandContext.getSender().sendMessage(ChatColor.RED + message);
                 }
                 break;
+
         }
     }
 }

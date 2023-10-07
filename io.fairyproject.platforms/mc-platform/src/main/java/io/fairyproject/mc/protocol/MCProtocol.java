@@ -53,6 +53,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MCProtocol {
     public static MCProtocol INSTANCE;
 
+    private final ContainerContext context;
     private final MCPlayerRegistry playerRegistry;
     private final MCVersionMappingRegistry mappingRegistry;
     private final PacketEventsBuilder packetEventsBuilder;
@@ -113,7 +114,7 @@ public class MCProtocol {
     }
 
     private void registerPacketListenerObjectCollector() {
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(PacketListener.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(PacketListener.class, obj -> {
                     if (obj instanceof PacketListenerCommon) {

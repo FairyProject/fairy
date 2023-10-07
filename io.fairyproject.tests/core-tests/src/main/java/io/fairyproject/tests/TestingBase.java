@@ -1,7 +1,5 @@
 package io.fairyproject.tests;
-
-import io.fairyproject.container.controller.AutowiredContainerController;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
+;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -18,11 +16,7 @@ public abstract class TestingBase {
 
     @BeforeEach
     public void beforeEach() {
-        try {
-            AutowiredContainerController.INSTANCE.applyObject(this);
-        } catch (ReflectiveOperationException e) {
-            SneakyThrowUtil.sneakyThrow(e);
-        }
+        // TODO: inject autowired fields
     }
 
 }

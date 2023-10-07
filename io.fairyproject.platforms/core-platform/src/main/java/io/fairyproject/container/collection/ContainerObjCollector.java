@@ -1,5 +1,7 @@
 package io.fairyproject.container.collection;
 
+import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.Containers;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.util.ConditionUtils;
 import org.jetbrains.annotations.Contract;
@@ -16,14 +18,17 @@ public interface ContainerObjCollector extends Iterable<ContainerObj>, Predicate
     }
 
     static Predicate<ContainerObj> inherits(Class<?> classInherit) {
-        return containerObj -> classInherit.isAssignableFrom(containerObj.type());
+        return containerObj -> classInherit.isAssignableFrom(containerObj.getType());
     }
 
+    @Deprecated
     static <T> Consumer<ContainerObj> warpInstance(Class<T> type, Consumer<T> consumer) {
         return containerObj -> {
-            final Object instance = containerObj.instance();
+            ContainerContext context = Containers.get(ContainerContext.class);
+            Object instance = context.singletonObjectRegistry().getSingleton(containerObj.getType());
+
             ConditionUtils.notNull(instance, "The instance of the container object hasn't been constructed.");
-            ConditionUtils.is(type.isAssignableFrom(containerObj.type()), String.format("The container object type %s doesn't match with %s", containerObj.type(), type));
+            ConditionUtils.is(type.isAssignableFrom(containerObj.getType()), String.format("The container object type %s doesn't match with %s", containerObj.getType(), type));
 
             consumer.accept(type.cast(instance));
         };
@@ -40,7 +45,7 @@ public interface ContainerObjCollector extends Iterable<ContainerObj>, Predicate
 
     void add(@NotNull ContainerObj containerObj);
 
-    void remove(@NotNull ContainerObj containerObj);
+    boolean remove(@NotNull ContainerObj containerObj);
 
     @NotNull Collection<ContainerObj> all();
 
