@@ -31,7 +31,6 @@ import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.node.loader.ContainerNodeLoader;
 import io.fairyproject.container.node.scanner.ContainerNodeClassScanner;
 import io.fairyproject.container.object.ContainerObj;
-import io.fairyproject.container.object.lifecycle.impl.annotation.FairyLifeCycleAnnotationProcessor;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.Stacktrace;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,7 @@ public class RootNodeLoader {
     private ContainerNode node;
 
     public ContainerNode load() {
-        this.node = ContainerNode.create("root");
+        this.node = ContainerNode.create("root", context.containerObjectBinder());
         this.addPreDefinedComponents();
         this.runClassScanner();
         this.loadNode();
@@ -59,7 +58,7 @@ public class RootNodeLoader {
 
     private void runClassScanner() {
         try {
-            ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(this.context, "framework", this.node);
+            ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(this.context, this.context.containerObjectBinder(), "framework", this.node);
             classScanner.getClassPaths().add(Fairy.getFairyPackage());
             if (!Debug.UNIT_TEST) {
                 classScanner.getUrls().add(this.getClass().getProtectionDomain().getCodeSource().getLocation());
@@ -74,12 +73,18 @@ public class RootNodeLoader {
     }
 
     private void addPreDefinedComponents() {
-        this.node.addObj(ContainerObj.of(context.getClass(), context));
+        ContainerObj obj = ContainerObj.create(this.context.getClass());
+        this.node.addObj(obj);
+        this.context.containerObjectBinder().bind(ContainerContext.class, obj);
+        this.context.singletonObjectRegistry().registerSingleton(ContainerContext.class, this.context);
+
         log("ContainerContext has been registered as ContainerObject.");
 
-        final ContainerObj platform = ContainerObj.of(FairyPlatform.class, Fairy.getPlatform());
-        platform.addLifeCycleHandler(new FairyLifeCycleAnnotationProcessor(platform));
-        this.node.addObj(platform);
+        obj = ContainerObj.create(FairyPlatform.class);
+        this.node.addObj(obj);
+        this.context.containerObjectBinder().bind(FairyPlatform.class, obj);
+        this.context.singletonObjectRegistry().registerSingleton(FairyPlatform.class, Fairy.getPlatform());
+
         log("FairyPlatform has been registered as ContainerObject.");
     }
 

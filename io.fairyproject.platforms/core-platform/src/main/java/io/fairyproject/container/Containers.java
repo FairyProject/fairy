@@ -24,11 +24,7 @@
 
 package io.fairyproject.container;
 
-import io.fairyproject.container.object.ContainerObj;
-import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import io.fairyproject.util.terminable.Terminable;
 import lombok.experimental.UtilityClass;
-import io.fairyproject.container.controller.AutowiredContainerController;
 
 /**
  * Static extension for ContainerContext
@@ -40,24 +36,8 @@ public class Containers {
     private ContainerContext CONTAINER_CONTEXT;
 
     public <T> T get(Class<T> type) {
-        return type.cast(CONTAINER_CONTEXT.getContainerObject(type));
+        return type.cast(CONTAINER_CONTEXT.singletonObjectRegistry().getSingleton(type));
     }
 
-    public void bindWith(Object containerInstance, Terminable terminable) {
-        bindWith(containerInstance.getClass(), terminable);
-    }
-
-    public void bindWith(Class<?> containerClass, Terminable terminable) {
-        final ContainerObj containerObj = ContainerReference.getObj(containerClass);
-        if (containerObj == null) {
-            throw new IllegalArgumentException("Cannot bind terminable to a class that isn't registered as ContainerObject.");
-        }
-
-        terminable.bindWith(containerObj);
-    }
-
-    public void inject(Object instance) {
-        ThrowingRunnable.sneaky(() -> AutowiredContainerController.INSTANCE.applyObject(instance)).run();
-    }
 
 }

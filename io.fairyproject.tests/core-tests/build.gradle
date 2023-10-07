@@ -2,4 +2,5 @@ dependencies {
     compileOnly project(":io.fairyproject.platforms:core-platform")
 
     api libs.junit
+    api "org.mockito:mockito-core:4.11.0"
 }

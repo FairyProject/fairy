@@ -24,26 +24,29 @@
 
 package io.fairyproject.container.object.provider;
 
-import io.fairyproject.container.object.resolver.MethodContainerResolver;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.lang.reflect.Method;
 
 @RequiredArgsConstructor
 public class MethodInvokeInstanceProvider implements InstanceProvider {
 
     private final Object instance;
-    private final MethodContainerResolver resolver;
+    private final Method method;
 
     @Override
-    public @NotNull Collection<Class<?>> dependencies() {
-        return Arrays.asList(resolver.getTypes());
+    public Class<?> getType() {
+        return method.getReturnType();
     }
 
     @Override
-    public @NotNull Object provide() throws Exception {
-        return this.resolver.invoke(this.instance);
+    public Class<?>[] getDependencies() {
+        return method.getParameterTypes();
+    }
+
+    @Override
+    public @NotNull Object provide(Object[] dependencies) throws Exception {
+        return this.method.invoke(instance, dependencies);
     }
 }

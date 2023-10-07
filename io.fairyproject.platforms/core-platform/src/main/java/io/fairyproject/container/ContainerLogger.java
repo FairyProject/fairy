@@ -39,7 +39,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.stream.Collectors;
 
 public class ContainerLogger {
 
@@ -47,7 +46,7 @@ public class ContainerLogger {
         Log.error("!-------------------!");
         Log.error("An error was reported with Fairy container system!!");
         Log.error("Node: " + node.name());
-        Log.error("Component: " + obj.type().getName());
+        Log.error("Component: " + obj.getType().getName());
         Log.error(" ");
         Log.error("Messages:");
         for (String message : messages) {
@@ -88,19 +87,14 @@ public class ContainerLogger {
             builder.append("Node: ").append(node.name()).append("\n");
             builder.append("Classes: ").append("\n");
             for (ContainerObj chain : node.all()) {
-                builder.append("  ").append(chain.type().getName()).append("\n");
+                builder.append("  ").append(chain.getType().getName()).append("\n");
             }
 
             if (obj != null) {
-                builder.append(String.format("Node Object: %s\n", obj.type().getName()));
-                builder.append(String.format("  Life Cycle: %s\n", obj.lifeCycle()));
-                builder.append(String.format("  dependencies: %s\n", obj.dependEntries()));
-                builder.append(String.format("  Component instance provider: %s\n", obj.provider()));
-                builder.append(String.format("  Component instance: %s\n", obj.instance()));
-                builder.append(String.format("  Component thread mode: %s\n", obj.threadingMode()));
-                builder.append(String.format("  Component life cycle handlers: %s\n", obj.lifeCycleHandlers().stream()
-                        .map(handler -> handler.getClass().getName())
-                        .collect(Collectors.toList())));
+                builder.append(String.format("Node Object: %s\n", obj.getType().getName()));
+                builder.append(String.format("  dependencies: %s\n", obj.getDependencies()));
+                builder.append(String.format("  Component instance provider: %s\n", obj.getInstanceProvider()));
+                builder.append(String.format("  Component thread mode: %s\n", obj.getThreadingMode()));
             }
 
             builder.append("--------------------\n");

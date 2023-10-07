@@ -16,4 +16,12 @@ public enum LifeCycle {
 
     private final boolean reverseOrder;
 
+    public boolean isAfter(LifeCycle lifeCycle) {
+        return this.ordinal() > lifeCycle.ordinal();
+    }
+
+    public boolean isBefore(LifeCycle lifeCycle) {
+        return this.ordinal() < lifeCycle.ordinal();
+    }
+
 }

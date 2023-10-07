@@ -1,7 +1,6 @@
 package io.fairyproject.bukkit.util.items.impl;
 
 import io.fairyproject.bukkit.util.items.FairyItem;
-import io.fairyproject.bukkit.util.items.FairyItemRef;
 import io.fairyproject.bukkit.util.items.FairyItemRegistry;
 import io.fairyproject.bukkit.util.items.ItemBuilder;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;

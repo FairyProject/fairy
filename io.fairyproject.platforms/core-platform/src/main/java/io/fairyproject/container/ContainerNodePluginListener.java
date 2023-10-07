@@ -23,7 +23,7 @@ public class ContainerNodePluginListener implements PluginListenerAdapter {
     public void onPluginDisable(Plugin plugin) {
         final ContainerNode node = plugin.getNode();
         if (node != null) {
-            node.closeAndReportException();
+            context.nodeDestroyer().destroy(node);
         }
     }
 

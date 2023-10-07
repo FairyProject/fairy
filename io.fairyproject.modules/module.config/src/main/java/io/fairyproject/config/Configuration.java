@@ -127,7 +127,9 @@ public abstract class Configuration<C extends Configuration<C>> {
      * <p>
      * The default implementation of this method does nothing.
      */
-    protected void preSave() {}
+    protected void preSave() {
+        // to be overridden
+    }
 
     /**
      * Hook that is executed right after this {@code Configuration} has
@@ -135,7 +137,9 @@ public abstract class Configuration<C extends Configuration<C>> {
      * <p>
      * The default implementation of this method does nothing.
      */
-    protected void postLoad() {}
+    protected void postLoad() {
+        // to be overridden
+    }
 
     Properties getProperties() {
         return props;

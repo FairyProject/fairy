@@ -26,17 +26,16 @@ package io.fairyproject.container.object.provider;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-
 /**
  * A provider that provides an instance of a class.
  * This method does NOT cache the instance,
- * Every time {@link #provide()} is called, a new instance is created.
+ * Every time {@link #provide(Object[])} is called, a new instance is created.
  */
 public interface InstanceProvider {
 
-    @NotNull Collection<Class<?>> dependencies();
+    Class<?> getType();
+    Class<?>[] getDependencies();
 
-    @NotNull Object provide() throws Exception;
+    @NotNull Object provide(Object[] dependencies) throws Exception;
 
 }

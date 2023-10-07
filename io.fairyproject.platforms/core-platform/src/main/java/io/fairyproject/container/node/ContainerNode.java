@@ -1,22 +1,19 @@
 package io.fairyproject.container.node;
 
-import io.fairyproject.container.controller.node.NodeController;
+import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.object.ContainerObj;
-import io.fairyproject.util.terminable.Terminable;
-import io.fairyproject.util.terminable.TerminableConsumer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 
-public interface ContainerNode extends Terminable, TerminableConsumer {
+public interface ContainerNode {
 
-    static ContainerNode create(String name) {
-        return new ContainerNodeImpl(name);
+    static ContainerNode create(String name, ContainerObjectBinder binder) {
+        return new ContainerNodeImpl(name, binder);
     }
 
     @NotNull String name();
@@ -32,11 +29,7 @@ public interface ContainerNode extends Terminable, TerminableConsumer {
     @Contract("_ -> this")
     @NotNull ContainerNode removeChild(@NotNull ContainerNode node);
 
-    @NotNull ContainerNode addController(@NotNull NodeController controller);
-
-    @NotNull ContainerNode removeController(@NotNull NodeController controller);
-
-    @NotNull List<NodeController> controllers();
+    @NotNull Set<ContainerNode> childs();
 
     @NotNull Set<ContainerObj> all();
 

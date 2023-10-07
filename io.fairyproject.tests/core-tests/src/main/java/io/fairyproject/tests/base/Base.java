@@ -1,10 +1,8 @@
 package io.fairyproject.tests.base;
 
-import io.fairyproject.container.controller.AutowiredContainerController;
 import io.fairyproject.tests.RuntimeMode;
 import io.fairyproject.tests.TestingContext;
 import io.fairyproject.tests.TestingHandle;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -54,11 +52,7 @@ abstract class Base {
     }
 
     public void initAutowired() {
-        try {
-            AutowiredContainerController.INSTANCE.applyObject(this);
-        } catch (ReflectiveOperationException e) {
-            SneakyThrowUtil.sneakyThrow(e);
-        }
+        // TODO: inject autowired fields
     }
 
     public RuntimeMode runtimeMode() {

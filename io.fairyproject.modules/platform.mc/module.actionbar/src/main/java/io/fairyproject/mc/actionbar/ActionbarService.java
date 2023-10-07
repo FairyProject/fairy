@@ -25,6 +25,7 @@ public class ActionbarService {
     private final List<ActionbarAdapter> adapters = new ArrayList<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final AtomicBoolean activated = new AtomicBoolean();
+    private Terminable terminable;
 
     @PreInitialize
     public void onPreInitialize() {
@@ -40,9 +41,17 @@ public class ActionbarService {
         this.activate();
     }
 
+    @PreDestroy
+    public void onPreDestroy() {
+        if (this.terminable != null) {
+            this.terminable.closeAndReportException();
+            this.terminable = null;
+        }
+    }
+
     public void activate() {
         if (this.activated.compareAndSet(false, true)) {
-            Containers.bindWith(this, Task.asyncRepeated(this::tick, this.getUpdateTick()));
+            this.terminable = Task.asyncRepeated(this::tick, this.getUpdateTick());
         }
     }
 

@@ -32,6 +32,7 @@ import io.fairyproject.serializer.SerializerData;
 import io.fairyproject.util.ConditionUtils;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,10 +45,12 @@ import java.util.concurrent.ConcurrentHashMap;
  * This service is widely used in modules such as storage and config.
  * It's like a wildcard service, so you only need to register one serializer and use everywhere.
  */
-@Service
+@InjectableComponent
+@RequiredArgsConstructor
 @Getter
 public class SerializerFactory {
 
+    private final ContainerContext context;
     private Map<Class<?>, SerializerData> serializerByValueType;
     private Map<Class<?>, SerializerData> serializerBySerializerType;
 
@@ -56,7 +59,7 @@ public class SerializerFactory {
         this.serializerByValueType = new ConcurrentHashMap<>();
         this.serializerBySerializerType = new ConcurrentHashMap<>();
 
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(ObjectSerializer.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(ObjectSerializer.class, this::registerSerializer))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(ObjectSerializer.class, this::unregisterSerializer))
