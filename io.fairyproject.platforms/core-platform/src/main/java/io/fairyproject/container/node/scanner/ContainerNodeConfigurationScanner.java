@@ -24,6 +24,7 @@
 
 package io.fairyproject.container.node.scanner;
 
+import io.fairyproject.container.ClasspathScan;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.object.ContainerObj;
@@ -48,10 +49,8 @@ public class ContainerNodeConfigurationScanner {
         this.createConfigurationInstance();
 
         for (Method method : configurationClass.getDeclaredMethods()) {
-            if (!method.isAnnotationPresent(InjectableComponent.class))
-                return;
-
-            this.loadConfigurationMethod(method, override);
+            if (method.isAnnotationPresent(InjectableComponent.class))
+                this.loadConfigurationMethod(method, override);
         }
     }
 
@@ -77,7 +76,6 @@ public class ContainerNodeConfigurationScanner {
         } else {
             object = scanner.createObject(javaClass);
             object.setInstanceProvider(provider);
-
         }
 
         ContainerObj previous = scanner.getNode().getObj(javaClass);

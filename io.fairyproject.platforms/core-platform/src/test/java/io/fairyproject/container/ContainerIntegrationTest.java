@@ -67,7 +67,7 @@ public class ContainerIntegrationTest {
 
             @Test
             public void checkAllComponentsAreLoaded() {
-                assertEquals(3, node.all().size());
+                assertEquals(4, node.all().size());
             }
 
             @Test

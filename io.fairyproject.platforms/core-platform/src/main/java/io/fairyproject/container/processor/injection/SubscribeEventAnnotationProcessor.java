@@ -32,6 +32,9 @@ import io.fairyproject.event.EventNode;
 import io.fairyproject.event.EventSubscribeRegistry;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.util.AsyncUtils;
+
+import java.util.concurrent.CompletableFuture;
 
 public class SubscribeEventAnnotationProcessor implements ContainerObjInitProcessor, ContainerObjDestroyProcessor {
 
@@ -39,15 +42,17 @@ public class SubscribeEventAnnotationProcessor implements ContainerObjInitProces
 
 
     @Override
-    public void processPostInitialization(ContainerObj object, Object instance) {
+    public CompletableFuture<?> processPostInitialization(ContainerObj object, Object instance) {
         if (!object.isSingletonScope())
-            return;
+            return AsyncUtils.empty();
 
         final EventNode<? extends Event> eventNode = EventSubscribeRegistry.create(instance);
         if (eventNode != null) {
             GlobalEventNode.get().addChild(eventNode);
             object.getMetadata().put(KEY, eventNode);
         }
+
+        return AsyncUtils.empty();
     }
 
     @Override

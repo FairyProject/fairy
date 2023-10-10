@@ -35,9 +35,6 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.util.Stacktrace;
 import lombok.RequiredArgsConstructor;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,9 +61,10 @@ public class PluginNodeLoader {
     }
 
     private void addPluginAsComponent() {
-        ContainerObj pluginObj = ContainerObj.create(this.plugin.getClass());
-        context.singletonObjectRegistry().registerSingleton(this.plugin.getClass(), this.plugin);
-        context.containerObjectBinder().bind(this.plugin.getClass(), pluginObj);
+        Class<? extends Plugin> pluginClass = this.plugin.getClass();
+        ContainerObj pluginObj = ContainerObj.create(pluginClass);
+        context.singletonObjectRegistry().registerSingleton(pluginClass, this.plugin);
+        context.containerObjectBinder().bind(pluginClass, pluginObj);
         node.addObj(pluginObj);
 
         Debug.log("Plugin " + plugin.getName() + " has been registered as ContainerObject.");
@@ -75,29 +73,10 @@ public class PluginNodeLoader {
     private void runClassScanner() {
         try {
             ContainerNodeClassScanner classScanner = new ContainerNodeClassScanner(this.context, this.context.containerObjectBinder(), this.plugin.getName(), this.node);
-            classScanner.getClassLoaders().add(plugin.getPluginClassLoader());
             classScanner.getClassPaths().addAll(this.findClassPaths());
             classScanner.getExcludedClassPaths().add(Fairy.getFairyPackage());
-            if (Debug.UNIT_TEST) {
-                // Hard coded, anyway to make it safer?
-                Path pathMain = Paths.get("build/classes/java/main").toAbsolutePath();
-                if (Files.exists(pathMain))
-                    classScanner.getUrls().add(pathMain.toUri().toURL());
-
-                Path pathTest = Paths.get("build/classes/java/test").toAbsolutePath();
-                if (Files.exists(pathTest))
-                    classScanner.getUrls().add(pathTest.toUri().toURL());
-
-                pathMain = Paths.get("build/classes/kotlin/main").toAbsolutePath();
-                if (Files.exists(pathMain))
-                    classScanner.getUrls().add(pathMain.toUri().toURL());
-
-                pathTest = Paths.get("build/classes/kotlin/test").toAbsolutePath();
-                if (Files.exists(pathTest))
-                    classScanner.getUrls().add(pathTest.toUri().toURL());
-            } else {
-                classScanner.getUrls().add(plugin.getClass().getProtectionDomain().getCodeSource().getLocation());
-            }
+            classScanner.getClassLoaders().addAll(this.plugin.getClassLoaderRegistry().getClassLoaders());
+            classScanner.getUrls().addAll(this.plugin.getClassLoaderRegistry().getUrls());
 
             classScanner.scan();
         } catch (Throwable throwable) {

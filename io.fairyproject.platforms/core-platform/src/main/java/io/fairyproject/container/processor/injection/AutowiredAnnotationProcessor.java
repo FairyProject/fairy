@@ -26,10 +26,12 @@ package io.fairyproject.container.processor.injection;
 
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.node.ContainerNode;
+import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 import io.fairyproject.container.processor.ContainerNodeClassScanProcessor;
 import io.fairyproject.container.processor.ContainerNodeInitProcessor;
 import io.fairyproject.container.processor.ContainerObjConstructProcessor;
+import io.fairyproject.container.processor.ContainerObjInitProcessor;
 import io.fairyproject.log.Log;
 import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.AccessUtil;
@@ -48,14 +50,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AutowiredAnnotationProcessor implements
-        ContainerObjConstructProcessor,
+        ContainerObjInitProcessor,
         ContainerNodeClassScanProcessor,
         ContainerNodeInitProcessor {
 
     private final Map<String, NodeContext> nodes = new ConcurrentHashMap<>();
 
     @Override
-    public CompletableFuture<?> processConstruction(Object instance, ContainerObjectResolver resolver) {
+    public CompletableFuture<?> processPreInitialization(ContainerObj object, Object instance, ContainerObjectResolver resolver) {
         List<Field> fields = new ArrayList<>();
         List<CompletableFuture<?>> futures = new ArrayList<>();
 
@@ -74,14 +76,18 @@ public class AutowiredAnnotationProcessor implements
                 throw new IllegalStateException("The field " + field + " is final but marked @Autowired");
 
             try {
+                System.out.println("processing " + field);
                 futures.add(this.injectAutowiredField(field, instance, resolver));
             } catch (Exception ex) {
                 Log.error("Failed to apply field %s", field, ex);
+                ex.printStackTrace();
             }
         }
 
         return AsyncUtils.allOf(futures);
     }
+
+
 
     @Override
     public void processClassScan(ContainerNode node, ScanResult scanResult) {

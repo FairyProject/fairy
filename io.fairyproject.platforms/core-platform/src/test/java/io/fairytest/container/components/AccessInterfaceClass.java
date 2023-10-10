@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,15 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container;
+package io.fairytest.container.components;
 
-import lombok.experimental.UtilityClass;
+import io.fairyproject.container.InjectableComponent;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Static extension for ContainerContext
- */
-@UtilityClass
-public class Containers {
+@InjectableComponent
+@RequiredArgsConstructor
+public class AccessInterfaceClass {
 
-    @Autowired
-    public ContainerContext CONTAINER_CONTEXT;
-
-    public <T> T get(Class<T> type) {
-        return type.cast(CONTAINER_CONTEXT.singletonObjectRegistry().getSingleton(type));
-    }
-
+    private final InterfaceClass interfaceClass;
 
 }

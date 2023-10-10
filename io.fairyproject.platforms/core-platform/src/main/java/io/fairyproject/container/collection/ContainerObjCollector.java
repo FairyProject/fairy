@@ -24,7 +24,7 @@ public interface ContainerObjCollector extends Iterable<ContainerObj>, Predicate
     @Deprecated
     static <T> Consumer<ContainerObj> warpInstance(Class<T> type, Consumer<T> consumer) {
         return containerObj -> {
-            ContainerContext context = Containers.get(ContainerContext.class);
+            ContainerContext context = Containers.CONTAINER_CONTEXT;
             Object instance = context.singletonObjectRegistry().getSingleton(containerObj.getType());
 
             ConditionUtils.notNull(instance, "The instance of the container object hasn't been constructed.");

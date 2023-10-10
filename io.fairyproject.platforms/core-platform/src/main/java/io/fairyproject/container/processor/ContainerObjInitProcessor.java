@@ -25,15 +25,21 @@
 package io.fairyproject.container.processor;
 
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.object.resolver.ContainerObjectResolver;
+import io.fairyproject.util.AsyncUtils;
+
+import java.util.concurrent.CompletableFuture;
 
 public interface ContainerObjInitProcessor {
 
-    default void processPreInitialization(ContainerObj object, Object instance) {
+    default CompletableFuture<?> processPreInitialization(ContainerObj object, Object instance, ContainerObjectResolver resolver) {
         // to be overridden
+        return AsyncUtils.empty();
     }
 
-    default void processPostInitialization(ContainerObj object, Object instance) {
+    default CompletableFuture<?> processPostInitialization(ContainerObj object, Object instance) {
         // to be overridden
+        return AsyncUtils.empty();
     }
 
 }
