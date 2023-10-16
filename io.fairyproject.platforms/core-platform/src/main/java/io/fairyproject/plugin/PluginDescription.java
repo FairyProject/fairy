@@ -20,6 +20,7 @@ public class PluginDescription {
     private final String name;
     private final String mainClass;
     private final String shadedPackage;
+    private final String fairyPackage;
     @Singular
     private final List<Library> libraries;
 
@@ -31,6 +32,11 @@ public class PluginDescription {
         this.name = jsonObject.get("name").getAsString();
         this.mainClass = jsonObject.get("mainClass").getAsString();
         this.shadedPackage = jsonObject.get("shadedPackage").getAsString();
+        if (jsonObject.has("fairyPackage")) {
+            this.fairyPackage = jsonObject.get("fairyPackage").getAsString();
+        } else {
+            this.fairyPackage = this.shadedPackage + ".fairy";
+        }
 
         this.libraries = new ArrayList<>();
         if (jsonObject.has("libraries")) {

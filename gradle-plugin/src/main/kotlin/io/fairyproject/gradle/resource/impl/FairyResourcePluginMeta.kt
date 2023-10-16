@@ -28,6 +28,9 @@ open class FairyResourcePluginMeta: FairyResource {
         fairyExtension.mainPackage.orNull ?.let {
             jsonObject.addProperty("shadedPackage", it)
         }
+        fairyExtension.fairyPackage.orNull ?.let {
+            jsonObject.addProperty("fairyPackage", it)
+        }
 
         return resourceOf("fairy.json", gson.toJson(jsonObject).encodeToByteArray())
     }
