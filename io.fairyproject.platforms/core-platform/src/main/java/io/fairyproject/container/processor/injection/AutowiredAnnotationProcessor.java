@@ -76,11 +76,9 @@ public class AutowiredAnnotationProcessor implements
                 throw new IllegalStateException("The field " + field + " is final but marked @Autowired");
 
             try {
-                System.out.println("processing " + field);
                 futures.add(this.injectAutowiredField(field, instance, resolver));
             } catch (Exception ex) {
-                Log.error("Failed to apply field %s", field, ex);
-                ex.printStackTrace();
+                Log.error("Failed to inject autowired field %s", field, ex);
             }
         }
 
