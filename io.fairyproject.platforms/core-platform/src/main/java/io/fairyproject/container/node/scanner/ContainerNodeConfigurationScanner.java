@@ -24,7 +24,6 @@
 
 package io.fairyproject.container.node.scanner;
 
-import io.fairyproject.container.ClasspathScan;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.object.ContainerObj;
