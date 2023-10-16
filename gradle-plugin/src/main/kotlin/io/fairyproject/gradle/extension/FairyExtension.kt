@@ -13,6 +13,8 @@ open class FairyExtension(objectFactory: ObjectFactory) {
 
     val name: Property<String> = objectFactory.property(String::class.java)
     val mainPackage: Property<String> = objectFactory.property(String::class.java)
+    val fairyPackage: Property<String> = objectFactory.property(String::class.java)
+        .value("io.fairyproject")
 
     private val properties = mutableMapOf<PlatformType, Properties>()
 

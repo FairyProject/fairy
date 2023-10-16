@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,22 +22,26 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.container;
+package io.fairyproject.plugin;
 
-import lombok.experimental.UtilityClass;
+import lombok.Getter;
 
-/**
- * Static extension for ContainerContext
- */
-@UtilityClass
-public class Containers {
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
-    @Autowired
-    public ContainerContext CONTAINER_CONTEXT;
+@Getter
+public class PluginClassLoaderRegistry {
 
-    public <T> T get(Class<T> type) {
-        return type.cast(CONTAINER_CONTEXT.singletonObjectRegistry().getSingleton(type));
+    private final List<URL> urls = new ArrayList<>();
+    private final List<ClassLoader> classLoaders = new ArrayList<>();
+
+    public void addUrl(URL url) {
+        this.urls.add(url);
     }
 
+    public void addClassLoader(ClassLoader classLoader) {
+        this.classLoaders.add(classLoader);
+    }
 
 }

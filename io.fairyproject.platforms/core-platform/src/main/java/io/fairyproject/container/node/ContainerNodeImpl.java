@@ -109,7 +109,6 @@ public class ContainerNodeImpl implements ContainerNode {
             this.graph.add(obj);
         }
 
-        this.graph.setAutoAdd(true);
         this.graph.resolve();
 
         for (ContainerNode childNode : this.childNodes) {
@@ -153,10 +152,17 @@ public class ContainerNodeImpl implements ContainerNode {
         public ContainerObj[] depends(ContainerObj parent) {
             final List<ContainerObj> retVal = new ArrayList<>();
             for (Class<?> type : parent.getDependencies()) {
-                final ContainerObj obj = binder.getBinding(type);
-
+                ContainerObj obj = binder.getBinding(type);
                 if (obj == null)
                     throw new IllegalStateException("Unknown dependency: " + type.getName());
+
+                ContainerObj current = getObj(obj.getType());
+                if (current == null)
+                    continue;
+
+                if (current != obj)
+                    throw new IllegalStateException("Conflict depenedency: " + type.getName());
+
                 retVal.add(obj);
             }
 

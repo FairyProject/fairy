@@ -25,12 +25,14 @@
 package io.fairyproject.container.processor.annotation;
 
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 import io.fairyproject.container.processor.ContainerObjDestroyProcessor;
 import io.fairyproject.container.processor.ContainerObjInitProcessor;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class LifeCycleAnnotationProcessor implements ContainerObjInitProcessor, ContainerObjDestroyProcessor {
@@ -64,13 +66,13 @@ public class LifeCycleAnnotationProcessor implements ContainerObjInitProcessor, 
     }
 
     @Override
-    public void processPreInitialization(ContainerObj object, Object instance) {
-        this.findOrCreateMetadata(instance.getClass()).invoke(PRE_INIT, instance);
+    public CompletableFuture<?> processPreInitialization(ContainerObj object, Object instance, ContainerObjectResolver resolver) {
+        return object.getThreadingMode().execute(() -> this.findOrCreateMetadata(instance.getClass()).invoke(PRE_INIT, instance));
     }
 
     @Override
-    public void processPostInitialization(ContainerObj object, Object instance) {
-        this.findOrCreateMetadata(instance.getClass()).invoke(POST_INIT, instance);
+    public CompletableFuture<?> processPostInitialization(ContainerObj object, Object instance) {
+        return object.getThreadingMode().execute(() -> this.findOrCreateMetadata(instance.getClass()).invoke(POST_INIT, instance));
     }
 
     @Override

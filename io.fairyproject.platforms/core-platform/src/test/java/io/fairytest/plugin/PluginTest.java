@@ -17,6 +17,7 @@ public class PluginTest extends JUnitJupiterBase {
                 .name("test")
                 .mainClass("io.fairytest.plugin.PluginMock")
                 .shadedPackage("io.fairytest.plugin")
+                .fairyPackage("io.fairytest.plugin.fairy")
                 .build();
 
         JsonObject jsonObject;

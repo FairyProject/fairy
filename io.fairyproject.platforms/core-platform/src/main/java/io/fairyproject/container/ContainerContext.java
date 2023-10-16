@@ -82,8 +82,8 @@ public class ContainerContext implements ContainerProcessors {
 
         FairyLifeCycleAnnotationProcessor annotationProcessor = new FairyLifeCycleAnnotationProcessor();
         AutowiredAnnotationProcessor autowiredAnnotationProcessor = new AutowiredAnnotationProcessor();
-        this.constructProcessors = new ContainerObjConstructProcessor[] { autowiredAnnotationProcessor };
-        this.initProcessors = new ContainerObjInitProcessor[] { annotationProcessor };
+        this.constructProcessors = new ContainerObjConstructProcessor[] { };
+        this.initProcessors = new ContainerObjInitProcessor[] { autowiredAnnotationProcessor, annotationProcessor };
         this.destroyProcessors = new ContainerObjDestroyProcessor[] { annotationProcessor };
         this.nodeClassScanProcessors = new ContainerNodeClassScanProcessor[] { autowiredAnnotationProcessor };
         this.nodeInitProcessors = new ContainerNodeInitProcessor[] { autowiredAnnotationProcessor };

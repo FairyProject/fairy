@@ -128,11 +128,17 @@ public class ContainerNodeLoader {
             if (!this.trySetLifeCycle(object, LifeCycle.PRE_INIT))
                 continue;
 
-            futures.add(object.getThreadingMode().execute(() -> {
-                for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
-                    initProcessor.processPreInitialization(object, instance);
-                }
-            }));
+            CompletableFuture<?> chain = null;
+            for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
+                Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPreInitialization(object, instance, this.containerObjectResolver);
+                if (chain == null)
+                    chain = callback.get();
+                else
+                    chain = chain.thenCompose($ -> callback.get());
+            }
+
+            if (chain != null)
+                futures.add(chain);
         }
 
         return AsyncUtils.allOf(futures);
@@ -147,11 +153,17 @@ public class ContainerNodeLoader {
             if (!this.trySetLifeCycle(object, LifeCycle.POST_INIT))
                 continue;
 
-            futures.add(object.getThreadingMode().execute(() -> {
-                for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
-                    initProcessor.processPostInitialization(object, instance);
-                }
-            }));
+            CompletableFuture<?> chain = null;
+            for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
+                Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPostInitialization(object, instance);
+                if (chain == null)
+                    chain = callback.get();
+                else
+                    chain = chain.thenCompose($ -> callback.get());
+            }
+
+            if (chain != null)
+                futures.add(chain);
         }
 
         return AsyncUtils.allOf(futures);
@@ -172,18 +184,25 @@ public class ContainerNodeLoader {
     }
 
     private CompletableFuture<Object> provideInstance(ContainerObj obj) throws Exception {
-        if (obj.isSingletonScope()) {
-            if (!this.trySetLifeCycle(obj, LifeCycle.CONSTRUCT))
-                return AsyncUtils.empty();
+        Class<?> objectType = obj.getType();
+        SingletonObjectRegistry singletonObjectRegistry = this.context.singletonObjectRegistry();
 
-            if (this.context.singletonObjectRegistry().containsSingleton(obj.getType())) {
+        if (obj.isSingletonScope()) {
+            if (!this.trySetLifeCycle(obj, LifeCycle.CONSTRUCT)) {
+                return AsyncUtils.empty();
+            }
+
+            if (singletonObjectRegistry.containsSingleton(objectType)) {
+                Object instance = singletonObjectRegistry.getSingleton(objectType);
+                this.postInstanceConstruct(instance, obj);
+
                 return AsyncUtils.empty();
             }
         }
 
         InstanceProvider instanceProvider = obj.getInstanceProvider();
         if (instanceProvider == null) {
-            throw new IllegalStateException("Instance provider for " + obj.getType().getName() + " is null!");
+            throw new IllegalStateException("Instance provider for " + objectType.getName() + " is null!");
         }
 
         CompletableFuture<Object[]> future = this.containerObjectResolver.resolveInstances(instanceProvider.getDependencies());
@@ -192,12 +211,16 @@ public class ContainerNodeLoader {
                 .thenCompose(this::callConstructProcessors)
                 .thenApply(instance -> {
                     if (obj.isSingletonScope()) {
-                        this.context.singletonObjectRegistry().registerSingleton(obj.getType(), instance);
+                        singletonObjectRegistry.registerSingleton(objectType, instance);
                     }
 
-                    this.collection.add(instance, obj);
+                    this.postInstanceConstruct(instance, obj);
                     return instance;
                 });
+    }
+
+    private void postInstanceConstruct(Object instance, ContainerObj obj) {
+        this.collection.add(instance, obj);
     }
 
     @NotNull

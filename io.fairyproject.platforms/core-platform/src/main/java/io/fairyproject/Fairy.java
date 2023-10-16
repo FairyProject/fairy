@@ -37,7 +37,6 @@ import io.fairyproject.util.FastRandom;
 public class Fairy {
 
     public final String METADATA_PREFIX = "fairy:";
-    public final String PACKAGE_NAME = "fairy";
     private final FastRandom RANDOM = new FastRandom();
 
     public FastRandom random() {
@@ -56,7 +55,7 @@ public class Fairy {
         if (Debug.UNIT_TEST) {
             return "io.fairyproject";
         }
-        return Fairy.getMainPlugin().getDescription().getShadedPackage() + "." + PACKAGE_NAME;
+        return Fairy.getMainPlugin().getDescription().getFairyPackage();
     }
 
     public ITaskScheduler getTaskScheduler() {

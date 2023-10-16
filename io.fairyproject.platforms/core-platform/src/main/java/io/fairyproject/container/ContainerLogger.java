@@ -86,9 +86,9 @@ public class ContainerLogger {
             PrintWriter builder = new PrintWriter(out);
             builder.append("Node: ").append(node.name()).append("\n");
             builder.append("Classes: ").append("\n");
-            for (ContainerObj chain : node.all()) {
-                builder.append("  ").append(chain.getType().getName()).append("\n");
-            }
+            node.graph().forEachClockwise(chain -> {
+                builder.append("-> ").append(chain.getType().getName()).append("\n");
+            });
 
             if (obj != null) {
                 builder.append(String.format("Node Object: %s\n", obj.getType().getName()));

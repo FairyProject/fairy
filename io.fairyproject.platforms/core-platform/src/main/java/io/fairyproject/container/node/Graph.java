@@ -26,16 +26,10 @@ public abstract class Graph<T> {
     protected final Set<T> objects = new HashSet<>();
     protected final Map<T, List<T>> edges = new HashMap<>();
     private final AtomicBoolean resolved = new AtomicBoolean(false);
-    private boolean autoAdd;
     @Getter
     private List<T> nodes;
 
     public abstract T[] depends(T parent);
-
-    public void setAutoAdd(boolean autoAdd) {
-        ConditionUtils.is(!this.resolved.get(), "The DependencyTree was resolved.");
-        this.autoAdd = autoAdd;
-    }
 
     public void handleCycle(T current, List<T> diagram) {
         throw new IllegalArgumentException("Diagram shows this graph contains cycle: " + diagram.stream()
@@ -61,16 +55,10 @@ public abstract class Graph<T> {
             final T[] depends = this.depends(object);
             for (T depend : depends) {
                 boolean containsDepend = this.objects.contains(depend);
-                if (autoAdd) {
-                   if (!containsDepend) {
-                       this.objects.add(depend);
-                   }
-                } else {
-                    ConditionUtils.is(
-                            containsDepend,
-                            String.format("%s depend by %s", depend, object)
-                    );
-                }
+                ConditionUtils.is(
+                        containsDepend,
+                        String.format("%s depend by %s", depend, object)
+                );
                 this.edges.computeIfAbsent(depend, k -> new ArrayList<>()).add(object);
             }
         }

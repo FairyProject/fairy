@@ -48,10 +48,8 @@ public class ContainerNodeConfigurationScanner {
         this.createConfigurationInstance();
 
         for (Method method : configurationClass.getDeclaredMethods()) {
-            if (!method.isAnnotationPresent(InjectableComponent.class))
-                return;
-
-            this.loadConfigurationMethod(method, override);
+            if (method.isAnnotationPresent(InjectableComponent.class))
+                this.loadConfigurationMethod(method, override);
         }
     }
 
@@ -77,7 +75,6 @@ public class ContainerNodeConfigurationScanner {
         } else {
             object = scanner.createObject(javaClass);
             object.setInstanceProvider(provider);
-
         }
 
         ContainerObj previous = scanner.getNode().getObj(javaClass);
