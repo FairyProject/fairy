@@ -9,11 +9,7 @@ configurations {
     }
 }
 
-processResources {
-    expand projectVersion: project.version
-}
-
-tasks.withType(JavaCompile) {
+tasks.withType(JavaCompile).configureEach {
     sourceCompatibility = targetCompatibility = "1.8"
     options.encoding = "UTF-8"
 }

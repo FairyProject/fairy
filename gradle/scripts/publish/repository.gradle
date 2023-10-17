@@ -1,0 +1,12 @@
+publishing {
+    repositories {
+        maven {
+            name "Production"
+            url "https://repo.imanity.dev/imanity-libraries/"
+            credentials {
+                username findProperty("imanityLibrariesUsername").toString()
+                password findProperty("imanityLibrariesPassword").toString()
+            }
+        }
+    }
+}

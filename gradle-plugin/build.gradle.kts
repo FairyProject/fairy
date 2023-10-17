@@ -4,7 +4,6 @@ plugins {
     kotlin("jvm") version "1.7.10"
     id("com.gradle.plugin-publish") version "1.0.0"
     `java-gradle-plugin`
-    `maven-publish`
 }
 
 version = parent!!.version

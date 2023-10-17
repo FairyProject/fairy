@@ -1,0 +1,44 @@
+publishing {
+    publications {
+        maven(MavenPublication) { publication ->
+            def java = components.findByName("java")
+            if (java != null)
+                from java
+
+            pom {
+
+                name = "Fairy " + project.name
+                description = project.description
+
+                url = "https://github.com/FairyProject/fairy"
+                organization {
+                    name = "Fairy Project"
+                    url = "https://github.com/FairyProject/fairy"
+                }
+                licenses {
+                    license {
+                        name = "MIT License"
+                        url = "https://www.apache.org/licenses/LICENSE-2.0"
+                        distribution = "repo"
+                    }
+                }
+                scm {
+                    url = "https://github.com/FairyProject/fairy"
+                    connection = "scm:git:git://github.com/FairyProject/fairy"
+                    developerConnection = "scm:git:git://github.com/FairyProject/fairy"
+                }
+                developers {
+                    developer {
+                        id = "leegod"
+                        name = "LeeGod"
+                        email = "leegod@imanity.dev"
+                    }
+                }
+                issueManagement {
+                    system = "GitHub"
+                    url = "https://github.com/FairyProject/fairy/issues"
+                }
+            }
+        }
+    }
+}

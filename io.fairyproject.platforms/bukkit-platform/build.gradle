@@ -49,9 +49,3 @@ repositories {
         url = uri("https://papermc.io/repo/repository/maven-public/")
     }
 }
-
-processResources {
-    filter ReplaceTokens, tokens: [
-            "version": project.version
-    ]
-}
