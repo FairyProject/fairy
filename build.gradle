@@ -35,7 +35,7 @@ allprojects {
     apply from: "${rootDir}/gradle/scripts/tasks.gradle"
 
     if (isNotJavaProject(project)) {
-        project.tasks.all { task -> task.enabled = false }
+        project.tasks.configureEach { task -> task.enabled = false }
         return
     }
     group = "io.fairyproject"
@@ -70,7 +70,7 @@ allprojects {
 
 subprojects {
     if (isNotJavaProject(project)) {
-        project.tasks.all { task -> task.enabled = false }
+        project.tasks.configureEach { task -> task.enabled = false }
         project.tasks.withType(PublishToMavenRepository).configureEach { it.enabled = false }
         return
     }
@@ -97,7 +97,7 @@ subprojects {
         }
     }
 
-    apply from: "${rootDir}/gradle/scripts/publish.gradle"
+    apply from: "${rootDir}/gradle/scripts/publish/publish.gradle"
 }
 
 static boolean isNotJavaProject(Project project) {
