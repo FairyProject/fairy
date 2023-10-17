@@ -2,7 +2,9 @@ package io.fairyproject.bootstrap.app;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.fairyproject.bootstrap.PluginClassInitializerFinder;
 import io.fairyproject.bootstrap.internal.FairyInternalIdentityMeta;
+import io.fairyproject.plugin.initializer.PluginClassInitializer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,7 +34,8 @@ public class AppLauncher {
             return;
         }
 
-        ApplicationHolder pluginHolder = new ApplicationHolder(jsonObject);
+        PluginClassInitializer pluginClassInitializer = PluginClassInitializerFinder.find();
+        ApplicationHolder pluginHolder = new ApplicationHolder(pluginClassInitializer, jsonObject);
         bootstrap.load(pluginHolder.getPlugin());
         AppBootstrap.FAIRY_READY = true;
 

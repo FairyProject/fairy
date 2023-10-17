@@ -6,11 +6,12 @@ import io.fairyproject.app.Application;
 import io.fairyproject.app.FairyAppPlatform;
 import io.fairyproject.bootstrap.BasePluginHolder;
 import io.fairyproject.plugin.PluginAction;
+import io.fairyproject.plugin.initializer.PluginClassInitializer;
 
 public class ApplicationHolder extends BasePluginHolder {
 
-    public ApplicationHolder(JsonObject jsonObject) {
-        super(jsonObject);
+    public ApplicationHolder(PluginClassInitializer initializer, JsonObject jsonObject) {
+        super(initializer, jsonObject);
     }
 
     @Override

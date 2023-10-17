@@ -2,7 +2,9 @@ package io.fairyproject.bootstrap.bukkit;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.fairyproject.bootstrap.PluginClassInitializerFinder;
 import io.fairyproject.bootstrap.internal.FairyInternalIdentityMeta;
+import io.fairyproject.plugin.initializer.PluginClassInitializer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -45,7 +47,10 @@ public final class BukkitPlugin extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        this.pluginHolder = new BukkitPluginHolder(jsonObject);
+
+        PluginClassInitializer initializer = PluginClassInitializerFinder.find();
+
+        this.pluginHolder = new BukkitPluginHolder(initializer, jsonObject);
         this.bootstrap.load(this.pluginHolder.getPlugin());
         this.pluginHolder.onLoad();
 

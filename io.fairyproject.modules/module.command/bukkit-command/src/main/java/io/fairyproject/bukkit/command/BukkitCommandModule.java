@@ -3,20 +3,16 @@ package io.fairyproject.bukkit.command;
 import io.fairyproject.container.*;
 import io.fairyproject.bukkit.command.presence.DefaultPresenceProvider;
 import io.fairyproject.command.CommandService;
+import lombok.RequiredArgsConstructor;
 
 @InjectableComponent
-@DependsOn(CommandService.class)
+@RequiredArgsConstructor
 public class BukkitCommandModule {
-    private final ContainerContext containerContext;
 
-    @ContainerConstruct
-    public BukkitCommandModule(ContainerContext containerContext) {
-        this.containerContext = containerContext;
-    }
+    private final CommandService commandService;
 
     @PreInitialize
-    public void preInit() {
-        CommandService commandService = (CommandService) this.containerContext.getSingleton(CommandService.class);
+    public void onPreInitialize() {
         commandService.registerDefaultPresenceProvider(new DefaultPresenceProvider());
     }
 }

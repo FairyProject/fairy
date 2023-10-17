@@ -1,16 +1,24 @@
-package io.fairytest.plugin;
+package io.fairyproject.mock;
 
 import io.fairyproject.library.Library;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
+import lombok.Getter;
 
 import java.io.File;
 import java.nio.file.Path;
 
-public class PluginMock extends Plugin {
+@Getter
+public class MockPlugin extends Plugin {
 
-    public PluginMock() {
+    private boolean onInitialCalled = false;
+    private boolean onPreEnableCalled = false;
+    private boolean onPostEnableCalled = false;
+    private boolean onPreDisableCalled = false;
+    private boolean onPostDisableCalled = false;
+
+    public MockPlugin() {
         PluginDescription description = PluginDescription.builder()
                 .name("test")
                 .mainClass("io.fairytest.plugin.PluginMock")
@@ -37,4 +45,28 @@ public class PluginMock extends Plugin {
         }, this.getClass().getClassLoader());
     }
 
+    @Override
+    public void onInitial() {
+        this.onInitialCalled = true;
+    }
+
+    @Override
+    public void onPreEnable() {
+        this.onPreEnableCalled = true;
+    }
+
+    @Override
+    public void onPluginEnable() {
+        this.onPostEnableCalled = true;
+    }
+
+    @Override
+    public void onPluginDisable() {
+        this.onPreDisableCalled = true;
+    }
+
+    @Override
+    public void onFrameworkFullyDisable() {
+        this.onPostDisableCalled = true;
+    }
 }

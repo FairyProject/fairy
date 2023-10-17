@@ -33,6 +33,7 @@ import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.PreProcessBatch;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,11 +46,14 @@ import java.util.stream.Stream;
  * TODO:
  * Better command
  */
-@Service
+@InjectableComponent
+@RequiredArgsConstructor
 @Getter
 public class CommandService {
 
     public static CommandService INSTANCE;
+
+    private final ContainerContext context;
 
     private Map<Class<?>, ArgTransformer<?>> parameters;
     private Map<Class<?>, PresenceProvider<?>> presenceProvidersByHolder;
@@ -71,17 +75,17 @@ public class CommandService {
         this.listeners = new ArrayList<>();
         this.commands = new ConcurrentHashMap<>();
 
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(CommandListener.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(CommandListener.class, this.listeners::add))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(CommandListener.class, this.listeners::remove))
         );
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(ArgCompletionHolder.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(ArgCompletionHolder.class, handler -> this.tabCompletionHolders.put(handler.name(), handler)))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(ArgCompletionHolder.class, handler -> this.tabCompletionHolders.remove(handler.name())))
         );
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(BaseCommand.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(BaseCommand.class, instance -> this.batch.runOrQueue(instance.getClass().getName(), () -> this.registerCommand(instance))))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(BaseCommand.class, instance -> {
@@ -90,7 +94,7 @@ public class CommandService {
                     }
                 }))
         );
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(ArgTransformer.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(ArgTransformer.class, this::registerArgTransformer))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(ArgTransformer.class, this::unregisterArgTransformer))
@@ -160,6 +164,9 @@ public class CommandService {
         for (String name : commandNames) {
             this.commands.put(name, command);
         }
+
+        // send remove signal to listeners
+        this.listeners.forEach(listener -> listener.onCommandRemoval(command));
     }
 
     public Object transformParameter(CommandContext event, String source, Class type) {

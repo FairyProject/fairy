@@ -78,7 +78,7 @@ public class AutowiredAnnotationProcessor implements
             try {
                 futures.add(this.injectAutowiredField(field, instance, resolver));
             } catch (Exception ex) {
-                Log.error("Failed to inject autowired field %s", field, ex);
+                throw new IllegalStateException("Failed to inject field " + field, ex);
             }
         }
 

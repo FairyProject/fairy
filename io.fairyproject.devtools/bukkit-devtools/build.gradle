@@ -1,0 +1,7 @@
+dependencies {
+    compileOnlyApi project(":io.fairyproject.platforms:bukkit-platform")
+    api project(":io.fairyproject.devtools:core-devtools")
+    compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
+
+    testImplementation project(":io.fairyproject.tests:bukkit-tests")
+}

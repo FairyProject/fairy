@@ -96,6 +96,8 @@ public abstract class FairyPlatform implements TerminableConsumer {
 
         this.containerContext.stop();
         PluginManager.INSTANCE.callFrameworkFullyDisable();
+
+        INSTANCE = null;
     }
 
     @Override

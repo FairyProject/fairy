@@ -3,6 +3,7 @@ package io.fairyproject.bootstrap;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.bootstrap.type.PlatformType;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginManager;
 import org.jetbrains.annotations.Nullable;
 
 public abstract class BaseBootstrap {
@@ -51,6 +52,7 @@ public abstract class BaseBootstrap {
             return;
         }
         this.fairyPlatform.disable();
+        PluginManager.INSTANCE.unload();
     }
 
     protected abstract void onFailure(@Nullable Throwable throwable);

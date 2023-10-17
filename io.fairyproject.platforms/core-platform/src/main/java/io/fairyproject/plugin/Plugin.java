@@ -24,11 +24,9 @@
 
 package io.fairyproject.plugin;
 
-import io.fairyproject.Debug;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.internal.FairyInternalIdentityMeta;
 import io.fairyproject.util.ConditionUtils;
-import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
@@ -36,9 +34,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 @FairyInternalIdentityMeta
 @Getter
@@ -54,7 +50,6 @@ public abstract class Plugin implements TerminableConsumer, Terminable {
 
     @Setter
     private ContainerNode node;
-    private boolean forceDisabling; // ignore every error caused by force disabling
 
     public void onInitial() {
 
@@ -81,30 +76,8 @@ public abstract class Plugin implements TerminableConsumer, Terminable {
         this.action = action;
         this.classLoader = classLoader;
 
-        ThrowingRunnable.sneaky(() -> {
-            if (Debug.UNIT_TEST) {
-                // Hard coded, anyway to make it safer?
-                Path pathMain = Paths.get("build/classes/java/main").toAbsolutePath();
-                if (Files.exists(pathMain))
-                    this.classLoaderRegistry.addUrl(pathMain.toUri().toURL());
-
-                Path pathTest = Paths.get("build/classes/java/test").toAbsolutePath();
-                if (Files.exists(pathTest))
-                    this.classLoaderRegistry.addUrl(pathTest.toUri().toURL());
-
-                pathMain = Paths.get("build/classes/kotlin/main").toAbsolutePath();
-                if (Files.exists(pathMain))
-                    this.classLoaderRegistry.addUrl(pathMain.toUri().toURL());
-
-                pathTest = Paths.get("build/classes/kotlin/test").toAbsolutePath();
-                if (Files.exists(pathTest))
-                    this.classLoaderRegistry.addUrl(pathTest.toUri().toURL());
-            } else {
-                this.classLoaderRegistry.addUrl(this.getClass().getProtectionDomain().getCodeSource().getLocation());
-            }
-
-            this.classLoaderRegistry.addClassLoader(this.getPluginClassLoader());
-        }).run();
+        this.classLoaderRegistry.addUrl(this.getClass().getProtectionDomain().getCodeSource().getLocation());
+        this.classLoaderRegistry.addClassLoader(this.getPluginClassLoader());
     }
 
     @NotNull
@@ -130,10 +103,11 @@ public abstract class Plugin implements TerminableConsumer, Terminable {
         ConditionUtils.notNull(this.action, "The plugin hasn't been initialized.");
 
         this.action.close();
+        this.action = null;
     }
 
     @Override
     public boolean isClosed() {
-        return this.action.isClosed();
+        return this.action == null || this.action.isClosed();
     }
 }

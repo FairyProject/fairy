@@ -30,6 +30,7 @@ import io.fairyproject.container.binder.ContainerObjectBinderImpl;
 import io.fairyproject.container.collection.ContainerObjCollectorRegistry;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.node.destroyer.ContainerNodeDestroyer;
+import io.fairyproject.container.node.loader.ContainerNodeLoader;
 import io.fairyproject.container.object.singleton.SingletonObjectRegistry;
 import io.fairyproject.container.processor.*;
 import io.fairyproject.container.processor.annotation.FairyLifeCycleAnnotationProcessor;
@@ -131,6 +132,10 @@ public class ContainerContext implements ContainerProcessors {
         }
 
         return Collections.emptyList();
+    }
+
+    public boolean loadContainerNode(ContainerNode node) {
+        return new ContainerNodeLoader(this, node).load();
     }
 
     @Deprecated

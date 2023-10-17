@@ -6,6 +6,7 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.PluginDescription;
 import io.fairyproject.plugin.PluginManager;
+import io.fairyproject.plugin.initializer.PluginClassInitializer;
 import lombok.Getter;
 
 import java.lang.reflect.InvocationTargetException;
@@ -18,39 +19,22 @@ public abstract class BasePluginHolder {
     protected final ClassLoader classLoader;
     protected final CompletableFuture<Plugin> pluginCompletableFuture = new CompletableFuture<>();
 
-    public BasePluginHolder(JsonObject jsonObject) {
+    public BasePluginHolder(PluginClassInitializer initializer, JsonObject jsonObject) {
         PluginDescription pluginDescription = new PluginDescription(jsonObject);
+        ClassLoader classLoader = initializer.initializeClassLoader(this.getClassLoader());
 
-        this.classLoader = this.getClassLoader();
-        PluginManager.INSTANCE.onPluginPreLoaded(this.classLoader, pluginDescription, this.getPluginAction(), this.pluginCompletableFuture);
+        PluginManager.INSTANCE.onPluginPreLoaded(classLoader, pluginDescription, this.getPluginAction(), this.pluginCompletableFuture);
 
-        this.plugin = this.findMainClass(pluginDescription.getMainClass());
-        this.plugin.initializePlugin(pluginDescription, this.getPluginAction(), this.classLoader);
+        this.plugin = initializer.create(pluginDescription.getMainClass(), classLoader);
+        this.plugin.initializePlugin(pluginDescription, this.getPluginAction(), classLoader);
+        this.classLoader = classLoader;
+
         this.pluginCompletableFuture.complete(this.plugin);
     }
 
     protected abstract ClassLoader getClassLoader();
 
     protected abstract PluginAction getPluginAction();
-
-    private Plugin findMainClass(String mainClassPath) {
-        Class<?> mainClass;
-        try {
-            mainClass = Class.forName(mainClassPath, true, this.classLoader);
-        } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Failed to load mainClass " + mainClassPath, e);
-        }
-
-        if (!Plugin.class.isAssignableFrom(mainClass)) {
-            throw new IllegalStateException(String.format("%s wasn't implementing Plugin", mainClass));
-        }
-
-        try {
-            return (Plugin) mainClass.getDeclaredConstructor().newInstance();
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
-            throw new IllegalStateException("Failed to new instance " + mainClassPath + " (Does it has no args constructor in the class?)", e);
-        }
-    }
 
     public void onLoad() {
         PluginManager.INSTANCE.addPlugin(plugin);
@@ -68,7 +52,7 @@ public abstract class BasePluginHolder {
         try {
             plugin.onPluginEnable();
         } catch (Throwable throwable) {
-            if (!plugin.isClosed() && !plugin.isForceDisabling()) {
+            if (!plugin.isClosed()) {
                 Log.error(throwable);
             }
         }
@@ -78,9 +62,7 @@ public abstract class BasePluginHolder {
         try {
             plugin.onPluginDisable();
         } catch (Throwable throwable) {
-            if (!plugin.isForceDisabling()) {
-                Log.error(throwable);
-            }
+            Log.error(throwable);
         }
 
         plugin.getCompositeTerminable().closeAndReportException();
