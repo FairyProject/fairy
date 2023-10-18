@@ -25,29 +25,31 @@
 package io.fairyproject.devtools.reload;
 
 import io.fairyproject.devtools.reload.classloader.ReloadableClassLoader;
+import io.fairyproject.plugin.Plugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.net.URL;
-import java.net.URLClassLoader;
 
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ReloadablePluginClassInitializerTest {
 
     private URL url;
-    private URLClassLoader testClassLoader;
+    private ClasspathCollection classpathCollection;
+    private ReloadableClassLoader testClassLoader;
     private ReloadablePluginClassInitializer reloadablePluginClassInitializer;
 
     @BeforeEach
-    void setUp() {
-        this.testClassLoader = Mockito.mock(URLClassLoader.class);
+    void setUp() throws ClassNotFoundException {
+        this.testClassLoader = Mockito.mock(ReloadableClassLoader.class);
         this.url = this.getClass().getProtectionDomain().getCodeSource().getLocation();
-        Mockito.doReturn(new URL[]{url}).when(testClassLoader).getURLs();
+        this.classpathCollection = new ClasspathCollection();
+        this.classpathCollection.addURL(url);
+        Mockito.doReturn(TestPlugin.class).when(testClassLoader).loadClass("io.fairyproject.devtools.reload.TestPlugin");
 
-        this.reloadablePluginClassInitializer = new ReloadablePluginClassInitializer();
+        this.reloadablePluginClassInitializer = new ReloadablePluginClassInitializer(classpathCollection);
     }
 
     @Test
@@ -57,6 +59,32 @@ class ReloadablePluginClassInitializerTest {
         assertTrue(classLoader instanceof ReloadableClassLoader);
         assertSame(classLoader.getParent(), testClassLoader);
         assertSame(((ReloadableClassLoader) classLoader).getURLs()[0], url);
+    }
+
+    @Test
+    void createMustSetPluginClassLoader() {
+        Plugin plugin = reloadablePluginClassInitializer.create("io.fairyproject.devtools.reload.TestPlugin", testClassLoader);
+
+        Mockito.verify(testClassLoader).setPlugin(plugin);
+    }
+
+    @Test
+    void createWithNoArgConstructorShouldBeEmpty() {
+        ReloadablePluginClassInitializer reloadablePluginClassInitializer = new ReloadablePluginClassInitializer();
+        ClasspathCollection classpathCollection = reloadablePluginClassInitializer.getClasspathCollection();
+
+        assertEquals(0, classpathCollection.getURLs().length);
+    }
+
+    @Test
+    void createWithNoArgConstructorMustReadProperty() {
+        System.setProperty("io.fairyproject.devtools.classpath", url.getPath());
+
+        ReloadablePluginClassInitializer reloadablePluginClassInitializer = new ReloadablePluginClassInitializer();
+        ClasspathCollection classpathCollection = reloadablePluginClassInitializer.getClasspathCollection();
+
+        assertTrue(classpathCollection.getURLs().length > 0);
+        assertEquals(url.getPath(), classpathCollection.getURLs()[0].getPath());
     }
 
 }

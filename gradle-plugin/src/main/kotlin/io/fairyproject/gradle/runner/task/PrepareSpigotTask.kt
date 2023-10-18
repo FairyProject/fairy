@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,32 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import org.apache.tools.ant.filters.ReplaceTokens
 
-dependencies {
-    api(project(":io.fairyproject.platforms:mc-platform")) {
-        exclude group: "com.google.code.gson", module: "gson"
-        exclude group: "org.yaml", module: "snakeyaml"
+package io.fairyproject.gradle.runner.task
+
+import io.fairyproject.gradle.runner.RunSpigotServerExtension
+import io.fairyproject.gradle.runner.SpigotJarArtifact
+import org.gradle.api.tasks.JavaExec
+import java.nio.file.Path
+import javax.inject.Inject
+import kotlin.io.path.absolutePathString
+
+open class PrepareSpigotTask @Inject constructor(
+    buildToolDirectory: Path,
+    artifact: SpigotJarArtifact,
+    extension: RunSpigotServerExtension): JavaExec() {
+
+    init {
+        if (artifact.hasArtifact) {
+            println("Spigot jar already exists.")
+            enabled = false
+        }
+
+        mainClass.set("-jar")
+        args = listOf(buildToolDirectory.resolve("BuildTools.jar").absolutePathString(), "--rev", extension.version.get())
+        workingDir = buildToolDirectory.toFile()
     }
-    api libs.adventure.platform.bukkit
-    api libs.adventure.platform.text.serializer.bungee
-    api libs.packetevents.spigot
 
-    compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
-    compileOnly "com.mojang:authlib:1.5.21"
-    compileOnly "io.netty:netty-all:4.1.60.Final"
-    compileOnly "com.viaversion:viaversion:4.0.1"
-    compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
-    compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
-    compileOnly name: "ProtocolSupport"
-
-    testImplementation libs.mockito
-    testImplementation project(":io.fairyproject.tests:bukkit-tests")
-}
-
-repositories {
-    maven { url "https://libraries.minecraft.net/" }
-    maven {
-        url = uri("https://papermc.io/repo/repository/maven-public/")
-    }
 }

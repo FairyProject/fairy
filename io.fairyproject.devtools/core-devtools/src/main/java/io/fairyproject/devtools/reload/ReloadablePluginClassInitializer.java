@@ -25,19 +25,46 @@
 package io.fairyproject.devtools.reload;
 
 import io.fairyproject.devtools.reload.classloader.ReloadableClassLoader;
+import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.initializer.DefaultPluginClassInitializer;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Paths;
 
 @RequiredArgsConstructor
+@Getter
 public class ReloadablePluginClassInitializer extends DefaultPluginClassInitializer {
+
+    private static final String CLASSPATH_PROPERTY = "io.fairyproject.devtools.classpath";
+    private final ClasspathCollection classpathCollection;
+
+    public ReloadablePluginClassInitializer() {
+        String classpath = System.getProperty(CLASSPATH_PROPERTY);
+
+        this.classpathCollection = new ClasspathCollection(classpath);
+    }
 
     @Override
     public @NotNull ClassLoader initializeClassLoader(@NotNull ClassLoader classLoader) {
-        URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
+        try {
+            return new ReloadableClassLoader(classpathCollection.getURLs(), classLoader);
+        } catch (Throwable throwable) {
+            throw new IllegalStateException(throwable);
+        }
+    }
 
-        return new ReloadableClassLoader(urlClassLoader.getURLs(), classLoader);
+    @Override
+    public Plugin create(String mainClassPath, ClassLoader classLoader) {
+        Plugin plugin = super.create(mainClassPath, classLoader);
+
+        if (classLoader instanceof ReloadableClassLoader) {
+            ((ReloadableClassLoader) classLoader).setPlugin(plugin);
+        }
+
+        return plugin;
     }
 }

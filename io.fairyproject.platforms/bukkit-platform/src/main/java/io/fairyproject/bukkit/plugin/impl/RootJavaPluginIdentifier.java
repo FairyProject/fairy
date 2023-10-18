@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,32 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import org.apache.tools.ant.filters.ReplaceTokens
 
-dependencies {
-    api(project(":io.fairyproject.platforms:mc-platform")) {
-        exclude group: "com.google.code.gson", module: "gson"
-        exclude group: "org.yaml", module: "snakeyaml"
+package io.fairyproject.bukkit.plugin.impl;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Server;
+
+public class RootJavaPluginIdentifier extends CompositeJavaPluginIdentifier {
+
+    private static RootJavaPluginIdentifier instance;
+
+    public RootJavaPluginIdentifier(Server server) {
+        add(new ClassLoaderJavaPluginIdentifier(server));
+        add(new DefaultJavaPluginIdentifier());
     }
-    api libs.adventure.platform.bukkit
-    api libs.adventure.platform.text.serializer.bungee
-    api libs.packetevents.spigot
 
-    compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
-    compileOnly "com.mojang:authlib:1.5.21"
-    compileOnly "io.netty:netty-all:4.1.60.Final"
-    compileOnly "com.viaversion:viaversion:4.0.1"
-    compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
-    compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
-    compileOnly name: "ProtocolSupport"
+    public static RootJavaPluginIdentifier getInstance() {
+        if (instance == null) {
+            instance = new RootJavaPluginIdentifier(Bukkit.getServer());
+        }
 
-    testImplementation libs.mockito
-    testImplementation project(":io.fairyproject.tests:bukkit-tests")
-}
-
-repositories {
-    maven { url "https://libraries.minecraft.net/" }
-    maven {
-        url = uri("https://papermc.io/repo/repository/maven-public/")
+        return instance;
     }
+
+    public static void clearInstance() {
+        instance = null;
+    }
+
 }

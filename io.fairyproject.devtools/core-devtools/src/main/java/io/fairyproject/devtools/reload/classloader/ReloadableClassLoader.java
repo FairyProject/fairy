@@ -25,7 +25,7 @@
 package io.fairyproject.devtools.reload.classloader;
 
 import io.fairyproject.plugin.Plugin;
-import lombok.AccessLevel;
+import io.fairyproject.plugin.PluginClassLoader;
 import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
@@ -34,8 +34,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 @Getter
-@Setter(AccessLevel.PROTECTED)
-public class ReloadableClassLoader extends URLClassLoader {
+@Setter
+public class ReloadableClassLoader extends URLClassLoader implements PluginClassLoader {
 
     static {
         ClassLoader.registerAsParallelCapable();
@@ -54,6 +54,14 @@ public class ReloadableClassLoader extends URLClassLoader {
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        if (name.contains("io.fairyproject"))
+            return super.loadClass(name, resolve);
+
+        if (plugin != null) {
+            if (!name.contains(plugin.getDescription().getShadedPackage()))
+                return super.loadClass(name, resolve);
+        }
+
         synchronized (getClassLoadingLock(name)) {
             Class<?> loadedClass = findLoadedClass(name);
             if (loadedClass == null) {

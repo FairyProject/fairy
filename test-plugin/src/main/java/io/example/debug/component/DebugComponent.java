@@ -30,7 +30,8 @@ import io.fairyproject.container.InjectableComponent;
 public class DebugComponent {
 
     public DebugComponent() {
-        System.out.println("kk");
+        System.out.println("kk " + this.getClass().getClassLoader().getClass());
+        System.out.println("yo mate");
     }
 
 }

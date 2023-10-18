@@ -24,7 +24,8 @@
 
 package io.fairyproject.devtools.bukkit;
 
-import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
+import io.fairyproject.bukkit.plugin.impl.SpecifyJavaPluginIdentifier;
 import io.fairyproject.mock.MockPlugin;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
@@ -52,7 +53,7 @@ class BukkitReloadShutdownHandlerTest {
         fairyPlugin = new MockPlugin();
         javaPlugin = Mockito.mock(JavaPlugin.class);
 
-        JavaPluginUtil.setCurrentPlugin(javaPlugin);
+        RootJavaPluginIdentifier.getInstance().addFirst(new SpecifyJavaPluginIdentifier(javaPlugin));
     }
 
     @Test

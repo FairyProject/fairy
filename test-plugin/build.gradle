@@ -1,7 +1,6 @@
 plugins {
     id "java"
-    id "io.fairyproject" version "0.6.8b2-SNAPSHOT"
-    id "xyz.jpenilla.run-paper" version "1.0.6"
+    id "io.fairyproject" version "0.6.8b6"
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
@@ -24,9 +23,6 @@ test {
     useJUnitPlatform()
 }
 
-tasks {
-    runServer {
-        minecraftVersion("1.8.8")
-        legacyPluginLoading()
-    }
+runSpigotServer {
+    version = "1.8.8"
 }

@@ -39,7 +39,7 @@ public class DefaultPluginClassInitializer implements PluginClassInitializer {
     public Plugin create(String mainClassPath, ClassLoader classLoader) {
         Class<?> mainClass;
         try {
-            mainClass = Class.forName(mainClassPath, true, classLoader);
+            mainClass = classLoader.loadClass(mainClassPath);
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Failed to load mainClass " + mainClassPath, e);
         }

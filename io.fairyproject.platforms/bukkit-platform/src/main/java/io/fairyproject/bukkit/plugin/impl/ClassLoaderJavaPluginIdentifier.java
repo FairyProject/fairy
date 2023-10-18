@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,32 +21,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-import org.apache.tools.ant.filters.ReplaceTokens
 
-dependencies {
-    api(project(":io.fairyproject.platforms:mc-platform")) {
-        exclude group: "com.google.code.gson", module: "gson"
-        exclude group: "org.yaml", module: "snakeyaml"
-    }
-    api libs.adventure.platform.bukkit
-    api libs.adventure.platform.text.serializer.bungee
-    api libs.packetevents.spigot
+package io.fairyproject.bukkit.plugin.impl;
 
-    compileOnly "com.destroystokyo.paper:paper-api:" + findProperty("bukkit.version")
-    compileOnly "com.mojang:authlib:1.5.21"
-    compileOnly "io.netty:netty-all:4.1.60.Final"
-    compileOnly "com.viaversion:viaversion:4.0.1"
-    compileOnly "com.sk89q.worldedit:worldedit-bukkit:6.1.5"
-    compileOnly "com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT"
-    compileOnly name: "ProtocolSupport"
+import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
+import io.fairyproject.plugin.PluginClassLoader;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.Server;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
-    testImplementation libs.mockito
-    testImplementation project(":io.fairyproject.tests:bukkit-tests")
-}
+@RequiredArgsConstructor
+public class ClassLoaderJavaPluginIdentifier implements JavaPluginIdentifier {
 
-repositories {
-    maven { url "https://libraries.minecraft.net/" }
-    maven {
-        url = uri("https://papermc.io/repo/repository/maven-public/")
+    private final Server server;
+
+    @Override
+    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
+        ClassLoader classLoader = clazz.getClassLoader();
+        if (classLoader instanceof PluginClassLoader) {
+            PluginClassLoader pluginClassLoader = (PluginClassLoader) classLoader;
+            String name = pluginClassLoader.getPlugin().getName();
+
+            return (JavaPlugin) server.getPluginManager().getPlugin(name);
+        }
+
+        return null;
     }
 }
