@@ -41,18 +41,23 @@ open class RunSpigotServerPlugin : Plugin<Project> {
 
     override fun apply(project: Project) {
         val extension = project.extensions.create("runSpigotServer", RunSpigotServerExtension::class.java)
-        val workDir = project.projectDir.toPath().resolve("spigotServer/work")
-        val buildToolDir = project.projectDir.toPath().resolve("spigotServer/build-tools")
-        val artifact = SpigotJarArtifact(buildToolDir, extension)
+        project.afterEvaluate {
+            if (!extension.version.isPresent)
+                return@afterEvaluate
 
-        Files.createDirectories(workDir)
-        Files.createDirectories(buildToolDir)
+            val workDir = project.projectDir.toPath().resolve("spigotServer/work")
+            val buildToolDir = project.projectDir.toPath().resolve("spigotServer/build-tools")
+            val artifact = SpigotJarArtifact(buildToolDir, extension)
 
-        configurePrepareSpigotBuild(project, buildToolDir, artifact, extension)
-        configureCleanSpigotBuild(project, buildToolDir)
-        configureCleanSpigotServer(project, workDir)
-        configureCopyPluginJar(project, workDir)
-        configureRunSpigotServer(project, artifact, workDir, extension)
+            Files.createDirectories(workDir)
+            Files.createDirectories(buildToolDir)
+
+            configurePrepareSpigotBuild(project, buildToolDir, artifact, extension)
+            configureCleanSpigotBuild(project, buildToolDir)
+            configureCleanSpigotServer(project, workDir)
+            configureCopyPluginJar(project, workDir)
+            configureRunSpigotServer(project, artifact, workDir, extension)
+        }
     }
 
     private fun configureCopyPluginJar(project: Project, workDir: Path) {
@@ -93,6 +98,7 @@ open class RunSpigotServerPlugin : Plugin<Project> {
                     val path = java.sourceSets.getByName("main").runtimeClasspath.asPath
 
                     it.systemProperties["io.fairyproject.devtools.classpath"] = path
+                    it.args = extension.args.get()
                 }
             }
         }

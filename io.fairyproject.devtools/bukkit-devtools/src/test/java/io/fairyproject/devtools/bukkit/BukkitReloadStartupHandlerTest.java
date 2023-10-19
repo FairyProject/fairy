@@ -24,10 +24,15 @@
 
 package io.fairyproject.devtools.bukkit;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.plugin.impl.SpecifyJavaPluginIdentifier;
 import io.fairyproject.mock.MockPlugin;
+import io.fairyproject.plugin.PluginDescription;
 import org.bukkit.Server;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.Assertions;
@@ -35,15 +40,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
+
 class BukkitReloadStartupHandlerTest {
 
     private PluginManager pluginManager;
     private BukkitReloadStartupHandler bukkitReloadStartupHandler;
     private MockPlugin fairyPlugin;
     private JavaPlugin javaPlugin;
+    private be.seeseemelk.mockbukkit.MockPlugin newJavaPlugin;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws InvalidPluginException, InvalidDescriptionException {
         pluginManager = Mockito.mock(PluginManager.class);
         Server server = Mockito.mock(Server.class);
         Mockito.when(server.getPluginManager()).thenReturn(pluginManager);
@@ -51,7 +61,11 @@ class BukkitReloadStartupHandlerTest {
         bukkitReloadStartupHandler = new BukkitReloadStartupHandler(server);
 
         fairyPlugin = new MockPlugin();
-        javaPlugin = Mockito.mock(JavaPlugin.class);
+        MockBukkit.getOrCreateMock();
+        javaPlugin = MockBukkit.createMockPlugin("a");
+        newJavaPlugin = Mockito.spy(MockBukkit.createMockPlugin("b"));
+
+        Mockito.when(pluginManager.loadPlugin(Mockito.any(File.class))).thenReturn(newJavaPlugin);
 
         RootJavaPluginIdentifier.getInstance().addFirst(new SpecifyJavaPluginIdentifier(javaPlugin));
     }
@@ -62,10 +76,13 @@ class BukkitReloadStartupHandlerTest {
     }
 
     @Test
-    void testStart() {
+    void testStart() throws URISyntaxException, InvalidPluginException, InvalidDescriptionException {
         bukkitReloadStartupHandler.start(fairyPlugin);
 
-        Mockito.verify(pluginManager).enablePlugin(javaPlugin);
-        Mockito.verify(javaPlugin).onLoad();
+        URL url = javaPlugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+        File file = new File(url.toURI());
+        Mockito.verify(pluginManager).loadPlugin(file);
+        Mockito.verify(newJavaPlugin).onLoad();
+        Mockito.verify(pluginManager).enablePlugin(newJavaPlugin);
     }
 }

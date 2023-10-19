@@ -31,7 +31,7 @@ public class DebugComponent {
 
     public DebugComponent() {
         System.out.println("kk " + this.getClass().getClassLoader().getClass());
-        System.out.println("yo mate");
+        System.out.println("YOYOYO");
     }
 
 }

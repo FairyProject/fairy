@@ -22,17 +22,41 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.gradle.runner
+package io.fairyproject.devtools;
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
+import io.fairyproject.config.yaml.YamlConfiguration;
+import lombok.Getter;
 
-open class RunSpigotServerExtension(objectFactory: ObjectFactory) {
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 
-    val version: Property<String> = objectFactory.property(String::class.java)
-    val cleanup: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)
-    val args: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(listOf("--nogui"))
-    val buildToolUrl: Property<String> = objectFactory.property(String::class.java).convention("https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar")
+/**
+ * DevTools settings.
+ */
+@Getter
+@SuppressWarnings("FieldMayBeFinal")
+public class DevToolSettings extends YamlConfiguration {
+
+    private Restart restart = new Restart();
+
+    protected DevToolSettings(Path path) {
+        super(path);
+
+        if (Files.exists(path)) {
+            this.load();
+        }
+    }
+
+    @Getter
+    public static class Restart {
+
+        private boolean enabled = true;
+
+        private Duration classpathScanInterval = Duration.ofSeconds(1);
+
+        private Duration quietPeriod = Duration.ofSeconds(1);
+
+    }
 
 }

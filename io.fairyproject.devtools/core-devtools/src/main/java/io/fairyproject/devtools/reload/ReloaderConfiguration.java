@@ -24,11 +24,17 @@
 
 package io.fairyproject.devtools.reload;
 
+import io.fairyproject.Fairy;
+import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.Configuration;
+import io.fairyproject.devtools.DevToolProperties;
+import io.fairyproject.devtools.DevToolSettings;
 import io.fairyproject.devtools.reload.impl.DefaultReloadShutdownHandler;
 import io.fairyproject.devtools.reload.impl.DefaultReloadStartupHandler;
+import io.fairyproject.devtools.watcher.ClasspathFileAlterationListener;
+import io.fairyproject.devtools.watcher.ClasspathFileWatcher;
 
 @Configuration
 public class ReloaderConfiguration {
@@ -40,6 +46,22 @@ public class ReloaderConfiguration {
         reloader.setReloadShutdownHandler(new DefaultReloadShutdownHandler(context.nodeDestroyer()));
 
         return reloader;
+    }
+
+    @InjectableComponent
+    public ClasspathFileWatcher classpathFileWatcher(FairyPlatform platform, DevToolSettings settings) {
+        ClasspathFileAlterationListener listener = new ClasspathFileAlterationListener(platform.getMainPlugin());
+
+        return new ClasspathFileWatcher(
+                settings.getRestart().getClasspathScanInterval().toMillis(),
+                DevToolProperties.getClasspathCollection(),
+                listener
+                );
+    }
+
+    @InjectableComponent
+    public ReloaderListener reloaderListener(Reloader reloader, AgentDetector agentDetector) {
+        return new ReloaderListener(reloader, agentDetector, Fairy.getTaskScheduler());
     }
 
 }

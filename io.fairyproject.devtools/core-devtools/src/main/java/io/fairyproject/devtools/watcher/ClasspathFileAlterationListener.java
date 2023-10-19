@@ -22,43 +22,62 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.devtools.reload;
+package io.fairyproject.devtools.watcher;
 
-import io.fairyproject.devtools.DevToolProperties;
-import io.fairyproject.devtools.reload.classloader.ReloadableClassLoader;
+import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.initializer.DefaultPluginClassInitializer;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
+import org.apache.commons.io.monitor.FileAlterationListener;
+import org.apache.commons.io.monitor.FileAlterationObserver;
+
+import java.io.File;
 
 @RequiredArgsConstructor
-@Getter
-public class ReloadablePluginClassInitializer extends DefaultPluginClassInitializer {
+public class ClasspathFileAlterationListener implements FileAlterationListener {
 
-    private final ClasspathCollection classpathCollection;
+    private final Plugin plugin;
 
-    public ReloadablePluginClassInitializer() {
-        this.classpathCollection = DevToolProperties.getClasspathCollection();
+    @Override
+    public void onDirectoryChange(File directory) {
+        // do nothing
     }
 
     @Override
-    public @NotNull ClassLoader initializeClassLoader(@NotNull ClassLoader classLoader) {
-        try {
-            return new ReloadableClassLoader(classpathCollection.getURLs(), classLoader);
-        } catch (Throwable throwable) {
-            throw new IllegalStateException(throwable);
-        }
+    public void onDirectoryCreate(File directory) {
+        // do nothing
     }
 
     @Override
-    public Plugin create(String mainClassPath, ClassLoader classLoader) {
-        Plugin plugin = super.create(mainClassPath, classLoader);
+    public void onDirectoryDelete(File directory) {
+        // do nothing
+    }
 
-        if (classLoader instanceof ReloadableClassLoader) {
-            ((ReloadableClassLoader) classLoader).setPlugin(plugin);
-        }
+    @Override
+    public void onFileChange(File file) {
+        this.callFileChangedEvent(file);
+    }
 
-        return plugin;
+    @Override
+    public void onFileCreate(File file) {
+        this.callFileChangedEvent(file);
+    }
+
+    @Override
+    public void onFileDelete(File file) {
+        this.callFileChangedEvent(file);
+    }
+
+    private void callFileChangedEvent(File file) {
+        GlobalEventNode.get().call(new ClasspathFileChangedEvent(plugin, file));
+    }
+
+    @Override
+    public void onStart(FileAlterationObserver observer) {
+        // do nothing
+    }
+
+    @Override
+    public void onStop(FileAlterationObserver observer) {
+        // do nothing
     }
 }

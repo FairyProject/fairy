@@ -22,9 +22,19 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.devtools.bukkit;
+package io.fairyproject.devtools;
 
-import io.fairyproject.devtools.reload.Reloader;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.configuration.Configuration;
 
-public class BukkitPluginReloader extends Reloader {
+import java.nio.file.Paths;
+
+@Configuration
+public class DevToolConfiguration {
+
+    @InjectableComponent
+    public DevToolSettings devToolSettings() {
+        return new DevToolSettings(Paths.get(DevToolProperties.getSettingsPath()));
+    }
+
 }

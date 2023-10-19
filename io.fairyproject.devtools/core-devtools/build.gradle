@@ -1,4 +1,8 @@
 dependencies {
     compileOnlyApi project(":io.fairyproject.platforms:core-platform")
+    api project(":io.fairyproject.modules:module.config")
+    implementation("commons-io:commons-io:2.14.0")
+
     testImplementation project(":io.fairyproject.tests:core-tests")
+
 }

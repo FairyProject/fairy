@@ -22,17 +22,20 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.gradle.runner
+package io.fairyproject.devtools.watcher;
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
+import io.fairyproject.event.Event;
+import io.fairyproject.plugin.Plugin;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-open class RunSpigotServerExtension(objectFactory: ObjectFactory) {
+import java.io.File;
 
-    val version: Property<String> = objectFactory.property(String::class.java)
-    val cleanup: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)
-    val args: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(listOf("--nogui"))
-    val buildToolUrl: Property<String> = objectFactory.property(String::class.java).convention("https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar")
+@Getter
+@RequiredArgsConstructor
+public class ClasspathFileChangedEvent implements Event {
+
+    private final Plugin plugin;
+    private final File file;
 
 }

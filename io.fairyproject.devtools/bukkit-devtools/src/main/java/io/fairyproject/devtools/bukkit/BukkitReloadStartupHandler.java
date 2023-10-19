@@ -30,6 +30,9 @@ import io.fairyproject.plugin.Plugin;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Server;
 
+import java.io.File;
+import java.net.URL;
+
 @RequiredArgsConstructor
 public class BukkitReloadStartupHandler implements ReloadStartupHandler {
 
@@ -46,8 +49,20 @@ public class BukkitReloadStartupHandler implements ReloadStartupHandler {
             throw new IllegalStateException("JavaPlugin is null");
         }
 
+        // reload the plugin entirely
+        URL url = javaPlugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+        org.bukkit.plugin.Plugin newBukkitPlugin;
+        try {
+            File file = new File(url.toURI());
+            newBukkitPlugin = server.getPluginManager().loadPlugin(file);
+            if (newBukkitPlugin == null) {
+                throw new IllegalStateException("Failed to load plugin");
+            }
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to load plugin", ex);
+        }
         // bukkit plugin manager doesn't call onLoad() when only enabling plugin
-        javaPlugin.onLoad();
-        server.getPluginManager().enablePlugin(javaPlugin);
+        newBukkitPlugin.onLoad();
+        server.getPluginManager().enablePlugin(newBukkitPlugin);
     }
 }

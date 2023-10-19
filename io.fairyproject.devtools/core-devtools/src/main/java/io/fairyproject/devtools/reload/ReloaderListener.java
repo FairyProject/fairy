@@ -22,17 +22,30 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.gradle.runner
+package io.fairyproject.devtools.reload;
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
+import io.fairyproject.devtools.watcher.ClasspathFileChangedEvent;
+import io.fairyproject.event.Subscribe;
+import io.fairyproject.plugin.Plugin;
+import io.fairyproject.task.ITaskScheduler;
+import lombok.RequiredArgsConstructor;
 
-open class RunSpigotServerExtension(objectFactory: ObjectFactory) {
+@RequiredArgsConstructor
+public class ReloaderListener {
 
-    val version: Property<String> = objectFactory.property(String::class.java)
-    val cleanup: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)
-    val args: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(listOf("--nogui"))
-    val buildToolUrl: Property<String> = objectFactory.property(String::class.java).convention("https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar")
+    private final Reloader reloader;
+    private final AgentDetector agentDetector;
+    private final ITaskScheduler taskScheduler;
+
+    @Subscribe
+    public void onClasspathFileChanged(ClasspathFileChangedEvent event) {
+        Plugin plugin = event.getPlugin();
+
+        if (this.agentDetector.isActive())
+            // We use agent reloader, so we don't need to reload the plugin
+            return;
+
+        taskScheduler.runSync(() -> this.reloader.reload(plugin));
+    }
 
 }

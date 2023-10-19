@@ -22,22 +22,23 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.devtools.bukkit;
+package io.fairyproject.devtools;
 
-import io.fairyproject.container.InjectableComponent;
-import io.fairyproject.container.configuration.Configuration;
-import org.bukkit.Server;
+import io.fairyproject.devtools.reload.ClasspathCollection;
 
-@Configuration
-public class BukkitReloaderConfiguration {
+public class DevToolProperties {
 
-    @InjectableComponent
-    public BukkitPluginReloader bukkitPluginReloader(Server server) {
-        BukkitPluginReloader bukkitPluginReloader = new BukkitPluginReloader();
-        bukkitPluginReloader.setReloadStartupHandler(new BukkitReloadStartupHandler(server));
-        bukkitPluginReloader.setReloadShutdownHandler(new BukkitReloadShutdownHandler(server));
+    private static final String CLASSPATH_PROPERTY = "io.fairyproject.devtools.classpath";
+    private static final String SETTINGS_PATH_PROPERTY = "io.fairyproject.devtools.settingsPath";
 
-        return bukkitPluginReloader;
+    public static ClasspathCollection getClasspathCollection() {
+        String classpath = System.getProperty(CLASSPATH_PROPERTY);
+
+        return new ClasspathCollection(classpath);
+    }
+
+    public static String getSettingsPath() {
+        return System.getProperty(SETTINGS_PATH_PROPERTY, "devtools.yml");
     }
 
 }

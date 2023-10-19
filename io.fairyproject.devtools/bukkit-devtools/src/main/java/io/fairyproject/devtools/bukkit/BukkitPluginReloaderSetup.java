@@ -22,17 +22,18 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.gradle.runner
+package io.fairyproject.devtools.bukkit;
 
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ListProperty
-import org.gradle.api.provider.Property
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.devtools.reload.Reloader;
+import org.bukkit.Server;
 
-open class RunSpigotServerExtension(objectFactory: ObjectFactory) {
+@InjectableComponent
+public class BukkitPluginReloaderSetup {
 
-    val version: Property<String> = objectFactory.property(String::class.java)
-    val cleanup: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)
-    val args: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(listOf("--nogui"))
-    val buildToolUrl: Property<String> = objectFactory.property(String::class.java).convention("https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar")
+    public BukkitPluginReloaderSetup(Server server, Reloader reloader) {
+        reloader.setReloadStartupHandler(new BukkitReloadStartupHandler(server));
+        reloader.setReloadShutdownHandler(new BukkitReloadShutdownHandler(server));
+    }
 
 }

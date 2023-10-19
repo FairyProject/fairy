@@ -31,7 +31,7 @@ import javax.inject.Inject
 open class RunSpigotServerTask @Inject constructor(artifact: SpigotJarArtifact, workDirectory: Path): JavaExec() {
 
     init {
-        mainClass.set("org.bukkit.craftbukkit.Main")
+        //mainClass.set("org.bukkit.craftbukkit.Main")
         classpath = project.files(artifact.artifactPath)
         workingDir = workDirectory.toFile()
         standardInput = System.`in`
