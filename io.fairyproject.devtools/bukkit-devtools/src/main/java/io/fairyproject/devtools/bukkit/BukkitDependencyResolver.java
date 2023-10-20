@@ -24,38 +24,35 @@
 
 package io.fairyproject.devtools.bukkit;
 
-import io.fairyproject.bukkit.util.JavaPluginUtil;
-import io.fairyproject.devtools.reload.ReloadShutdownHandler;
-import io.fairyproject.plugin.Plugin;
+import io.fairyproject.container.InjectableComponent;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Server;
-import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.Plugin;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+@InjectableComponent
 @RequiredArgsConstructor
-public class BukkitReloadShutdownHandler implements ReloadShutdownHandler {
+public class BukkitDependencyResolver {
 
     private final Server server;
-    private final BukkitDependencyResolver dependencyResolver;
 
-    @Override
-    public void shutdown(Plugin plugin) {
-        if (plugin == null) {
-            throw new IllegalArgumentException("Plugin must not be null");
+    public Iterable<Plugin> resolveDependsBy(Plugin plugin) {
+        List<Plugin> plugins = new ArrayList<>();
+
+        for (Plugin other : server.getPluginManager().getPlugins()) {
+            if (other == plugin)
+                continue;
+
+            Collection<String> depends = other.getDescription().getDepend();
+            if (depends.contains(plugin.getName())) {
+                plugins.add(other);
+            }
         }
 
-        JavaPlugin javaPlugin = JavaPluginUtil.getProvidingPlugin(plugin.getClass());
-        if (javaPlugin == null) {
-            throw new IllegalStateException("JavaPlugin is null");
-        }
-
-        this.shutdownBukkitPlugin(javaPlugin);
+        return plugins;
     }
 
-    private void shutdownBukkitPlugin(org.bukkit.plugin.Plugin plugin) {
-        for (org.bukkit.plugin.Plugin bukkitPlugin : this.dependencyResolver.resolveDependsBy(plugin)) {
-            this.shutdownBukkitPlugin(bukkitPlugin);
-        }
-
-        server.getPluginManager().disablePlugin(plugin);
-    }
 }

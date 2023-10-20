@@ -31,11 +31,15 @@ import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationObserver;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class ClasspathFileAlterationListener implements FileAlterationListener {
 
     private final Plugin plugin;
+    private final Set<Path> loadedFiles = new HashSet<>();
 
     @Override
     public void onDirectoryChange(File directory) {
@@ -59,6 +63,9 @@ public class ClasspathFileAlterationListener implements FileAlterationListener {
 
     @Override
     public void onFileCreate(File file) {
+        if (this.loadedFiles.add(file.toPath()))
+            return;
+
         this.callFileChangedEvent(file);
     }
 

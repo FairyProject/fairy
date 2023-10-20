@@ -37,6 +37,7 @@ import java.net.URL;
 public class BukkitReloadStartupHandler implements ReloadStartupHandler {
 
     private final Server server;
+    private final BukkitDependencyResolver dependencyResolver;
 
     @Override
     public void start(Plugin plugin) {
@@ -49,6 +50,10 @@ public class BukkitReloadStartupHandler implements ReloadStartupHandler {
             throw new IllegalStateException("JavaPlugin is null");
         }
 
+        this.startBukkitPlugin(javaPlugin);
+    }
+
+    private void startBukkitPlugin(org.bukkit.plugin.Plugin javaPlugin) {
         // reload the plugin entirely
         URL url = javaPlugin.getClass().getProtectionDomain().getCodeSource().getLocation();
         org.bukkit.plugin.Plugin newBukkitPlugin;
@@ -64,5 +69,9 @@ public class BukkitReloadStartupHandler implements ReloadStartupHandler {
         // bukkit plugin manager doesn't call onLoad() when only enabling plugin
         newBukkitPlugin.onLoad();
         server.getPluginManager().enablePlugin(newBukkitPlugin);
+
+        for (org.bukkit.plugin.Plugin plugin : dependencyResolver.resolveDependsBy(javaPlugin)) {
+            this.startBukkitPlugin(plugin);
+        }
     }
 }

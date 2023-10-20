@@ -40,7 +40,7 @@ class DefaultPluginClassInitializerTest {
 
     @Test
     void initializeClassLoader() {
-        ClassLoader classLoader = pluginClassInitializer.initializeClassLoader(getClass().getClassLoader());
+        ClassLoader classLoader = pluginClassInitializer.initializeClassLoader("test", getClass().getClassLoader());
 
         assertEquals(getClass().getClassLoader(), classLoader);
     }

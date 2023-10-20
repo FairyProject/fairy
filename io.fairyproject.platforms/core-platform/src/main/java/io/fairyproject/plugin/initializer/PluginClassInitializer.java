@@ -37,10 +37,11 @@ public interface PluginClassInitializer {
      * Initialize the class loader.
      * This method is called before the main class is initialized.
      *
+     * @param name the name of the plugin
      * @param classLoader the current class loader
      * @return the new class loader, return the same class loader if you don't want to replace it
      */
-    @NotNull ClassLoader initializeClassLoader(@NotNull ClassLoader classLoader);
+    @NotNull ClassLoader initializeClassLoader(@NotNull String name, @NotNull ClassLoader classLoader);
 
     /**
      * Create a new instance of the main class.

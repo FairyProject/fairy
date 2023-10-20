@@ -46,7 +46,7 @@ class ReloadablePluginClassInitializerTest {
         this.testClassLoader = Mockito.mock(ReloadableClassLoader.class);
         this.url = this.getClass().getProtectionDomain().getCodeSource().getLocation();
         this.classpathCollection = new ClasspathCollection();
-        this.classpathCollection.addURL(url);
+        this.classpathCollection.addURL("plugin1", url);
         Mockito.doReturn(TestPlugin.class).when(testClassLoader).loadClass("io.fairyproject.devtools.reload.TestPlugin");
 
         this.reloadablePluginClassInitializer = new ReloadablePluginClassInitializer(classpathCollection);
@@ -54,11 +54,18 @@ class ReloadablePluginClassInitializerTest {
 
     @Test
     void initializeClassLoader() {
-        ClassLoader classLoader = reloadablePluginClassInitializer.initializeClassLoader(testClassLoader);
+        ClassLoader classLoader = reloadablePluginClassInitializer.initializeClassLoader("plugin1", testClassLoader);
 
         assertTrue(classLoader instanceof ReloadableClassLoader);
         assertSame(classLoader.getParent(), testClassLoader);
         assertSame(((ReloadableClassLoader) classLoader).getURLs()[0], url);
+    }
+
+    @Test
+    void initializeClassLoaderWithUnknownNameMustReturnSameClassLoader() {
+        ClassLoader classLoader = reloadablePluginClassInitializer.initializeClassLoader("plugin2", testClassLoader);
+
+        assertSame(classLoader, testClassLoader);
     }
 
     @Test
@@ -78,7 +85,7 @@ class ReloadablePluginClassInitializerTest {
 
     @Test
     void createWithNoArgConstructorMustReadProperty() {
-        System.setProperty("io.fairyproject.devtools.classpath", url.getPath());
+        System.setProperty("io.fairyproject.devtools.classpath", "plugin1|" + url.getPath());
 
         ReloadablePluginClassInitializer reloadablePluginClassInitializer = new ReloadablePluginClassInitializer();
         ClasspathCollection classpathCollection = reloadablePluginClassInitializer.getClasspathCollection();

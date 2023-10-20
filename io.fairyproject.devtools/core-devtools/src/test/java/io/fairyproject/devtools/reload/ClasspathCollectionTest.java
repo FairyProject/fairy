@@ -32,12 +32,12 @@ class ClasspathCollectionTest {
 
     @Test
     void parseFromString() {
-        String path = "/test/file:/test/file2";
+        String path = "plugin1|/test/file:plugin2|/test/file2";
         ClasspathCollection classpathCollection = new ClasspathCollection(path);
 
         assertEquals(2, classpathCollection.getURLs().length);
-        assertEquals("/test/file", classpathCollection.getURLs()[0].getPath());
-        assertEquals("/test/file2", classpathCollection.getURLs()[1].getPath());
+        assertEquals("/test/file", classpathCollection.getURLByName("plugin1").getPath());
+        assertEquals("/test/file2", classpathCollection.getURLByName("plugin2").getPath());
     }
 
 }

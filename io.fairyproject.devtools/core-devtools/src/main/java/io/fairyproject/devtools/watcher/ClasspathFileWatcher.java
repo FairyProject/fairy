@@ -26,7 +26,6 @@ package io.fairyproject.devtools.watcher;
 
 import io.fairyproject.container.PostDestroy;
 import io.fairyproject.container.PostInitialize;
-import io.fairyproject.devtools.reload.ClasspathCollection;
 import lombok.Getter;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
@@ -35,28 +34,22 @@ import org.apache.commons.io.monitor.FileAlterationObserver;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ClasspathFileWatcher {
 
-    private final FileAlterationListener listener;
     @Getter
     private final FileAlterationMonitor monitor;
+    private final Map<String, FileAlterationObserver> observers;
     private boolean running = false;
 
-    public ClasspathFileWatcher(long interval, ClasspathCollection collection, FileAlterationListener listener) {
+    public ClasspathFileWatcher(long interval) {
         this.monitor = new FileAlterationMonitor(interval);
-        this.listener = listener;
-
-        for (URL url : collection.getURLs()) {
-            try {
-                this.addURL(url);
-            } catch (URISyntaxException ex) {
-                throw new IllegalStateException(ex);
-            }
-        }
+        this.observers = new HashMap<>();
     }
 
-    void addURL(URL url) throws URISyntaxException {
+    public void addURL(URL url, FileAlterationListener listener) throws URISyntaxException {
         File file = new File(url.toURI());
         if (!file.exists())
             return;
@@ -65,8 +58,9 @@ public class ClasspathFileWatcher {
             return;
 
         FileAlterationObserver observer = new FileAlterationObserver(file);
-        observer.addListener(this.listener);
+        observer.addListener(listener);
         this.monitor.addObserver(observer);
+        this.observers.put(url.toString(), observer);
     }
 
     public boolean isStarted() {
@@ -89,4 +83,11 @@ public class ClasspathFileWatcher {
         this.running = false;
     }
 
+    public void removeURL(URL url) {
+        FileAlterationObserver observer = this.observers.remove(url.toString());
+        if (observer == null)
+            return;
+
+        this.monitor.removeObserver(observer);
+    }
 }

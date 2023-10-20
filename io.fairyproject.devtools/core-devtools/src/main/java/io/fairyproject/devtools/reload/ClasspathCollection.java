@@ -30,33 +30,43 @@ import lombok.NoArgsConstructor;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @NoArgsConstructor
 public class ClasspathCollection {
 
-    private final List<URL> urls = new ArrayList<>();
+    private final Map<String, URL> urls = new HashMap<>();
 
     public ClasspathCollection(String path) {
-        if (path == null)
+        if (path == null || path.isEmpty())
             return;
 
         String[] paths = path.split(":");
         for (String p : paths) {
             try {
-                urls.add(Paths.get(p).toUri().toURL());
+                String[] split = p.split("\\|");
+                String name = split[0];
+                URL url = Paths.get(split[1]).toUri().toURL();
+
+                urls.put(name, url);
             } catch (Throwable throwable) {
                 throw new IllegalStateException(throwable);
             }
         }
     }
 
-    public void addURL(URL url) {
-        urls.add(url);
+    public void addURL(String name, URL url) {
+        urls.put(name, url);
     }
 
     public URL[] getURLs() {
-        return urls.toArray(new URL[0]);
+        return urls.values().toArray(new URL[0]);
+    }
+
+    public URL getURLByName(String name) {
+        return urls.get(name);
     }
 
 }

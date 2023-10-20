@@ -24,47 +24,47 @@
 
 package io.fairyproject.devtools.reload;
 
-import io.fairyproject.devtools.DevToolProperties;
-import io.fairyproject.devtools.reload.classloader.ReloadableClassLoader;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.devtools.watcher.ClasspathFileAlterationListener;
+import io.fairyproject.devtools.watcher.ClasspathFileWatcher;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.plugin.initializer.DefaultPluginClassInitializer;
-import lombok.Getter;
+import io.fairyproject.plugin.PluginListenerAdapter;
+import io.fairyproject.plugin.PluginManager;
 import lombok.RequiredArgsConstructor;
-import org.jetbrains.annotations.NotNull;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 
 @RequiredArgsConstructor
-@Getter
-public class ReloadablePluginClassInitializer extends DefaultPluginClassInitializer {
+public class ReloaderPluginListener implements PluginListenerAdapter {
 
+    private final ClasspathFileWatcher classpathFileWatcher;
     private final ClasspathCollection classpathCollection;
 
-    public ReloadablePluginClassInitializer() {
-        this.classpathCollection = DevToolProperties.getClasspathCollection();
+    @PostInitialize
+    public void onPostInitialize() {
+        PluginManager.INSTANCE.registerListener(this);
     }
 
     @Override
-    public @NotNull ClassLoader initializeClassLoader(@NotNull String name, @NotNull ClassLoader classLoader) {
-        URL url = classpathCollection.getURLByName(name);
+    public void onPluginEnable(Plugin plugin) {
+        URL url = classpathCollection.getURLByName(plugin.getName());
         if (url == null)
-            return classLoader;
+            return;
 
         try {
-            return new ReloadableClassLoader(new URL[] { url }, classLoader);
-        } catch (Throwable throwable) {
-            throw new IllegalStateException(throwable);
+            classpathFileWatcher.addURL(url, new ClasspathFileAlterationListener(plugin));
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Cannot add classpath monitor to watcher", e);
         }
     }
 
     @Override
-    public Plugin create(String mainClassPath, ClassLoader classLoader) {
-        Plugin plugin = super.create(mainClassPath, classLoader);
+    public void onPluginDisable(Plugin plugin) {
+        URL url = classpathCollection.getURLByName(plugin.getName());
+        if (url == null)
+            return;
 
-        if (classLoader instanceof ReloadableClassLoader) {
-            ((ReloadableClassLoader) classLoader).setPlugin(plugin);
-        }
-
-        return plugin;
+        classpathFileWatcher.removeURL(url);
     }
 }

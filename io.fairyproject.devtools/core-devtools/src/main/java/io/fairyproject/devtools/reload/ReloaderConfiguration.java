@@ -49,19 +49,18 @@ public class ReloaderConfiguration {
     }
 
     @InjectableComponent
-    public ClasspathFileWatcher classpathFileWatcher(FairyPlatform platform, DevToolSettings settings) {
-        ClasspathFileAlterationListener listener = new ClasspathFileAlterationListener(platform.getMainPlugin());
-
-        return new ClasspathFileWatcher(
-                settings.getRestart().getClasspathScanInterval().toMillis(),
-                DevToolProperties.getClasspathCollection(),
-                listener
-                );
+    public ClasspathFileWatcher classpathFileWatcher(DevToolSettings settings) {
+        return new ClasspathFileWatcher(settings.getRestart().getClasspathScanInterval().toMillis());
     }
 
     @InjectableComponent
     public ReloaderListener reloaderListener(Reloader reloader, AgentDetector agentDetector) {
         return new ReloaderListener(reloader, agentDetector, Fairy.getTaskScheduler());
+    }
+
+    @InjectableComponent
+    public ReloaderPluginListener reloaderPluginListener(ClasspathFileWatcher classpathFileWatcher) {
+        return new ReloaderPluginListener(classpathFileWatcher, DevToolProperties.getClasspathCollection());
     }
 
 }

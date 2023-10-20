@@ -31,7 +31,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class DefaultPluginClassInitializer implements PluginClassInitializer {
     @Override
-    public @NotNull ClassLoader initializeClassLoader(@NotNull ClassLoader classLoader) {
+    public @NotNull ClassLoader initializeClassLoader(@NotNull String name, @NotNull ClassLoader classLoader) {
         return classLoader;
     }
 

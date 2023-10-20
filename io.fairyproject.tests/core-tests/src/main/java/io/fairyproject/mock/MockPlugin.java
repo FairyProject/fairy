@@ -19,8 +19,12 @@ public class MockPlugin extends Plugin {
     private boolean onPostDisableCalled = false;
 
     public MockPlugin() {
+        this("test");
+    }
+
+    public MockPlugin(String name) {
         PluginDescription description = PluginDescription.builder()
-                .name("test")
+                .name(name)
                 .mainClass("io.fairytest.plugin.PluginMock")
                 .shadedPackage("io.fairytest.plugin")
                 .library(Library.builder()

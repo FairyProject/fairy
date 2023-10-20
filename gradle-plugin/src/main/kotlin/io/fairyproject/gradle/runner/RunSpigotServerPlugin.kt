@@ -24,6 +24,7 @@
 
 package io.fairyproject.gradle.runner
 
+import io.fairyproject.gradle.extension.FairyExtension
 import io.fairyproject.gradle.runner.action.DownloadBuildToolAction
 import io.fairyproject.gradle.runner.task.PrepareSpigotTask
 import org.gradle.api.Plugin
@@ -45,6 +46,12 @@ open class RunSpigotServerPlugin : Plugin<Project> {
             if (!extension.version.isPresent)
                 return@afterEvaluate
 
+            extension.projects.get().forEach { project ->
+                if (!project.plugins.hasPlugin("io.fairyproject")) {
+                    project.logger.warn("Project ${project.name} does not have the FairyProject plugin applied and was included to run spigot server.")
+                }
+            }
+
             val workDir = project.projectDir.toPath().resolve("spigotServer/work")
             val buildToolDir = project.projectDir.toPath().resolve("spigotServer/build-tools")
             val artifact = SpigotJarArtifact(buildToolDir, extension)
@@ -62,21 +69,31 @@ open class RunSpigotServerPlugin : Plugin<Project> {
 
     private fun configureCopyPluginJar(project: Project, workDir: Path) {
         project.tasks.register("copyPluginJar", Copy::class.java) {
-            val jarTask = if (project.tasks.findByName("shadowJar") != null)
-                project.tasks.getByName("shadowJar") as Jar
-            else
-                project.tasks.getByName("jar") as Jar
-
-            it.from(jarTask.archiveFile.get())
-            it.into(workDir.resolve("plugins"))
-            it.eachFile {
-                it.name = "runSpigotServer-plugin.jar"
+            it.includeProjectJarCopy(project)
+            project.extensions.configure(RunSpigotServerExtension::class.java) { extension ->
+                extension.projects.get().forEach { project ->
+                    it.includeProjectJarCopy(project)
+                }
             }
+
+            it.into(workDir.resolve("plugins"))
             it.duplicatesStrategy = DuplicatesStrategy.INCLUDE
             it.group = group
-
-            it.dependsOn(jarTask)
         }
+    }
+
+    private fun Copy.includeProjectJarCopy(project: Project) {
+        val jarTask = if (project.tasks.findByName("shadowJar") != null)
+            project.tasks.getByName("shadowJar") as Jar
+        else
+            project.tasks.getByName("jar") as Jar
+
+        from(jarTask.archiveFile.get()) {
+            it.rename { name ->
+                "runSpigotServer-${project.name}.jar"
+            }
+        }
+        dependsOn(jarTask)
     }
 
     private fun configureRunSpigotServer(
@@ -93,13 +110,33 @@ open class RunSpigotServerPlugin : Plugin<Project> {
                 it.dependsOn("copyPluginJar")
                 it.dependsOn("prepareSpigotBuild")
                 it.group = group
-
-                project.extensions.configure(JavaPluginExtension::class.java) { java ->
-                    val path = java.sourceSets.getByName("main").runtimeClasspath.asPath
-
-                    it.systemProperties["io.fairyproject.devtools.classpath"] = path
-                    it.args = extension.args.get()
+                it.args = extension.args.get()
+                if (extension.versionIsSameOrNewerThan(1, 15)) {
+                    it.args("--nogui")
                 }
+
+                val fairyExtension = project.extensions.findByType(FairyExtension::class.java)!!
+                val classpathList = mutableListOf<String>()
+                project.extensions.configure(JavaPluginExtension::class.java) { java ->
+                    val name = fairyExtension.name.get()
+                    val path = java.sourceSets.getByName("main").output.classesDirs.asPath
+
+                    classpathList.add("$name|$path")
+                }
+
+                extension.projects.get().forEach { included ->
+                    val fairyExtension = included.extensions.findByType(FairyExtension::class.java)
+                        ?: return@forEach
+
+                    val name = fairyExtension.name.get()
+                    included.extensions.configure(JavaPluginExtension::class.java) { java ->
+                        val path = java.sourceSets.getByName("main").output.classesDirs.asPath
+
+                        classpathList.add("$name|$path")
+                    }
+                }
+
+                it.systemProperties["io.fairyproject.devtools.classpath"] = classpathList.joinToString(":")
             }
         }
     }

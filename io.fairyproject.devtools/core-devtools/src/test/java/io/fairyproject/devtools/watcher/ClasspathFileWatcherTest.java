@@ -24,13 +24,13 @@
 
 package io.fairyproject.devtools.watcher;
 
-import io.fairyproject.devtools.reload.ClasspathCollection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.monitor.FileAlterationListener;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,10 +49,7 @@ class ClasspathFileWatcherTest {
 
         listener = Mockito.mock(FileAlterationListener.class);
 
-        ClasspathCollection classpathCollection = new ClasspathCollection();
-        classpathCollection.addURL(directory.toUri().toURL());
-
-        classpathFileWatcher = new ClasspathFileWatcher(10L, classpathCollection, listener);
+        classpathFileWatcher = new ClasspathFileWatcher(10L);
     }
 
     @AfterEach
@@ -64,20 +61,24 @@ class ClasspathFileWatcherTest {
     }
 
     @Test
-    void constructorShouldCreateObserverForClasspathCollection() {
-        Assertions.assertEquals(1, StreamSupport
-                .stream(classpathFileWatcher.getObservers().spliterator(), false)
-                .count());
-        Assertions.assertEquals(directory.toFile(), classpathFileWatcher.getObservers().iterator().next().getDirectory());
-    }
-
-    @Test
     void addURLShouldCreateObserver() throws IOException, URISyntaxException {
         Path path = Files.createTempDirectory("test-2");
 
-        classpathFileWatcher.addURL(path.toUri().toURL());
+        classpathFileWatcher.addURL(path.toUri().toURL(), listener);
 
-        Assertions.assertEquals(2, StreamSupport
+        Assertions.assertEquals(1, StreamSupport
+                .stream(classpathFileWatcher.getObservers().spliterator(), false)
+                .count());
+    }
+
+    @Test
+    void removeURLShouldRemoveObserver() throws IOException, URISyntaxException {
+        Path path = Files.createTempDirectory("test-2");
+
+        classpathFileWatcher.addURL(path.toUri().toURL(), listener);
+        classpathFileWatcher.removeURL(path.toUri().toURL());
+
+        Assertions.assertEquals(0, StreamSupport
                 .stream(classpathFileWatcher.getObservers().spliterator(), false)
                 .count());
     }
@@ -87,6 +88,7 @@ class ClasspathFileWatcherTest {
 
         @BeforeEach
         void setUp() throws Exception {
+            classpathFileWatcher.addURL(directory.toUri().toURL(), listener);
             classpathFileWatcher.start();
         }
 

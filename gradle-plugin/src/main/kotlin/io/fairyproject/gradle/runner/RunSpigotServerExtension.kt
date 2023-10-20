@@ -24,6 +24,7 @@
 
 package io.fairyproject.gradle.runner
 
+import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -32,7 +33,30 @@ open class RunSpigotServerExtension(objectFactory: ObjectFactory) {
 
     val version: Property<String> = objectFactory.property(String::class.java)
     val cleanup: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)
-    val args: ListProperty<String> = objectFactory.listProperty(String::class.java).convention(listOf("--nogui"))
+    val args: ListProperty<String> = objectFactory.listProperty(String::class.java)
+    val projects: ListProperty<Project> = objectFactory.listProperty(Project::class.java).convention(listOf())
     val buildToolUrl: Property<String> = objectFactory.property(String::class.java).convention("https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar")
+
+    /**
+     * @author runtask gradle plugin
+     */
+    fun versionIsSameOrNewerThan(vararg other: Int): Boolean {
+        val minecraft = version.get().split(".").map {
+            try {
+                it.toInt()
+            } catch (ex: NumberFormatException) {
+                return true
+            }
+        }
+
+        for ((current, target) in minecraft zip other.toList()) {
+            if (current < target) return false
+            if (current > target) return true
+            // If equal, check next subversion
+        }
+
+        // version is same
+        return true
+    }
 
 }

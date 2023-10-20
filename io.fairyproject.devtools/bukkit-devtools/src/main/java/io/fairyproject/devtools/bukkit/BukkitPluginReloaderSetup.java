@@ -31,9 +31,9 @@ import org.bukkit.Server;
 @InjectableComponent
 public class BukkitPluginReloaderSetup {
 
-    public BukkitPluginReloaderSetup(Server server, Reloader reloader) {
-        reloader.setReloadStartupHandler(new BukkitReloadStartupHandler(server));
-        reloader.setReloadShutdownHandler(new BukkitReloadShutdownHandler(server));
+    public BukkitPluginReloaderSetup(Server server, Reloader reloader, BukkitDependencyResolver dependencyResolver) {
+        reloader.setReloadStartupHandler(new BukkitReloadStartupHandler(server, dependencyResolver));
+        reloader.setReloadShutdownHandler(new BukkitReloadShutdownHandler(server, dependencyResolver));
     }
 
 }

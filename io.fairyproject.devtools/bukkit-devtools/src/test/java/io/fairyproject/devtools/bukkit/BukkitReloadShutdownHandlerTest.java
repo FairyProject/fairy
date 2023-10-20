@@ -24,23 +24,34 @@
 
 package io.fairyproject.devtools.bukkit;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.plugin.impl.SpecifyJavaPluginIdentifier;
 import io.fairyproject.mock.MockPlugin;
+import io.fairyproject.tests.bukkit.MockBukkitContext;
 import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Collections;
+
 class BukkitReloadShutdownHandlerTest {
 
     private PluginManager pluginManager;
+    private BukkitDependencyResolver dependencyResolver;
     private BukkitReloadShutdownHandler bukkitReloadShutdownHandler;
     private MockPlugin fairyPlugin;
     private JavaPlugin javaPlugin;
+
+    @BeforeAll
+    static void setUpAll() {
+        MockBukkitContext.get().initialize();
+    }
 
     @BeforeEach
     void setUp() {
@@ -48,10 +59,11 @@ class BukkitReloadShutdownHandlerTest {
         Server server = Mockito.mock(Server.class);
         Mockito.when(server.getPluginManager()).thenReturn(pluginManager);
 
-        bukkitReloadShutdownHandler = new BukkitReloadShutdownHandler(server);
+        dependencyResolver = Mockito.mock(BukkitDependencyResolver.class);
+        bukkitReloadShutdownHandler = new BukkitReloadShutdownHandler(server, dependencyResolver);
 
         fairyPlugin = new MockPlugin();
-        javaPlugin = Mockito.mock(JavaPlugin.class);
+        javaPlugin = MockBukkit.createMockPlugin("Main");
 
         RootJavaPluginIdentifier.getInstance().addFirst(new SpecifyJavaPluginIdentifier(javaPlugin));
     }
@@ -66,5 +78,18 @@ class BukkitReloadShutdownHandlerTest {
         bukkitReloadShutdownHandler.shutdown(fairyPlugin);
 
         Mockito.verify(pluginManager).disablePlugin(javaPlugin);
+    }
+
+    @Test
+    void shutdownShouldDisableDependedPlugins() {
+        be.seeseemelk.mockbukkit.MockPlugin dependA = MockBukkit.createMockPlugin("MockPlugin1");
+        be.seeseemelk.mockbukkit.MockPlugin dependB = MockBukkit.createMockPlugin("MockPlugin2");
+        Mockito.when(dependencyResolver.resolveDependsBy(javaPlugin)).thenReturn(Collections.singletonList(dependA));
+        Mockito.when(dependencyResolver.resolveDependsBy(dependA)).thenReturn(Collections.singletonList(dependB));
+
+        bukkitReloadShutdownHandler.shutdown(fairyPlugin);
+
+        Mockito.verify(pluginManager).disablePlugin(dependA);
+        Mockito.verify(pluginManager).disablePlugin(dependB);
     }
 }

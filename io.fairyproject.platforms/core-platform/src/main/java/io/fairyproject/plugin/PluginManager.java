@@ -48,14 +48,14 @@ public class PluginManager {
     }
 
     private final Map<String, Plugin> plugins;
-    private final Set<PluginListenerAdapter> listenerAdapters;
+    private final List<PluginListenerAdapter> listenerAdapters;
     private final PluginHandler pluginHandler;
 
     public PluginManager(PluginHandler pluginHandler) {
         this.pluginHandler = pluginHandler;
 
         this.plugins = new ConcurrentHashMap<>();
-        this.listenerAdapters = new TreeSet<>(Collections.reverseOrder(Comparator.comparingInt(PluginListenerAdapter::priority)));
+        this.listenerAdapters = new ArrayList<>();
     }
 
     public void unload() {
@@ -88,7 +88,9 @@ public class PluginManager {
 
     public void onPluginEnable(Plugin plugin) {
         synchronized (this.listenerAdapters) {
-            this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginEnable(plugin));
+            this.listenerAdapters.forEach(listenerAdapter -> {
+                listenerAdapter.onPluginEnable(plugin);
+            });
         }
     }
 
@@ -117,6 +119,7 @@ public class PluginManager {
     public void registerListener(PluginListenerAdapter listenerAdapter) {
         synchronized (this.listenerAdapters) {
             this.listenerAdapters.add(listenerAdapter);
+            this.listenerAdapters.sort(Collections.reverseOrder(Comparator.comparingInt(PluginListenerAdapter::priority)));
         }
     }
 
