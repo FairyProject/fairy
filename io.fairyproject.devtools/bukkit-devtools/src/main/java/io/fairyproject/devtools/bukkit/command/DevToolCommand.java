@@ -22,19 +22,29 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.plugin.impl;
+package io.fairyproject.devtools.bukkit.command;
 
-import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.command.event.BukkitCommandContext;
+import io.fairyproject.command.BaseCommand;
+import io.fairyproject.command.annotation.Command;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.devtools.reload.Reloader;
+import io.fairyproject.plugin.Plugin;
+import lombok.RequiredArgsConstructor;
 
-public class DefaultJavaPluginIdentifier implements JavaPluginIdentifier {
-    @Override
-    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
-        try {
-            return JavaPlugin.getProvidingPlugin(clazz);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+@Command("devtool")
+@InjectableComponent
+@RequiredArgsConstructor
+public class DevToolCommand extends BaseCommand {
+
+    private final Reloader reloader;
+
+    @Command("reload")
+    public void reload(BukkitCommandContext context) {
+        Plugin plugin = FairyBukkitPlatform.INSTANCE.getMainPlugin();
+
+        this.reloader.reload(plugin);
     }
+
 }

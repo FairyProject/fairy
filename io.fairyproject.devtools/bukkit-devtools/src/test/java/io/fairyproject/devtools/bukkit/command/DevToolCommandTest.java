@@ -22,19 +22,34 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.plugin.impl;
+package io.fairyproject.devtools.bukkit.command;
 
-import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
+import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.command.event.BukkitCommandContext;
+import io.fairyproject.devtools.reload.Reloader;
+import io.fairyproject.tests.base.JUnitJupiterBase;
+import org.bukkit.command.CommandSender;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-public class DefaultJavaPluginIdentifier implements JavaPluginIdentifier {
-    @Override
-    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
-        try {
-            return JavaPlugin.getProvidingPlugin(clazz);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+class DevToolCommandTest extends JUnitJupiterBase {
+
+    private Reloader reloader;
+    private DevToolCommand devToolCommand;
+
+    @BeforeEach
+    void setUp() {
+        this.reloader = Mockito.mock(Reloader.class);
+        this.devToolCommand = new DevToolCommand(reloader);
     }
+
+    @Test
+    void reload() {
+        CommandSender commandSender = Mockito.mock(CommandSender.class);
+        this.devToolCommand.reload(new BukkitCommandContext(commandSender, new String[0]));
+
+        Mockito.verify(this.reloader).reload(FairyBukkitPlatform.INSTANCE.getMainPlugin());
+    }
+
 }

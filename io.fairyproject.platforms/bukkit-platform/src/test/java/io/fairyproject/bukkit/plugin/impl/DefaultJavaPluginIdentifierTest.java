@@ -24,17 +24,23 @@
 
 package io.fairyproject.bukkit.plugin.impl;
 
-import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class DefaultJavaPluginIdentifier implements JavaPluginIdentifier {
-    @Override
-    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
-        try {
-            return JavaPlugin.getProvidingPlugin(clazz);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+import static org.junit.jupiter.api.Assertions.*;
+
+class DefaultJavaPluginIdentifierTest {
+
+    private DefaultJavaPluginIdentifier defaultJavaPluginIdentifier;
+
+    @BeforeEach
+    void setUp() {
+        defaultJavaPluginIdentifier = new DefaultJavaPluginIdentifier();
     }
+
+    @Test
+    void findByClassNotFromClassLoaderMustReturnNull() {
+        assertNull(defaultJavaPluginIdentifier.findByClass(String.class));
+    }
+
 }

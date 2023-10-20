@@ -29,6 +29,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
+import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PreInitialize;
@@ -59,6 +60,9 @@ public class MCVersionMappingRegistry {
     public void onPreInitialize() throws IOException {
         try {
             JsonArray jsonElements = this.loadFromInternet();
+            if (Debug.UNIT_TEST)
+                return;
+
             this.writeToCacheFile(jsonElements);
         } catch (IOException e) {
             Log.error("Failed to load version mappings from internet, loading from local resources...");

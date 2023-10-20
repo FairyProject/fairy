@@ -22,19 +22,36 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.plugin.impl;
+package io.fairyproject.devtools.bukkit;
 
-import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
-import org.bukkit.plugin.java.JavaPlugin;
+import be.seeseemelk.mockbukkit.MockBukkit;
+import be.seeseemelk.mockbukkit.ServerMock;
+import io.fairyproject.FairyPlatform;
+import io.fairyproject.mock.MockPlugin;
+import io.fairyproject.plugin.Plugin;
+import io.fairyproject.tests.bukkit.BukkitTestingHandle;
+import io.fairyproject.tests.bukkit.FairyBukkitTestingPlatform;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class DefaultJavaPluginIdentifier implements JavaPluginIdentifier {
+public class DevToolTestingHandle implements BukkitTestingHandle {
     @Override
-    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
-        try {
-            return JavaPlugin.getProvidingPlugin(clazz);
-        } catch (IllegalArgumentException e) {
-            return null;
-        }
+    public @NotNull ServerMock createServerMock() {
+        return MockBukkit.getOrCreateMock();
+    }
+
+    @Override
+    public Plugin plugin() {
+        return new MockPlugin();
+    }
+
+    @Override
+    public FairyPlatform platform() {
+        return new FairyBukkitTestingPlatform();
+    }
+
+    @Override
+    public @Nullable String scanPath() {
+        return "testenv.io.fairyproject";
     }
 }
