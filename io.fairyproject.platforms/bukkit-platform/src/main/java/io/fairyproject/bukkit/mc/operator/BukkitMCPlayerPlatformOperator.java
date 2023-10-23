@@ -33,11 +33,15 @@ import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator {
@@ -62,6 +66,18 @@ public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator 
             return ((Player) platformPlayer).getName();
 
         throw new IllegalArgumentException(platformPlayer.getClass().getName());
+    }
+
+    @Override
+    public List<MCPlayer> loadOnlinePlayers() {
+        return Bukkit.getOnlinePlayers().stream()
+                .map(player -> {
+                    MCPlayer mcPlayer = create(player.getName(), player.getUniqueId(), Objects.requireNonNull(player.getAddress()).getAddress());
+                    mcPlayer.setNative(player);
+
+                    return mcPlayer;
+                })
+                .collect(Collectors.toList());
     }
 
     @Override

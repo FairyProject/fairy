@@ -24,13 +24,12 @@
 
 package io.fairyproject.gradle.runner
 
-import io.fairyproject.gradle.extension.FairyExtension
+import io.fairyproject.gradle.FairyGradlePlugin
 import io.fairyproject.gradle.runner.action.DownloadBuildToolAction
 import io.fairyproject.gradle.runner.task.PrepareSpigotTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.jvm.tasks.Jar
 import java.nio.file.Files
@@ -47,8 +46,10 @@ open class RunSpigotServerPlugin : Plugin<Project> {
                 return@afterEvaluate
 
             extension.projects.get().forEach { project ->
-                if (!project.plugins.hasPlugin("io.fairyproject")) {
-                    project.logger.warn("Project ${project.name} does not have the FairyProject plugin applied and was included to run spigot server.")
+                project.afterEvaluate {
+                    if (!it.plugins.hasPlugin(FairyGradlePlugin::class.java)) {
+                        it.logger.warn("Project ${it.name} does not have the FairyProject plugin applied and was included to run spigot server.")
+                    }
                 }
             }
 
@@ -115,28 +116,14 @@ open class RunSpigotServerPlugin : Plugin<Project> {
                     it.args("--nogui")
                 }
 
-                val fairyExtension = project.extensions.findByType(FairyExtension::class.java)!!
-                val classpathList = mutableListOf<String>()
-                project.extensions.configure(JavaPluginExtension::class.java) { java ->
-                    val name = fairyExtension.name.get()
-                    val path = java.sourceSets.getByName("main").output.classesDirs.asPath
-
-                    classpathList.add("$name|$path")
-                }
+                val classpathRegistry = ClasspathRegistry()
+                classpathRegistry.register(project)
 
                 extension.projects.get().forEach { included ->
-                    val fairyExtension = included.extensions.findByType(FairyExtension::class.java)
-                        ?: return@forEach
-
-                    val name = fairyExtension.name.get()
-                    included.extensions.configure(JavaPluginExtension::class.java) { java ->
-                        val path = java.sourceSets.getByName("main").output.classesDirs.asPath
-
-                        classpathList.add("$name|$path")
-                    }
+                    classpathRegistry.register(included)
                 }
 
-                it.systemProperties["io.fairyproject.devtools.classpath"] = classpathList.joinToString(":")
+                it.systemProperties["io.fairyproject.devtools.classpath"] = classpathRegistry.toString()
             }
         }
     }

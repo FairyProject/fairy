@@ -22,32 +22,33 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.mc.registry.player;
+package io.fairyproject.gradle.runner
 
-import io.fairyproject.mc.MCPlayer;
-import org.jetbrains.annotations.NotNull;
+import io.fairyproject.gradle.extension.FairyExtension
+import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
 
-import java.net.InetAddress;
-import java.util.List;
-import java.util.UUID;
+class ClasspathRegistry {
 
-public interface MCPlayerPlatformOperator {
+    private val classpath = mutableMapOf<String, String>()
 
-    UUID getUniqueId(@NotNull Object platformPlayer);
+    fun register(name: String, path: String) {
+        classpath[name] = path
+    }
 
-    String getName(@NotNull Object platformPlayer);
+    fun register(project: Project) {
+        val fairyExtension = project.extensions.findByType(FairyExtension::class.java) ?: return
+        val name = fairyExtension.name.get()
 
-    /**
-     * Loads all online players from the platform, it's useful mostly for reloading as player can be online.
-     *
-     * @return A list of online players
-     */
-    List<MCPlayer> loadOnlinePlayers();
+        project.extensions.configure(JavaPluginExtension::class.java) { java ->
+            val path = java.sourceSets.getByName("main").output.classesDirs.asPath
 
-    MCPlayer create(
-            @NotNull String name,
-            @NotNull UUID uuid,
-            @NotNull InetAddress address
-    );
+            register(name, path)
+        }
+    }
+
+    override fun toString(): String = classpath
+        .map { "${it.key}|${it.value}" }
+        .joinToString(":")
 
 }
