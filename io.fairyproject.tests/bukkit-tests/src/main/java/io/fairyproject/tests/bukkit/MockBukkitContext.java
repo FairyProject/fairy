@@ -6,7 +6,6 @@ import be.seeseemelk.mockbukkit.ServerMock;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.plugin.impl.SpecifyJavaPluginIdentifier;
-import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.tests.TestingContext;
 import io.fairyproject.tests.TestingHandle;
 import lombok.Getter;

@@ -9,7 +9,6 @@ import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.plugin.initializer.PluginClassInitializer;
 import lombok.Getter;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class BasePluginHolder {

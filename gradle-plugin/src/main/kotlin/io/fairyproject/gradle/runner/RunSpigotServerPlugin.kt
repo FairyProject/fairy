@@ -25,7 +25,9 @@
 package io.fairyproject.gradle.runner
 
 import io.fairyproject.gradle.FairyGradlePlugin
+import io.fairyproject.gradle.runner.action.CopySnapshotAction
 import io.fairyproject.gradle.runner.action.DownloadBuildToolAction
+import io.fairyproject.gradle.runner.action.WriteEulaAction
 import io.fairyproject.gradle.runner.task.PrepareSpigotTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -66,6 +68,7 @@ open class RunSpigotServerPlugin : Plugin<Project> {
         }
 
         val workDir = project.projectDir.toPath().resolve("spigotServer/work")
+        val snapshotDir = project.projectDir.toPath().resolve("spigotServer/snapshot")
         val buildToolDir = project.projectDir.toPath().resolve("spigotServer/build-tools")
         val artifact = SpigotJarArtifact(buildToolDir, extension)
 
@@ -76,7 +79,7 @@ open class RunSpigotServerPlugin : Plugin<Project> {
         configureCleanSpigotBuild(project, buildToolDir)
         configureCleanSpigotServer(project, workDir)
         configureCopyPluginJar(project, workDir)
-        configureRunSpigotServer(project, artifact, workDir, extension)
+        configureRunSpigotServer(project, artifact, workDir, snapshotDir, extension)
     }
 
     private fun configureCopyPluginJar(project: Project, workDir: Path) {
@@ -112,6 +115,7 @@ open class RunSpigotServerPlugin : Plugin<Project> {
         project: Project,
         artifact: SpigotJarArtifact,
         workDir: Path,
+        snapshotDir: Path,
         extension: RunSpigotServerExtension
     ) {
         project.afterEvaluate {
@@ -119,8 +123,11 @@ open class RunSpigotServerPlugin : Plugin<Project> {
                 if (extension.cleanup.get()) {
                     it.dependsOn("cleanSpigotServer")
                 }
+                it.doFirst(WriteEulaAction(workDir))
+                it.doFirst(CopySnapshotAction(snapshotDir, workDir))
                 it.dependsOn("copyPluginJar")
                 it.dependsOn("prepareSpigotBuild")
+
                 it.group = group
                 it.args = extension.args.get()
                 if (extension.versionIsSameOrNewerThan(1, 15)) {

@@ -35,18 +35,6 @@ public class PluginManager {
 
     public static PluginManager INSTANCE;
 
-    public static boolean isInitialized() {
-        return INSTANCE != null;
-    }
-
-    public static void initialize(PluginHandler pluginHandler) {
-        if (INSTANCE != null) {
-            throw new IllegalArgumentException("Don't Initialize twice!");
-        }
-
-        INSTANCE = new PluginManager(pluginHandler);
-    }
-
     private final Map<String, Plugin> plugins;
     private final List<PluginListenerAdapter> listenerAdapters;
     private final PluginHandler pluginHandler;
@@ -131,6 +119,18 @@ public class PluginManager {
         }
 
         return this.getPlugin(name);
+    }
+
+    public static boolean isInitialized() {
+        return INSTANCE != null;
+    }
+
+    public static void initialize(PluginHandler pluginHandler) {
+        if (INSTANCE != null) {
+            throw new IllegalArgumentException("Don't Initialize twice!");
+        }
+
+        INSTANCE = new PluginManager(pluginHandler);
     }
 
 }
