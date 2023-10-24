@@ -26,6 +26,13 @@ package io.fairyproject.gradle.runner
 
 import java.nio.file.Path
 
+/**
+ * Artifact of spigot jar.
+ *
+ * @since 0.7
+ * @author LeeGod
+ * @see RunSpigotServerPlugin
+ */
 class SpigotJarArtifact(private val directory: Path, private val extension: RunSpigotServerExtension) {
 
     val artifactPath: Path

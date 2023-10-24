@@ -29,6 +29,13 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 
+/**
+ * Extension of [RunSpigotServerPlugin].
+ *
+ * @since 0.7
+ * @author LeeGod
+ * @see RunSpigotServerPlugin
+ */
 open class RunSpigotServerExtension(objectFactory: ObjectFactory) {
 
     val version: Property<String> = objectFactory.property(String::class.java)

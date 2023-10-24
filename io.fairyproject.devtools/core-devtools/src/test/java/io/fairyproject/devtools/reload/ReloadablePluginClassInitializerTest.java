@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReloadablePluginClassInitializerTest {
 
     private URL url;
-    private ClasspathCollection classpathCollection;
     private ReloadableClassLoader testClassLoader;
     private ReloadablePluginClassInitializer reloadablePluginClassInitializer;
 
@@ -45,8 +44,9 @@ class ReloadablePluginClassInitializerTest {
     void setUp() throws ClassNotFoundException {
         this.testClassLoader = Mockito.mock(ReloadableClassLoader.class);
         this.url = this.getClass().getProtectionDomain().getCodeSource().getLocation();
-        this.classpathCollection = new ClasspathCollection();
-        this.classpathCollection.addURL("plugin1", url);
+
+        ClasspathCollection classpathCollection = new ClasspathCollection();
+        classpathCollection.addURL("plugin1", url);
         Mockito.doReturn(TestPlugin.class).when(testClassLoader).loadClass("io.fairyproject.devtools.reload.TestPlugin");
 
         this.reloadablePluginClassInitializer = new ReloadablePluginClassInitializer(classpathCollection);

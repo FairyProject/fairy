@@ -25,7 +25,6 @@
 package io.fairyproject.devtools.reload;
 
 import io.fairyproject.Fairy;
-import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.Configuration;
@@ -33,7 +32,6 @@ import io.fairyproject.devtools.DevToolProperties;
 import io.fairyproject.devtools.DevToolSettings;
 import io.fairyproject.devtools.reload.impl.DefaultReloadShutdownHandler;
 import io.fairyproject.devtools.reload.impl.DefaultReloadStartupHandler;
-import io.fairyproject.devtools.watcher.ClasspathFileAlterationListener;
 import io.fairyproject.devtools.watcher.ClasspathFileWatcher;
 
 @Configuration

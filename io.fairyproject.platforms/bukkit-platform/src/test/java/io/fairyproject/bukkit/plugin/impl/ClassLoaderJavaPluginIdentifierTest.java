@@ -45,12 +45,11 @@ class ClassLoaderJavaPluginIdentifierTest {
 
     private ClassLoaderJavaPluginIdentifier classLoaderJavaPluginIdentifier;
     private SamplePluginClassLoader pluginClassLoader;
-    private Server server;
     private JavaPlugin javaPlugin;
 
     @BeforeEach
     void setUp() {
-        server = Mockito.mock(Server.class);
+        Server server = Mockito.mock(Server.class);
         PluginManager pluginManager = Mockito.mock(PluginManager.class);
         Mockito.when(server.getPluginManager()).thenReturn(pluginManager);
 

@@ -32,7 +32,7 @@ public class AgentDetector {
 
 	private final Set<String> agentClasses;
 
-	private AgentDetector() {
+	public AgentDetector() {
 		Set<String> agentClasses = new LinkedHashSet<>();
 		agentClasses.add("org.zeroturnaround.javarebel.Integration");
 		agentClasses.add("org.zeroturnaround.javarebel.ReloaderFactory");

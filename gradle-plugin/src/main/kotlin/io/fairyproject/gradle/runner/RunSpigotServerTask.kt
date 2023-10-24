@@ -28,6 +28,13 @@ import org.gradle.api.tasks.JavaExec
 import java.nio.file.Path
 import javax.inject.Inject
 
+/**
+ * Task for running spigot server.
+ *
+ * @since 0.7
+ * @author LeeGod
+ * @see RunSpigotServerPlugin
+ */
 open class RunSpigotServerTask @Inject constructor(artifact: SpigotJarArtifact, workDirectory: Path): JavaExec() {
 
     init {

@@ -35,6 +35,12 @@ import org.gradle.jvm.tasks.Jar
 import java.nio.file.Files
 import java.nio.file.Path
 
+/**
+ * Plugin for running spigot server. the one click *magic* solution to boot up a test environment.
+ *
+ * @since 0.7
+ * @author LeeGod
+ */
 open class RunSpigotServerPlugin : Plugin<Project> {
 
     private val group = "runSpigot"
@@ -42,30 +48,35 @@ open class RunSpigotServerPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("runSpigotServer", RunSpigotServerExtension::class.java)
         project.afterEvaluate {
-            if (!extension.version.isPresent)
-                return@afterEvaluate
+            if (extension.version.isPresent)
+                configureProject(extension, project)
+        }
+    }
 
-            extension.projects.get().forEach { project ->
-                project.afterEvaluate {
-                    if (!it.plugins.hasPlugin(FairyGradlePlugin::class.java)) {
-                        it.logger.warn("Project ${it.name} does not have the FairyProject plugin applied and was included to run spigot server.")
-                    }
+    private fun configureProject(
+        extension: RunSpigotServerExtension,
+        project: Project
+    ) {
+        extension.projects.get().forEach { project ->
+            project.afterEvaluate {
+                if (!it.plugins.hasPlugin(FairyGradlePlugin::class.java)) {
+                    it.logger.warn("Project ${it.name} does not have the FairyProject plugin applied and was included to run spigot server.")
                 }
             }
-
-            val workDir = project.projectDir.toPath().resolve("spigotServer/work")
-            val buildToolDir = project.projectDir.toPath().resolve("spigotServer/build-tools")
-            val artifact = SpigotJarArtifact(buildToolDir, extension)
-
-            Files.createDirectories(workDir)
-            Files.createDirectories(buildToolDir)
-
-            configurePrepareSpigotBuild(project, buildToolDir, artifact, extension)
-            configureCleanSpigotBuild(project, buildToolDir)
-            configureCleanSpigotServer(project, workDir)
-            configureCopyPluginJar(project, workDir)
-            configureRunSpigotServer(project, artifact, workDir, extension)
         }
+
+        val workDir = project.projectDir.toPath().resolve("spigotServer/work")
+        val buildToolDir = project.projectDir.toPath().resolve("spigotServer/build-tools")
+        val artifact = SpigotJarArtifact(buildToolDir, extension)
+
+        Files.createDirectories(workDir)
+        Files.createDirectories(buildToolDir)
+
+        configurePrepareSpigotBuild(project, buildToolDir, artifact, extension)
+        configureCleanSpigotBuild(project, buildToolDir)
+        configureCleanSpigotServer(project, workDir)
+        configureCopyPluginJar(project, workDir)
+        configureRunSpigotServer(project, artifact, workDir, extension)
     }
 
     private fun configureCopyPluginJar(project: Project, workDir: Path) {

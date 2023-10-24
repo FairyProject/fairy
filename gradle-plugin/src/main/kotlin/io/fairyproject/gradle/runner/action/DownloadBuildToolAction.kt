@@ -31,6 +31,13 @@ import java.net.URL
 import java.nio.file.Path
 import javax.inject.Inject
 
+/**
+ * Action for downloading BuildTool.
+ *
+ * @since 0.7
+ * @author
+ * @see io.fairyproject.gradle.runner.RunSpigotServerPlugin
+ */
 open class DownloadBuildToolAction @Inject constructor(private val buildToolDirectory: Path): Action<Task> {
 
     override fun execute(t: Task) {

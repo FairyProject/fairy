@@ -33,6 +33,12 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+/**
+ * A classloader that can reload classes from a plugin using specific classpath
+ *
+ * @author LeeGod
+ * @since 0.7
+ */
 @Getter
 @Setter
 public class ReloadableClassLoader extends URLClassLoader implements PluginClassLoader {
@@ -54,12 +60,13 @@ public class ReloadableClassLoader extends URLClassLoader implements PluginClass
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        // We don't want to reload classes from FairyProject
         if (name.contains("io.fairyproject"))
             return super.loadClass(name, resolve);
 
-        if (plugin != null) {
-            if (!name.contains(plugin.getDescription().getShadedPackage()))
-                return super.loadClass(name, resolve);
+        // We don't want to reload classes that wasn't from the plugin
+        if (plugin != null && !name.contains(plugin.getDescription().getShadedPackage())) {
+            return super.loadClass(name, resolve);
         }
 
         synchronized (getClassLoadingLock(name)) {

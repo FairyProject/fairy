@@ -31,6 +31,13 @@ import java.nio.file.Path
 import javax.inject.Inject
 import kotlin.io.path.absolutePathString
 
+/**
+ * Task for preparing spigot jar. it will build a spigot using BuildTools with the specified version.
+ *
+ * @since 0.7
+ * @author LeeGod
+ * @see io.fairyproject.gradle.runner.RunSpigotServerPlugin
+ */
 open class PrepareSpigotTask @Inject constructor(
     buildToolDirectory: Path,
     artifact: SpigotJarArtifact,

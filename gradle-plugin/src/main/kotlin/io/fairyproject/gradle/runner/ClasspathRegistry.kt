@@ -28,14 +28,27 @@ import io.fairyproject.gradle.extension.FairyExtension
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
 
+/**
+ * Classpath registry of the plugin for server runner.
+ *
+ * @since 0.7
+ * @author LeeGod
+ * @see RunSpigotServerPlugin
+ */
 class ClasspathRegistry {
 
     private val classpath = mutableMapOf<String, String>()
 
+    /**
+     * Register a classpath.
+     */
     fun register(name: String, path: String) {
         classpath[name] = path
     }
 
+    /**
+     * Register a classpath from a project.
+     */
     fun register(project: Project) {
         val fairyExtension = project.extensions.findByType(FairyExtension::class.java) ?: return
         val name = fairyExtension.name.get()
