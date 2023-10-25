@@ -2,7 +2,7 @@ name: Build PR
 
 on:
   pull_request:
-    branches: [ v6 ]
+    branches: [ v0.7 ]
 
 jobs:
   build:

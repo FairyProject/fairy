@@ -9,7 +9,7 @@ name: Deploy
 
 on:
   push:
-    branches: [ v6 ]
+    branches: [ v0.7 ]
 
 jobs:
   build:
