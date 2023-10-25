@@ -51,4 +51,13 @@ public interface PluginClassInitializer {
      */
     Plugin create(String mainClassPath, ClassLoader classLoader);
 
+    /**
+     * Called when the plugin is loaded.
+     *
+     * @param plugin the plugin
+     */
+    default void onPluginLoad(Plugin plugin) {
+        // to be overridden
+    }
+
 }

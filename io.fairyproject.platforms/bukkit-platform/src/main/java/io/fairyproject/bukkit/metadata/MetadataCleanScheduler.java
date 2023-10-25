@@ -22,36 +22,25 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.gradle.runner.action
+package io.fairyproject.bukkit.metadata;
 
-import org.gradle.api.Action
-import org.gradle.api.Task
-import java.nio.file.Path
-import kotlin.io.path.copyTo
-import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
+import io.fairyproject.Fairy;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.metadata.MetadataRegistry;
 
-/**
- * Action for copying the snapshot directory to the work directory.
- *
- * @since 0.7
- * @author LeeGod
- * @see io.fairyproject.gradle.runner.RunSpigotServerPlugin
- */
-class CopySnapshotAction(private val snapshotDirectory: Path, private val workDirectory: Path): Action<Task> {
-    override fun execute(t: Task) {
-        if (!snapshotDirectory.exists())
-            return
+@InjectableComponent
+public class MetadataCleanScheduler {
 
-        // copy the contents of the snapshot directory to the work directory
-        snapshotDirectory.listDirectoryEntries().forEach {
-            // copy the file to the work directory, the file can be a directory
-            if (it.isDirectory()) {
-                it.toFile().copyRecursively(workDirectory.resolve(it.fileName).toFile(), true)
-            } else {
-                it.copyTo(workDirectory.resolve(it.fileName), true)
-            }
+    @PostInitialize
+    public void onPostInitialize() {
+        Fairy.getTaskScheduler().runRepeated(this::onTick, 20 * 60L);
+    }
+
+    private void onTick() {
+        for (MetadataRegistry<?> registry : Metadata.getRegistries().values()) {
+            registry.cleanup();
         }
     }
+
 }

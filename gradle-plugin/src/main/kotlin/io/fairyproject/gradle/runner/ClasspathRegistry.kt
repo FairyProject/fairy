@@ -37,13 +37,14 @@ import org.gradle.api.plugins.JavaPluginExtension
  */
 class ClasspathRegistry {
 
-    private val classpath = mutableMapOf<String, String>()
+    private val classpath = mutableMapOf<String, MutableList<String>>()
 
     /**
      * Register a classpath.
      */
     fun register(name: String, path: String) {
-        classpath[name] = path
+        val list = classpath.computeIfAbsent(name) { mutableListOf() }
+        list += path
     }
 
     /**
@@ -56,12 +57,14 @@ class ClasspathRegistry {
         project.extensions.configure(JavaPluginExtension::class.java) { java ->
             val path = java.sourceSets.getByName("main").output.classesDirs.asPath
 
-            register(name, path)
+            path.split(":").forEach {
+                register(name, it)
+            }
         }
     }
 
     override fun toString(): String = classpath
-        .map { "${it.key}|${it.value}" }
+        .map { "${it.key}|${it.value.joinToString(",")}" }
         .joinToString(":")
 
 }

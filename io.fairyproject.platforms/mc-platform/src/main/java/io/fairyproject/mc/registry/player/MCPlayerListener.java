@@ -47,10 +47,6 @@ public class MCPlayerListener {
 
     @PostInitialize
     public void onPostInitialize() {
-        for (MCPlayer mcPlayer : this.platformOperator.loadOnlinePlayers()) {
-            this.registry.addPlayer(mcPlayer);
-        }
-
         this.eventNode.addListener(NativePlayerLoginEvent.class, this::onNativePlayerLogin);
         this.eventNode.addListener(MCPlayerQuitEvent.class, this::onPlayerQuit);
     }

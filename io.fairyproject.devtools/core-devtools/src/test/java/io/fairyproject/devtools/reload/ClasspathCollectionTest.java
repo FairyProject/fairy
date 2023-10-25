@@ -26,18 +26,28 @@ package io.fairyproject.devtools.reload;
 
 import org.junit.jupiter.api.Test;
 
+import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class ClasspathCollectionTest {
 
     @Test
     void parseFromString() {
-        String path = "plugin1|/test/file:plugin2|/test/file2";
+        String path = "plugin1|/test/file:plugin2|/test/file2,/test/file3";
         ClasspathCollection classpathCollection = new ClasspathCollection(path);
 
-        assertEquals(2, classpathCollection.getURLs().length);
-        assertEquals("/test/file", classpathCollection.getURLByName("plugin1").getPath());
-        assertEquals("/test/file2", classpathCollection.getURLByName("plugin2").getPath());
+        assertEquals(3, classpathCollection.getURLs().length);
+        assertEquals(Collections.singletonList("/test/file"), toStringList(classpathCollection.getURLsByName("plugin1")));
+        assertEquals(Arrays.asList("/test/file2", "/test/file3"), toStringList(classpathCollection.getURLsByName("plugin2")));
+    }
+
+    List<String> toStringList(List<URL> urls) {
+        return urls.stream().map(URL::getPath).collect(Collectors.toList());
     }
 
 }

@@ -1,6 +1,6 @@
 package io.fairyproject.util;
 
-import io.fairyproject.log.Log;
+import io.fairyproject.Debug;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.github.toolfactory.narcissus.Narcissus;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +17,13 @@ import java.util.Collection;
  */
 public abstract class URLClassLoaderAccess {
 
+    private static boolean logged = false;
+    private final URLClassLoader classLoader;
+
+    protected URLClassLoaderAccess(URLClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
     /**
      * Creates a {@link URLClassLoaderAccess} for the given class loader.
      *
@@ -25,26 +32,19 @@ public abstract class URLClassLoaderAccess {
      */
     public static URLClassLoaderAccess create(URLClassLoader classLoader) {
         if (Reflection.isSupported()) {
-            Log.info("Using Reflection URL class loader access");
+            Debug.log("Using Reflection URL class loader access");
             return new Reflection(classLoader);
         } else if (NarcissusUnsafe.isSupported()) {
-            Log.info("Using Narcissus Unsafe URL class loader access");
+            Debug.log("Using Narcissus Unsafe URL class loader access");
             return new NarcissusUnsafe(classLoader);
         } else if (Unsafe.isSupported()) {
-            Log.info("Using Unsafe URL class loader access");
+            Debug.log("Using Unsafe URL class loader access");
             return new Unsafe(classLoader);
         } else {
-            Log.info("Using NoOp URL class loader access");
+            Debug.log("Using NoOp URL class loader access");
             return Noop.INSTANCE;
         }
     }
-
-    private final URLClassLoader classLoader;
-
-    protected URLClassLoaderAccess(URLClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
-
 
     /**
      * Adds the given URL to the class loader.

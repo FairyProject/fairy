@@ -31,9 +31,9 @@ import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.PlayerMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.WorldMetadataRegistry;
 import io.fairyproject.container.Containers;
-import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.metadata.*;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -54,15 +54,18 @@ import java.util.UUID;
  */
 final class BukkitMetadataRegistries {
 
-    public static final PlayerMetadataRegistry PLAYER = new PlayerRegistry(CommonMetadataRegistries.PLAYERS);
-    public static final EntityMetadataRegistry ENTITY = new EntityRegistry();
-    public static final BlockMetadataRegistry BLOCK = new BlockRegistry();
-    public static final WorldMetadataRegistry WORLD = new WorldRegistry();
+    @Getter
+    private final PlayerMetadataRegistry playerRegistry = new PlayerRegistry(CommonMetadataRegistries.PLAYERS);
+    @Getter
+    private final EntityMetadataRegistry entityRegistry = new EntityRegistry();
+    @Getter
+    private final BlockMetadataRegistry blockRegistry = new BlockRegistry();
+    @Getter
+    private final WorldMetadataRegistry worldRegistry = new WorldRegistry();
+    private final MetadataRegistry<?>[] values = new MetadataRegistry[]{playerRegistry, entityRegistry, blockRegistry, worldRegistry};
 
-    private static final MetadataRegistry<?>[] VALUES = new MetadataRegistry[]{PLAYER, ENTITY, BLOCK, WORLD};
-
-    public static MetadataRegistry<?>[] values() {
-        return VALUES;
+    MetadataRegistry<?>[] values() {
+        return values;
     }
 
     private static final class PlayerRegistry implements PlayerMetadataRegistry {
@@ -121,6 +124,11 @@ final class BukkitMetadataRegistries {
         @Override
         public void cleanup() {
             this.uuids.cleanup();
+        }
+
+        @Override
+        public void destroy() {
+            this.uuids.destroy();
         }
 
         @Override
@@ -216,10 +224,6 @@ final class BukkitMetadataRegistries {
             }));
             return ret.build();
         }
-    }
-
-    private BukkitMetadataRegistries() {
-        throw new UnsupportedOperationException("This class cannot be instantiated");
     }
 
 }

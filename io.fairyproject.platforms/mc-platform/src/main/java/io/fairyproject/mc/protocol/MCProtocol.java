@@ -27,14 +27,15 @@ package io.fairyproject.mc.protocol;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import com.github.retrooper.packetevents.event.*;
+import com.github.retrooper.packetevents.util.TimeStampMode;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import io.fairyproject.Debug;
 import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.PostDestroy;
 import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.GlobalEventNode;
-import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketReceiveEvent;
 import io.fairyproject.mc.protocol.event.MCPlayerPacketSendEvent;
@@ -75,7 +76,7 @@ public class MCProtocol {
         this.registerPacketListenerObjectCollector();
         this.registerMCEventTransformer();
 
-        Log.info("Loaded MCProtocol with PacketEvents version %s on minecraft version %s", packetEvents.getVersion(), packetEvents.getServerManager().getVersion());
+        Debug.log("Loaded MCProtocol with PacketEvents version %s on minecraft version %s", packetEvents.getVersion(), packetEvents.getServerManager().getVersion());
     }
 
     @PostInitialize
@@ -83,7 +84,8 @@ public class MCProtocol {
         this.packetEvents.getSettings()
                 .debug(false)
                 .bStats(false)
-                .checkForUpdates(false);
+                .checkForUpdates(false)
+                .timeStampMode(TimeStampMode.MILLIS);
         this.packetEvents.init();
     }
 
@@ -140,7 +142,7 @@ public class MCProtocol {
         );
     }
 
-    @PostDestroy
+    @PreDestroy
     public void onPostDestroy() {
         this.packetEvents.terminate();
     }

@@ -29,6 +29,7 @@ import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.library.LibraryHandlerImpl;
 import io.fairyproject.library.LibraryHandlerNoOp;
 import io.fairyproject.log.Log;
+import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.task.ITaskScheduler;
@@ -95,6 +96,7 @@ public abstract class FairyPlatform implements TerminableConsumer {
         }
 
         this.containerContext.stop();
+        CommonMetadataRegistries.PLAYERS.destroy(); // TODO: we can do better than this
         PluginManager.INSTANCE.callFrameworkFullyDisable();
 
         INSTANCE = null;

@@ -34,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.List;
 
 @RequiredArgsConstructor
 public class ReloaderPluginListener implements PluginListenerAdapter {
@@ -48,12 +49,15 @@ public class ReloaderPluginListener implements PluginListenerAdapter {
 
     @Override
     public void onPluginEnable(Plugin plugin) {
-        URL url = classpathCollection.getURLByName(plugin.getName());
-        if (url == null)
+        List<URL> urls = classpathCollection.getURLsByName(plugin.getName());
+        if (urls == null)
             return;
 
         try {
-            classpathFileWatcher.addURL(url, new ClasspathFileAlterationListener(plugin));
+            for (URL url : urls) {
+                ClasspathFileAlterationListener listener = new ClasspathFileAlterationListener(plugin);
+                classpathFileWatcher.addURL(url, listener);
+            }
         } catch (URISyntaxException e) {
             throw new IllegalStateException("Cannot add classpath monitor to watcher", e);
         }
@@ -61,10 +65,12 @@ public class ReloaderPluginListener implements PluginListenerAdapter {
 
     @Override
     public void onPluginDisable(Plugin plugin) {
-        URL url = classpathCollection.getURLByName(plugin.getName());
-        if (url == null)
+        List<URL> urls = classpathCollection.getURLsByName(plugin.getName());
+        if (urls == null)
             return;
 
-        classpathFileWatcher.removeURL(url);
+        for (URL url : urls) {
+            classpathFileWatcher.removeURL(url);
+        }
     }
 }

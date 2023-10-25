@@ -38,6 +38,7 @@ public class BukkitReloadStartupHandler implements ReloadStartupHandler {
 
     private final Server server;
     private final BukkitDependencyResolver dependencyResolver;
+    private final PluginLoadingStrategy pluginLoadingStrategy;
 
     @Override
     public void start(Plugin plugin) {
@@ -57,14 +58,18 @@ public class BukkitReloadStartupHandler implements ReloadStartupHandler {
         // reload the plugin entirely
         URL url = javaPlugin.getClass().getProtectionDomain().getCodeSource().getLocation();
         org.bukkit.plugin.Plugin newBukkitPlugin;
-        try {
-            File file = new File(url.toURI());
-            newBukkitPlugin = server.getPluginManager().loadPlugin(file);
-            if (newBukkitPlugin == null) {
-                throw new IllegalStateException("Failed to load plugin");
+        if (pluginLoadingStrategy.shouldLoadFromFile(javaPlugin)) {
+            try {
+                File file = new File(url.toURI());
+                newBukkitPlugin = server.getPluginManager().loadPlugin(file);
+                if (newBukkitPlugin == null) {
+                    throw new IllegalStateException("Failed to load plugin");
+                }
+            } catch (Exception ex) {
+                throw new IllegalStateException("Failed to load plugin", ex);
             }
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to load plugin", ex);
+        } else {
+            newBukkitPlugin = javaPlugin;
         }
         // bukkit plugin manager doesn't call onLoad() when only enabling plugin
         newBukkitPlugin.onLoad();

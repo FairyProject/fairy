@@ -28,13 +28,15 @@ import lombok.NoArgsConstructor;
 
 import java.net.URL;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @NoArgsConstructor
 public class ClasspathCollection {
 
-    private final Map<String, URL> urls = new HashMap<>();
+    private final Map<String, List<URL>> urls = new HashMap<>();
 
     public ClasspathCollection(String path) {
         if (path == null || path.isEmpty())
@@ -45,9 +47,13 @@ public class ClasspathCollection {
             try {
                 String[] split = p.split("\\|");
                 String name = split[0];
-                URL url = Paths.get(split[1]).toUri().toURL();
+                String all = split[1];
 
-                urls.put(name, url);
+                for (String s : all.split(",")) {
+                    URL url = Paths.get(s).toUri().toURL();
+
+                    this.addURL(name, url);
+                }
             } catch (Throwable throwable) {
                 throw new IllegalStateException(throwable);
             }
@@ -55,14 +61,16 @@ public class ClasspathCollection {
     }
 
     public void addURL(String name, URL url) {
-        urls.put(name, url);
+        urls.computeIfAbsent(name, $ -> new ArrayList<>()).add(url);
     }
 
     public URL[] getURLs() {
-        return urls.values().toArray(new URL[0]);
+        return urls.values().stream()
+                .flatMap(List::stream)
+                .toArray(URL[]::new);
     }
 
-    public URL getURLByName(String name) {
+    public List<URL> getURLsByName(String name) {
         return urls.get(name);
     }
 

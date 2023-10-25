@@ -34,6 +34,7 @@ import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
+import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
@@ -99,6 +100,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         super.disable();
 
         RootJavaPluginIdentifier.clearInstance();
+        Metadata.destroy();
     }
 
     @PreInitialize

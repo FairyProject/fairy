@@ -68,6 +68,16 @@ public interface MetadataRegistry<T> {
      */
     void cleanup();
 
+    /**
+     * Destroys this registry, removing all cached {@link MetadataMap}s.
+     */
+    void destroy();
+
+    /**
+     * Gets a map of all cached {@link MetadataMap}s.
+     *
+     * @return a map of cached metadata maps
+     */
     Map<T, MetadataMap> cache();
 
 }

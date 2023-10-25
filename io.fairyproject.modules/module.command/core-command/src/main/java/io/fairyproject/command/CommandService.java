@@ -24,6 +24,7 @@
 
 package io.fairyproject.command;
 
+import io.fairyproject.Debug;
 import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
@@ -99,15 +100,18 @@ public class CommandService {
                 .withAddHandler(ContainerObjCollector.warpInstance(ArgTransformer.class, this::registerArgTransformer))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(ArgTransformer.class, this::unregisterArgTransformer))
         );
-        Log.info("Initialized command service...");
     }
 
     @PostInitialize
     public void init() {
         INSTANCE = this;
-        Log.info("Injecting fairy commands...");
-        this.batch.flushQueue();
-        Log.info("Injected!");
+
+        Debug.log("Injecting fairy commands...");
+        try {
+            this.batch.flushQueue();
+        } finally {
+            Debug.log("Injected!");
+        }
     }
 
     public void registerDefaultPresenceProvider(PresenceProvider<?> presenceProvider) {

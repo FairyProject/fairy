@@ -59,11 +59,14 @@ class ReloaderPluginListenerTest {
     void onPluginEnableShouldAddMonitor() throws MalformedURLException, URISyntaxException {
         MockPlugin plugin = new MockPlugin();
         URL url = Paths.get("test").toUri().toURL();
+        URL url2 = Paths.get("test2").toUri().toURL();
         classpathCollection.addURL("test", url);
+        classpathCollection.addURL("test", url2);
 
         reloaderPluginListener.onPluginEnable(plugin);
 
         Mockito.verify(classpathFileWatcher).addURL(eq(url), Mockito.any(ClasspathFileAlterationListener.class));
+        Mockito.verify(classpathFileWatcher).addURL(eq(url2), Mockito.any(ClasspathFileAlterationListener.class));
     }
 
     @Test

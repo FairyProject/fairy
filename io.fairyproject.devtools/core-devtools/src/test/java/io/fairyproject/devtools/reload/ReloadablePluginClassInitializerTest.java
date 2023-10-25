@@ -25,28 +25,35 @@
 package io.fairyproject.devtools.reload;
 
 import io.fairyproject.devtools.reload.classloader.ReloadableClassLoader;
+import io.fairyproject.mock.MockPlugin;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.plugin.PluginClassLoaderRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class ReloadablePluginClassInitializerTest {
 
     private URL url;
+    private URL url2;
     private ReloadableClassLoader testClassLoader;
     private ReloadablePluginClassInitializer reloadablePluginClassInitializer;
 
     @BeforeEach
-    void setUp() throws ClassNotFoundException {
+    void setUp() throws ClassNotFoundException, MalformedURLException {
         this.testClassLoader = Mockito.mock(ReloadableClassLoader.class);
         this.url = this.getClass().getProtectionDomain().getCodeSource().getLocation();
+        this.url2 = Paths.get("test").toUri().toURL();
 
         ClasspathCollection classpathCollection = new ClasspathCollection();
         classpathCollection.addURL("plugin1", url);
+        classpathCollection.addURL("plugin1", url2);
         Mockito.doReturn(TestPlugin.class).when(testClassLoader).loadClass("io.fairyproject.devtools.reload.TestPlugin");
 
         this.reloadablePluginClassInitializer = new ReloadablePluginClassInitializer(classpathCollection);
@@ -59,6 +66,7 @@ class ReloadablePluginClassInitializerTest {
         assertTrue(classLoader instanceof ReloadableClassLoader);
         assertSame(classLoader.getParent(), testClassLoader);
         assertSame(((ReloadableClassLoader) classLoader).getURLs()[0], url);
+        assertSame(((ReloadableClassLoader) classLoader).getURLs()[1], url2);
     }
 
     @Test
@@ -92,6 +100,17 @@ class ReloadablePluginClassInitializerTest {
 
         assertTrue(classpathCollection.getURLs().length > 0);
         assertEquals(url.getPath(), classpathCollection.getURLs()[0].getPath());
+    }
+
+    @Test
+    void onPluginLoad() {
+        Plugin plugin = new MockPlugin("plugin1");
+
+        reloadablePluginClassInitializer.onPluginLoad(plugin);
+
+        PluginClassLoaderRegistry classLoaderRegistry = plugin.getClassLoaderRegistry();
+        assertSame(url, classLoaderRegistry.getUrls().get(1));
+        assertSame(url2, classLoaderRegistry.getUrls().get(2));
     }
 
 }

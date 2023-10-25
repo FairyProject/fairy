@@ -32,7 +32,7 @@ import org.bukkit.Server;
 public class BukkitPluginReloaderSetup {
 
     public BukkitPluginReloaderSetup(Server server, Reloader reloader, BukkitDependencyResolver dependencyResolver) {
-        reloader.setReloadStartupHandler(new BukkitReloadStartupHandler(server, dependencyResolver));
+        reloader.setReloadStartupHandler(new BukkitReloadStartupHandler(server, dependencyResolver, new DefaultPluginLoadingStrategy()));
         reloader.setReloadShutdownHandler(new BukkitReloadShutdownHandler(server, dependencyResolver));
     }
 

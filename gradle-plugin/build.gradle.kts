@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.9.10"
     id("com.gradle.plugin-publish") version "1.0.0"
     `java-gradle-plugin`
 }
@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation("io.spring.gradle:dependency-management-plugin:1.1.0")
+    implementation(kotlin("stdlib-jdk8"))
     implementation("org.json:json:20220924")
     implementation("org.apache.maven:maven-plugin-api:3.8.5")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.7.22")

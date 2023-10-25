@@ -51,6 +51,7 @@ class BukkitReloadStartupHandlerTest {
     private PluginManager pluginManager;
     private BukkitReloadStartupHandler bukkitReloadStartupHandler;
     private BukkitDependencyResolver dependencyResolver;
+    private PluginLoadingStrategy pluginLoadingStrategy;
     private MockPlugin fairyPlugin;
     private JavaPlugin javaPlugin;
     private be.seeseemelk.mockbukkit.MockPlugin newJavaPlugin;
@@ -67,11 +68,12 @@ class BukkitReloadStartupHandlerTest {
         Mockito.when(server.getPluginManager()).thenReturn(pluginManager);
 
         dependencyResolver = Mockito.mock(BukkitDependencyResolver.class);
-        bukkitReloadStartupHandler = new BukkitReloadStartupHandler(server, dependencyResolver);
+        pluginLoadingStrategy = Mockito.mock(PluginLoadingStrategy.class);
+        bukkitReloadStartupHandler = new BukkitReloadStartupHandler(server, dependencyResolver, pluginLoadingStrategy);
 
         fairyPlugin = new MockPlugin();
         MockBukkit.getOrCreateMock();
-        javaPlugin = MockBukkit.createMockPlugin("a");
+        javaPlugin = Mockito.spy(MockBukkit.createMockPlugin("a"));
         newJavaPlugin = Mockito.spy(MockBukkit.createMockPlugin("b"));
 
         Mockito.when(pluginManager.loadPlugin(Mockito.any(File.class))).thenReturn(newJavaPlugin);
@@ -85,7 +87,16 @@ class BukkitReloadStartupHandlerTest {
     }
 
     @Test
-    void testStart() throws URISyntaxException, InvalidPluginException, InvalidDescriptionException {
+    void testStart() {
+        Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(false);
+        bukkitReloadStartupHandler.start(fairyPlugin);
+
+        verifyPluginEnabled(javaPlugin);
+    }
+
+    @Test
+    void shouldLoadFromFile() throws URISyntaxException, InvalidPluginException, InvalidDescriptionException {
+        Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(true);
         bukkitReloadStartupHandler.start(fairyPlugin);
 
         verifyPluginEnabled(newJavaPlugin);
@@ -99,6 +110,8 @@ class BukkitReloadStartupHandlerTest {
 
     @Test
     void startShouldEnableDependedPlugins() throws InvalidPluginException, InvalidDescriptionException, URISyntaxException {
+        Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(true);
+
         be.seeseemelk.mockbukkit.MockPlugin a = MockBukkit.createMockPlugin("PluginA");
         be.seeseemelk.mockbukkit.MockPlugin b = MockBukkit.createMockPlugin("PluginB");
 

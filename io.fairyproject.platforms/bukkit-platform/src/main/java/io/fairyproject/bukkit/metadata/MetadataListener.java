@@ -22,36 +22,29 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.gradle.runner.action
+package io.fairyproject.bukkit.metadata;
 
-import org.gradle.api.Action
-import org.gradle.api.Task
-import java.nio.file.Path
-import kotlin.io.path.copyTo
-import kotlin.io.path.exists
-import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
+import io.fairyproject.bukkit.listener.RegisterAsListener;
+import io.fairyproject.container.InjectableComponent;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 
-/**
- * Action for copying the snapshot directory to the work directory.
- *
- * @since 0.7
- * @author LeeGod
- * @see io.fairyproject.gradle.runner.RunSpigotServerPlugin
- */
-class CopySnapshotAction(private val snapshotDirectory: Path, private val workDirectory: Path): Action<Task> {
-    override fun execute(t: Task) {
-        if (!snapshotDirectory.exists())
-            return
+@InjectableComponent
+@RegisterAsListener
+public class MetadataListener implements Listener {
 
-        // copy the contents of the snapshot directory to the work directory
-        snapshotDirectory.listDirectoryEntries().forEach {
-            // copy the file to the work directory, the file can be a directory
-            if (it.isDirectory()) {
-                it.toFile().copyRecursively(workDirectory.resolve(it.fileName).toFile(), true)
-            } else {
-                it.copyTo(workDirectory.resolve(it.fileName), true)
-            }
-        }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        final Player player = event.getPlayer();
+        Metadata.get(player)
+                .ifPresent(map -> {
+                    if (map.isEmpty()) {
+                        Metadata.getRegistries().getPlayerRegistry().remove(player.getUniqueId());
+                    }
+                });
     }
+
 }

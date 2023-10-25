@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,6 +48,18 @@ class MCPlayerRegistryImplTest {
         registry = new MCPlayerRegistryImpl(playerPlatformOperator);
     }
 
+    @Test
+    void onPostInitialize_shouldLoadAllExistingPlayers() {
+        MCPlayer player1 = createFakePlayer();
+        MCPlayer player2 = createFakePlayer();
+        when(playerPlatformOperator.loadOnlinePlayers()).thenReturn(Arrays.asList(player1, player2));
+
+        registry.onPostInitialize();
+
+        assertEquals(2, registry.players.size());
+        assertSame(player1, registry.players.get(player1.getUUID()));
+        assertSame(player2, registry.players.get(player2.getUUID()));
+    }
 
     @Nested
     public class AddPlayer {
