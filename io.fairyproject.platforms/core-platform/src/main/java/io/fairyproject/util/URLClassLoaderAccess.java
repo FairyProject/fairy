@@ -17,7 +17,6 @@ import java.util.Collection;
  */
 public abstract class URLClassLoaderAccess {
 
-    private static boolean logged = false;
     private final URLClassLoader classLoader;
 
     protected URLClassLoaderAccess(URLClassLoader classLoader) {
