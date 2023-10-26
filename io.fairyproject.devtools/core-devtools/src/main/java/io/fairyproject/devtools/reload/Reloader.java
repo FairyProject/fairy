@@ -25,20 +25,44 @@
 package io.fairyproject.devtools.reload;
 
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.task.ITaskScheduler;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
 @Setter
+@RequiredArgsConstructor
 public class Reloader {
 
+    private final ITaskScheduler taskScheduler;
+    private final long quietPeriod;
     private ReloadShutdownHandler reloadShutdownHandler;
     private ReloadStartupHandler reloadStartupHandler;
+    @Getter
+    private boolean reloadQueued;
 
-    public void reload(@NotNull Plugin plugin) {
-        if (plugin == null) {
+    /**
+     * Reload the plugin
+     *
+     * @param plugin The plugin to reload
+     * @return true if a plugin reload is queued
+     */
+    public boolean reload(@NotNull Plugin plugin) {
+        if (plugin == null)
             throw new IllegalArgumentException("Plugin must not be null");
+
+        synchronized (this) {
+            if (this.reloadQueued)
+                return false;
+            this.reloadQueued = true;
         }
 
+        taskScheduler.runScheduled(() -> this.doReload(plugin), this.quietPeriod / 50);
+        return true;
+    }
+
+    private void doReload(Plugin plugin) {
         this.reloadShutdownHandler.shutdown(plugin);
         this.reloadStartupHandler.start(plugin);
     }

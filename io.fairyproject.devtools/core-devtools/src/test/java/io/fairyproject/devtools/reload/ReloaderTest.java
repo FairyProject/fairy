@@ -26,6 +26,8 @@ package io.fairyproject.devtools.reload;
 
 import io.fairyproject.mock.MockPlugin;
 import io.fairyproject.plugin.Plugin;
+import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.task.async.AsyncTaskScheduler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -42,7 +44,9 @@ class ReloaderTest {
 
     @BeforeEach
     void setUp() {
-        reloader = new Reloader();
+        ITaskScheduler taskScheduler = new AsyncTaskScheduler();
+
+        reloader = new Reloader(taskScheduler, 100);
         plugin = new MockPlugin();
         reloadShutdownHandler = Mockito.mock(ReloadShutdownHandler.class);
         reloadStartupHandler = Mockito.mock(ReloadStartupHandler.class);
@@ -60,18 +64,34 @@ class ReloaderTest {
         }
 
         @Test
-        void reloadShouldCallShutdownAndStartupHandler() {
-            reloader.reload(plugin);
+        void reloadShouldCallShutdownAndStartupHandler() throws InterruptedException {
+            boolean queued = reloader.reload(plugin);
 
-            Mockito.verify(reloadShutdownHandler).shutdown(plugin);
-            Mockito.verify(reloadStartupHandler).start(plugin);
+            assertTrue(queued);
+            assertTrue(reloader.isReloadQueued());
+
+            Mockito.verify(reloadShutdownHandler, Mockito.never()).shutdown(plugin);
+            Mockito.verify(reloadStartupHandler, Mockito.never()).start(plugin);
+
+            Thread.sleep(200);
+
+            Mockito.verify(reloadShutdownHandler, Mockito.times(1)).shutdown(plugin);
+            Mockito.verify(reloadStartupHandler, Mockito.times(1)).start(plugin);
         }
 
         @Test
-        void reloadShouldThrowExceptionBack() {
-            Mockito.doThrow(RuntimeException.class).when(reloadShutdownHandler).shutdown(plugin);
+        void reloadShouldIgnoreNewRequests() throws InterruptedException {
+            boolean aQueued = reloader.reload(plugin);
+            boolean bQueued = reloader.reload(plugin);
 
-            assertThrows(RuntimeException.class, () -> reloader.reload(plugin));
+            assertTrue(aQueued);
+            assertFalse(bQueued);
+            assertTrue(reloader.isReloadQueued());
+
+            Thread.sleep(200);
+
+            Mockito.verify(reloadShutdownHandler, Mockito.times(1)).shutdown(plugin);
+            Mockito.verify(reloadStartupHandler, Mockito.times(1)).start(plugin);
         }
 
     }

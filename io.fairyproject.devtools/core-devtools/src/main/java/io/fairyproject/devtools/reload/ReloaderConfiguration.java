@@ -38,8 +38,8 @@ import io.fairyproject.devtools.watcher.ClasspathFileWatcher;
 public class ReloaderConfiguration {
 
     @InjectableComponent
-    public Reloader reloader(ContainerContext context) {
-        Reloader reloader = new Reloader();
+    public Reloader reloader(ContainerContext context, DevToolSettings settings) {
+        Reloader reloader = new Reloader(Fairy.getTaskScheduler(), settings.getRestart().getQuietPeriod().toMillis());
         reloader.setReloadStartupHandler(new DefaultReloadStartupHandler(context));
         reloader.setReloadShutdownHandler(new DefaultReloadShutdownHandler(context.nodeDestroyer()));
 
