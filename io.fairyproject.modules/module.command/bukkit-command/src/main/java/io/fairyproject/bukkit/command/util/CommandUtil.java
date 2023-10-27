@@ -73,7 +73,7 @@ public class CommandUtil {
                 final PluginManager pluginManager = Bukkit.getPluginManager();
 
                 Field field = pluginManager.getClass().getDeclaredField("commandMap");
-                field.setAccessible(true);
+                AccessUtil.setAccessible(field);
 
                 COMMAND_MAP_SUPPLIER = () -> {
                     try {
@@ -82,8 +82,8 @@ public class CommandUtil {
                         throw new IllegalStateException(e);
                     }
                 };
-            } catch (NoSuchFieldException e) {
-                throw new IllegalStateException(e);
+            } catch (ReflectiveOperationException ex) {
+                throw new IllegalStateException(ex);
             }
         }
 
@@ -95,10 +95,10 @@ public class CommandUtil {
     public Map<String, Command> getKnownCommands(CommandMap commandMap) {
         try {
             Field knownMapField = commandMap.getClass().getDeclaredField("knownCommands");
-            knownMapField.setAccessible(true);
+            AccessUtil.setAccessible(knownMapField);
 
             return (Map<String, Command>) knownMapField.get(commandMap);
-        } catch (NoSuchFieldException | IllegalAccessException ex) {
+        } catch (ReflectiveOperationException e) {
             return null;
         }
     }
