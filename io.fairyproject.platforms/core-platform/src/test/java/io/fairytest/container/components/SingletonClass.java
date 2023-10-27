@@ -2,6 +2,7 @@ package io.fairytest.container.components;
 
 import io.fairyproject.container.*;
 import lombok.Getter;
+import org.junit.jupiter.api.Assertions;
 
 @InjectableComponent
 @Getter
@@ -30,24 +31,28 @@ public class SingletonClass implements InterfaceClass {
 
     @PreInitialize
     public void onPreInitialize() {
+        Assertions.assertNull(this.preInitializeThread, "PreInitialize should only be called once");
         this.preInitializeMs = System.nanoTime();
         this.preInitializeThread = Thread.currentThread();
     }
 
     @PostInitialize
     public void onPostInitialize() {
+        Assertions.assertNull(this.postInitializeThread, "PostInitialize should only be called once");
         this.postInitializeMs = System.nanoTime();
         this.postInitializeThread = Thread.currentThread();
     }
 
     @PreDestroy
     public void onPreDestroy() {
+        Assertions.assertNull(this.preDestroyThread, "PreDestroy should only be called once");
         this.preDestroyMs = System.nanoTime();
         this.preDestroyThread = Thread.currentThread();
     }
 
     @PostDestroy
     public void onPostDestroy() {
+        Assertions.assertNull(this.postDestroyThread, "PostDestroy should only be called once");
         this.postDestroyMs = System.nanoTime();
         this.postDestroyThread = Thread.currentThread();
     }

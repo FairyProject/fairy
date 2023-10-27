@@ -27,6 +27,7 @@ package io.fairytest.container.components;
 import io.fairyproject.container.*;
 import io.fairyproject.container.scope.InjectableScope;
 import lombok.Getter;
+import org.junit.jupiter.api.Assertions;
 
 @InjectableComponent(scope = InjectableScope.PROTOTYPE)
 @Getter
@@ -54,12 +55,14 @@ public class PrototypeClass {
 
     @PreInitialize
     public void preInit() {
+        Assertions.assertNull(this.mainThreadPreInit, "PreInitialize should only be called once");
         this.mainThreadPreInit = Thread.currentThread();
         this.preInitTime = System.nanoTime();
     }
 
     @PostInitialize
     public void postInit() {
+        Assertions.assertNull(this.mainThreadPostInit, "PostInitialize should only be called once");
         this.mainThreadPostInit = Thread.currentThread();
         this.postInitTime = System.nanoTime();
     }
