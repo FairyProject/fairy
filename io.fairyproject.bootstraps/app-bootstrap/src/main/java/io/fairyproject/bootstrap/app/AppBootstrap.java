@@ -2,11 +2,11 @@ package io.fairyproject.bootstrap.app;
 
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.app.FairyAppPlatform;
-import io.fairyproject.bootstrap.BaseBootstrap;
+import io.fairyproject.bootstrap.platform.AbstractPlatformBootstrap;
 import io.fairyproject.bootstrap.type.PlatformType;
 import org.jetbrains.annotations.Nullable;
 
-public class AppBootstrap extends BaseBootstrap {
+public class AppBootstrap extends AbstractPlatformBootstrap {
 
     public static AppBootstrap INSTANCE;
     public static boolean FAIRY_READY = false;

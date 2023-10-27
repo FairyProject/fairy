@@ -1,7 +1,7 @@
 package io.fairyproject.bootstrap.bukkit;
 
 import io.fairyproject.FairyPlatform;
-import io.fairyproject.bootstrap.BaseBootstrap;
+import io.fairyproject.bootstrap.platform.AbstractPlatformBootstrap;
 import io.fairyproject.bootstrap.type.PlatformType;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
 
 @Getter
-class BukkitBootstrap extends BaseBootstrap {
+class BukkitPlatformBootstrap extends AbstractPlatformBootstrap {
 
     @Override
     protected void onFailure(@Nullable Throwable throwable) {

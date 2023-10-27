@@ -1,17 +1,16 @@
 package io.fairyproject.bootstrap.app;
 
-import com.google.gson.JsonObject;
 import io.fairyproject.Fairy;
 import io.fairyproject.app.Application;
 import io.fairyproject.app.FairyAppPlatform;
-import io.fairyproject.bootstrap.BasePluginHolder;
+import io.fairyproject.bootstrap.instance.AbstractPluginInstance;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.initializer.PluginClassInitializer;
 
-public class ApplicationHolder extends BasePluginHolder {
+public class ApplicationInstance extends AbstractPluginInstance {
 
-    public ApplicationHolder(PluginClassInitializer initializer, JsonObject jsonObject) {
-        super(initializer, jsonObject);
+    public ApplicationInstance(PluginClassInitializer initializer) {
+        super(initializer);
     }
 
     @Override

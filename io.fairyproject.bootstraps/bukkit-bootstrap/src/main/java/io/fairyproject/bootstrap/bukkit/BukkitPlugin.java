@@ -1,77 +1,100 @@
 package io.fairyproject.bootstrap.bukkit;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.fairyproject.bootstrap.platform.PlatformBootstrap;
 import io.fairyproject.bootstrap.PluginClassInitializerFinder;
+import io.fairyproject.bootstrap.PluginFileReader;
+import io.fairyproject.bootstrap.instance.PluginInstance;
 import io.fairyproject.bootstrap.internal.FairyInternalIdentityMeta;
-import io.fairyproject.plugin.initializer.PluginClassInitializer;
+import lombok.AccessLevel;
+import lombok.Setter;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.java.JavaPluginLoader;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.File;
 
 @FairyInternalIdentityMeta
 public final class BukkitPlugin extends JavaPlugin {
 
-    private static final String FAIRY_JSON_PATH = "fairy.json";
     public static JavaPlugin INSTANCE;
 
-    private BukkitBootstrap bootstrap;
-    private BukkitPluginHolder pluginHolder;
+    private final PluginManager pluginManager;
+    private final PluginInstance instance;
+    private final PluginFileReader pluginFileReader;
+    private final PlatformBootstrap bootstrap;
 
+    @Setter(AccessLevel.PACKAGE)
     private boolean loaded;
+
+    private boolean
+
+    public BukkitPlugin(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file,
+                        PluginManager pluginManager,
+                        PluginInstance instance,
+                        PluginFileReader pluginFileReader,
+                        PlatformBootstrap bootstrap) {
+        super(loader, description, dataFolder, file);
+        this.pluginManager = pluginManager;
+        this.instance = instance;
+        this.pluginFileReader = pluginFileReader;
+        this.bootstrap = bootstrap;
+    }
+
+    public BukkitPlugin(PluginManager pluginManager,
+                        PluginInstance instance,
+                        PluginFileReader pluginFileReader,
+                        PlatformBootstrap bootstrap) {
+        this.pluginManager = pluginManager;
+        this.instance = instance;
+        this.pluginFileReader = pluginFileReader;
+        this.bootstrap = bootstrap;
+    }
+
+    public BukkitPlugin() {
+        this(
+                Bukkit.getPluginManager(),
+                new BukkitPluginInstance(PluginClassInitializerFinder.find()),
+                new PluginFileReader(),
+                new BukkitPlatformBootstrap()
+        );
+    }
 
     @Override
     public void onLoad() {
         INSTANCE = this;
 
-        JsonObject jsonObject;
-        try {
-            final InputStream resource = this.getResource(FAIRY_JSON_PATH);
-            if (resource == null) {
-                Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Unable to find fairy.json in jar resource.");
-                Bukkit.getPluginManager().disablePlugin(this);
-                return;
-            }
-
-            jsonObject = new Gson().fromJson(new InputStreamReader(resource), JsonObject.class);
-        } catch (Throwable throwable) {
-            throw new IllegalArgumentException("Unable to load " + FAIRY_JSON_PATH, throwable);
-        }
-
-        this.bootstrap = new BukkitBootstrap();
         if (!this.bootstrap.preload()) {
             this.getLogger().warning("Failed to boot fairy! check stacktrace for the reason of failure!");
-            Bukkit.getPluginManager().disablePlugin(this);
+            pluginManager.disablePlugin(this);
             return;
         }
 
-        PluginClassInitializer initializer = PluginClassInitializerFinder.find();
-
-        this.pluginHolder = new BukkitPluginHolder(initializer, jsonObject);
-        this.bootstrap.load(this.pluginHolder.getPlugin());
-        this.pluginHolder.onLoad();
+        JsonObject jsonObject = pluginFileReader.read(this.getClass());
+        this.instance.init(jsonObject);
+        this.bootstrap.load(this.instance.getPlugin());
+        this.instance.onLoad();
 
         this.loaded = true;
     }
 
     @Override
     public void onEnable() {
-        if (!this.loaded) {
-            return;
-        }
+        if (!this.loaded)
+            throw new IllegalStateException("Plugin not loaded yet!");
+
         this.bootstrap.enable();
-        this.pluginHolder.onEnable();
+        this.instance.onEnable();
     }
 
     @Override
     public void onDisable() {
-        if (!this.loaded) {
+        if (!this.loaded)
             return;
-        }
-        this.pluginHolder.onDisable();
+
+        this.instance.onDisable();
         this.bootstrap.disable();
     }
 

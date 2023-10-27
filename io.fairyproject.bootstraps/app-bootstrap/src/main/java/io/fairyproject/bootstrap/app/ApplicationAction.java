@@ -9,7 +9,7 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class ApplicationAction implements PluginAction {
 
-    private final ApplicationHolder applicationHolder;
+    private final ApplicationInstance applicationHolder;
     private boolean closed = false;
 
     @Override

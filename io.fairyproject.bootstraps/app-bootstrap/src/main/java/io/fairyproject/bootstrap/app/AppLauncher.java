@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.fairyproject.bootstrap.PluginClassInitializerFinder;
 import io.fairyproject.bootstrap.internal.FairyInternalIdentityMeta;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.initializer.PluginClassInitializer;
 
 import java.io.IOException;
@@ -35,8 +36,10 @@ public class AppLauncher {
         }
 
         PluginClassInitializer pluginClassInitializer = PluginClassInitializerFinder.find();
-        ApplicationHolder pluginHolder = new ApplicationHolder(pluginClassInitializer, jsonObject);
+        ApplicationInstance pluginHolder = new ApplicationInstance(pluginClassInitializer);
+        pluginHolder.init(jsonObject);
         bootstrap.load(pluginHolder.getPlugin());
+
         AppBootstrap.FAIRY_READY = true;
 
         pluginHolder.onLoad();
@@ -48,7 +51,7 @@ public class AppLauncher {
             try {
                 io.fairyproject.Fairy.getPlatform().shutdown();
             } catch (Throwable throwable) {
-                throwable.printStackTrace();
+                Log.error("Failed to shutdown fairy", throwable);
             }
         });
         Runtime.getRuntime().addShutdownHook(shutdownHook);

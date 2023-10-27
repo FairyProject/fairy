@@ -1,14 +1,13 @@
 package io.fairyproject.bootstrap.bukkit;
 
-import com.google.gson.JsonObject;
-import io.fairyproject.bootstrap.BasePluginHolder;
+import io.fairyproject.bootstrap.instance.AbstractPluginInstance;
 import io.fairyproject.plugin.PluginAction;
 import io.fairyproject.plugin.initializer.PluginClassInitializer;
 
-final class BukkitPluginHolder extends BasePluginHolder {
+final class BukkitPluginInstance extends AbstractPluginInstance {
 
-    public BukkitPluginHolder(PluginClassInitializer initializer, JsonObject jsonObject) {
-        super(initializer, jsonObject);
+    public BukkitPluginInstance(PluginClassInitializer initializer) {
+        super(initializer);
     }
 
     @Override
