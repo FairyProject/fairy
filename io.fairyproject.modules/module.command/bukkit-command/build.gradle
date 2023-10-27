@@ -1,5 +1,7 @@
 dependencies {
     compileOnly libs.spigot
+
+    testImplementation "dev.imanity.mockbukkit:MockBukkit1.16:1.0.1"
 }
 
 module {

@@ -6,13 +6,15 @@ import io.fairyproject.util.AccessUtil;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.SimplePluginManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @UtilityClass
@@ -86,6 +88,19 @@ public class CommandUtil {
         }
 
         return COMMAND_MAP_SUPPLIER.get();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public Map<String, Command> getKnownCommands(CommandMap commandMap) {
+        try {
+            Field knownMapField = commandMap.getClass().getDeclaredField("knownCommands");
+            knownMapField.setAccessible(true);
+
+            return (Map<String, Command>) knownMapField.get(commandMap);
+        } catch (NoSuchFieldException | IllegalAccessException ex) {
+            return null;
+        }
     }
 
     public void syncCommands() {
