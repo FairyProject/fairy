@@ -29,7 +29,6 @@ public final class BukkitPlugin extends JavaPlugin {
     @Setter(AccessLevel.PACKAGE)
     private boolean loaded;
 
-    private boolean
 
     public BukkitPlugin(JavaPluginLoader loader, PluginDescriptionFile description, File dataFolder, File file,
                         PluginManager pluginManager,
