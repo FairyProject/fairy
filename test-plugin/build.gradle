@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id "io.fairyproject" version "0.7.0dev-SNAPSHOT"
+    id "io.fairyproject" version "0.7.0b1-SNAPSHOT"
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
@@ -23,6 +23,6 @@ test {
     useJUnitPlatform()
 }
 
-runSpigotServer {
+runServer {
     version = "1.8.8"
 }

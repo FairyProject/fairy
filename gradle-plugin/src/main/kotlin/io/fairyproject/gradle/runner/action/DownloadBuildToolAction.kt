@@ -24,7 +24,7 @@
 
 package io.fairyproject.gradle.runner.action
 
-import io.fairyproject.gradle.runner.RunSpigotServerExtension
+import io.fairyproject.gradle.runner.RunServerExtension
 import org.gradle.api.Action
 import org.gradle.api.Task
 import java.net.URL
@@ -36,12 +36,12 @@ import javax.inject.Inject
  *
  * @since 0.7
  * @author
- * @see io.fairyproject.gradle.runner.RunSpigotServerPlugin
+ * @see io.fairyproject.gradle.runner.RunServerPlugin
  */
 open class DownloadBuildToolAction @Inject constructor(private val buildToolDirectory: Path): Action<Task> {
 
     override fun execute(t: Task) {
-        val extension = t.project.extensions.getByType(RunSpigotServerExtension::class.java)
+        val extension = t.project.extensions.getByType(RunServerExtension::class.java)
         val buildToolFile = buildToolDirectory.resolve("BuildTools.jar")
         if (buildToolFile.toFile().exists()) {
             println("BuildTool already exists.")

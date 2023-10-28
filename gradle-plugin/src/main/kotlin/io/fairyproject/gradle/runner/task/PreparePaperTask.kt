@@ -26,32 +26,49 @@ package io.fairyproject.gradle.runner.task
 
 import io.fairyproject.gradle.runner.RunServerExtension
 import io.fairyproject.gradle.runner.ServerJarArtifact
-import org.gradle.api.tasks.JavaExec
-import java.nio.file.Path
+import io.fairyproject.gradle.runner.download.DownloadsAPI
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.TaskAction
+import java.net.URL
 import javax.inject.Inject
-import kotlin.io.path.absolutePathString
 
 /**
- * Task for preparing spigot jar. it will build a spigot using BuildTools with the specified version.
+ * Task to prepare jars from Paper APIs.
  *
- * @since 0.7
- * @author LeeGod
- * @see io.fairyproject.gradle.runner.RunServerPlugin
+ * @since 0.7.0
+ * @property downloadsAPI Paper downloads API
  */
-open class PrepareSpigotTask @Inject constructor(
-    buildToolDirectory: Path,
-    artifact: ServerJarArtifact,
-    extension: RunServerExtension): JavaExec() {
+open class PreparePaperTask @Inject constructor(
+    private val downloadsAPI: DownloadsAPI,
+    private val projectName: String,
+    private val extension: RunServerExtension,
+    private val artifact: ServerJarArtifact
+) : DefaultTask() {
 
     init {
         if (artifact.hasArtifact) {
-            println("Spigot jar already exists.")
+            println("Paper jar already exists.")
             enabled = false
         }
+    }
 
-        mainClass.set("-jar")
-        args = listOf(buildToolDirectory.resolve("BuildTools.jar").absolutePathString(), "--rev", extension.version.get())
-        workingDir = buildToolDirectory.toFile()
+    @TaskAction
+    fun preparePaper() {
+        val version = extension.version.get()
+        val response = downloadsAPI.version(projectName, version)
+        val buildNumber = response.builds.last()
+        val download = downloadsAPI.build(projectName, version, buildNumber).downloads["application"]
+            ?: error("No application download found for $projectName $version $buildNumber")
+        val downloadURL = URL(downloadsAPI.downloadURL(projectName, version, buildNumber, download))
+
+        println("Downloading Paper jar... ($downloadURL)")
+        downloadURL.openStream().use { input ->
+            val bytes = input.readBytes()
+
+            artifact.artifactPath.toFile().writeBytes(bytes)
+        }
+
+        println("Downloaded Paper jar.")
     }
 
 }

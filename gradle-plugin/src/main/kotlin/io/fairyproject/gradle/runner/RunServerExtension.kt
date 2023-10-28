@@ -30,13 +30,13 @@ import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 
 /**
- * Extension of [RunSpigotServerPlugin].
+ * Extension of [RunServerPlugin].
  *
  * @since 0.7
  * @author LeeGod
- * @see RunSpigotServerPlugin
+ * @see RunServerPlugin
  */
-open class RunSpigotServerExtension(objectFactory: ObjectFactory) {
+open class RunServerExtension(objectFactory: ObjectFactory) {
 
     val version: Property<String> = objectFactory.property(String::class.java)
     val cleanup: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(false)

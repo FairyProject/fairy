@@ -5,7 +5,7 @@ import io.fairyproject.gradle.constants.UrlConstants
 import io.fairyproject.gradle.dependency.DependencyManagementPluginAction
 import io.fairyproject.gradle.extension.FairyExtension
 import io.fairyproject.gradle.resource.FairyResourcePlugin
-import io.fairyproject.gradle.runner.RunSpigotServerPlugin
+import io.fairyproject.gradle.runner.RunServerPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
@@ -30,7 +30,7 @@ class FairyGradlePlugin : Plugin<Project> {
 
         project.plugins.apply(JavaBasePlugin::class.java)
         project.plugins.apply(FairyResourcePlugin::class.java)
-        project.plugins.apply(RunSpigotServerPlugin::class.java)
+        project.plugins.apply(RunServerPlugin::class.java)
 
         sourceSets = project.extensions.getByType(JavaPluginExtension::class.java).sourceSets
         project.plugins.withType(JavaPlugin::class.java) { configurePlugin(project, "java") }

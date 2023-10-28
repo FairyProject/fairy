@@ -35,7 +35,7 @@ import javax.inject.Inject
  *
  * @since 0.7
  * @author LeeGod
- * @see io.fairyproject.gradle.runner.RunSpigotServerPlugin
+ * @see io.fairyproject.gradle.runner.RunServerPlugin
  * @see <a href="https://account.mojang.com/documents/minecraft_eula">Minecraft EULA</a>
  */
 class WriteEulaAction @Inject constructor(private val workDirectory: Path): Action<Task> {

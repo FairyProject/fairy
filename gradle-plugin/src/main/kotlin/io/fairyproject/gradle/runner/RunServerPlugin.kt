@@ -28,6 +28,9 @@ import io.fairyproject.gradle.FairyGradlePlugin
 import io.fairyproject.gradle.runner.action.CopySnapshotAction
 import io.fairyproject.gradle.runner.action.DownloadBuildToolAction
 import io.fairyproject.gradle.runner.action.WriteEulaAction
+import io.fairyproject.gradle.runner.download.DownloadsAPI
+import io.fairyproject.gradle.runner.download.Projects
+import io.fairyproject.gradle.runner.task.PreparePaperTask
 import io.fairyproject.gradle.runner.task.PrepareSpigotTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -43,12 +46,12 @@ import java.nio.file.Path
  * @since 0.7
  * @author LeeGod
  */
-open class RunSpigotServerPlugin : Plugin<Project> {
+open class RunServerPlugin : Plugin<Project> {
 
-    private val group = "runSpigot"
+    private val group = "runServer"
 
     override fun apply(project: Project) {
-        val extension = project.extensions.create("runSpigotServer", RunSpigotServerExtension::class.java)
+        val extension = project.extensions.create("runServer", RunServerExtension::class.java)
         project.afterEvaluate {
             if (extension.version.isPresent)
                 configureProject(extension, project)
@@ -56,7 +59,7 @@ open class RunSpigotServerPlugin : Plugin<Project> {
     }
 
     private fun configureProject(
-        extension: RunSpigotServerExtension,
+        extension: RunServerExtension,
         project: Project
     ) {
         extension.projects.get().forEach { project ->
@@ -67,25 +70,69 @@ open class RunSpigotServerPlugin : Plugin<Project> {
             }
         }
 
-        val workDir = project.projectDir.toPath().resolve("spigotServer/work")
-        val snapshotDir = project.projectDir.toPath().resolve("spigotServer/snapshot")
-        val buildToolDir = project.projectDir.toPath().resolve("spigotServer/build-tools")
-        val artifact = SpigotJarArtifact(buildToolDir, extension)
+        val workDir = project.projectDir.toPath().resolve("server/work")
+        val snapshotDir = project.projectDir.toPath().resolve("server/snapshot")
+        val buildToolDir = project.projectDir.toPath().resolve("server/build-tools")
+        val paperDir = project.projectDir.toPath().resolve("server/paper")
+        val spigotArtifact = ServerJarArtifact("spigot", buildToolDir, extension)
+        val paperArtifact = ServerJarArtifact("paper", paperDir, extension)
+        val foliaArtifact = ServerJarArtifact("folia", paperDir, extension)
 
         Files.createDirectories(workDir)
         Files.createDirectories(buildToolDir)
+        Files.createDirectories(paperDir)
 
-        configurePrepareSpigotBuild(project, buildToolDir, artifact, extension)
+        configurePrepareSpigotBuild(project, buildToolDir, spigotArtifact, extension)
+
+        val downloadsAPI = DownloadsAPI(DownloadsAPI.PAPER_ENDPOINT)
+        configurePreparePaperBuild(project, downloadsAPI, extension, paperArtifact)
+        configurePrepareFoliaBuild(project, downloadsAPI, extension, foliaArtifact)
         configureCleanSpigotBuild(project, buildToolDir)
-        configureCleanSpigotServer(project, workDir)
+        configureCleanServer(project, workDir)
         configureCopyPluginJar(project, workDir)
-        configureRunSpigotServer(project, artifact, workDir, snapshotDir, extension)
+        configureRunServer("runSpigotServer", "prepareSpigotBuild", project, spigotArtifact, workDir, snapshotDir, extension)
+        configureRunServer("runPaperServer", "preparePaperBuild", project, paperArtifact, workDir, snapshotDir, extension)
+        configureRunServer("runFoliaServer", "prepareFoliaBuild", project, foliaArtifact, workDir, snapshotDir, extension)
+    }
+
+    private fun configurePrepareFoliaBuild(
+        project: Project,
+        downloadsAPI: DownloadsAPI,
+        extension: RunServerExtension,
+        foliaArtifact: ServerJarArtifact
+    ) {
+        project.tasks.register(
+            "prepareFoliaBuild", PreparePaperTask::class.java,
+            downloadsAPI,
+            Projects.FOLIA,
+            extension,
+            foliaArtifact
+        ).configure {
+            it.group = group
+        }
+    }
+
+    private fun configurePreparePaperBuild(
+        project: Project,
+        downloadsAPI: DownloadsAPI,
+        extension: RunServerExtension,
+        paperArtifact: ServerJarArtifact
+    ) {
+        project.tasks.register(
+            "preparePaperBuild", PreparePaperTask::class.java,
+            downloadsAPI,
+            Projects.PAPER,
+            extension,
+            paperArtifact
+        ).configure {
+            it.group = group
+        }
     }
 
     private fun configureCopyPluginJar(project: Project, workDir: Path) {
         project.tasks.register("copyPluginJar", Copy::class.java) {
             it.includeProjectJarCopy(project)
-            project.extensions.configure(RunSpigotServerExtension::class.java) { extension ->
+            project.extensions.configure(RunServerExtension::class.java) { extension ->
                 extension.projects.get().forEach { project ->
                     it.includeProjectJarCopy(project)
                 }
@@ -105,28 +152,30 @@ open class RunSpigotServerPlugin : Plugin<Project> {
 
         from(jarTask.archiveFile.get()) {
             it.rename { name ->
-                "runSpigotServer-${project.name}.jar"
+                "runServer-${project.name}.jar"
             }
         }
         dependsOn(jarTask)
     }
 
-    private fun configureRunSpigotServer(
+    private fun configureRunServer(
+        taskName: String,
+        prepareTaskName: String,
         project: Project,
-        artifact: SpigotJarArtifact,
+        artifact: ServerJarArtifact,
         workDir: Path,
         snapshotDir: Path,
-        extension: RunSpigotServerExtension
+        extension: RunServerExtension
     ) {
         project.afterEvaluate {
-            project.tasks.register("runSpigotServer", RunSpigotServerTask::class.java, artifact, workDir).configure {
+            project.tasks.register(taskName, RunServerTask::class.java, artifact, workDir).configure {
                 if (extension.cleanup.get()) {
-                    it.dependsOn("cleanSpigotServer")
+                    it.dependsOn("cleanServer")
                 }
                 it.doFirst(WriteEulaAction(workDir))
                 it.doFirst(CopySnapshotAction(snapshotDir, workDir))
                 it.dependsOn("copyPluginJar")
-                it.dependsOn("prepareSpigotBuild")
+                it.dependsOn(prepareTaskName)
 
                 it.group = group
                 it.args = extension.args.get()
@@ -146,8 +195,8 @@ open class RunSpigotServerPlugin : Plugin<Project> {
         }
     }
 
-    private fun configureCleanSpigotServer(project: Project, workDir: Path) {
-        project.tasks.register("cleanSpigotServer") {
+    private fun configureCleanServer(project: Project, workDir: Path) {
+        project.tasks.register("cleanServer") {
             it.doLast {
                 Files.newDirectoryStream(workDir).use { stream ->
                     stream.forEach { path ->
@@ -175,8 +224,8 @@ open class RunSpigotServerPlugin : Plugin<Project> {
     private fun configurePrepareSpigotBuild(
         project: Project,
         buildToolDir: Path,
-        artifact: SpigotJarArtifact,
-        extension: RunSpigotServerExtension
+        artifact: ServerJarArtifact,
+        extension: RunServerExtension
     ) {
         project.tasks.register(
             "prepareSpigotBuild",

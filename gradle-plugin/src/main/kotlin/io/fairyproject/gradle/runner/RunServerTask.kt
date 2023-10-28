@@ -24,21 +24,23 @@
 
 package io.fairyproject.gradle.runner
 
+import org.gradle.api.tasks.JavaExec
 import java.nio.file.Path
+import javax.inject.Inject
 
 /**
- * Artifact of spigot jar.
+ * Task for running spigot server.
  *
  * @since 0.7
  * @author LeeGod
- * @see RunSpigotServerPlugin
+ * @see RunServerPlugin
  */
-class SpigotJarArtifact(private val directory: Path, private val extension: RunSpigotServerExtension) {
+open class RunServerTask @Inject constructor(artifact: ServerJarArtifact, workDirectory: Path): JavaExec() {
 
-    val artifactPath: Path
-        get() = directory.resolve("spigot-${extension.version.get()}.jar")
-
-    val hasArtifact: Boolean
-        get() = artifactPath.toFile().exists()
+    init {
+        classpath = project.files(artifact.artifactPath)
+        workingDir = workDirectory.toFile()
+        standardInput = System.`in`
+    }
 
 }

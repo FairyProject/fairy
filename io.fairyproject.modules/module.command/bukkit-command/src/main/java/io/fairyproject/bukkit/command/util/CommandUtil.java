@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Ref;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -93,14 +94,24 @@ public class CommandUtil {
     @SuppressWarnings("unchecked")
     @Nullable
     public Map<String, Command> getKnownCommands(CommandMap commandMap) {
+        Class<? extends CommandMap> mapClass = commandMap.getClass();
         try {
-            Field knownMapField = commandMap.getClass().getDeclaredField("knownCommands");
+            Method getKnownCommands = mapClass.getDeclaredMethod("getKnownCommands");
+            AccessUtil.setAccessible(getKnownCommands);
+
+            return (Map<String, Command>) getKnownCommands.invoke(commandMap);
+        } catch (ReflectiveOperationException ignored) {
+        }
+
+        try {
+            Field knownMapField = mapClass.getDeclaredField("knownCommands");
             AccessUtil.setAccessible(knownMapField);
 
             return (Map<String, Command>) knownMapField.get(commandMap);
-        } catch (ReflectiveOperationException e) {
-            return null;
+        } catch (ReflectiveOperationException ignored) {
         }
+
+        throw new IllegalStateException("Unable to get knownCommands field from " + mapClass);
     }
 
     public void syncCommands() {

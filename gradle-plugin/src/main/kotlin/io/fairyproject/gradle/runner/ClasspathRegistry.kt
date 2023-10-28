@@ -33,7 +33,7 @@ import org.gradle.api.plugins.JavaPluginExtension
  *
  * @since 0.7
  * @author LeeGod
- * @see RunSpigotServerPlugin
+ * @see RunServerPlugin
  */
 class ClasspathRegistry {
 

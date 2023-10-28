@@ -37,7 +37,7 @@ import kotlin.io.path.listDirectoryEntries
  *
  * @since 0.7
  * @author LeeGod
- * @see io.fairyproject.gradle.runner.RunSpigotServerPlugin
+ * @see io.fairyproject.gradle.runner.RunServerPlugin
  */
 class CopySnapshotAction(private val snapshotDirectory: Path, private val workDirectory: Path): Action<Task> {
     override fun execute(t: Task) {
