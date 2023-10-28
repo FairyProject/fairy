@@ -38,42 +38,56 @@ class DownloadsAPI(private val endpoint: String) {
       .build()
   }
 
-  /**
-   * Make a query.
-   *
-   * @param R response type
-   * @param query query
-   * @return response
-   */
   private inline fun <reified R> makeQuery(query: String): R {
     val response = URL(endpoint + query).readText(Charsets.UTF_8)
     return MAPPER.readValue(response)
   }
 
+  /**
+   * Get all projects.
+   */
   fun projects(): ProjectsResponse {
     return makeQuery("projects")
   }
 
+  /**
+   * Get a specific project.
+   */
   fun project(projectName: String): ProjectResponse {
     return makeQuery("projects/$projectName")
   }
 
+  /**
+   * Get all versions for a project.
+   */
   fun versionGroup(projectName: String, versionGroup: String): VersionGroupResponse {
     return makeQuery("projects/$projectName/version_group/$versionGroup")
   }
 
+  /**
+   * Get all builds for a project group.
+   */
   fun versionGroupBuilds(projectName: String, versionGroup: String): VersionGroupBuildsResponse {
     return makeQuery("projects/$projectName/version_group/$versionGroup/builds")
   }
 
+  /**
+   * Get all builds for a project.
+   */
   fun version(projectName: String, version: String): VersionResponse {
     return makeQuery("projects/$projectName/versions/$version")
   }
 
+  /**
+   * Get all downloads for a build.
+   */
   fun build(projectName: String, version: String, build: Int): BuildResponse {
     return makeQuery("projects/$projectName/versions/$version/builds/$build")
   }
 
+  /**
+   * Get the download URL for a download.
+   */
   fun downloadURL(projectName: String, version: String, build: Int, download: Download): String {
     return endpoint + "projects/$projectName/versions/$version/builds/$build/downloads/${download.name}"
   }

@@ -18,6 +18,9 @@ package io.fairyproject.gradle.runner.download
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
+/**
+ * Build Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BuildResponse(
   val projectId: String,
@@ -31,6 +34,9 @@ data class BuildResponse(
   val promoted: Boolean,
 )
 
+/**
+ * Change Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Change(
   val commit: String,
@@ -38,17 +44,26 @@ data class Change(
   val message: String,
 )
 
+/**
+ * Download Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Download(
   val name: String,
   val sha256: String,
 )
 
+/**
+ * Projects Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProjectsResponse(
   val projects: List<String>,
 )
 
+/**
+ * Project Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class ProjectResponse(
   val projectId: String,
@@ -57,6 +72,9 @@ data class ProjectResponse(
   val versions: List<String>,
 )
 
+/**
+ * Version Group Build Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class VersionGroupBuild(
   val build: Int,
@@ -66,6 +84,9 @@ data class VersionGroupBuild(
   val downloads: Map<String, Download>,
 )
 
+/**
+ * Version Group Builds Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class VersionGroupBuildsResponse(
   val projectId: String,
@@ -75,6 +96,9 @@ data class VersionGroupBuildsResponse(
   val builds: List<VersionGroupBuild>,
 )
 
+/**
+ * Version Group Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class VersionGroupResponse(
   val projectId: String,
@@ -83,6 +107,9 @@ data class VersionGroupResponse(
   val versions: List<String>,
 )
 
+/**
+ * Version Response from Paper API.
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class VersionResponse(
   val projectId: String,

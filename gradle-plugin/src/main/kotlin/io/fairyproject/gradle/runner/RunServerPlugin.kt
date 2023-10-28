@@ -49,9 +49,10 @@ import java.nio.file.Path
 open class RunServerPlugin : Plugin<Project> {
 
     private val group = "runServer"
+    private lateinit var extension: RunServerExtension
 
     override fun apply(project: Project) {
-        val extension = project.extensions.create("runServer", RunServerExtension::class.java)
+        extension = project.extensions.create("runServer", RunServerExtension::class.java)
         project.afterEvaluate {
             if (extension.version.isPresent)
                 configureProject(extension, project)
@@ -82,23 +83,22 @@ open class RunServerPlugin : Plugin<Project> {
         Files.createDirectories(buildToolDir)
         Files.createDirectories(paperDir)
 
-        configurePrepareSpigotBuild(project, buildToolDir, spigotArtifact, extension)
+        configurePrepareSpigotBuild(project, buildToolDir, spigotArtifact)
 
         val downloadsAPI = DownloadsAPI(DownloadsAPI.PAPER_ENDPOINT)
-        configurePreparePaperBuild(project, downloadsAPI, extension, paperArtifact)
-        configurePrepareFoliaBuild(project, downloadsAPI, extension, foliaArtifact)
+        configurePreparePaperBuild(project, downloadsAPI, paperArtifact)
+        configurePrepareFoliaBuild(project, downloadsAPI, foliaArtifact)
         configureCleanSpigotBuild(project, buildToolDir)
         configureCleanServer(project, workDir)
         configureCopyPluginJar(project, workDir)
-        configureRunServer("runSpigotServer", "prepareSpigotBuild", project, spigotArtifact, workDir, snapshotDir, extension)
-        configureRunServer("runPaperServer", "preparePaperBuild", project, paperArtifact, workDir, snapshotDir, extension)
-        configureRunServer("runFoliaServer", "prepareFoliaBuild", project, foliaArtifact, workDir, snapshotDir, extension)
+        configureRunServer("runSpigotServer", "prepareSpigotBuild", project, spigotArtifact, workDir, snapshotDir)
+        configureRunServer("runPaperServer", "preparePaperBuild", project, paperArtifact, workDir, snapshotDir)
+        configureRunServer("runFoliaServer", "prepareFoliaBuild", project, foliaArtifact, workDir, snapshotDir)
     }
 
     private fun configurePrepareFoliaBuild(
         project: Project,
         downloadsAPI: DownloadsAPI,
-        extension: RunServerExtension,
         foliaArtifact: ServerJarArtifact
     ) {
         project.tasks.register(
@@ -115,7 +115,6 @@ open class RunServerPlugin : Plugin<Project> {
     private fun configurePreparePaperBuild(
         project: Project,
         downloadsAPI: DownloadsAPI,
-        extension: RunServerExtension,
         paperArtifact: ServerJarArtifact
     ) {
         project.tasks.register(
@@ -164,8 +163,7 @@ open class RunServerPlugin : Plugin<Project> {
         project: Project,
         artifact: ServerJarArtifact,
         workDir: Path,
-        snapshotDir: Path,
-        extension: RunServerExtension
+        snapshotDir: Path
     ) {
         project.afterEvaluate {
             project.tasks.register(taskName, RunServerTask::class.java, artifact, workDir).configure {
@@ -224,8 +222,7 @@ open class RunServerPlugin : Plugin<Project> {
     private fun configurePrepareSpigotBuild(
         project: Project,
         buildToolDir: Path,
-        artifact: ServerJarArtifact,
-        extension: RunServerExtension
+        artifact: ServerJarArtifact
     ) {
         project.tasks.register(
             "prepareSpigotBuild",

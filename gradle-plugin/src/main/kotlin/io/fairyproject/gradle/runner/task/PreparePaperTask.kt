@@ -52,6 +52,9 @@ open class PreparePaperTask @Inject constructor(
         }
     }
 
+    /**
+     * Download Paper jar.
+     */
     @TaskAction
     fun preparePaper() {
         val version = extension.version.get()
