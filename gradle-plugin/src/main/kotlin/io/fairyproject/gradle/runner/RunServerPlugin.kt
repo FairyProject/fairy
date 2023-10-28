@@ -49,6 +49,7 @@ import java.nio.file.Path
 open class RunServerPlugin : Plugin<Project> {
 
     private val group = "runServer"
+    private lateinit var project: Project
     private lateinit var extension: RunServerExtension
 
     override fun apply(project: Project) {
@@ -83,21 +84,20 @@ open class RunServerPlugin : Plugin<Project> {
         Files.createDirectories(buildToolDir)
         Files.createDirectories(paperDir)
 
-        configurePrepareSpigotBuild(project, buildToolDir, spigotArtifact)
-
         val downloadsAPI = DownloadsAPI(DownloadsAPI.PAPER_ENDPOINT)
-        configurePreparePaperBuild(project, downloadsAPI, paperArtifact)
-        configurePrepareFoliaBuild(project, downloadsAPI, foliaArtifact)
-        configureCleanSpigotBuild(project, buildToolDir)
-        configureCleanServer(project, workDir)
-        configureCopyPluginJar(project, workDir)
-        configureRunServer("runSpigotServer", "prepareSpigotBuild", project, spigotArtifact, workDir, snapshotDir)
-        configureRunServer("runPaperServer", "preparePaperBuild", project, paperArtifact, workDir, snapshotDir)
-        configureRunServer("runFoliaServer", "prepareFoliaBuild", project, foliaArtifact, workDir, snapshotDir)
+
+        configurePrepareSpigotBuild(buildToolDir, spigotArtifact)
+        configurePreparePaperBuild(downloadsAPI, paperArtifact)
+        configurePrepareFoliaBuild(downloadsAPI, foliaArtifact)
+        configureCleanSpigotBuild(buildToolDir)
+        configureCleanServer(workDir)
+        configureCopyPluginJar(workDir)
+        configureRunServer("runSpigotServer", "prepareSpigotBuild", spigotArtifact, workDir, snapshotDir)
+        configureRunServer("runPaperServer", "preparePaperBuild", paperArtifact, workDir, snapshotDir)
+        configureRunServer("runFoliaServer", "prepareFoliaBuild", foliaArtifact, workDir, snapshotDir)
     }
 
     private fun configurePrepareFoliaBuild(
-        project: Project,
         downloadsAPI: DownloadsAPI,
         foliaArtifact: ServerJarArtifact
     ) {
@@ -113,7 +113,6 @@ open class RunServerPlugin : Plugin<Project> {
     }
 
     private fun configurePreparePaperBuild(
-        project: Project,
         downloadsAPI: DownloadsAPI,
         paperArtifact: ServerJarArtifact
     ) {
@@ -128,7 +127,7 @@ open class RunServerPlugin : Plugin<Project> {
         }
     }
 
-    private fun configureCopyPluginJar(project: Project, workDir: Path) {
+    private fun configureCopyPluginJar(workDir: Path) {
         project.tasks.register("copyPluginJar", Copy::class.java) {
             it.includeProjectJarCopy(project)
             project.extensions.configure(RunServerExtension::class.java) { extension ->
@@ -160,7 +159,6 @@ open class RunServerPlugin : Plugin<Project> {
     private fun configureRunServer(
         taskName: String,
         prepareTaskName: String,
-        project: Project,
         artifact: ServerJarArtifact,
         workDir: Path,
         snapshotDir: Path
@@ -193,7 +191,7 @@ open class RunServerPlugin : Plugin<Project> {
         }
     }
 
-    private fun configureCleanServer(project: Project, workDir: Path) {
+    private fun configureCleanServer(workDir: Path) {
         project.tasks.register("cleanServer") {
             it.doLast {
                 Files.newDirectoryStream(workDir).use { stream ->
@@ -206,7 +204,7 @@ open class RunServerPlugin : Plugin<Project> {
         }
     }
 
-    private fun configureCleanSpigotBuild(project: Project, buildToolDir: Path) {
+    private fun configureCleanSpigotBuild(buildToolDir: Path) {
         project.tasks.register("cleanSpigotBuild") {
             it.doLast {
                 Files.newDirectoryStream(buildToolDir).use { stream ->
@@ -220,7 +218,6 @@ open class RunServerPlugin : Plugin<Project> {
     }
 
     private fun configurePrepareSpigotBuild(
-        project: Project,
         buildToolDir: Path,
         artifact: ServerJarArtifact
     ) {
