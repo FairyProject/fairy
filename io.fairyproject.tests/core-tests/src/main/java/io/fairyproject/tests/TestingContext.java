@@ -111,10 +111,12 @@ public class TestingContext {
             }
 
             this.plugin.onPluginDisable();
-            PluginManager.INSTANCE.onPluginDisable(this.plugin);
+            if (PluginManager.isInitialized())
+                PluginManager.INSTANCE.onPluginDisable(this.plugin);
             if (FairyPlatform.INSTANCE != null)
                 FairyPlatform.INSTANCE.disable();
-            PluginManager.INSTANCE.unload();
+            if (PluginManager.isInitialized())
+                PluginManager.INSTANCE.unload();
             this.plugin.onFrameworkFullyDisable();
         }
     }
