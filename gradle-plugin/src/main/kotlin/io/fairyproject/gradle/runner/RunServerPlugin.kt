@@ -53,7 +53,9 @@ open class RunServerPlugin : Plugin<Project> {
     private lateinit var extension: RunServerExtension
 
     override fun apply(project: Project) {
+        this.project = project
         extension = project.extensions.create("runServer", RunServerExtension::class.java)
+
         project.afterEvaluate {
             if (extension.version.isPresent)
                 configureProject(extension, project)
