@@ -42,6 +42,7 @@ allprojects {
 
     repositories {
         mavenCentral()
+        mavenLocal()
         maven {
             name = "sonatype-oss-snapshots"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
@@ -52,7 +53,10 @@ allprojects {
         maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
         maven { url "https://repo.viaversion.com/" }
         maven { url "https://maven.enginehub.org/repo/" }
-        maven { url "https://repo.papermc.io/repository/maven-public/" }
+        maven {
+            name "papermc"
+            url "https://repo.papermc.io/repository/maven-public/"
+        }
         flatDir { dir("${this.projectDir.path}/libs") }
     }
 

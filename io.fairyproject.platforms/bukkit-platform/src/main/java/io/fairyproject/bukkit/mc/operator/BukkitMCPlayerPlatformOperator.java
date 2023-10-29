@@ -30,6 +30,7 @@ import io.fairyproject.bukkit.util.Players;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -50,6 +51,7 @@ public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator 
     private final BukkitAudiences bukkitAudiences;
     private final BukkitDataWatcherConverter dataWatcherConverter;
     private final BukkitMCPlayerOperator playerOperator;
+    private final MCSchedulerProvider mcSchedulerProvider;
     protected final MCVersionMappingRegistry versionMappingRegistry;
 
     @Override
@@ -85,7 +87,7 @@ public class BukkitMCPlayerPlatformOperator implements MCPlayerPlatformOperator 
             @NotNull String name,
             @NotNull UUID uuid,
             @NotNull InetAddress address) {
-        return new BukkitMCPlayer(uuid, name, address, mcServer, bukkitAudiences, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        return new BukkitMCPlayer(uuid, name, address, mcServer, bukkitAudiences, dataWatcherConverter, playerOperator, versionMappingRegistry, mcSchedulerProvider);
     }
 
 }

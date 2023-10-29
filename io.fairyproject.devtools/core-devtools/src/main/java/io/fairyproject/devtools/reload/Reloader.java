@@ -25,20 +25,22 @@
 package io.fairyproject.devtools.reload;
 
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.task.ITaskScheduler;
+import io.fairyproject.scheduler.Scheduler;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Duration;
+
 @Setter
 @RequiredArgsConstructor
 public class Reloader {
 
-    private final ITaskScheduler taskScheduler;
     private final long quietPeriod;
     private ReloadShutdownHandler reloadShutdownHandler;
     private ReloadStartupHandler reloadStartupHandler;
+    private Scheduler scheduler;
     @Getter
     private boolean reloadQueued;
 
@@ -58,7 +60,7 @@ public class Reloader {
             this.reloadQueued = true;
         }
 
-        taskScheduler.runScheduled(() -> this.doReload(plugin), this.quietPeriod / 50);
+        scheduler.schedule(() -> this.doReload(plugin), Duration.ofMillis(this.quietPeriod));
         return true;
     }
 

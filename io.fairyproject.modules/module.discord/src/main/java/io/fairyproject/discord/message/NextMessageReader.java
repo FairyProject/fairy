@@ -1,8 +1,8 @@
 package io.fairyproject.discord.message;
 
 import io.fairyproject.discord.DCBot;
-import io.fairyproject.task.Task;
-import io.fairyproject.util.terminable.Terminable;
+import io.fairyproject.scheduler.Schedulers;
+import io.fairyproject.scheduler.response.TaskResponse;
 import lombok.Data;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.*;
@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -27,13 +28,13 @@ public class NextMessageReader {
 
     public NextMessageReader(DCBot bot) {
         this.bot = bot;
-        Task.asyncRepeated(this::cleanExpiration, 1L);
+
+        Schedulers.IO.scheduleAtFixedRate(this::cleanExpiration, Duration.ofMillis(1000), Duration.ofMillis(1000));
     }
 
-    private void cleanExpiration(Terminable t) {
+    private TaskResponse<Void> cleanExpiration() {
         if (this.bot.getStatus() == JDA.Status.DISCONNECTED) {
-            t.closeAndReportException();
-            return;
+            return TaskResponse.success(null);
         }
 
         long timeMillis = System.currentTimeMillis();
@@ -52,6 +53,8 @@ public class NextMessageReader {
             if (entry.getValue().isEmpty())
                 this.pending.remove(entry.getKey());
         }
+
+        return TaskResponse.continueTask();
     }
 
     public CompletableFuture<Message> read(@NotNull MessageChannel channel, @Nullable User user) {

@@ -27,14 +27,19 @@ package io.fairyproject.bukkit.metadata;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.metadata.MetadataRegistry;
+import lombok.RequiredArgsConstructor;
 
 @InjectableComponent
+@RequiredArgsConstructor
 public class MetadataCleanScheduler {
+
+    private final MCSchedulerProvider mcSchedulerProvider;
 
     @PostInitialize
     public void onPostInitialize() {
-        Fairy.getTaskScheduler().runRepeated(this::onTick, 20 * 60L);
+        this.mcSchedulerProvider.getGlobalScheduler().scheduleAtFixedRate(this::onTick, 20 * 60L, 20 * 60L);
     }
 
     private void onTick() {

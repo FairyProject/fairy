@@ -26,8 +26,7 @@ package io.fairyproject.devtools.reload;
 
 import io.fairyproject.mock.MockPlugin;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.task.ITaskScheduler;
-import io.fairyproject.task.async.AsyncTaskScheduler;
+import io.fairyproject.scheduler.Schedulers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -44,9 +43,9 @@ class ReloaderTest {
 
     @BeforeEach
     void setUp() {
-        ITaskScheduler taskScheduler = new AsyncTaskScheduler();
+        reloader = new Reloader(100);
+        reloader.setScheduler(Schedulers.IO);
 
-        reloader = new Reloader(taskScheduler, 100);
         plugin = new MockPlugin();
         reloadShutdownHandler = Mockito.mock(ReloadShutdownHandler.class);
         reloadStartupHandler = Mockito.mock(ReloadStartupHandler.class);

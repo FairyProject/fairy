@@ -29,6 +29,7 @@ import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
 import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerPlatformOperator;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import io.fairyproject.tests.bukkit.BukkitMCPlayerMock;
@@ -45,8 +46,9 @@ public class BukkitMCPlayerPlatformOperatorMock extends BukkitMCPlayerPlatformOp
             BukkitAudiences bukkitAudiences,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
+            MCSchedulerProvider mcSchedulerProvider,
             MCVersionMappingRegistry versionMappingRegistry) {
-        super(mcServer, bukkitAudiences, dataWatcherConverter, playerOperator, versionMappingRegistry);
+        super(mcServer, bukkitAudiences, dataWatcherConverter, playerOperator, mcSchedulerProvider, versionMappingRegistry);
     }
 
     @Override

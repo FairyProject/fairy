@@ -26,9 +26,8 @@ package io.fairyproject;
 
 import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.plugin.Plugin;
-import lombok.experimental.UtilityClass;
-import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.FastRandom;
+import lombok.experimental.UtilityClass;
 
 /**
  * Static extension of FairyBootstrap
@@ -56,10 +55,6 @@ public class Fairy {
             return "io.fairyproject";
         }
         return Fairy.getMainPlugin().getDescription().getFairyPackage();
-    }
-
-    public ITaskScheduler getTaskScheduler() {
-        return FairyPlatform.INSTANCE.getTaskScheduler();
     }
 
     public LibraryHandler getLibraryHandler() {

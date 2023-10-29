@@ -24,7 +24,6 @@
 
 package io.fairyproject.state.impl;
 
-import io.fairyproject.Fairy;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.state.*;
@@ -35,7 +34,6 @@ import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,8 +46,6 @@ public class StateMachineImpl implements StateMachine {
     private CompositeTerminable compositeTerminable;
     @Setter
     private Transition transition;
-    @Setter
-    private Duration interval;
 
     private State current;
     private boolean running;
@@ -84,12 +80,6 @@ public class StateMachineImpl implements StateMachine {
 
         this.compositeTerminable = CompositeTerminable.create();
         this.running = true;
-
-        // schedule a task to tick the state machine
-        if (this.interval != null) {
-            int ticks = (int) (this.interval.toMillis() / 50);
-            this.bind(Fairy.getTaskScheduler().runRepeated(this::tick, 50, ticks));
-        }
 
         GlobalEventNode.get().call(new StateMachineStartEvent(this, state));
     }
@@ -159,11 +149,6 @@ public class StateMachineImpl implements StateMachine {
         }
 
         GlobalEventNode.get().call(new StateStopEvent(this, this.current, signal));
-    }
-
-    @Override
-    public @NotNull Duration getInterval() {
-        return this.interval;
     }
 
     @Override

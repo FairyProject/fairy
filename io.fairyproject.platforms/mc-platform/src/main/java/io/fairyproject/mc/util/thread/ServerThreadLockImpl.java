@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,9 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.util.thread;
+package io.fairyproject.mc.util.thread;
 
-import io.fairyproject.Fairy;
-import io.fairyproject.task.Task;
+import io.fairyproject.scheduler.Scheduler;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -36,15 +35,15 @@ public class ServerThreadLockImpl implements ServerThreadLock {
     // used to mark when the lock is closed
     private final CountDownLatch doneSignal = new CountDownLatch(1);
 
-    ServerThreadLockImpl() {
+    ServerThreadLockImpl(Scheduler scheduler) {
         // already sync - just countdown on obtained & return
-        if (Fairy.getPlatform().isMainThread()) {
+        if (scheduler.isCurrentThread()) {
             this.obtainedSignal.countDown();
             return;
         }
 
         // synchronize with the main thread, then countdown
-        Task.runMain(this::signal);
+        scheduler.schedule(this::signal);
 
         // wait for the main thread to become synchronized
         await();

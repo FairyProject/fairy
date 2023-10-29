@@ -8,6 +8,8 @@ import io.fairyproject.mc.GameMode;
 import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.scheduler.MCScheduler;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.util.AudienceProxy;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMapping;
@@ -25,13 +27,13 @@ import java.util.UUID;
 public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCPlayer {
 
     private Player player;
+    private MCServer server;
     private Channel channel;
     private Audience audience;
 
     private final UUID uuid;
     private final String name;
     private final InetAddress address;
-    private final MCServer server;
     private final BukkitAudiences audiences;
     private final BukkitMCPlayerOperator operator;
     private final MCVersionMappingRegistry versionMappingRegistry;
@@ -44,9 +46,10 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
             BukkitAudiences bukkitAudiences,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator operator,
-            MCVersionMappingRegistry versionMappingRegistry
+            MCVersionMappingRegistry versionMappingRegistry,
+            MCSchedulerProvider mcSchedulerProvider
     ) {
-        super(dataWatcherConverter);
+        super(dataWatcherConverter, mcSchedulerProvider);
         this.uuid = uuid;
         this.name = name;
         this.address = address;
@@ -140,6 +143,13 @@ public class BukkitMCPlayer extends BukkitMCEntity implements AudienceProxy, MCP
         super.setNative(nativeObject);
         this.player = (Player) nativeObject;
         this.audience = this.audiences.player(this.player);
+    }
+
+    @Override
+    public @NotNull MCScheduler getScheduler() {
+        if (this.scheduler == null)
+            this.scheduler = this.mcSchedulerProvider.getEntityScheduler(this.player);
+        return this.scheduler;
     }
 
     @Override

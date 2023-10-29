@@ -33,13 +33,15 @@ import io.fairyproject.devtools.DevToolSettings;
 import io.fairyproject.devtools.reload.impl.DefaultReloadShutdownHandler;
 import io.fairyproject.devtools.reload.impl.DefaultReloadStartupHandler;
 import io.fairyproject.devtools.watcher.ClasspathFileWatcher;
+import io.fairyproject.scheduler.Schedulers;
 
 @Configuration
 public class ReloaderConfiguration {
 
     @InjectableComponent
     public Reloader reloader(ContainerContext context, DevToolSettings settings) {
-        Reloader reloader = new Reloader(Fairy.getTaskScheduler(), settings.getRestart().getQuietPeriod().toMillis());
+        Reloader reloader = new Reloader(settings.getRestart().getQuietPeriod().toMillis());
+        reloader.setScheduler(Schedulers.IO);
         reloader.setReloadStartupHandler(new DefaultReloadStartupHandler(context));
         reloader.setReloadShutdownHandler(new DefaultReloadShutdownHandler(context.nodeDestroyer()));
 
@@ -53,7 +55,7 @@ public class ReloaderConfiguration {
 
     @InjectableComponent
     public ReloaderListener reloaderListener(Reloader reloader, AgentDetector agentDetector) {
-        return new ReloaderListener(reloader, agentDetector, Fairy.getTaskScheduler());
+        return new ReloaderListener(reloader, agentDetector);
     }
 
     @InjectableComponent

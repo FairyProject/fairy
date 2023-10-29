@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.util;
 
 import io.fairyproject.log.Log;
-import org.apache.commons.lang.Validate;
+import io.fairyproject.util.ConditionUtils;
 import org.bukkit.Bukkit;
 
 import lombok.Getter;
@@ -201,7 +201,7 @@ public final class MinecraftVersion {
                     if (ch == '.')
                         found++;
 
-                Validate.isTrue(found == 1, "Minecraft Version checker malfunction. Could not detect your server version. Detected: " + numericVersion + " Current: " + curr);
+                ConditionUtils.is(found == 1, "Minecraft Version checker malfunction. Could not detect your server version. Detected: " + numericVersion + " Current: " + curr);
 
                 current = V.parse(Integer.parseInt(numericVersion.split("\\.")[1]));
 

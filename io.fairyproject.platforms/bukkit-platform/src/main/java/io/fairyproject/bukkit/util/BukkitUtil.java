@@ -104,13 +104,6 @@ public class BukkitUtil {
         Players.clear(player);
     }
 
-    @Deprecated
-    public void sendMessages(Player player, Iterable<String> iterable) {
-        for (String message : iterable) {
-            player.sendMessage(message);
-        }
-    }
-
     public File getPluginJar(JavaPlugin plugin) {
 
         MethodResolver resolver = new MethodResolver(JavaPlugin.class);

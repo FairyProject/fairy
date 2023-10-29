@@ -3,6 +3,7 @@ package io.fairyproject.mc;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
+import io.fairyproject.mc.scheduler.MCScheduler;
 import io.fairyproject.mc.util.Position;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.NotNull;
@@ -29,6 +30,8 @@ public interface MCEntity extends MCObject {
     boolean teleport(Position pos);
 
     @NotNull List<EntityData> data();
+
+    @NotNull MCScheduler getScheduler();
 
     @UtilityClass
     @Deprecated

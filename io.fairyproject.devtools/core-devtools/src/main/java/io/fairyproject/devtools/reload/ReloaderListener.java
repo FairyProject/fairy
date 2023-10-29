@@ -27,7 +27,6 @@ package io.fairyproject.devtools.reload;
 import io.fairyproject.devtools.watcher.ClasspathFileChangedEvent;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.task.ITaskScheduler;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -35,7 +34,6 @@ public class ReloaderListener {
 
     private final Reloader reloader;
     private final AgentDetector agentDetector;
-    private final ITaskScheduler taskScheduler;
 
     @Subscribe
     public void onClasspathFileChanged(ClasspathFileChangedEvent event) {
@@ -45,7 +43,7 @@ public class ReloaderListener {
             // We use agent reloader, so we don't need to reload the plugin
             return;
 
-        taskScheduler.runSync(() -> this.reloader.reload(plugin));
+        this.reloader.reload(plugin);
     }
 
 }

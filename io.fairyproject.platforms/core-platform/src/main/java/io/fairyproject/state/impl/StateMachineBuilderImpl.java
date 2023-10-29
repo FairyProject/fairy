@@ -31,7 +31,6 @@ import io.fairyproject.state.event.StateMachineEvent;
 import io.fairyproject.util.ConditionUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,7 +39,6 @@ public class StateMachineBuilderImpl implements StateMachineBuilder {
     private final Map<State, StateConfigBuilderImpl> states = new HashMap<>();
     private final StateMachineTransitionBuilderImpl transitionBuilder = new StateMachineTransitionBuilderImpl();
     private final StateMachineImpl stateMachine = new StateMachineImpl();
-    private Duration interval;
     private State initialState;
     private final EventNode<StateMachineEvent> eventNode = EventNode.value("state-machine", StateEventFilter.STATE_MACHINE, v -> v == this.stateMachine);
 
@@ -52,12 +50,6 @@ public class StateMachineBuilderImpl implements StateMachineBuilder {
     @Override
     public @NotNull StateConfigBuilder state(@NotNull State state) {
         return this.states.computeIfAbsent(state, s -> new StateConfigBuilderImpl(s, this.eventNode));
-    }
-
-    @Override
-    public @NotNull StateMachineBuilder interval(@NotNull Duration interval) {
-        this.interval = interval;
-        return this;
     }
 
     @Override
@@ -83,10 +75,6 @@ public class StateMachineBuilderImpl implements StateMachineBuilder {
             StateConfig stateConfig = stateConfigBuilder.build(stateMachine);
             stateMachine.addState(state, stateConfig);
         });
-
-        if (this.interval != null) {
-            stateMachine.setInterval(this.interval);
-        }
 
         stateMachine.start(this.initialState);
         return stateMachine;

@@ -24,14 +24,15 @@
 
 package io.fairyproject.util;
 
-import io.fairyproject.Fairy;
-import io.fairyproject.util.terminable.Terminable;
+import io.fairyproject.scheduler.Scheduler;
+import io.fairyproject.scheduler.response.TaskResponse;
 import lombok.Getter;
 import lombok.Setter;
-import io.fairyproject.task.TaskRunnable;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.Callable;
 
 public class KeyframeValues {
 
@@ -77,16 +78,16 @@ public class KeyframeValues {
         return this.keyframes.lastKey();
     }
 
-    public void run(KeyframeRunner runner) {
+    public void run(Scheduler scheduler, KeyframeRunner runner) {
         Iterator<Keyframe> iterator = this.keyframes.values().iterator();
-        TaskRunnable runnable = new TaskRunnable() {
+        Callable<TaskResponse<Void>> runnable = new Callable<TaskResponse<Void>>() {
 
             private int time = 0;
             private Keyframe previous = null;
             private Keyframe now = null;
 
             @Override
-            public void run(Terminable terminable) {
+            public TaskResponse<Void> call() {
                 while (true) {
                     if (now == null) {
                         if (iterator.hasNext()) {
@@ -95,11 +96,12 @@ public class KeyframeValues {
                             if (debug) {
                                 System.out.println("ended");
                             }
-                            terminable.closeAndReportException();
+
                             if (post != null) {
                                 post.run();
                             }
-                            return;
+
+                            return TaskResponse.success(null);
                         }
                     }
 
@@ -116,10 +118,12 @@ public class KeyframeValues {
                         break;
                     }
                 }
+
+                return TaskResponse.continueTask();
             }
         };
 
-        Fairy.getTaskScheduler().runRepeated(runnable, 0, 1);
+        scheduler.scheduleAtFixedRate(runnable, Duration.ofMillis(0), Duration.ofMillis(50));
     }
 
     public static class Keyframe {

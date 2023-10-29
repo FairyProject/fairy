@@ -24,10 +24,11 @@
 
 package io.fairyproject.util;
 
-import io.fairyproject.task.Task;
+import io.fairyproject.scheduler.Schedulers;
 import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -52,15 +53,16 @@ public class Cooldown<T> implements Terminable {
         this.cache = new ConcurrentHashMap<>();
 
         this.defaultCooldown = defaultCooldown;
-        this.task = Task.asyncRepeated(t -> {
+        this.task = Schedulers.IO.scheduleAtFixedRate(() -> {
             long time = System.currentTimeMillis();
+
             for (Map.Entry<T, Long> entry : this.cache.entrySet()) {
                 if (time >= entry.getValue()) {
                     this.cache.remove(entry.getKey());
                     this.removalListener.accept(entry.getKey());
                 }
             }
-        }, 1L);
+        }, Duration.ofMillis(50), Duration.ofMillis(50));
     }
 
     public void removalListener(Consumer<T> consumer) {

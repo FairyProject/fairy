@@ -27,8 +27,6 @@ package io.fairyproject.devtools.reload;
 import io.fairyproject.devtools.watcher.ClasspathFileChangedEvent;
 import io.fairyproject.mock.MockPlugin;
 import io.fairyproject.plugin.Plugin;
-import io.fairyproject.task.ITaskScheduler;
-import io.fairyproject.util.terminable.Terminable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -41,21 +39,14 @@ class ReloaderListenerTest {
     private Reloader reloader;
     private AgentDetector agentDetector;
     private ReloaderListener reloaderListener;
-    private ITaskScheduler taskScheduler;
 
     @BeforeEach
     void setUp() {
         plugin = new MockPlugin();
         reloader = Mockito.mock(Reloader.class);
         agentDetector = Mockito.mock(AgentDetector.class);
-        taskScheduler = Mockito.mock(ITaskScheduler.class);
-        Mockito.when(taskScheduler.runSync(Mockito.any())).then(invocation -> {
-            Runnable runnable = invocation.getArgument(0);
-            runnable.run();
-            return Mockito.mock(Terminable.class);
-        });
 
-        reloaderListener = new ReloaderListener(reloader, agentDetector, taskScheduler);
+        reloaderListener = new ReloaderListener(reloader, agentDetector);
     }
 
     @Test
@@ -72,13 +63,6 @@ class ReloaderListenerTest {
         reloaderListener.onClasspathFileChanged(new ClasspathFileChangedEvent(plugin, new File("test")));
 
         Mockito.verify(reloader, Mockito.never()).reload(plugin);
-    }
-
-    @Test
-    void onClasspathFileChangedMustMakeSureTheEventIsCalledOnTheMainThread() {
-        reloaderListener.onClasspathFileChanged(new ClasspathFileChangedEvent(plugin, new File("test")));
-
-        Mockito.verify(taskScheduler).runSync(Mockito.any());
     }
 
 }

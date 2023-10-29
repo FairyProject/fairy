@@ -30,6 +30,9 @@ public abstract class URLClassLoaderAccess {
      * @return the access object
      */
     public static URLClassLoaderAccess create(URLClassLoader classLoader) {
+        if (classLoader == null)
+            return Noop.INSTANCE;
+
         if (Reflection.isSupported()) {
             Debug.log("Using Reflection URL class loader access");
             return new Reflection(classLoader);

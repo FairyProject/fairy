@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,30 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.task;
+package io.fairyproject.scheduler.executor;
 
-import io.fairyproject.util.terminable.Terminable;
+import java.util.concurrent.Callable;
 
-public interface TaskRunnable {
+public class SingleExecutorScheduledTask<R> extends ExecutorScheduledTask<R> {
 
-    void run(Terminable terminable);
+    private final Callable<R> callable;
+
+    public SingleExecutorScheduledTask(Callable<R> callable) {
+        this.callable = callable;
+    }
+
+    @Override
+    public synchronized void run() {
+        if (cancelled.get())
+            return;
+
+        try {
+            R result = callable.call();
+
+            future.complete(result);
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
+    }
 
 }

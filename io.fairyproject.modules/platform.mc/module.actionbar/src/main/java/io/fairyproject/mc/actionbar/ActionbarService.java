@@ -4,9 +4,12 @@ import io.fairyproject.container.*;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.metadata.PlayerOnlineValue;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.task.Task;
-import io.fairyproject.util.terminable.Terminable;
+import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.response.TaskResponse;
+import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +20,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-@Service
+@InjectableComponent
+@RequiredArgsConstructor
 public class ActionbarService {
 
     public static final MetadataKey<Component> ACTIONBAR_CURRENT = MetadataKey.create("fairy:actionbar", Component.class);
@@ -25,11 +29,14 @@ public class ActionbarService {
     private final List<ActionbarAdapter> adapters = new ArrayList<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final AtomicBoolean activated = new AtomicBoolean();
-    private Terminable terminable;
+    private final ContainerContext containerContext;
+    private final MCPlayerRegistry mcPlayerRegistry;
+    private final MCSchedulerProvider mcSchedulerProvider;
+    private ScheduledTask<Void> scheduledTask;
 
     @PreInitialize
     public void onPreInitialize() {
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        containerContext.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(ActionbarAdapter.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(ActionbarAdapter.class, this::registerAdapter))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(ActionbarAdapter.class, this::unregisterAdapter))
@@ -43,20 +50,22 @@ public class ActionbarService {
 
     @PreDestroy
     public void onPreDestroy() {
-        if (this.terminable != null) {
-            this.terminable.closeAndReportException();
-            this.terminable = null;
+        if (this.scheduledTask != null) {
+            this.scheduledTask.closeAndReportException();
+            this.scheduledTask = null;
         }
     }
 
     public void activate() {
         if (this.activated.compareAndSet(false, true)) {
-            this.terminable = Task.asyncRepeated(this::tick, this.getUpdateTick());
+            int updateTick = this.getUpdateTick();
+
+            this.scheduledTask = this.mcSchedulerProvider.getAsyncScheduler().scheduleAtFixedRate(this::onTick, updateTick, updateTick);
         }
     }
 
-    private void tick(Terminable terminable) {
-        for (MCPlayer player : MCPlayer.all()) {
+    private TaskResponse<Void> onTick() {
+        for (MCPlayer player : this.mcPlayerRegistry.getAllPlayers()) {
             Component current = player.metadata().getOrDefault(ACTIONBAR_CURRENT, Component.empty());
             Component component = this.buildActionbarComponent(player);
             if (component == null) {
@@ -75,11 +84,13 @@ public class ActionbarService {
         try {
             if (this.adapters.isEmpty()) {
                 // No adapter registered at the moment
-                terminable.closeAndReportException();
+                return TaskResponse.success(null);
             }
         } finally {
             this.lock.readLock().unlock();
         }
+
+        return TaskResponse.continueTask();
     }
 
     @Nullable

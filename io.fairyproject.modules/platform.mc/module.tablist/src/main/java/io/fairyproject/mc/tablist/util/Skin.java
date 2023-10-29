@@ -30,7 +30,7 @@ import io.fairyproject.mc.MCGameProfile;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.util.Property;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
-import io.fairyproject.util.thread.ServerThreadLock;
+import io.fairyproject.mc.util.thread.ServerThreadLock;
 import lombok.Setter;
 
 import java.io.InputStreamReader;

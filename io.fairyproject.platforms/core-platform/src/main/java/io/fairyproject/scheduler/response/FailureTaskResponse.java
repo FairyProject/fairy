@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Imanity
+ * Copyright (c) 2022 Fairy Project
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,30 +22,35 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.util.thread;
+package io.fairyproject.scheduler.response;
 
-/**
- * A tool to synchronize code with the main server thread
- *
- * <p>It is highly recommended to use this interface with try-with-resource blocks.</p>
- */
-public interface ServerThreadLock extends AutoCloseable {
+import io.fairyproject.scheduler.TaskState;
+import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Nullable;
 
-    /**
-     * Blocks the current thread until a {@link ServerThreadLock} can be obtained.
-     *
-     * <p>Will attempt to return immediately if the calling thread is the main thread itself.</p>
-     *
-     * @return a lock
-     */
-    static ServerThreadLock obtain() {
-        return new ServerThreadLockImpl();
+@RequiredArgsConstructor
+public class FailureTaskResponse<R> implements TaskResponse<R> {
+
+    private final Throwable throwable;
+    private final String errorMessage;
+
+    @Override
+    public TaskState getState() {
+        return TaskState.FAILURE;
     }
 
-    /**
-     * Closes the lock, and allows the main thread to continue
-     */
     @Override
-    void close();
+    public @Nullable Throwable getThrowable() {
+        return throwable;
+    }
 
+    @Override
+    public @Nullable String getErrorMessage() {
+        return errorMessage;
+    }
+
+    @Override
+    public @Nullable R getResult() {
+        return null;
+    }
 }

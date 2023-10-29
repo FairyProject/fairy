@@ -25,19 +25,19 @@
 package io.fairyproject.mc.tablist;
 
 import io.fairyproject.Fairy;
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.PreInitialize;
-import io.fairyproject.container.Service;
+import io.fairyproject.container.*;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.tablist.util.TabSlot;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.Stacktrace;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.Nullable;
@@ -48,15 +48,19 @@ import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 
 @Getter
-@Service
+@InjectableComponent
+@RequiredArgsConstructor
 public class TablistService {
 
+    private static final MetadataKey<Tablist> TABLIST_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "TabList", Tablist.class);
     public static TablistService INSTANCE;
 
-    private static final MetadataKey<Tablist> TABLIST_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "TabList", Tablist.class);
     private final TablistSender tablistSender = new TablistSender();
+    private final List<TablistAdapter> adapters = new ArrayList<>();
+    private final ContainerContext containerContext;
+    private final MCPlayerRegistry mcPlayerRegistry;
+    private final MCSchedulerProvider mcSchedulerProvider;
 
-    private List<TablistAdapter> adapters;
     private ScheduledExecutorService thread;
 
     //Tablist Ticks
@@ -67,8 +71,7 @@ public class TablistService {
     public void onPreInitialize() {
         INSTANCE = this;
 
-        this.adapters = new ArrayList<>();
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.containerContext.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(TablistAdapter.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(TablistAdapter.class, this::registerAdapter))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(TablistAdapter.class, this::unregisterAdapter))
@@ -143,12 +146,12 @@ public class TablistService {
     }
 
     private void setup() {
-        //Start Thread
-        Fairy.getTaskScheduler().runAsyncRepeated(() -> {
+        // Start Thread
+        this.mcSchedulerProvider.getAsyncScheduler().scheduleAtFixedRate(() -> {
             if (this.adapters.isEmpty())
                 return;
 
-            for (MCPlayer player : MCPlayer.all()) {
+            for (MCPlayer player : this.mcPlayerRegistry.getAllPlayers()) {
                 player.metadata().ifPresent(TABLIST_KEY, tablist -> {
                     try {
                         tablist.update();
@@ -157,7 +160,7 @@ public class TablistService {
                     }
                 });
             }
-        }, this.ticks);
+        }, this.ticks, this.ticks);
     }
 
     public void stop() {

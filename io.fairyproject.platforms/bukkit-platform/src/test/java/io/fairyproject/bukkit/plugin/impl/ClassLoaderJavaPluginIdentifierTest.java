@@ -58,8 +58,7 @@ class ClassLoaderJavaPluginIdentifierTest {
 
         classLoaderJavaPluginIdentifier = new ClassLoaderJavaPluginIdentifier(server);
 
-        URLClassLoader classLoader = (URLClassLoader) getClass().getClassLoader();
-        pluginClassLoader = new SamplePluginClassLoader(new MockPlugin(), classLoader);
+        pluginClassLoader = new SamplePluginClassLoader(new MockPlugin(), getClass());
     }
 
     @Test
@@ -80,8 +79,8 @@ class ClassLoaderJavaPluginIdentifierTest {
 
         private final Plugin plugin;
 
-        public SamplePluginClassLoader(Plugin plugin, URLClassLoader urlClassLoader) {
-            super(urlClassLoader.getURLs());
+        public SamplePluginClassLoader(Plugin plugin, Class<?> clazz) {
+            super(new URL[] {clazz.getProtectionDomain().getCodeSource().getLocation() });
             this.plugin = plugin;
         }
 

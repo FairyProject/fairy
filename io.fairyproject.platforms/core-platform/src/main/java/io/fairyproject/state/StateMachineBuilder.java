@@ -42,15 +42,6 @@ public interface StateMachineBuilder {
     @NotNull StateConfigBuilder state(@NotNull State state);
 
     /**
-     * Set the interval of the state machine tick
-     *
-     * @param interval the interval
-     * @return this
-     */
-    @Contract("_ -> this")
-    @NotNull StateMachineBuilder interval(@NotNull Duration interval);
-
-    /**
      * Set the initial state of the state machine
      *
      * @param state the state

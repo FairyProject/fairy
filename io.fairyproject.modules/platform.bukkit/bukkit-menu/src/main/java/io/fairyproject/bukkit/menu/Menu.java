@@ -35,9 +35,9 @@ import io.fairyproject.bukkit.menu.event.MenuCloseEvent;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.event.EventNode;
+import io.fairyproject.mc.scheduler.MCSchedulers;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.task.Task;
 import io.fairyproject.util.CC;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -159,7 +159,7 @@ public abstract class Menu implements TerminableConsumer {
         this.lastAccessMillis = System.currentTimeMillis();
 
         if (event.isCancelled())
-            Task.runMainLater(player::updateInventory, 1L);
+            MCSchedulers.getEntityScheduler(player).schedule(player::updateInventory, 1L);
     }
 
     private void onPlayerDeath(@NotNull PlayerDeathEvent event) {
