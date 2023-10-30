@@ -25,17 +25,25 @@
 package io.fairyproject.devtools.bukkit;
 
 import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.devtools.bukkit.plugin.PluginManagerWrapper;
 import io.fairyproject.devtools.reload.ReloadShutdownHandler;
 import io.fairyproject.plugin.Plugin;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Server;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 @RequiredArgsConstructor
 public class BukkitReloadShutdownHandler implements ReloadShutdownHandler {
 
-    private final Server server;
+    private final PluginManagerWrapper pluginManager;
     private final BukkitDependencyResolver dependencyResolver;
+    private final BukkitPluginCache pluginCache;
 
     @Override
     public void shutdown(Plugin plugin) {
@@ -52,10 +60,25 @@ public class BukkitReloadShutdownHandler implements ReloadShutdownHandler {
     }
 
     private void shutdownBukkitPlugin(org.bukkit.plugin.Plugin plugin) {
+        List<String> dependents = new ArrayList<>();
         for (org.bukkit.plugin.Plugin bukkitPlugin : this.dependencyResolver.resolveDependsBy(plugin)) {
+            dependents.add(bukkitPlugin.getName());
+
+            pluginCache.addSource(bukkitPlugin.getName(), this.getPluginSource(bukkitPlugin));
             this.shutdownBukkitPlugin(bukkitPlugin);
         }
 
-        server.getPluginManager().disablePlugin(plugin);
+        pluginCache.addSource(plugin.getName(), this.getPluginSource(plugin));
+        pluginCache.addDependents(plugin.getName(), dependents);
+        pluginManager.disablePlugin(plugin);
+    }
+
+    private Path getPluginSource(org.bukkit.plugin.Plugin plugin) {
+        URL url = plugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+        try {
+            return Paths.get(url.toURI());
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Failed to get plugin source", e);
+        }
     }
 }

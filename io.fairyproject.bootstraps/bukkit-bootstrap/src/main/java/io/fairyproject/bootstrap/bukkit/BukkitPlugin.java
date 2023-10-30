@@ -63,6 +63,8 @@ public final class BukkitPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        if (this.loaded)
+            return;
         INSTANCE = this;
 
         if (!this.bootstrap.preload()) {

@@ -22,42 +22,38 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.plugin.impl;
+package io.fairyproject.devtools.bukkit.plugin;
 
-import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.ApiStatus;
+import org.bukkit.Bukkit;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
-public class CompositeJavaPluginIdentifier implements JavaPluginIdentifier {
-
-    private final List<JavaPluginIdentifier> identifiers = new ArrayList<>();
+public class BukkitPluginManagerWrapper implements PluginManagerWrapper {
+    @Override
+    public Plugin loadPlugin(@NotNull File file) {
+        try {
+            return Bukkit.getPluginManager().loadPlugin(file);
+        } catch (InvalidPluginException | InvalidDescriptionException e) {
+            throw new IllegalStateException("Failed to load plugin", e);
+        }
+    }
 
     @Override
-    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
-        for (JavaPluginIdentifier identifier : identifiers) {
-            JavaPlugin javaPlugin = identifier.findByClass(clazz);
-            if (javaPlugin != null) {
-                return javaPlugin;
-            }
-        }
-
-        return null;
+    public void enablePlugin(@NotNull Plugin plugin) {
+        Bukkit.getPluginManager().enablePlugin(plugin);
     }
 
-    public void add(JavaPluginIdentifier javaPluginIdentifier) {
-        identifiers.add(javaPluginIdentifier);
+    @Override
+    public void disablePlugin(@NotNull Plugin plugin) {
+        Bukkit.getPluginManager().disablePlugin(plugin);
     }
 
-    public void addFirst(JavaPluginIdentifier javaPluginIdentifier) {
-        identifiers.add(0, javaPluginIdentifier);
-    }
-
-    @ApiStatus.Internal
-    public void clear() {
-        identifiers.clear();
+    @Override
+    public Plugin getPlugin(String name) {
+        return Bukkit.getPluginManager().getPlugin(name);
     }
 }

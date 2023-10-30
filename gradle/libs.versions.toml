@@ -2,7 +2,7 @@
 hikari = "3.4.5"
 guava = "30.0-jre"
 gson = "2.8.6"
-yaml = "1.26"
+yaml = "2.0"
 common-lang3 = "3.11"
 common-io = "2.7"
 annotations = "19.0.0"

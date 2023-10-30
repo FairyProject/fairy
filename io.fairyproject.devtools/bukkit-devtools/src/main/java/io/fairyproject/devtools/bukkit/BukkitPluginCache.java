@@ -22,42 +22,43 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.plugin.impl;
+package io.fairyproject.devtools.bukkit;
 
-import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.ApiStatus;
-import org.jetbrains.annotations.NotNull;
+import io.fairyproject.util.ConditionUtils;
 
-import java.util.ArrayList;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
-public class CompositeJavaPluginIdentifier implements JavaPluginIdentifier {
+public class BukkitPluginCache {
 
-    private final List<JavaPluginIdentifier> identifiers = new ArrayList<>();
+    private final Map<String, Path> sources = new HashMap<>();
+    private final Map<String, List<String>> dependents = new HashMap<>();
 
-    @Override
-    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
-        for (JavaPluginIdentifier identifier : identifiers) {
-            JavaPlugin javaPlugin = identifier.findByClass(clazz);
-            if (javaPlugin != null) {
-                return javaPlugin;
-            }
-        }
+    public void addSource(String name, Path file) {
+        ConditionUtils.notNull(name, "name");
+        ConditionUtils.notNull(file, "file");
 
-        return null;
+        this.sources.put(name, file);
     }
 
-    public void add(JavaPluginIdentifier javaPluginIdentifier) {
-        identifiers.add(javaPluginIdentifier);
+    public Path getSource(String name) {
+        ConditionUtils.notNull(name, "name");
+
+        return this.sources.get(name);
     }
 
-    public void addFirst(JavaPluginIdentifier javaPluginIdentifier) {
-        identifiers.add(0, javaPluginIdentifier);
+    public void addDependents(String name, List<String> depends) {
+        ConditionUtils.notNull(name, "name");
+        ConditionUtils.notNull(depends, "depends");
+
+        this.dependents.put(name, depends);
     }
 
-    @ApiStatus.Internal
-    public void clear() {
-        identifiers.clear();
+    public List<String> getDependents(String name) {
+        return this.dependents.getOrDefault(name, Collections.emptyList());
     }
+
 }

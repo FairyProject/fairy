@@ -25,15 +25,36 @@
 package io.fairyproject.devtools.bukkit;
 
 import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.devtools.bukkit.plugin.BukkitPluginManagerWrapper;
+import io.fairyproject.devtools.bukkit.plugin.PaperPluginManagerWrapper;
+import io.fairyproject.devtools.bukkit.plugin.PluginManagerWrapper;
 import io.fairyproject.devtools.reload.Reloader;
-import org.bukkit.Server;
+import io.fairyproject.log.Log;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 
 @InjectableComponent
 public class BukkitPluginReloaderSetup {
 
-    public BukkitPluginReloaderSetup(Server server, Reloader reloader, BukkitDependencyResolver dependencyResolver) {
-        reloader.setReloadStartupHandler(new BukkitReloadStartupHandler(server, dependencyResolver, new DefaultPluginLoadingStrategy()));
-        reloader.setReloadShutdownHandler(new BukkitReloadShutdownHandler(server, dependencyResolver));
+    public BukkitPluginReloaderSetup(Reloader reloader, BukkitDependencyResolver dependencyResolver, MCSchedulerProvider mcSchedulerProvider) {
+        PluginManagerWrapper pluginManagerWrapper;
+        try {
+            Class.forName("io.papermc.paper.plugin.manager.PaperPluginManagerImpl");
+            pluginManagerWrapper = new PaperPluginManagerWrapper();
+
+            Log.info("Paper detected, using PaperPluginManagerImpl");
+        } catch (ClassNotFoundException e) {
+            pluginManagerWrapper = new BukkitPluginManagerWrapper();
+
+            Log.info("Paper not detected, using BukkitPluginManager");
+        }
+
+        reloader.setScheduler(mcSchedulerProvider.getGlobalScheduler());
+
+        BukkitPluginCache pluginFileCache = new BukkitPluginCache();
+        DefaultPluginLoadingStrategy pluginLoadingStrategy = new DefaultPluginLoadingStrategy();
+
+        reloader.setReloadStartupHandler(new BukkitReloadStartupHandler(pluginManagerWrapper, pluginFileCache, pluginLoadingStrategy));
+        reloader.setReloadShutdownHandler(new BukkitReloadShutdownHandler(pluginManagerWrapper, dependencyResolver, pluginFileCache));
     }
 
 }

@@ -51,7 +51,6 @@ public class ReloadablePluginClassInitializer extends DefaultPluginClassInitiali
         if (urls == null)
             return classLoader;
 
-        System.out.println(urls);
         try {
             return new ReloadableClassLoader(urls.toArray(new URL[0]), classLoader);
         } catch (Throwable throwable) {

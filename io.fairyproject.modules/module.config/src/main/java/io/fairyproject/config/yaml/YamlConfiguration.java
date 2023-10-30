@@ -28,10 +28,10 @@ import io.fairyproject.config.Comments;
 import io.fairyproject.config.Configuration;
 import io.fairyproject.config.ConfigurationSource;
 import io.fairyproject.config.ConfigurationStoreException;
+import io.fairyproject.config.util.YamlCompatUtil;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.DumperOptions.FlowStyle;
 import org.yaml.snakeyaml.constructor.BaseConstructor;
-import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.representer.Representer;
 import org.yaml.snakeyaml.resolver.Resolver;
 
@@ -138,8 +138,8 @@ public abstract class YamlConfiguration extends Configuration<YamlConfiguration>
                 extends Properties.Builder<B> {
             private List<String> prependedComments = Collections.emptyList();
             private List<String> appendedComments = Collections.emptyList();
-            private BaseConstructor constructor = new Constructor();
-            private Representer representer = new Representer();
+            private BaseConstructor constructor = YamlCompatUtil.createConstructor();
+            private Representer representer = YamlCompatUtil.createRepresenter();
             private DumperOptions options = new DumperOptions();
             private Resolver resolver = new Resolver();
 

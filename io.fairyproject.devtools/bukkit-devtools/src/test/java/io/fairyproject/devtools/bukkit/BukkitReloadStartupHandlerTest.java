@@ -27,30 +27,27 @@ package io.fairyproject.devtools.bukkit;
 import be.seeseemelk.mockbukkit.MockBukkit;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.plugin.impl.SpecifyJavaPluginIdentifier;
+import io.fairyproject.devtools.bukkit.plugin.PluginManagerWrapper;
 import io.fairyproject.mock.MockPlugin;
 import io.fairyproject.tests.bukkit.MockBukkitContext;
-import org.bukkit.Server;
-import org.bukkit.plugin.InvalidDescriptionException;
-import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.jetbrains.annotations.Nullable;
+import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class BukkitReloadStartupHandlerTest {
 
-    private PluginManager pluginManager;
+    private PluginManagerWrapper pluginManager;
     private BukkitReloadStartupHandler bukkitReloadStartupHandler;
-    private BukkitDependencyResolver dependencyResolver;
+    private BukkitPluginCache pluginFileCache;
     private PluginLoadingStrategy pluginLoadingStrategy;
     private MockPlugin fairyPlugin;
     private JavaPlugin javaPlugin;
@@ -62,14 +59,11 @@ class BukkitReloadStartupHandlerTest {
     }
 
     @BeforeEach
-    void setUp() throws InvalidPluginException, InvalidDescriptionException {
-        pluginManager = Mockito.mock(PluginManager.class);
-        Server server = Mockito.mock(Server.class);
-        Mockito.when(server.getPluginManager()).thenReturn(pluginManager);
-
-        dependencyResolver = Mockito.mock(BukkitDependencyResolver.class);
+    void setUp() {
+        pluginManager = Mockito.mock(PluginManagerWrapper.class);
+        pluginFileCache = new BukkitPluginCache();
         pluginLoadingStrategy = Mockito.mock(PluginLoadingStrategy.class);
-        bukkitReloadStartupHandler = new BukkitReloadStartupHandler(server, dependencyResolver, pluginLoadingStrategy);
+        bukkitReloadStartupHandler = new BukkitReloadStartupHandler(pluginManager, pluginFileCache, pluginLoadingStrategy);
 
         fairyPlugin = new MockPlugin();
         MockBukkit.getOrCreateMock();
@@ -79,6 +73,11 @@ class BukkitReloadStartupHandlerTest {
         Mockito.when(pluginManager.loadPlugin(Mockito.any(File.class))).thenReturn(newJavaPlugin);
 
         RootJavaPluginIdentifier.getInstance().addFirst(new SpecifyJavaPluginIdentifier(javaPlugin));
+    }
+
+    @AfterEach
+    void tearDown() {
+        RootJavaPluginIdentifier.clearInstance();
     }
 
     @Test
@@ -91,36 +90,49 @@ class BukkitReloadStartupHandlerTest {
         Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(false);
         bukkitReloadStartupHandler.start(fairyPlugin);
 
-        verifyPluginEnabled(javaPlugin);
+        verifyPluginEnabled(javaPlugin, null);
     }
 
     @Test
-    void shouldLoadFromFile() throws URISyntaxException, InvalidPluginException, InvalidDescriptionException {
+    void shouldLoadFromFile() throws URISyntaxException {
         Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(true);
         bukkitReloadStartupHandler.start(fairyPlugin);
-
-        verifyPluginEnabled(newJavaPlugin);
-
         // make sure the plugin is reloaded
         URL url = javaPlugin.getClass().getProtectionDomain().getCodeSource().getLocation();
         File file = new File(url.toURI());
 
-        Mockito.verify(pluginManager).loadPlugin(file);
+        verifyPluginEnabled(newJavaPlugin, file);
     }
 
     @Test
-    void startShouldEnableDependedPlugins() throws InvalidPluginException, InvalidDescriptionException, URISyntaxException {
-        Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(true);
+    void javaPluginNotFoundShouldLoadFromFileCache() throws URISyntaxException {
+        RootJavaPluginIdentifier.getInstance().clear(); // clear the identifier
+        Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(false);
+        URL url = javaPlugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+        Path path = Paths.get(url.toURI());
+        pluginFileCache.addSource("test", path);
+        Mockito.when(pluginManager.loadPlugin(Mockito.any(File.class))).thenReturn(null);
+        Mockito.when(pluginManager.loadPlugin(path.toFile())).thenReturn(newJavaPlugin);
 
-        be.seeseemelk.mockbukkit.MockPlugin a = MockBukkit.createMockPlugin("PluginA");
-        be.seeseemelk.mockbukkit.MockPlugin b = MockBukkit.createMockPlugin("PluginB");
+        bukkitReloadStartupHandler.start(fairyPlugin);
+
+        verifyPluginEnabled(newJavaPlugin, path.toFile());
+    }
+
+    @Test
+    void startShouldEnableDependedPlugins() throws URISyntaxException {
+        pluginFileCache.addDependents("b", java.util.Collections.singletonList("NewPluginA"));
+        pluginFileCache.addDependents("NewPluginA", java.util.Collections.singletonList("NewPluginB"));
+        Path aFile = Paths.get("a");
+        pluginFileCache.addSource("NewPluginA", aFile);
+        Path bFile = Paths.get("b");
+        pluginFileCache.addSource("NewPluginB", bFile);
+        Mockito.when(pluginLoadingStrategy.shouldLoadFromFile(Mockito.any())).thenReturn(true);
 
         AtomicInteger counter = new AtomicInteger();
         JavaPlugin newA = Mockito.spy(MockBukkit.createMockPlugin("NewPluginA"));
         JavaPlugin newB = Mockito.spy(MockBukkit.createMockPlugin("NewPluginB"));
 
-        Mockito.when(dependencyResolver.resolveDependsBy(javaPlugin)).thenReturn(java.util.Collections.singletonList(a));
-        Mockito.when(dependencyResolver.resolveDependsBy(a)).thenReturn(java.util.Collections.singletonList(b));
         Mockito.when(pluginManager.loadPlugin(Mockito.any(File.class))).thenAnswer(invocation -> {
             switch (counter.getAndIncrement()) {
                 case 0:
@@ -136,16 +148,18 @@ class BukkitReloadStartupHandlerTest {
 
         bukkitReloadStartupHandler.start(fairyPlugin);
 
-        verifyPluginEnabled(newA);
-        verifyPluginEnabled(newB);
+        verifyPluginEnabled(newA, aFile.toFile());
+        verifyPluginEnabled(newB, bFile.toFile());
 
         URL url = javaPlugin.getClass().getProtectionDomain().getCodeSource().getLocation();
         File file = new File(url.toURI());
 
-        Mockito.verify(pluginManager, Mockito.atLeast(3)).loadPlugin(file);
+        Mockito.verify(pluginManager, Mockito.atLeast(1)).loadPlugin(file);
     }
 
-    private void verifyPluginEnabled(Plugin plugin) {
+    private void verifyPluginEnabled(Plugin plugin, @Nullable File file) {
+        if (file != null)
+            Mockito.verify(pluginManager, Mockito.atLeast(1)).loadPlugin(file);
         Mockito.verify(plugin).onLoad();
         Mockito.verify(pluginManager).enablePlugin(plugin);
     }

@@ -24,6 +24,7 @@
 
 package io.fairyproject.devtools.reload;
 
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.scheduler.Scheduler;
 import lombok.Getter;
@@ -60,7 +61,17 @@ public class Reloader {
             this.reloadQueued = true;
         }
 
-        scheduler.schedule(() -> this.doReload(plugin), Duration.ofMillis(this.quietPeriod));
+        scheduler.schedule(() -> {
+            try {
+                this.doReload(plugin);
+            } catch (Throwable throwable) {
+                Log.error("Failed to reload plugin " + plugin.getName(), throwable);
+            } finally {
+                synchronized (this) {
+                    this.reloadQueued = false;
+                }
+            }
+        }, Duration.ofMillis(this.quietPeriod));
         return true;
     }
 

@@ -22,42 +22,21 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.plugin.impl;
+package io.fairyproject.devtools.bukkit.plugin;
 
-import io.fairyproject.bukkit.plugin.JavaPluginIdentifier;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.ApiStatus;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
 
-public class CompositeJavaPluginIdentifier implements JavaPluginIdentifier {
+public interface PluginManagerWrapper {
 
-    private final List<JavaPluginIdentifier> identifiers = new ArrayList<>();
+    Plugin loadPlugin(@NotNull File file);
 
-    @Override
-    public JavaPlugin findByClass(@NotNull Class<?> clazz) {
-        for (JavaPluginIdentifier identifier : identifiers) {
-            JavaPlugin javaPlugin = identifier.findByClass(clazz);
-            if (javaPlugin != null) {
-                return javaPlugin;
-            }
-        }
+    void enablePlugin(@NotNull Plugin plugin);
 
-        return null;
-    }
+    void disablePlugin(@NotNull Plugin plugin);
 
-    public void add(JavaPluginIdentifier javaPluginIdentifier) {
-        identifiers.add(javaPluginIdentifier);
-    }
+    Plugin getPlugin(String name);
 
-    public void addFirst(JavaPluginIdentifier javaPluginIdentifier) {
-        identifiers.add(0, javaPluginIdentifier);
-    }
-
-    @ApiStatus.Internal
-    public void clear() {
-        identifiers.clear();
-    }
 }
