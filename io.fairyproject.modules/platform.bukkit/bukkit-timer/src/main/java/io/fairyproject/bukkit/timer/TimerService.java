@@ -25,18 +25,16 @@
 package io.fairyproject.bukkit.timer;
 
 import com.google.common.collect.Sets;
-import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.timer.event.TimerClearEvent;
-import io.fairyproject.bukkit.timer.impl.PlayerTimer;
-import io.fairyproject.container.InjectableComponent;
-import io.fairyproject.mc.scheduler.MCSchedulerProvider;
-import lombok.RequiredArgsConstructor;
-import org.bukkit.event.player.PlayerQuitEvent;
-import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.timer.event.TimerClearEvent;
+import io.fairyproject.bukkit.timer.impl.PlayerTimer;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Iterator;
 import java.util.Set;

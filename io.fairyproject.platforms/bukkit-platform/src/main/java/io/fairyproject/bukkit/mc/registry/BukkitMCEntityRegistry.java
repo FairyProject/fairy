@@ -28,7 +28,6 @@ import io.fairyproject.bukkit.mc.BukkitMCEntity;
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.registry.MCEntityRegistry;
-import io.fairyproject.mc.scheduler.MCScheduler;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import lombok.RequiredArgsConstructor;
 

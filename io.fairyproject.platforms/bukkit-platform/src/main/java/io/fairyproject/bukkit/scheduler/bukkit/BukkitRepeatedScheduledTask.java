@@ -70,6 +70,8 @@ public class BukkitRepeatedScheduledTask<R> implements ScheduledTask<R>, Runnabl
                     break;
                 case CONTINUE:
                     break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + response.getState());
             }
         } catch (Exception e) {
             future.completeExceptionally(e);

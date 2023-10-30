@@ -59,6 +59,8 @@ public class RepeatedExecutorScheduledTask<R> extends ExecutorScheduledTask<R> {
                     break;
                 case CONTINUE:
                     break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + result.getState());
             }
         } catch (Exception e) {
             future.completeExceptionally(e);

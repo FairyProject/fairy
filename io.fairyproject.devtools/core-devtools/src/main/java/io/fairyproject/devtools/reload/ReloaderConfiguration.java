@@ -24,7 +24,6 @@
 
 package io.fairyproject.devtools.reload;
 
-import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.Configuration;

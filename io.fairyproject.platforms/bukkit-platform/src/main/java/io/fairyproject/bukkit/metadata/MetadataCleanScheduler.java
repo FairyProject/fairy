@@ -24,7 +24,6 @@
 
 package io.fairyproject.bukkit.metadata;
 
-import io.fairyproject.Fairy;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;

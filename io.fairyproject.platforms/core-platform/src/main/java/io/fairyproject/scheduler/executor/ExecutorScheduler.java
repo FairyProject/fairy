@@ -27,7 +27,6 @@ package io.fairyproject.scheduler.executor;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.Scheduler;
 import io.fairyproject.scheduler.response.TaskResponse;
-import lombok.RequiredArgsConstructor;
 
 import java.time.Duration;
 import java.util.concurrent.Callable;

@@ -29,8 +29,6 @@ import io.fairyproject.state.event.StateMachineEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
-
 public interface StateMachineBuilder {
 
     /**

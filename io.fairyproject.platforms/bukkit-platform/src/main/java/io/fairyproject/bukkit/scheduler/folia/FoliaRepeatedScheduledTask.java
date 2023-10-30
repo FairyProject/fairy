@@ -70,6 +70,8 @@ public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer
                     break;
                 case CONTINUE:
                     break;
+                default:
+                    throw new IllegalStateException("Unexpected value: " + response.getState());
             }
         } catch (Exception e) {
             future.completeExceptionally(e);

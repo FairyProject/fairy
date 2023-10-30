@@ -24,8 +24,6 @@
 
 package io.fairyproject.bukkit.metadata;
 
-import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.PlayerMetadataRegistry;
@@ -38,15 +36,12 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Provides access to {@link MetadataRegistry} instances bound to players, entities, blocks and worlds.
