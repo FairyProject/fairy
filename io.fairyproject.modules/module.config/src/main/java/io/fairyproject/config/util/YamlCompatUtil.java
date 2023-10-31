@@ -36,7 +36,7 @@ public class YamlCompatUtil {
     public Constructor createConstructor() {
         try {
             return new Constructor(new org.yaml.snakeyaml.LoaderOptions());
-        } catch (NoClassDefFoundError ignored) {
+        } catch (NoSuchMethodError ignored) {
             try {
                 return Constructor.class.getDeclaredConstructor().newInstance();
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
@@ -49,7 +49,7 @@ public class YamlCompatUtil {
     public Representer createRepresenter() {
         try {
             return new Representer(new org.yaml.snakeyaml.DumperOptions());
-        } catch (NoClassDefFoundError ignored) {
+        } catch (NoSuchMethodError ignored) {
             try {
                 return Representer.class.getDeclaredConstructor().newInstance();
             } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
