@@ -60,7 +60,7 @@ public class FoliaRegionScheduler extends FoliaAbstractScheduler implements MCTi
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        scheduler.runAtFixedRate(bukkitPlugin, location, task, delayTicks, intervalTicks);
+        task.setScheduledTask(scheduler.runAtFixedRate(bukkitPlugin, location, task, delayTicks, intervalTicks));
 
         return task;
     }

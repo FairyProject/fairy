@@ -30,8 +30,11 @@ import lombok.Getter;
 import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A classloader that can reload classes from a plugin using specific classpath
@@ -43,6 +46,7 @@ import java.net.URLClassLoader;
 @Setter
 public class ReloadableClassLoader extends URLClassLoader implements PluginClassLoader {
 
+    private static final Set<ReloadableClassLoader> ALL_LOADERS = ConcurrentHashMap.newKeySet();
     static {
         ClassLoader.registerAsParallelCapable();
     }
@@ -51,6 +55,7 @@ public class ReloadableClassLoader extends URLClassLoader implements PluginClass
 
     public ReloadableClassLoader(URL[] urls, ClassLoader parent) {
         super(urls, parent);
+        ALL_LOADERS.add(this);
     }
 
     @Override
@@ -60,6 +65,10 @@ public class ReloadableClassLoader extends URLClassLoader implements PluginClass
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        return loadClass0(name, resolve, true);
+    }
+
+    protected Class<?> loadClass0(String name, boolean resolve, boolean all) throws ClassNotFoundException {
         // We don't want to reload classes from FairyProject
         if (name.contains("io.fairyproject"))
             return super.loadClass(name, resolve);
@@ -75,7 +84,23 @@ public class ReloadableClassLoader extends URLClassLoader implements PluginClass
                 try {
                     loadedClass = findClass(name);
                 } catch (ClassNotFoundException ex) {
-                    loadedClass = Class.forName(name, false, getParent());
+                    if (all) {
+                        for (ReloadableClassLoader classLoader : ALL_LOADERS) {
+                            if (classLoader == this) {
+                                continue;
+                            }
+
+                            try {
+                                loadedClass = classLoader.loadClass0(name, resolve, false);
+                                break;
+                            } catch (ClassNotFoundException ignored) {
+                            }
+                        }
+                    }
+
+                    if (loadedClass == null) {
+                        loadedClass = Class.forName(name, false, getParent());
+                    }
                 }
             }
 
@@ -84,6 +109,15 @@ public class ReloadableClassLoader extends URLClassLoader implements PluginClass
             }
 
             return loadedClass;
+        }
+    }
+
+    @Override
+    public void close() throws IOException {
+        try {
+            super.close();
+        } finally {
+            ALL_LOADERS.remove(this);
         }
     }
 }

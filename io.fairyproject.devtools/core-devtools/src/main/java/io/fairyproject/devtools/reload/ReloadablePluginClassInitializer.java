@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -74,6 +75,15 @@ public class ReloadablePluginClassInitializer extends DefaultPluginClassInitiali
         List<URL> urls = classpathCollection.getURLsByName(plugin.getName());
         if (urls == null)
             return;
+
+        ClassLoader parent = plugin.getPluginClassLoader().getParent();
+        if (parent instanceof URLClassLoader) {
+            // register parent class loader urls
+            URLClassLoader urlClassLoader = (URLClassLoader) parent;
+            for (URL url : urlClassLoader.getURLs()) {
+                plugin.getClassLoaderRegistry().addUrl(url);
+            }
+        }
 
         for (URL url : urls) {
             plugin.getClassLoaderRegistry().addUrl(url);

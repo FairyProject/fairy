@@ -24,17 +24,16 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
-import io.fairyproject.mc.scheduler.MCScheduler;
+import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
 
-import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class FoliaAbstractScheduler implements MCScheduler {
+public abstract class FoliaAbstractScheduler implements MCTickBasedScheduler {
 
     protected <R> ScheduledTask<R> doSchedule(Callable<R> callable, Function<
             Consumer<io.papermc.paper.threadedregions.scheduler.ScheduledTask>,
@@ -73,24 +72,8 @@ public abstract class FoliaAbstractScheduler implements MCScheduler {
     public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks) {
         return scheduleAtFixedRate(() -> {
             runnable.run();
-            return TaskResponse.success(null);
+            return TaskResponse.continueTask();
         }, delayTicks, intervalTicks);
-    }
-
-    @Override
-    public ScheduledTask<?> schedule(Runnable runnable, Duration delay) {
-        return schedule(() -> {
-            runnable.run();
-            return null;
-        }, delay);
-    }
-
-    @Override
-    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, Duration delay, Duration interval) {
-        return scheduleAtFixedRate(() -> {
-            runnable.run();
-            return TaskResponse.success(null);
-        }, delay, interval);
     }
 
 }

@@ -58,7 +58,8 @@ public class FoliaEntityScheduler extends FoliaAbstractScheduler implements MCTi
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        entity.getScheduler().runAtFixedRate(bukkitPlugin, task, null, delayTicks, intervalTicks);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask = entity.getScheduler().runAtFixedRate(bukkitPlugin, task, null, delayTicks, intervalTicks);
+        task.setScheduledTask(scheduledTask);
 
         return task;
     }

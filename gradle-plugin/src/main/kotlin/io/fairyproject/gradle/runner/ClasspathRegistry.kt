@@ -55,7 +55,7 @@ class ClasspathRegistry {
         val name = fairyExtension.name.get()
 
         project.extensions.configure(JavaPluginExtension::class.java) { java ->
-            val path = java.sourceSets.getByName("main").runtimeClasspath.asPath
+            val path = java.sourceSets.getByName("main").output.classesDirs.asPath
 
             path.split(":").forEach {
                 register(name, it)

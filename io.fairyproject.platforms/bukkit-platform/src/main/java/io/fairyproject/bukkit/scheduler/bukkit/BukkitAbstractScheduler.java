@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.scheduler.bukkit;
 
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.response.TaskResponse;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.concurrent.Callable;
@@ -68,7 +69,7 @@ public abstract class BukkitAbstractScheduler implements MCTickBasedScheduler {
     public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks) {
         return scheduleAtFixedRate(() -> {
             runnable.run();
-            return null;
+            return TaskResponse.continueTask();
         }, delayTicks, intervalTicks);
     }
 
