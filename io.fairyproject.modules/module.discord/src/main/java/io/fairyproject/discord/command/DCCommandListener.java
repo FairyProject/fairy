@@ -27,17 +27,17 @@ public class DCCommandListener implements CommandListener {
     private final CommandService commandService;
 
     @PreInitialize
-    private void onPreInitialize() {
+    public void onPreInitialize() {
         this.commandService.addCommandListener(this);
     }
 
     @PostInitialize
-    private void onPostInitialize() {
+    public void onPostInitialize() {
         this.commandService.registerDefaultPresenceProvider(new DCPresenceProvider());
     }
 
     @PostDestroy
-    private void onPostDestroy() {
+    public void onPostDestroy() {
         this.commandService.removeCommandListener(this);
     }
 
