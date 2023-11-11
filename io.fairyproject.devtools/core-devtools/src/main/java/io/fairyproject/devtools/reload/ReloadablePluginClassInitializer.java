@@ -32,8 +32,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -76,17 +76,18 @@ public class ReloadablePluginClassInitializer extends DefaultPluginClassInitiali
         if (urls == null)
             return;
 
-        ClassLoader parent = plugin.getPluginClassLoader().getParent();
-        if (parent instanceof URLClassLoader) {
-            // register parent class loader urls
-            URLClassLoader urlClassLoader = (URLClassLoader) parent;
-            for (URL url : urlClassLoader.getURLs()) {
-                plugin.getClassLoaderRegistry().addUrl(url);
-            }
-        }
-
         for (URL url : urls) {
             plugin.getClassLoaderRegistry().addUrl(url);
+        }
+    }
+
+    @Override
+    public void onPluginUnload(Plugin plugin) {
+        ReloadableClassLoader classLoader = (ReloadableClassLoader) plugin.getPluginClassLoader();
+        try {
+            classLoader.close();
+        } catch (IOException e) {
+            throw new IllegalStateException("Failed to close class loader", e);
         }
     }
 }

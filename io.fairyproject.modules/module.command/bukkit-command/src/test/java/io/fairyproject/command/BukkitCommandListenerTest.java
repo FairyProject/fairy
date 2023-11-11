@@ -43,7 +43,7 @@ class BukkitCommandListenerTest {
     @BeforeEach
     void setUp() {
         bukkitCommandMap = new FakeBukkitCommandMap();
-        bukkitCommandListener = new BukkitCommandListener(bukkitCommandMap);
+        bukkitCommandListener = new BukkitCommandListener(null, bukkitCommandMap);
 
         baseCommand = Mockito.mock(BaseCommand.class);
     }

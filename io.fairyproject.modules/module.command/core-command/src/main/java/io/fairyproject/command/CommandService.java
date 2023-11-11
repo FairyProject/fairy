@@ -79,11 +79,6 @@ public class CommandService {
         this.commands = new ConcurrentHashMap<>();
 
         this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
-                .withFilter(ContainerObjCollector.inherits(CommandListener.class))
-                .withAddHandler(ContainerObjCollector.warpInstance(CommandListener.class, this.listeners::add))
-                .withRemoveHandler(ContainerObjCollector.warpInstance(CommandListener.class, this.listeners::remove))
-        );
-        this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(ArgCompletionHolder.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(ArgCompletionHolder.class, handler -> this.tabCompletionHolders.put(handler.name(), handler)))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(ArgCompletionHolder.class, handler -> this.tabCompletionHolders.remove(handler.name())))
@@ -105,7 +100,7 @@ public class CommandService {
     }
 
     @PostInitialize
-    public void init() {
+    public void onPostInitialize() {
         INSTANCE = this;
 
         Debug.log("Injecting fairy commands...");
@@ -114,6 +109,14 @@ public class CommandService {
         } finally {
             Debug.log("Injected!");
         }
+    }
+
+    public void addCommandListener(CommandListener commandListener) {
+        this.listeners.add(commandListener);
+    }
+
+    public void removeCommandListener(CommandListener commandListener) {
+        this.listeners.remove(commandListener);
     }
 
     public void registerDefaultPresenceProvider(PresenceProvider<?> presenceProvider) {

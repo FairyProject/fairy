@@ -67,6 +67,9 @@ public class DefaultBukkitCommandMap implements BukkitCommandMap {
     @Override
     public void unregister(BaseCommand command) {
         MetadataMap metadata = command.getMetadata();
+        if (!this.isRegistered(command))
+            throw new IllegalArgumentException("Command not registered");
+
         metadata.ifPresent(EXECUTOR_KEY, commandExecutor -> {
             String fallbackPrefix = commandExecutor.getFallbackPrefix();
 

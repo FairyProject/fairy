@@ -3,9 +3,7 @@ package io.fairyproject.discord.command;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandListener;
 import io.fairyproject.command.CommandService;
-import io.fairyproject.container.ContainerContext;
-import io.fairyproject.container.InjectableComponent;
-import io.fairyproject.container.PostInitialize;
+import io.fairyproject.container.*;
 import io.fairyproject.discord.DCBot;
 import io.fairyproject.discord.channel.DCMessageChannel;
 import io.fairyproject.discord.event.DCBotInitializedEvent;
@@ -28,9 +26,19 @@ public class DCCommandListener implements CommandListener {
     private final ContainerContext containerContext;
     private final CommandService commandService;
 
+    @PreInitialize
+    private void onPreInitialize() {
+        this.commandService.addCommandListener(this);
+    }
+
     @PostInitialize
     private void onPostInitialize() {
         this.commandService.registerDefaultPresenceProvider(new DCPresenceProvider());
+    }
+
+    @PostDestroy
+    private void onPostDestroy() {
+        this.commandService.removeCommandListener(this);
     }
 
     @Override

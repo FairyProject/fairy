@@ -60,4 +60,13 @@ public interface PluginClassInitializer {
         // to be overridden
     }
 
+    /**
+     * Called when the plugin is unloaded.
+     *
+     * @param plugin the plugin
+     */
+    default void onPluginUnload(Plugin plugin) {
+        // to be overridden
+    }
+
 }

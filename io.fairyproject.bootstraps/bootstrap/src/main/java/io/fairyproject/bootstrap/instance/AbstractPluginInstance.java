@@ -97,6 +97,8 @@ public abstract class AbstractPluginInstance implements PluginInstance {
         plugin.getCompositeTerminable().closeAndReportException();
         PluginManager.INSTANCE.onPluginDisable(plugin);
         PluginManager.INSTANCE.removePlugin(plugin);
+
+        this.pluginClassInitializer.onPluginUnload(plugin);
     }
 
 }
