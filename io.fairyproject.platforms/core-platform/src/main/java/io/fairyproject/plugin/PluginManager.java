@@ -24,77 +24,61 @@
 
 package io.fairyproject.plugin;
 
+import lombok.Getter;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class PluginManager {
 
     public static PluginManager INSTANCE;
 
-    public static boolean isInitialized() {
-        return INSTANCE != null;
-    }
-
-    public static void initialize(PluginHandler pluginHandler) {
-        if (INSTANCE != null) {
-            throw new IllegalArgumentException("Don't Initialize twice!");
-        }
-
-        INSTANCE = new PluginManager(pluginHandler);
-    }
-
     private final Map<String, Plugin> plugins;
-    private final Set<PluginListenerAdapter> listenerAdapters;
+    @Getter
+    private final List<PluginListenerAdapter> listeners;
     private final PluginHandler pluginHandler;
 
     public PluginManager(PluginHandler pluginHandler) {
         this.pluginHandler = pluginHandler;
 
         this.plugins = new ConcurrentHashMap<>();
-        this.listenerAdapters = new TreeSet<>(Collections.reverseOrder(Comparator.comparingInt(PluginListenerAdapter::priority)));
+        this.listeners = new ArrayList<>();
     }
 
     public void unload() {
         this.plugins.clear();
-        this.listenerAdapters.clear();
+        this.listeners.clear();
         INSTANCE = null;
-    }
-
-    public Collection<ClassLoader> getClassLoaders() {
-        return this.plugins.values()
-                .stream()
-                .map(Plugin::getPluginClassLoader)
-                .collect(Collectors.toList());
     }
 
     public void onPluginPreLoaded(ClassLoader classLoader,
                                   PluginDescription description,
                                   PluginAction action,
                                   CompletableFuture<Plugin> completableFuture) {
-        synchronized (this.listenerAdapters) {
-            this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginPreLoaded(classLoader, description, action, completableFuture));
+        synchronized (this.listeners) {
+            this.listeners.forEach(listenerAdapter -> listenerAdapter.onPluginPreLoaded(classLoader, description, action, completableFuture));
         }
     }
 
     public void onPluginInitial(Plugin plugin) {
-        synchronized (this.listenerAdapters) {
-            this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginInitial(plugin));
+        synchronized (this.listeners) {
+            this.listeners.forEach(listenerAdapter -> listenerAdapter.onPluginInitial(plugin));
         }
     }
 
     public void onPluginEnable(Plugin plugin) {
-        synchronized (this.listenerAdapters) {
-            this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginEnable(plugin));
+        synchronized (this.listeners) {
+            this.listeners.forEach(listenerAdapter -> {
+                listenerAdapter.onPluginEnable(plugin);
+            });
         }
     }
 
     public void onPluginDisable(Plugin plugin) {
-        synchronized (this.listenerAdapters) {
-            this.listenerAdapters.forEach(listenerAdapter -> listenerAdapter.onPluginDisable(plugin));
+        synchronized (this.listeners) {
+            this.listeners.forEach(listenerAdapter -> listenerAdapter.onPluginDisable(plugin));
         }
     }
 
@@ -103,11 +87,23 @@ public class PluginManager {
     }
 
     public Plugin getPlugin(String name) {
-        return this.plugins.get(name);
+        return this.plugins.get(name.toLowerCase());
     }
 
     public void addPlugin(Plugin plugin) {
-        this.plugins.put(plugin.getName(), plugin);
+        String name = plugin.getName().toLowerCase();
+        if (this.plugins.containsKey(name))
+            throw new IllegalArgumentException("Plugin " + name + " already registered!");
+
+        this.plugins.put(name, plugin);
+    }
+
+    public void removePlugin(Plugin plugin) {
+        String name = plugin.getName().toLowerCase();
+        if (!this.plugins.containsKey(name))
+            throw new IllegalArgumentException("Plugin " + plugin.getName() + " not registered!");
+
+        this.plugins.remove(name);
     }
 
     public void callFrameworkFullyDisable() {
@@ -115,8 +111,15 @@ public class PluginManager {
     }
 
     public void registerListener(PluginListenerAdapter listenerAdapter) {
-        synchronized (this.listenerAdapters) {
-            this.listenerAdapters.add(listenerAdapter);
+        synchronized (this.listeners) {
+            this.listeners.add(listenerAdapter);
+            this.listeners.sort(Collections.reverseOrder(Comparator.comparingInt(PluginListenerAdapter::priority)));
+        }
+    }
+
+    public void removeListener(PluginListenerAdapter listenerAdapter) {
+        synchronized (this.listeners) {
+            this.listeners.remove(listenerAdapter);
         }
     }
 
@@ -128,6 +131,18 @@ public class PluginManager {
         }
 
         return this.getPlugin(name);
+    }
+
+    public static boolean isInitialized() {
+        return INSTANCE != null;
+    }
+
+    public static void initialize(PluginHandler pluginHandler) {
+        if (INSTANCE != null) {
+            throw new IllegalArgumentException("Don't Initialize twice!");
+        }
+
+        INSTANCE = new PluginManager(pluginHandler);
     }
 
 }

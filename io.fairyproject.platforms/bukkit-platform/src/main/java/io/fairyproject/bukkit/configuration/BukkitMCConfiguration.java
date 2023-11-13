@@ -45,6 +45,7 @@ import io.fairyproject.mc.registry.MCEntityRegistry;
 import io.fairyproject.mc.registry.MCGameProfileRegistry;
 import io.fairyproject.mc.registry.MCWorldRegistry;
 import io.fairyproject.mc.registry.player.MCPlayerPlatformOperator;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
@@ -94,8 +95,8 @@ public class BukkitMCConfiguration {
     }
 
     @InjectableComponent
-    public MCEntityRegistry provideEntityRegistry(BukkitDataWatcherConverter dataWatcherConverter) {
-        return new BukkitMCEntityRegistry(dataWatcherConverter);
+    public MCEntityRegistry provideEntityRegistry(BukkitDataWatcherConverter dataWatcherConverter, MCSchedulerProvider mcSchedulerProvider) {
+        return new BukkitMCEntityRegistry(dataWatcherConverter, mcSchedulerProvider);
     }
 
     @InjectableComponent
@@ -109,8 +110,9 @@ public class BukkitMCConfiguration {
             BukkitAudiences audiences,
             BukkitDataWatcherConverter dataWatcherConverter,
             BukkitMCPlayerOperator playerOperator,
-            MCVersionMappingRegistry versionMappingRegistry) {
-        return new BukkitMCPlayerPlatformOperator(mcServer, audiences, dataWatcherConverter, playerOperator, versionMappingRegistry);
+            MCVersionMappingRegistry versionMappingRegistry,
+            MCSchedulerProvider mcSchedulerProvider) {
+        return new BukkitMCPlayerPlatformOperator(mcServer, audiences, dataWatcherConverter, playerOperator, mcSchedulerProvider, versionMappingRegistry);
     }
 
     @InjectableComponent

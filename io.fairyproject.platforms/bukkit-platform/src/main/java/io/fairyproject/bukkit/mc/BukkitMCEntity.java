@@ -9,6 +9,8 @@ import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCEventFilter;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.event.trait.MCEntityEvent;
+import io.fairyproject.mc.scheduler.MCScheduler;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 import io.fairyproject.mc.util.Position;
 import org.bukkit.entity.Entity;
@@ -19,18 +21,21 @@ import java.util.UUID;
 
 public class BukkitMCEntity implements MCEntity {
 
+    protected final MCSchedulerProvider mcSchedulerProvider;
     private final BukkitDataWatcherConverter dataWatcherConverter;
     private final EventNode<MCEntityEvent> eventNode;
 
     private Entity entity;
+    protected MCScheduler scheduler;
 
-    public BukkitMCEntity(BukkitDataWatcherConverter dataWatcherConverter) {
+    public BukkitMCEntity(BukkitDataWatcherConverter dataWatcherConverter, MCSchedulerProvider mcSchedulerProvider) {
+        this.mcSchedulerProvider = mcSchedulerProvider;
         this.dataWatcherConverter = dataWatcherConverter;
         this.eventNode = GlobalEventNode.get().map(this, MCEventFilter.ENTITY);
     }
 
-    public BukkitMCEntity(Entity entity, BukkitDataWatcherConverter dataWatcherConverter) {
-        this(dataWatcherConverter);
+    public BukkitMCEntity(Entity entity, BukkitDataWatcherConverter dataWatcherConverter, MCSchedulerProvider mcSchedulerProvider) {
+        this(dataWatcherConverter, mcSchedulerProvider);
         this.entity = entity;
     }
 
@@ -67,6 +72,13 @@ public class BukkitMCEntity implements MCEntity {
     @Override
     public @NotNull List<EntityData> data() {
         return ThrowingSupplier.sneaky(() -> this.dataWatcherConverter.convert(this.entity)).get();
+    }
+
+    @Override
+    public @NotNull MCScheduler getScheduler() {
+        if (this.scheduler == null)
+            this.scheduler = this.mcSchedulerProvider.getEntityScheduler(this.entity);
+        return this.scheduler;
     }
 
     @Override

@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.visual.sender.impl;
 
 import com.cryptomorin.xseries.XMaterial;
+import io.fairyproject.Debug;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
@@ -67,7 +68,7 @@ public class OldVisualData implements VisualData {
                 if (fromId == null)
                     throw new IllegalArgumentException("Cannot find method 'fromId' in " + registryID.getName());
 
-                System.out.println("Initialized OldData for Visual module.");
+                Debug.log("Initialized OldData for Visual module.");
             }
         } catch (Exception ex) {
         }

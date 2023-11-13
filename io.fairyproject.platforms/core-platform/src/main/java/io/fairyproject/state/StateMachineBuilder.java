@@ -29,8 +29,6 @@ import io.fairyproject.state.event.StateMachineEvent;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Duration;
-
 public interface StateMachineBuilder {
 
     /**
@@ -40,15 +38,6 @@ public interface StateMachineBuilder {
      * @return the state implementation
      */
     @NotNull StateConfigBuilder state(@NotNull State state);
-
-    /**
-     * Set the interval of the state machine tick
-     *
-     * @param interval the interval
-     * @return this
-     */
-    @Contract("_ -> this")
-    @NotNull StateMachineBuilder interval(@NotNull Duration interval);
 
     /**
      * Set the initial state of the state machine

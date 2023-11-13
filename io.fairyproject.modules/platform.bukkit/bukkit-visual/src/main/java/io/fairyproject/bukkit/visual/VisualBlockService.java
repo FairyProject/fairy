@@ -42,13 +42,12 @@ import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
 import io.fairyproject.container.Service;
 import io.fairyproject.log.Log;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.util.BlockPosition;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.task.Task;
-import io.fairyproject.task.TaskRunnable;
-import io.fairyproject.util.terminable.Terminable;
+import io.fairyproject.scheduler.response.TaskResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -67,22 +66,24 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 
 @Service
-public class VisualBlockService implements TaskRunnable, Listener {
+public class VisualBlockService implements Listener {
 
     private final Table<UUID, VisualPosition, VisualBlock> table = HashBasedTable.create();
     private final LoadingCache<CoordinatePair, Optional<VisualBlockClaim>> claimCache;
     private final Table<CoordinatePair, CoordXZ, VisualBlockClaim> claimPositionTable;
     private final Queue<VisualTask> visualTasks = new ConcurrentLinkedQueue<>();
+    private final Map<Plugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
     private final BukkitNMSManager nmsManager;
+    private final MCSchedulerProvider mcSchedulerProvider;
 
     private VisualBlockSender visualBlockSender;
     private VisualBlockGenerator mainGenerator;
-    private final Map<Plugin, List<VisualBlockGenerator>> dynamicVisualGenerator = new ConcurrentHashMap<>();
 
     private boolean destroyed;
 
-    public VisualBlockService(BukkitNMSManager nmsManager) {
+    public VisualBlockService(BukkitNMSManager nmsManager, MCSchedulerProvider mcSchedulerProvider) {
         this.nmsManager = nmsManager;
+        this.mcSchedulerProvider = mcSchedulerProvider;
         this.claimPositionTable = HashBasedTable.create();
         this.claimCache = CacheBuilder.newBuilder()
                 .maximumSize(8000)
@@ -103,8 +104,7 @@ public class VisualBlockService implements TaskRunnable, Listener {
     @PostInitialize
     public void onPostInitialize() {
         this.visualBlockSender = new VisualBlockSender(nmsManager);
-
-        Task.asyncRepeated(this, 1L);
+        this.mcSchedulerProvider.getGlobalScheduler().scheduleAtFixedRate(this::onTick, 1L, 1L);
 
         this.mainGenerator = (player, location, positions) -> {
             final int minHeight = location.getBlockY() - 5;
@@ -375,16 +375,16 @@ public class VisualBlockService implements TaskRunnable, Listener {
         Bukkit.getOnlinePlayers().forEach(player -> this.clearAll(player, true));
     }
 
-    @Override
-    public void run(Terminable terminable) {
+    public TaskResponse<Void> onTick() {
         if (destroyed) {
-            terminable.closeAndReportException();
-            return;
+            return TaskResponse.success(null);
         }
 
         VisualTask visualTask;
         while ((visualTask = visualTasks.poll()) != null) {
             this.setVisualType(visualTask.getPlayer(), visualTask.getBlockPositions(), true);
         }
+
+        return TaskResponse.continueTask();
     }
 }

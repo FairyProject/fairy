@@ -72,4 +72,10 @@ public class AbstractMetadataRegistry<T> implements MetadataRegistry<T> {
         this.cache.values().removeIf(MetadataMap::isEmpty);
     }
 
+    @Override
+    public void destroy() {
+        this.cache.values().forEach(MetadataMap::clear);
+        this.cache.clear();
+    }
+
 }

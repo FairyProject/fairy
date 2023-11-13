@@ -58,6 +58,11 @@ void initTests() {
     include "io.fairyproject.tests:mc-tests"
 }
 
+void initDevTools() {
+    include "io.fairyproject.devtools:core-devtools"
+    include "io.fairyproject.devtools:bukkit-devtools"
+}
+
 void initModules() {
     include "io.fairyproject.modules:platform.bukkit:bukkit-timer"
     include "io.fairyproject.modules:platform.bukkit:bukkit-items"
@@ -103,6 +108,7 @@ void includeDebug() {
 
 initBundles()
 initBootstrap()
+initDevTools()
 initModules()
 initPlatforms()
 initTests()

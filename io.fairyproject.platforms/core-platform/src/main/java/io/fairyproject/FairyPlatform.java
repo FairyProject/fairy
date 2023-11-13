@@ -29,9 +29,9 @@ import io.fairyproject.library.LibraryHandler;
 import io.fairyproject.library.LibraryHandlerImpl;
 import io.fairyproject.library.LibraryHandlerNoOp;
 import io.fairyproject.log.Log;
+import io.fairyproject.metadata.CommonMetadataRegistries;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -55,7 +55,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
     private final AtomicBoolean loadedDependencies = new AtomicBoolean();
     private Plugin mainPlugin;
 
-    private ITaskScheduler taskScheduler;
     private CompositeTerminable compositeTerminable;
 
     private LibraryHandler libraryHandler;
@@ -78,7 +77,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
     public void load(Plugin mainPlugin) {
         this.mainPlugin = mainPlugin;
 
-        this.taskScheduler = this.createTaskScheduler();
         this.compositeTerminable = CompositeTerminable.create();
     }
 
@@ -95,7 +93,10 @@ public abstract class FairyPlatform implements TerminableConsumer {
         }
 
         this.containerContext.stop();
+        CommonMetadataRegistries.PLAYERS.destroy(); // TODO: we can do better than this
         PluginManager.INSTANCE.callFrameworkFullyDisable();
+
+        INSTANCE = null;
     }
 
     @Override
@@ -213,20 +214,6 @@ public abstract class FairyPlatform implements TerminableConsumer {
      * @return is Running
      */
     public abstract boolean isRunning();
-
-    /**
-     * is Main Thread
-     *
-     * @return is Main Thread
-     */
-    public abstract boolean isMainThread();
-
-    /**
-     * Create Task Scheduler for Fairy Core to schedule tasks with built-in APIs from each platforms
-     *
-     * @return the Task Scheduler
-     */
-    public abstract ITaskScheduler createTaskScheduler();
 
     /**
      * Get the platform type of current platform

@@ -24,7 +24,6 @@
 
 package io.fairyproject.mc.registry.player;
 
-import io.fairyproject.Fairy;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
@@ -32,6 +31,7 @@ import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.event.NativePlayerLoginEvent;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import lombok.RequiredArgsConstructor;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -42,6 +42,7 @@ public class MCPlayerListener {
 
     private final MCPlayerRegistry registry;
     private final MCPlayerPlatformOperator platformOperator;
+    private final MCSchedulerProvider mcSchedulerProvider;
     private final GlobalEventNode eventNode;
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -81,7 +82,7 @@ public class MCPlayerListener {
             return;
         }
 
-        Fairy.getTaskScheduler().runScheduled(() -> {
+        mcSchedulerProvider.getGlobalScheduler().schedule(() -> {
             try {
                 this.registry.removePlayer(player.getUUID());
             } finally {

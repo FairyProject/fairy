@@ -4,8 +4,6 @@ import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.task.ITaskScheduler;
-import io.fairyproject.task.async.AsyncTaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
 
 import java.io.File;
@@ -13,9 +11,7 @@ import java.net.URLClassLoader;
 
 public class FairyTestingPlatform extends FairyPlatform {
 
-    private final Thread thread;
     public FairyTestingPlatform() {
-        this.thread = Thread.currentThread();
         if (!PluginManager.isInitialized()) {
             PluginManager.initialize(type -> {
                 if (type.getName().startsWith("io.fairytest")) {
@@ -59,16 +55,6 @@ public class FairyTestingPlatform extends FairyPlatform {
     @Override
     public boolean isRunning() {
         return true;
-    }
-
-    @Override
-    public boolean isMainThread() {
-        return Thread.currentThread() == this.thread;
-    }
-
-    @Override
-    public ITaskScheduler createTaskScheduler() {
-        return new AsyncTaskScheduler();
     }
 
     @Override

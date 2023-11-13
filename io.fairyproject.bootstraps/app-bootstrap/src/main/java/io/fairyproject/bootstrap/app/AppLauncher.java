@@ -1,73 +1,41 @@
 package io.fairyproject.bootstrap.app;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.fairyproject.bootstrap.PluginFileReader;
+import io.fairyproject.bootstrap.instance.PluginInstance;
 import io.fairyproject.bootstrap.internal.FairyInternalIdentityMeta;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.Objects;
+import io.fairyproject.bootstrap.platform.PlatformBootstrap;
+import lombok.RequiredArgsConstructor;
 
 @FairyInternalIdentityMeta
+@RequiredArgsConstructor
 public class AppLauncher {
 
-    private static final String FAIRY_JSON_PATH = "fairy.json";
+    private final PluginFileReader pluginFileReader;
+    private final PluginInstance pluginInstance;
+    private final PlatformBootstrap bootstrap;
+    private final AppShutdownHookRegistry shutdownHookRegistry;
 
-    public static void main(String[] args) {
-        JsonObject jsonObject;
-        try {
-            jsonObject = new Gson().fromJson(new InputStreamReader(Objects.requireNonNull(getResource(FAIRY_JSON_PATH))), JsonObject.class);
-        } catch (Throwable throwable) {
-            throw new IllegalArgumentException("Unable to load " + FAIRY_JSON_PATH, throwable);
-        }
+    protected boolean loaded;
 
-        AppBootstrap bootstrap = new AppBootstrap();
-        AppBootstrap.INSTANCE = bootstrap;
+    public boolean start() {
         if (!bootstrap.preload()) {
             System.err.println("Failed to boot fairy! check stacktrace for the reason of failure!");
-            System.exit(-1);
-            return;
+            return false;
         }
 
-        ApplicationHolder pluginHolder = new ApplicationHolder(jsonObject);
-        bootstrap.load(pluginHolder.getPlugin());
-        AppBootstrap.FAIRY_READY = true;
+        JsonObject jsonObject = this.pluginFileReader.read(AppLauncher.class);
+        pluginInstance.init(jsonObject);
+        bootstrap.load(pluginInstance.getPlugin());
 
-        pluginHolder.onLoad();
+        pluginInstance.onLoad();
 
         bootstrap.enable();
-        pluginHolder.onEnable();
+        pluginInstance.onEnable();
+        shutdownHookRegistry.register();
 
-        Thread shutdownHook = new Thread(() -> {
-            try {
-                io.fairyproject.Fairy.getPlatform().shutdown();
-            } catch (Throwable throwable) {
-                throwable.printStackTrace();
-            }
-        });
-        Runtime.getRuntime().addShutdownHook(shutdownHook);
-    }
-
-    private static InputStream getResource(String filename) {
-        if (filename == null) {
-            throw new IllegalArgumentException("Filename cannot be null");
-        } else {
-            try {
-                URL url = AppLauncher.class.getClassLoader().getResource(filename);
-                if (url == null) {
-                    return null;
-                } else {
-                    URLConnection connection = url.openConnection();
-                    connection.setUseCaches(false);
-                    return connection.getInputStream();
-                }
-            } catch (IOException var4) {
-                return null;
-            }
-        }
+        this.loaded = true;
+        return true;
     }
 
 }

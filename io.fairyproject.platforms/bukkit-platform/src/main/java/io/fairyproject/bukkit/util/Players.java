@@ -24,17 +24,20 @@
 
 package io.fairyproject.bukkit.util;
 
+import io.fairyproject.bukkit.events.player.PlayerClearEvent;
+import io.fairyproject.mc.scheduler.MCSchedulers;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
-import io.fairyproject.bukkit.events.player.PlayerClearEvent;
-import io.fairyproject.task.Task;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -98,10 +101,10 @@ public class Players {
     }
 
     public CompletableFuture<PlayerInventory> updateInventoryLater(Player player) {
-        return CompletableFuture.supplyAsync(() -> {
+        return MCSchedulers.getEntityScheduler(player).schedule(() -> {
             player.updateInventory();
             return player.getInventory();
-        }, Task.mainLater(1));
+        }, 1L).getFuture();
     }
 
 }

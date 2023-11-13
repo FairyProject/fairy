@@ -66,7 +66,7 @@ public class TestingContext {
 
                 @Override
                 public boolean isClosed() {
-                    return initialized.get();
+                    return !initialized.get();
                 }
 
                 @Override
@@ -85,6 +85,9 @@ public class TestingContext {
 
             if (testingHandle.shouldInitialize()) {
                 plugin.initializePlugin(description, pluginAction, plugin.getClass().getClassLoader());
+
+                // add test classpath to the plugin classloader
+                plugin.getClassLoaderRegistry().addUrl(this.getClass().getProtectionDomain().getCodeSource().getLocation());
             }
             PluginManager.INSTANCE.addPlugin(plugin);
             PluginManager.INSTANCE.onPluginInitial(plugin);
@@ -108,9 +111,12 @@ public class TestingContext {
             }
 
             this.plugin.onPluginDisable();
-            PluginManager.INSTANCE.onPluginDisable(this.plugin);
-            FairyPlatform.INSTANCE.disable();
-            PluginManager.INSTANCE.unload();
+            if (PluginManager.isInitialized())
+                PluginManager.INSTANCE.onPluginDisable(this.plugin);
+            if (FairyPlatform.INSTANCE != null)
+                FairyPlatform.INSTANCE.disable();
+            if (PluginManager.isInitialized())
+                PluginManager.INSTANCE.unload();
             this.plugin.onFrameworkFullyDisable();
         }
     }

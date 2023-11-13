@@ -130,11 +130,15 @@ public class ContainerNodeLoader {
 
             CompletableFuture<?> chain = null;
             for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
-                Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPreInitialization(object, instance, this.containerObjectResolver);
-                if (chain == null)
-                    chain = callback.get();
-                else
-                    chain = chain.thenCompose($ -> callback.get());
+                try {
+                    Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPreInitialization(object, instance, this.containerObjectResolver);
+                    if (chain == null)
+                        chain = callback.get();
+                    else
+                        chain = chain.thenCompose($ -> callback.get());
+                } catch (Throwable throwable) {
+                    ContainerLogger.report(this.node, object, throwable, "processing pre initialization");
+                }
             }
 
             if (chain != null)
@@ -155,11 +159,15 @@ public class ContainerNodeLoader {
 
             CompletableFuture<?> chain = null;
             for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
-                Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPostInitialization(object, instance);
-                if (chain == null)
-                    chain = callback.get();
-                else
-                    chain = chain.thenCompose($ -> callback.get());
+                try {
+                    Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPostInitialization(object, instance);
+                    if (chain == null)
+                        chain = callback.get();
+                    else
+                        chain = chain.thenCompose($ -> callback.get());
+                } catch (Throwable throwable) {
+                    ContainerLogger.report(this.node, object, throwable, "processing post initialization");
+                }
             }
 
             if (chain != null)

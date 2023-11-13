@@ -7,9 +7,12 @@ import io.fairyproject.mc.map.framebuffers.DirectFramebuffer;
 import io.fairyproject.mc.map.packet.WrapperPlayServerMapData;
 import io.fairyproject.mc.metadata.PlayerOnlineValue;
 import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.task.Task;
-import io.fairyproject.util.terminable.Terminable;
+import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.response.TaskResponse;
+import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -17,7 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-@Service
+@InjectableComponent
+@RequiredArgsConstructor
 public class MapService {
 
     public static final MetadataKey<RenderData> MAP_CURRENT = MetadataKey.create("fairy:map", RenderData.class);
@@ -27,11 +31,14 @@ public class MapService {
     private final List<MapAdapter> adapters = new ArrayList<>();
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
     private final AtomicBoolean activated = new AtomicBoolean();
-    private Terminable terminable;
+    private final ContainerContext containerContext;
+    private final MCPlayerRegistry mcPlayerRegistry;
+    private final MCSchedulerProvider mcSchedulerProvider;
+    private ScheduledTask<Void> scheduledTask;
 
     @PreInitialize
     public void onPreInitialize() {
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.containerContext.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(MapAdapter.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(MapAdapter.class, this::registerAdapter))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(MapAdapter.class, this::unregisterAdapter))
@@ -45,20 +52,20 @@ public class MapService {
 
     @PreDestroy
     public void onPreDestroy() {
-        if (this.terminable != null) {
-            this.terminable.closeAndReportException();
-            this.terminable = null;
+        if (this.scheduledTask != null) {
+            this.scheduledTask.closeAndReportException();
+            this.scheduledTask = null;
         }
     }
 
     public void activate() {
         if (this.activated.compareAndSet(false, true)) {
-            this.terminable = Task.asyncRepeated(this::tick, this.getUpdateTick());
+            this.scheduledTask = this.mcSchedulerProvider.getAsyncScheduler().scheduleAtFixedRate(this::onTick, this.getUpdateTick(), this.getUpdateTick());
         }
     }
 
-    private void tick(Terminable terminable) {
-        for (MCPlayer player : MCPlayer.all()) {
+    private TaskResponse<Void> onTick() {
+        for (MCPlayer player : this.mcPlayerRegistry.getAllPlayers()) {
             RenderData previous = player.metadata().getOrDefault(MAP_CURRENT, null);
             Framebuffer framebuffer = this.render(player);
             if (framebuffer == null)
@@ -87,11 +94,13 @@ public class MapService {
         try {
             if (this.adapters.isEmpty()) {
                 // No adapter registered at the moment
-                terminable.closeAndReportException();
+                return TaskResponse.success(null);
             }
         } finally {
             this.lock.readLock().unlock();
         }
+
+        return TaskResponse.continueTask();
     }
 
     @Nullable

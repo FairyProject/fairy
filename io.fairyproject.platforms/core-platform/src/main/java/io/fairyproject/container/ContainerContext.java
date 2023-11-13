@@ -30,10 +30,12 @@ import io.fairyproject.container.binder.ContainerObjectBinderImpl;
 import io.fairyproject.container.collection.ContainerObjCollectorRegistry;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.node.destroyer.ContainerNodeDestroyer;
+import io.fairyproject.container.node.loader.ContainerNodeLoader;
 import io.fairyproject.container.object.singleton.SingletonObjectRegistry;
 import io.fairyproject.container.processor.*;
 import io.fairyproject.container.processor.annotation.FairyLifeCycleAnnotationProcessor;
 import io.fairyproject.container.processor.injection.AutowiredAnnotationProcessor;
+import io.fairyproject.container.processor.injection.SubscribeEventAnnotationProcessor;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.impl.PostServiceInitialEvent;
 import io.fairyproject.log.Log;
@@ -82,9 +84,10 @@ public class ContainerContext implements ContainerProcessors {
 
         FairyLifeCycleAnnotationProcessor annotationProcessor = new FairyLifeCycleAnnotationProcessor();
         AutowiredAnnotationProcessor autowiredAnnotationProcessor = new AutowiredAnnotationProcessor();
+        SubscribeEventAnnotationProcessor subscribeEventAnnotationProcessor = new SubscribeEventAnnotationProcessor();
         this.constructProcessors = new ContainerObjConstructProcessor[] { };
-        this.initProcessors = new ContainerObjInitProcessor[] { autowiredAnnotationProcessor, annotationProcessor };
-        this.destroyProcessors = new ContainerObjDestroyProcessor[] { annotationProcessor };
+        this.initProcessors = new ContainerObjInitProcessor[] { autowiredAnnotationProcessor, subscribeEventAnnotationProcessor, annotationProcessor };
+        this.destroyProcessors = new ContainerObjDestroyProcessor[] { annotationProcessor, subscribeEventAnnotationProcessor };
         this.nodeClassScanProcessors = new ContainerNodeClassScanProcessor[] { autowiredAnnotationProcessor };
         this.nodeInitProcessors = new ContainerNodeInitProcessor[] { autowiredAnnotationProcessor };
     }
@@ -131,6 +134,10 @@ public class ContainerContext implements ContainerProcessors {
         }
 
         return Collections.emptyList();
+    }
+
+    public boolean loadContainerNode(ContainerNode node) {
+        return new ContainerNodeLoader(this, node).load();
     }
 
     @Deprecated

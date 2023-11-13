@@ -27,8 +27,8 @@ package io.fairyproject.mc.nametag;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PreInitialize;
-import io.fairyproject.container.Service;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.event.Subscribe;
@@ -40,9 +40,10 @@ import io.fairyproject.mc.nametag.update.DuoPlayerNameTagUpdate;
 import io.fairyproject.mc.nametag.update.NameTagUpdate;
 import io.fairyproject.mc.nametag.update.SinglePlayerNameTagUpdate;
 import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.task.Task;
 import io.fairyproject.util.Utility;
+import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
@@ -54,7 +55,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-@Service
+@InjectableComponent
+@RequiredArgsConstructor
 public class NameTagService {
 
     protected static MetadataKey<NameTagList> TEAM_INFO_KEY = MetadataKey.create(Fairy.METADATA_PREFIX + "name-tag", NameTagList.class);
@@ -62,10 +64,13 @@ public class NameTagService {
     private final AtomicInteger teamId = new AtomicInteger(0);
     private final Map<NameTag, NameTagData> nameTagData = new ConcurrentHashMap<>();
     private final List<NameTagAdapter> nameTagAdapters = new LinkedList<>();
+    
+    private final ContainerContext containerContext;
+    private final MCSchedulerProvider mcSchedulerProvider;
 
     @PreInitialize
     public void onPreInitialize() {
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.containerContext.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(NameTagAdapter.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(NameTagAdapter.class, this::register))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(NameTagAdapter.class, this::unregister))
@@ -73,13 +78,13 @@ public class NameTagService {
     }
 
     private CompletableFuture<?> runAsync(Runnable runnable) {
-        return Task.runAsync(() -> {
+        return this.mcSchedulerProvider.getAsyncScheduler().schedule(() -> {
             try {
                 runnable.run();
             } catch (Throwable throwable) {
                 Log.error("An error occurred while running async task", throwable);
             }
-        });
+        }).getFuture();
     }
 
     @Subscribe

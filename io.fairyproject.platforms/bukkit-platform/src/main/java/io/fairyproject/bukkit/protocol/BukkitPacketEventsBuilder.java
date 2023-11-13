@@ -39,7 +39,7 @@ public class BukkitPacketEventsBuilder implements PacketEventsBuilder {
 
     @Override
     public PacketEventsAPI<?> build() {
-        PacketEventsAPI<Plugin> packetEventsAPI = SpigotPacketEventsBuilder.build(FairyBukkitPlatform.PLUGIN);
+        PacketEventsAPI<Plugin> packetEventsAPI = SpigotPacketEventsBuilder.buildNoCache(FairyBukkitPlatform.PLUGIN);
         packetEventsAPI.getSettings().reEncodeByDefault(false);
 
         return packetEventsAPI;

@@ -6,13 +6,15 @@ import io.fairyproject.util.AccessUtil;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.SimplePluginManager;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.function.Supplier;
 
 @UtilityClass
@@ -71,7 +73,7 @@ public class CommandUtil {
                 final PluginManager pluginManager = Bukkit.getPluginManager();
 
                 Field field = pluginManager.getClass().getDeclaredField("commandMap");
-                field.setAccessible(true);
+                AccessUtil.setAccessible(field);
 
                 COMMAND_MAP_SUPPLIER = () -> {
                     try {
@@ -80,12 +82,35 @@ public class CommandUtil {
                         throw new IllegalStateException(e);
                     }
                 };
-            } catch (NoSuchFieldException e) {
-                throw new IllegalStateException(e);
+            } catch (ReflectiveOperationException ex) {
+                throw new IllegalStateException(ex);
             }
         }
 
         return COMMAND_MAP_SUPPLIER.get();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Nullable
+    public Map<String, Command> getKnownCommands(CommandMap commandMap) {
+        Class<? extends CommandMap> mapClass = commandMap.getClass();
+        try {
+            Method getKnownCommands = mapClass.getDeclaredMethod("getKnownCommands");
+            AccessUtil.setAccessible(getKnownCommands);
+
+            return (Map<String, Command>) getKnownCommands.invoke(commandMap);
+        } catch (ReflectiveOperationException ignored) {
+        }
+
+        try {
+            Field knownMapField = mapClass.getDeclaredField("knownCommands");
+            AccessUtil.setAccessible(knownMapField);
+
+            return (Map<String, Command>) knownMapField.get(commandMap);
+        } catch (ReflectiveOperationException ignored) {
+        }
+
+        throw new IllegalStateException("Unable to get knownCommands field from " + mapClass);
     }
 
     public void syncCommands() {

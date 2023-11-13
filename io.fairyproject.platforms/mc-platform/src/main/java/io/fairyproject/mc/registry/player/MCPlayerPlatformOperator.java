@@ -28,6 +28,7 @@ import io.fairyproject.mc.MCPlayer;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.InetAddress;
+import java.util.List;
 import java.util.UUID;
 
 public interface MCPlayerPlatformOperator {
@@ -35,6 +36,13 @@ public interface MCPlayerPlatformOperator {
     UUID getUniqueId(@NotNull Object platformPlayer);
 
     String getName(@NotNull Object platformPlayer);
+
+    /**
+     * Loads all online players from the platform, it's useful mostly for reloading as player can be online.
+     *
+     * @return A list of online players
+     */
+    List<MCPlayer> loadOnlinePlayers();
 
     MCPlayer create(
             @NotNull String name,

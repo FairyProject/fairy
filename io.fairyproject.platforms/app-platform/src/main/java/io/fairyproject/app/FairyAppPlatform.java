@@ -7,8 +7,6 @@ import io.fairyproject.app.logger.TinyLogger;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.task.ITaskScheduler;
-import io.fairyproject.task.async.AsyncTaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import lombok.Getter;
@@ -27,7 +25,6 @@ public class FairyAppPlatform extends FairyPlatform {
 
     private final List<Class<?>> appClasses = new ArrayList<>();
     private final URLClassLoaderAccess classLoader;
-    private final Thread mainThread;
     private boolean running;
 
     @Getter
@@ -39,7 +36,6 @@ public class FairyAppPlatform extends FairyPlatform {
     public FairyAppPlatform() {
         FairyPlatform.INSTANCE = this;
         this.classLoader = URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
-        this.mainThread = Thread.currentThread();
         this.running = true;
 
         if (!Debug.UNIT_TEST)
@@ -128,16 +124,6 @@ public class FairyAppPlatform extends FairyPlatform {
     @Override
     public boolean isRunning() {
         return this.running;
-    }
-
-    @Override
-    public boolean isMainThread() {
-        return this.mainThread == Thread.currentThread();
-    }
-
-    @Override
-    public ITaskScheduler createTaskScheduler() {
-        return new AsyncTaskScheduler();
     }
 
     @Override

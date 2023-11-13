@@ -29,11 +29,12 @@ import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
 import io.fairyproject.bukkit.impl.BukkitPluginHandler;
-import io.fairyproject.bukkit.impl.BukkitTaskScheduler;
 import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.logger.Log4jLogger;
+import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.PreInitialize;
@@ -41,7 +42,6 @@ import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.log.Log;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
-import io.fairyproject.task.ITaskScheduler;
 import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -74,7 +74,12 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
 
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
-        this.classLoader = URLClassLoaderAccess.create((URLClassLoader) this.getClass().getClassLoader());
+        ClassLoader classLoader = this.getClass().getClassLoader();
+        if (classLoader instanceof URLClassLoader) {
+            this.classLoader = URLClassLoaderAccess.create((URLClassLoader) classLoader);
+        } else {
+            this.classLoader = URLClassLoaderAccess.create(null);
+        }
 
         PluginManager.initialize(new BukkitPluginHandler());
         // Use log4j for bukkit platform
@@ -91,6 +96,14 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     public void enable() {
         SpigotUtil.init();
         super.enable();
+    }
+
+    @Override
+    public void disable() {
+        super.disable();
+
+        RootJavaPluginIdentifier.clearInstance();
+        Metadata.destroy();
     }
 
     @PreInitialize
@@ -136,16 +149,6 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @Override
     public boolean isRunning() {
         return true;
-    }
-
-    @Override
-    public boolean isMainThread() {
-        return Bukkit.isPrimaryThread();
-    }
-
-    @Override
-    public ITaskScheduler createTaskScheduler() {
-        return new BukkitTaskScheduler();
     }
 
     @Override

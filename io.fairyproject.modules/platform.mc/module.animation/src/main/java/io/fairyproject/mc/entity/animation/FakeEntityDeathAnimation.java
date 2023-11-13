@@ -9,7 +9,6 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.entity.EntityIDCounter;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.util.Position;
-import io.fairyproject.task.Task;
 import org.jetbrains.annotations.NotNull;
 
 public class FakeEntityDeathAnimation extends AbstractFakeEntityAnimation {
@@ -37,11 +36,11 @@ public class FakeEntityDeathAnimation extends AbstractFakeEntityAnimation {
                     entity.data())));
         }
 
-        this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, new WrapperPlayServerEntityStatus(entityID, 3)));
+        this.getViewers().forEach(mcPlayer -> {
+            MCProtocol.sendPacket(mcPlayer, new WrapperPlayServerEntityStatus(entityID, 3));
 
-        Task.runMainLater(() -> {
-            this.getViewers().forEach(mcPlayer -> MCProtocol.sendPacket(mcPlayer, new WrapperPlayServerDestroyEntities(entityID)));
-        }, 20L);
+            mcPlayer.getScheduler().schedule(() -> MCProtocol.sendPacket(mcPlayer, new WrapperPlayServerDestroyEntities(entityID)), 20L);
+        });
     }
 
 }

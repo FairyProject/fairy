@@ -61,6 +61,7 @@ public class SingletonObjectRegistryImpl implements SingletonObjectRegistry {
     @Override
     public void removeSingleton(Class<?> type) {
         objectByType.remove(type);
+        lifeCycleByType.remove(type);
     }
 
     @Override

@@ -25,22 +25,26 @@
 package io.fairyproject.bukkit.timer;
 
 import com.google.common.collect.Sets;
-import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.timer.event.TimerClearEvent;
-import io.fairyproject.bukkit.timer.impl.PlayerTimer;
-import org.bukkit.event.player.PlayerQuitEvent;
-import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.Service;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.bukkit.timer.event.TimerClearEvent;
+import io.fairyproject.bukkit.timer.impl.PlayerTimer;
+import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.container.PostInitialize;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.event.player.PlayerQuitEvent;
 
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Service(name = "timer")
+@InjectableComponent
+@RequiredArgsConstructor
 public class TimerService {
+
+    private final MCSchedulerProvider mcSchedulerProvider;
 
     private Set<Timer> timers;
     private ReentrantLock lock;
@@ -80,7 +84,7 @@ public class TimerService {
     }
 
     public void startScheduler() {
-        Fairy.getTaskScheduler().runRepeated(t -> {
+        this.mcSchedulerProvider.getGlobalScheduler().scheduleAtFixedRate(() -> {
             this.lock.lock();
             Iterator<Timer> iterator = this.timers.iterator();
             while (iterator.hasNext()) {
@@ -97,7 +101,7 @@ public class TimerService {
                 }
             }
             this.lock.unlock();
-        }, 2L);
+        }, 2L, 2L);
     }
 
     public boolean isTimerRunning(Class<? extends Timer> timerClass) {

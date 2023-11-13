@@ -1,7 +1,6 @@
 plugins {
     id "java"
-    id "io.fairyproject" version "0.6.6b10-SNAPSHOT"
-    id "xyz.jpenilla.run-paper" version "1.0.6"
+    id "io.fairyproject" version "0.7.0b1-SNAPSHOT"
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
@@ -12,23 +11,18 @@ repositories {
 fairy {
     name.set("test-plugin")
     mainPackage.set("io.example.debug")
+    fairyPackage.set("io.fairyproject")
 }
 
 dependencies {
     implementation(project(":io.fairyproject.bundles:bukkit-bundles"))
+    implementation(project(":io.fairyproject.devtools:bukkit-devtools"))
 }
 
 test {
     useJUnitPlatform()
 }
 
-tasks {
-    shadowJar {
-        relocate("io.fairyproject", "io.example.debug.fairy")
-    }
-
-    runServer {
-        minecraftVersion("1.8.8")
-        legacyPluginLoading()
-    }
+runServer {
+    version = "1.8.8"
 }

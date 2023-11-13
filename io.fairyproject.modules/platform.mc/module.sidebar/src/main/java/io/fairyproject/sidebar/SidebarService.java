@@ -26,18 +26,18 @@ package io.fairyproject.sidebar;
 
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerContext;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreInitialize;
-import io.fairyproject.container.Service;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
-import io.fairyproject.task.Task;
-import io.fairyproject.task.TaskRunnable;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
+import io.fairyproject.scheduler.response.TaskResponse;
 import io.fairyproject.util.Stacktrace;
-import io.fairyproject.util.terminable.Terminable;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
@@ -46,19 +46,20 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@Service
-public class SidebarService implements TaskRunnable {
+@InjectableComponent
+@RequiredArgsConstructor
+public class SidebarService {
 
-    private List<SidebarAdapter> adapters;
-    private Queue<Runnable> runnableQueue;
-    private AtomicBoolean activated;
+    private final List<SidebarAdapter> adapters = new ArrayList<>();
+    private final Queue<Runnable> runnableQueue = new ConcurrentLinkedQueue<>();
+    private final AtomicBoolean activated = new AtomicBoolean(false);
+    private final ContainerContext containerContext;
+    private final MCPlayerRegistry mcPlayerRegistry;
+    private final MCSchedulerProvider mcSchedulerProvider;
 
     @PreInitialize
     public void onPreInitialize() {
-        this.adapters = new ArrayList<>();
-        this.runnableQueue = new ConcurrentLinkedQueue<>();
-        this.activated = new AtomicBoolean(true);
-        ContainerContext.get().objectCollectorRegistry().add(ContainerObjCollector.create()
+        this.containerContext.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(SidebarAdapter.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, this::addAdapter))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, this::removeAdapter))
@@ -67,7 +68,7 @@ public class SidebarService implements TaskRunnable {
 
     @PostInitialize
     public void onPostInitialize() {
-        Task.mainRepeated(this, this.getUpdateTick());
+        this.activate();
     }
 
     @Subscribe
@@ -92,7 +93,7 @@ public class SidebarService implements TaskRunnable {
 
     private void activate() {
         if (activated.compareAndSet(false, true)) {
-            Task.mainRepeated(this, this.getUpdateTick());
+            mcSchedulerProvider.getAsyncScheduler().scheduleAtFixedRate(this::onTick, this.getUpdateTick(), this.getUpdateTick());
         }
     }
 
@@ -109,19 +110,20 @@ public class SidebarService implements TaskRunnable {
         return tick;
     }
 
-    @Override
-    public void run(Terminable terminable) {
+    public TaskResponse<Void> onTick() {
         try {
             this.tick();
 
             this.runQueue();
             if (this.adapters.isEmpty()) {
-                terminable.close();
                 this.activated.set(false);
+                return TaskResponse.success(null);
             }
         } catch (Exception ex) {
             Stacktrace.print(ex);
         }
+
+        return TaskResponse.continueTask();
     }
 
     public void runQueue() {
@@ -132,7 +134,7 @@ public class SidebarService implements TaskRunnable {
     }
 
     private void tick() {
-        for (MCPlayer player : MCPlayer.all()) {
+        for (MCPlayer player : this.mcPlayerRegistry.getAllPlayers()) {
             if (!Fairy.isRunning()) {
                 break;
             }

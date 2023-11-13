@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.visual.sender.impl;
 
 import com.cryptomorin.xseries.XMaterial;
+import io.fairyproject.Debug;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.resolver.MethodResolver;
 import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
@@ -50,7 +51,7 @@ public class NewVisualData implements VisualData {
                 fromLegacyData = new MethodResolver(magicNumbers).resolve(blockStateType, 0, Material.class, byte.class);
                 getId = new MethodResolver(blockType).resolve(blockStateType, 0, blockType);
 
-                System.out.println("Initialized NewData for Visual module.");
+                Debug.log("Initialized NewData for Visual module.");
             }
         } catch (ReflectiveOperationException ignored) {
         }

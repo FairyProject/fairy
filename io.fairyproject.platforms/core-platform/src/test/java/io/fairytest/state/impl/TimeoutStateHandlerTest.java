@@ -1,5 +1,7 @@
 package io.fairytest.state.impl;
 
+import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.Schedulers;
 import io.fairyproject.state.State;
 import io.fairyproject.state.StateMachine;
 import io.fairyproject.state.StateMachineBuilder;
@@ -30,9 +32,10 @@ public class TimeoutStateHandlerTest extends JUnitJupiterBase {
                 .to(ExampleState.B);
 
         builder.state(ExampleState.B);
-        builder.interval(Duration.ofMillis(50));
-
         StateMachine stateMachine = builder.build();
+
+        ScheduledTask<?> task = Schedulers.IO.scheduleAtFixedRate(stateMachine::tick, Duration.ofMillis(100), Duration.ofMillis(100));
+
         long l = System.currentTimeMillis();
         while (stateMachine.getCurrentState() != ExampleState.B) {
             Thread.sleep(100L);
@@ -40,6 +43,8 @@ public class TimeoutStateHandlerTest extends JUnitJupiterBase {
                 Assertions.fail("Timeout");
             }
         }
+
+        task.cancel();
 
         Assertions.assertEquals(ExampleState.B, stateMachine.getCurrentState());
     }

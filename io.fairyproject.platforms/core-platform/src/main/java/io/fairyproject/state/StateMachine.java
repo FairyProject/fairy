@@ -8,8 +8,6 @@ import io.fairyproject.util.terminable.TerminableConsumer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Duration;
-
 /**
  * The state machine system from fairy framework
  */
@@ -67,13 +65,6 @@ public interface StateMachine extends Terminable, TerminableConsumer {
      * @param signal the signal
      */
     void signal(@NotNull Signal signal);
-
-    /**
-     * The interval of the state machine ticking
-     *
-     * @return the interval
-     */
-    @NotNull Duration getInterval();
 
     /**
      * The event node of the state machine

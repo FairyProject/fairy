@@ -1,5 +1,6 @@
 package io.fairyproject.bootstrap.app;
 
+import io.fairyproject.bootstrap.platform.PlatformBootstrap;
 import io.fairyproject.plugin.PluginAction;
 import lombok.RequiredArgsConstructor;
 
@@ -9,14 +10,15 @@ import java.nio.file.Path;
 @RequiredArgsConstructor
 public class ApplicationAction implements PluginAction {
 
-    private final ApplicationHolder applicationHolder;
+    private final ApplicationInstance applicationInstance;
+    private final PlatformBootstrap appBootstrap;
     private boolean closed = false;
 
     @Override
     public void close() {
         this.closed = true;
-        this.applicationHolder.onDisable();
-        AppBootstrap.INSTANCE.disable();
+        this.applicationInstance.onDisable();
+        this.appBootstrap.disable();
 
         System.exit(-1);
     }

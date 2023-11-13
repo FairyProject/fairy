@@ -26,6 +26,13 @@ class BukkitProperties : Properties(PlatformType.BUKKIT) {
         get() = this["website"] as String
         set(value) { this["website"] = value }
 
+    /**
+     * Add support to folia.
+     */
+    var foliaSupported: Boolean
+        get() = this["folia-supported"] as Boolean
+        set(value) { this["folia-supported"] = value }
+
     val authors: MutableList<String> by lazy {
         val list = mutableListOf<String>()
         this["authors"] = list

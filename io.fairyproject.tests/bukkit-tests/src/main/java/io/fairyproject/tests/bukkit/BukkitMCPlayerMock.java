@@ -3,6 +3,8 @@ package io.fairyproject.tests.bukkit;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import io.fairyproject.bukkit.util.BukkitPos;
 import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.scheduler.MCScheduler;
+import io.fairyproject.mc.scheduler.MCSchedulers;
 import io.fairyproject.mc.util.Position;
 import io.fairyproject.mc.version.MCVersion;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
@@ -39,6 +41,11 @@ public class BukkitMCPlayerMock extends MCPlayerMock {
     @Override
     public @NotNull List<EntityData> data() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public @NotNull MCScheduler getScheduler() {
+        return MCSchedulers.getEntityScheduler(this.player);
     }
 
     @Override

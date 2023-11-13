@@ -4,7 +4,8 @@ import be.seeseemelk.mockbukkit.MockBukkit;
 import be.seeseemelk.mockbukkit.MockPlugin;
 import be.seeseemelk.mockbukkit.ServerMock;
 import io.fairyproject.bukkit.FairyBukkitPlatform;
-import io.fairyproject.bukkit.util.JavaPluginUtil;
+import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
+import io.fairyproject.bukkit.plugin.impl.SpecifyJavaPluginIdentifier;
 import io.fairyproject.tests.TestingContext;
 import io.fairyproject.tests.TestingHandle;
 import lombok.Getter;
@@ -32,8 +33,9 @@ public class MockBukkitContext {
         this.plugin = MockBukkit.createMockPlugin();
 
         FairyBukkitPlatform.PLUGIN = plugin;
-        JavaPluginUtil.setCurrentPlugin(plugin);
         FairyBukkitTestingPlatform.patchBukkitPlugin(plugin);
+
+        RootJavaPluginIdentifier.getInstance().addFirst(new SpecifyJavaPluginIdentifier(plugin));
     }
 
     public static MockBukkitContext get() {

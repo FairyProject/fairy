@@ -25,7 +25,6 @@
 package io.fairyproject.container;
 
 import io.fairyproject.container.node.ContainerNode;
-import io.fairyproject.container.node.loader.ContainerNodeLoader;
 import io.fairyproject.container.node.scanner.ContainerNodeClassScanner;
 import io.fairyproject.util.entry.Entry;
 import io.fairytest.container.components.AccessPrototypeClass;
@@ -59,7 +58,8 @@ public class ContainerIntegrationTest {
         @BeforeEach
         public void setUp() {
             this.node = createContainerNode();
-            new ContainerNodeLoader(context, node).load();
+
+            context.loadContainerNode(this.node);
         }
 
         @Nested

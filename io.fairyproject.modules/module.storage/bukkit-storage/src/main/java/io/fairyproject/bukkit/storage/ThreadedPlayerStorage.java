@@ -33,9 +33,9 @@ import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.DependsOn;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.log.Log;
+import io.fairyproject.scheduler.Schedulers;
 import io.fairyproject.storage.DataClosable;
 import io.fairyproject.storage.PlayerStorage;
-import io.fairyproject.task.Task;
 import io.fairyproject.util.AsyncUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -153,10 +153,10 @@ public abstract class ThreadedPlayerStorage<T> implements PlayerStorage<T> {
 
     @Override
     public CompletableFuture<T> save(UUID uuid, T t) {
-        return Task.supplyAsync(() -> {
+        return Schedulers.IO.schedule(() -> {
             this.storageConfiguration.saveAsync(uuid, t);
             return t;
-        });
+        }).getFuture();
     }
 
     @Override

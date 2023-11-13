@@ -30,8 +30,10 @@ import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.task.Task;
+import lombok.RequiredArgsConstructor;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,7 +43,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 @InjectableComponent
 @RegisterAsListener
+@RequiredArgsConstructor
 public class PlayerListener implements Listener {
+
+    private final Server server;
+    private final MCSchedulerProvider mcSchedulerProvider;
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent event) {
@@ -58,7 +64,7 @@ public class PlayerListener implements Listener {
         }
 
         Player player = event.getPlayer();
-        Task.runMainLater(() -> Events.call(new PlayerPostJoinEvent(player)), 1L);
+        mcSchedulerProvider.getEntityScheduler(player).schedule(() -> server.getPluginManager().callEvent(new PlayerPostJoinEvent(player)), 1L);
     }
 
 }

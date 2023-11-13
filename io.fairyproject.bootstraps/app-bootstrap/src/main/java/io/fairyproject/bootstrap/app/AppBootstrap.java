@@ -2,19 +2,17 @@ package io.fairyproject.bootstrap.app;
 
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.app.FairyAppPlatform;
-import io.fairyproject.bootstrap.BaseBootstrap;
+import io.fairyproject.bootstrap.platform.AbstractPlatformBootstrap;
 import io.fairyproject.bootstrap.type.PlatformType;
+import io.fairyproject.log.Log;
 import org.jetbrains.annotations.Nullable;
 
-public class AppBootstrap extends BaseBootstrap {
-
-    public static AppBootstrap INSTANCE;
-    public static boolean FAIRY_READY = false;
+public class AppBootstrap extends AbstractPlatformBootstrap {
 
     @Override
     protected void onFailure(@Nullable Throwable throwable) {
         if (throwable != null) {
-            throwable.printStackTrace();
+            Log.error("An exception was thrown", throwable);
         }
         System.exit(-1);
     }

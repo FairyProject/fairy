@@ -57,7 +57,7 @@ public class PluginNodeLoader {
     }
 
     private boolean loadNode() {
-        return new ContainerNodeLoader(this.context, this.node).load();
+        return this.context.loadContainerNode(this.node);
     }
 
     private void addPluginAsComponent() {

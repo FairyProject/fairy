@@ -28,7 +28,6 @@ import io.fairyproject.Debug;
 import io.fairyproject.Fairy;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.node.ContainerNode;
-import io.fairyproject.container.node.loader.ContainerNodeLoader;
 import io.fairyproject.container.node.scanner.ContainerNodeClassScanner;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.log.Log;
@@ -53,7 +52,7 @@ public class RootNodeLoader {
     }
 
     private boolean loadNode() {
-        return new ContainerNodeLoader(this.context, this.node).load();
+        return this.context.loadContainerNode(this.node);
     }
 
     private void runClassScanner() {

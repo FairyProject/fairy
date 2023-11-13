@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("jvm") version "1.9.10"
     id("com.gradle.plugin-publish") version "1.0.0"
     `java-gradle-plugin`
 }
@@ -15,6 +15,7 @@ repositories {
 
 dependencies {
     implementation("io.spring.gradle:dependency-management-plugin:1.1.0")
+    implementation(kotlin("stdlib-jdk8"))
     implementation("org.json:json:20220924")
     implementation("org.apache.maven:maven-plugin-api:3.8.5")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.7.22")
@@ -22,6 +23,7 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:9.4")
     implementation("com.google.code.gson:gson:2.10")
     implementation("io.github.toolfactory:narcissus:1.0.7")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
 }
 
 gradlePlugin {

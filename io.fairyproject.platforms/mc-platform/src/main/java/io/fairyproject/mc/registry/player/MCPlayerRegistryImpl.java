@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.registry.player;
 
+import io.fairyproject.container.PostInitialize;
 import io.fairyproject.mc.MCPlayer;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -39,6 +40,13 @@ public class MCPlayerRegistryImpl implements MCPlayerRegistry {
 
     private final MCPlayerPlatformOperator playerPlatformOperator;
     protected final Map<UUID, MCPlayer> players = new ConcurrentHashMap<>();
+
+    @PostInitialize
+    public void onPostInitialize() {
+        for (MCPlayer mcPlayer : playerPlatformOperator.loadOnlinePlayers()) {
+            this.addPlayer(mcPlayer);
+        }
+    }
 
     @Override
     public @NotNull MCPlayer findPlayerByUuid(@NotNull UUID uuid) {

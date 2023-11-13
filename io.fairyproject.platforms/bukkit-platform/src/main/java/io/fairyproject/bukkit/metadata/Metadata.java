@@ -24,8 +24,6 @@
 
 package io.fairyproject.bukkit.metadata;
 
-import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.type.BlockMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.EntityMetadataRegistry;
 import io.fairyproject.bukkit.metadata.type.PlayerMetadataRegistry;
@@ -38,60 +36,30 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Provides access to {@link MetadataRegistry} instances bound to players, entities, blocks and worlds.
  */
-
-/**
- *
- * @credit https://github.com/lucko/helper
- * @modified by LeeGod
- *
- */
 public final class Metadata {
 
-    private static final AtomicBoolean SETUP = new AtomicBoolean(false);
+    private static BukkitMetadataRegistries registries;
 
-    // lazily load
-    private static void ensureSetup() {
-        if (SETUP.get()) {
-            return;
+    static BukkitMetadataRegistries getRegistries() {
+        if (registries == null) {
+            registries = new BukkitMetadataRegistries();
         }
 
-        if (!SETUP.getAndSet(true)) {
-
-            // remove player metadata when they leave the server
-            Events.subscribe(PlayerQuitEvent.class)
-                    .priority(EventPriority.MONITOR)
-                    .listen((sub, e) -> {
-                        final Player player = e.getPlayer();
-                        Metadata.get(player).ifPresent(map -> {
-                            if (map.isEmpty()) {
-                                BukkitMetadataRegistries.PLAYER.remove(player.getUniqueId());
-                            }
-                        });
-                    });
-
-            scheduleCleanup();
-        }
+        return registries;
     }
 
-    private static void scheduleCleanup() {
-        Fairy.getTaskScheduler().runAsyncRepeated(t -> {
-            for (MetadataRegistry<?> registry : BukkitMetadataRegistries.values()) {
-                registry.cleanup();
-            }
-        }, 20 * 60);
+    public static void destroy() {
+        registries = null;
     }
 
     /**
@@ -100,8 +68,7 @@ public final class Metadata {
      * @return the {@link PlayerMetadataRegistry}
      */
     public static PlayerMetadataRegistry players() {
-        ensureSetup();
-        return BukkitMetadataRegistries.PLAYER;
+        return getRegistries().getPlayerRegistry();
     }
 
     /**
@@ -110,8 +77,7 @@ public final class Metadata {
      * @return the {@link EntityMetadataRegistry}
      */
     public static EntityMetadataRegistry entities() {
-        ensureSetup();
-        return BukkitMetadataRegistries.ENTITY;
+        return getRegistries().getEntityRegistry();
     }
 
     /**
@@ -120,8 +86,7 @@ public final class Metadata {
      * @return the {@link BlockMetadataRegistry}
      */
     public static BlockMetadataRegistry blocks() {
-        ensureSetup();
-        return BukkitMetadataRegistries.BLOCK;
+        return getRegistries().getBlockRegistry();
     }
 
     /**
@@ -130,8 +95,7 @@ public final class Metadata {
      * @return the {@link WorldMetadataRegistry}
      */
     public static WorldMetadataRegistry worlds() {
-        ensureSetup();
-        return BukkitMetadataRegistries.WORLD;
+        return getRegistries().getWorldRegistry();
     }
 
     /**

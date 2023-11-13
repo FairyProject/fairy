@@ -28,18 +28,21 @@ import io.fairyproject.bukkit.mc.BukkitMCEntity;
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.registry.MCEntityRegistry;
+import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class BukkitMCEntityRegistry implements MCEntityRegistry {
 
     private final BukkitDataWatcherConverter dataWatcherConverter;
+    private final MCSchedulerProvider schedulerProvider;
 
     @Override
     public MCEntity convert(Object entity) {
         if (!(entity instanceof org.bukkit.entity.Entity)) {
             throw new UnsupportedOperationException();
         }
-        return new BukkitMCEntity((org.bukkit.entity.Entity) entity, dataWatcherConverter);
+
+        return new BukkitMCEntity((org.bukkit.entity.Entity) entity, dataWatcherConverter, schedulerProvider);
     }
 }
