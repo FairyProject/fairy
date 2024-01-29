@@ -228,7 +228,16 @@ public class Utility {
             if (typeB instanceof Class) {
                 typeB = Utility.wrapPrimitive((Class<?>) typeB);
             }
-            if (typeA != typeB) {
+
+            if (typeA instanceof Class && typeB instanceof Class) {
+                Class<?> classA = (Class<?>) typeA;
+                Class<?> classB = (Class<?>) typeB;
+
+                if (!classB.isAssignableFrom(classA)) {
+                    equal = false;
+                    break;
+                }
+            } else if (typeA != typeB) {
                 equal = false;
                 break;
             }

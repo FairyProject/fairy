@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
+import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
@@ -34,13 +35,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
-public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer<io.papermc.paper.threadedregions.scheduler.ScheduledTask> {
+public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer<Object> {
 
     private final CompletableFuture<R> future = new CompletableFuture<>();
     private final Callable<TaskResponse<R>> callable;
 
     @Setter
-    private io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask;
+    private WrapperScheduledTask scheduledTask;
 
     @Override
     public CompletableFuture<R> getFuture() {
@@ -48,14 +49,16 @@ public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer
     }
 
     @Override
-    public void accept(io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask) {
+    public void accept(Object scheduledTask) {
+        WrapperScheduledTask wrapperScheduledTask = WrapperScheduledTask.of(scheduledTask);
+
         try {
             TaskResponse<R> response = callable.call();
 
             switch (response.getState()) {
                 case SUCCESS:
                     future.complete(response.getResult());
-                    scheduledTask.cancel();
+                    wrapperScheduledTask.cancel();
                     break;
                 case FAILURE:
                     Throwable throwable = response.getThrowable();
@@ -66,7 +69,7 @@ public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer
                         future.completeExceptionally(new IllegalStateException(errorMessage));
                     }
 
-                    scheduledTask.cancel();
+                    wrapperScheduledTask.cancel();
                     break;
                 case CONTINUE:
                     break;
@@ -76,7 +79,7 @@ public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer
         } catch (Exception e) {
             future.completeExceptionally(e);
 
-            scheduledTask.cancel();
+            wrapperScheduledTask.cancel();
         }
     }
 

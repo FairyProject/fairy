@@ -60,7 +60,7 @@ public abstract class ResolverAbstract<T> {
 	 * @throws IllegalArgumentException     if the given possibilities are empty
 	 */
 	protected T resolve(ResolverQuery... queries) throws ReflectiveOperationException {
-		if (queries == null || queries.length <= 0) { throw new IllegalArgumentException("Given possibilities are empty"); }
+		if (queries == null || queries.length == 0) { throw new IllegalArgumentException("Given possibilities are empty"); }
 		for (ResolverQuery query : queries) {
 			try {
 				return resolveObject(query);

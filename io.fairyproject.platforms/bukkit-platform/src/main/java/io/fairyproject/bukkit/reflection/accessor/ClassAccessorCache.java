@@ -77,7 +77,7 @@ public class ClassAccessorCache {
                     && (query.getName() == null || method.getName().equals(query.getName()))
                     && (query.getModifierOptions() == null || query.getModifierOptions().matches(method.getModifiers()))) {
                 if (query.getTypes() != null && query.getTypes().length > 0) {
-                    if (!Utility.isParametersEquals(method.getParameterTypes(), query.getTypes())) {
+                    if (!Utility.isParametersEquals(query.getTypes(), method.getParameterTypes())) {
                         continue;
                     }
                 }

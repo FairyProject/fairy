@@ -32,6 +32,7 @@ import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 public class ObjectWrapper extends WrapperAbstract {
 
     @Getter
@@ -107,7 +108,8 @@ public class ObjectWrapper extends WrapperAbstract {
     public <T> T invoke(String method, Object... parameters) {
         return (T) this.getMethod(method, Stream.of(parameters)
                 .map(Object::getClass)
-                .toArray(Class[]::new)).invoke(this.object, parameters);
+                .toArray(Class[]::new))
+                .invoke(this.object, parameters);
     }
 
     public MethodWrapper getMethod(String method, Class... parametersType) {
@@ -117,18 +119,14 @@ public class ObjectWrapper extends WrapperAbstract {
 
         while (!methodWrapper.exists()) {
             type = type.getSuperclass();
-
-            if (type == Object.class) {
+            if (type == Object.class)
                 break;
-            }
 
             methodWrapper = new MethodResolver(type).resolveWrapper(query);
         }
 
-        if (!methodWrapper.exists()) {
+        if (!methodWrapper.exists())
             throw new IllegalStateException("Cannot found the method with name " + method + " with parameters " + Arrays.toString(parametersType));
-        }
-
         return methodWrapper;
     }
 

@@ -22,26 +22,42 @@
  * SOFTWARE.
  */
 
-package io.fairyproject.bukkit.scheduler.folia;
+package io.fairyproject.bukkit.scheduler.folia.wrapper;
 
-import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import lombok.RequiredArgsConstructor;
 
-import java.util.concurrent.CompletableFuture;
+import java.lang.reflect.Method;
 
 @RequiredArgsConstructor
-public class FoliaScheduledTask<R> implements io.fairyproject.scheduler.ScheduledTask<R> {
+public class WrapperScheduledTask {
 
-    private final WrapperScheduledTask scheduledTask;
-    private final CompletableFuture<R> future;
-
-    @Override
-    public CompletableFuture<R> getFuture() {
-        return future;
+    public static WrapperScheduledTask of(Object scheduledTask) {
+        return new WrapperScheduledTask(scheduledTask);
     }
 
-    @Override
+    private static Method cancelMethod;
+
+    private final Object scheduledTask;
+
+    public Class<?> getTaskClass() {
+        return scheduledTask.getClass();
+    }
+
     public void cancel() {
-        scheduledTask.cancel();
+        if (cancelMethod == null) {
+            Class<?> scheduledTaskClass = scheduledTask.getClass();
+            try {
+                cancelMethod = scheduledTaskClass.getMethod("cancel");
+            } catch (NoSuchMethodException e) {
+                throw new IllegalStateException("Cannot find cancel method in " + scheduledTaskClass.getName(), e);
+            }
+        }
+
+        try {
+            cancelMethod.invoke(scheduledTask);
+        } catch (Exception e) {
+            throw new IllegalStateException("Cannot invoke cancel method in " + scheduledTask.getClass().getName(), e);
+        }
     }
+
 }
