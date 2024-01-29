@@ -24,43 +24,60 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
+import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
+import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
-import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
-import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.plugin.Plugin;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
-@RequiredArgsConstructor
 public class FoliaRegionScheduler extends FoliaAbstractScheduler implements MCTickBasedScheduler {
 
-    private final RegionScheduler scheduler = Bukkit.getRegionScheduler();
-    private final Location location;
     private final Plugin bukkitPlugin;
+    private final Location location;
+    private final ObjectWrapper scheduler;
+    private final Method isOwnedByCurrentRegion;
+
+    public FoliaRegionScheduler(Plugin bukkitPlugin, Location location) {
+        this.bukkitPlugin = bukkitPlugin;
+        this.location = location;
+        this.scheduler = this.getWrapScheduler("getRegionScheduler");
+        try {
+            isOwnedByCurrentRegion = Bukkit.class.getMethod("isOwnedByCurrentRegion", Location.class);
+        } catch (Throwable e) {
+            throw new IllegalStateException("Cannot find isOwnedByCurrentRegion method in Bukkit", e);
+        }
+    }
 
     @Override
     public boolean isCurrentThread() {
-        return Bukkit.isOwnedByCurrentRegion(location);
+        try {
+            return (boolean) isOwnedByCurrentRegion.invoke(null, location);
+        } catch (Throwable e) {
+            throw new IllegalStateException("Cannot invoke isOwnedByCurrentRegion method in Bukkit", e);
+        }
     }
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable) {
-        return doSchedule(callable, task -> scheduler.run(bukkitPlugin, location, task));
+        return doSchedule(callable, task -> scheduler.invoke("run", bukkitPlugin, location, task));
     }
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable, long delayTicks) {
-        return doSchedule(callable, task -> scheduler.runDelayed(bukkitPlugin, location, task, delayTicks));
+        return doSchedule(callable, task -> scheduler.invoke("runDelayed", bukkitPlugin, location, task, delayTicks));
     }
 
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        task.setScheduledTask(scheduler.runAtFixedRate(bukkitPlugin, location, task, delayTicks, intervalTicks));
+        Object rawScheduledTask = scheduler.invoke("runAtFixedRate", bukkitPlugin, location, task, delayTicks, intervalTicks);
+        task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 
         return task;
     }

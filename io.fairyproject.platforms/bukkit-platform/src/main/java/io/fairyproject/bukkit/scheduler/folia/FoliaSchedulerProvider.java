@@ -57,6 +57,6 @@ public class FoliaSchedulerProvider implements MCSchedulerProvider {
 
     @Override
     public MCScheduler getLocationScheduler(Position position) {
-        return new FoliaRegionScheduler(BukkitPos.toBukkitLocation(position), plugin);
+        return new FoliaRegionScheduler(plugin, BukkitPos.toBukkitLocation(position));
     }
 }

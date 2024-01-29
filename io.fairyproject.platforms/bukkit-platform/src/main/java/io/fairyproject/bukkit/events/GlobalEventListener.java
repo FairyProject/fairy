@@ -28,7 +28,6 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
-import io.fairyproject.log.Log;
 import io.fairyproject.util.Stacktrace;
 import io.github.classgraph.ClassGraph;
 import io.github.classgraph.ClassInfo;
@@ -110,7 +109,7 @@ public class GlobalEventListener implements Listener {
         try {
             eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
         } catch (ClassNotFoundException ex) {
-            Log.error("Failed to load class " + classInfo.getName() + " while registering global events");
+//            Log.error("Failed to load class " + classInfo.getName() + " while registering global events");
             return;
         }
         if (!this.shouldRegisterEventClass(eventClass))

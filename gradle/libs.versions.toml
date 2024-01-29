@@ -9,7 +9,7 @@ annotations = "19.0.0"
 lombok = "1.18.24"
 persistence-api = "2.2"
 asm = "9.6"
-packetevents = "2.0.2"
+packetevents = "2.2.0"
 bukkit-api = "1.16.5-R0.1-SNAPSHOT"
 
 # Adventure
