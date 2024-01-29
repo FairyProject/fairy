@@ -237,7 +237,7 @@ public class Utility {
                     equal = false;
                     break;
                 }
-            } else if (typeA != typeB) {
+            } else if (!Objects.equals(typeA, typeB)) {
                 equal = false;
                 break;
             }
