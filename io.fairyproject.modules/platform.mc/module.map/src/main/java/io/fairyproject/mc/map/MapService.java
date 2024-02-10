@@ -18,7 +18,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
 
 @InjectableComponent
 @RequiredArgsConstructor
@@ -79,9 +78,8 @@ public class MapService {
             MCProtocol.sendPacket(player, new WrapperPlayServerMapData(
                     current.id(),
                     (byte) 0,
-                    current.icons().stream()
-                            .map(icon -> new WrapperPlayServerMapData.Icon(icon.type(), icon.x(), icon.y(), icon.rotation()))
-                            .collect(Collectors.toList()),
+                    false,
+                    current.icons(),
                     current.colors(),
                     current.x(),
                     current.y(),

@@ -251,7 +251,7 @@ public interface Converter<S, T> {
             currentNestingLevel++;
         }
 
-        FieldMapper.MappingInfo getMappingInfo() {
+        public FieldMapper.MappingInfo getMappingInfo() {
             return this.mappingInfo;
         }
     }

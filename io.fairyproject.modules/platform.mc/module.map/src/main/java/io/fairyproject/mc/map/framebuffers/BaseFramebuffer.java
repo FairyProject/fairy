@@ -1,7 +1,7 @@
 package io.fairyproject.mc.map.framebuffers;
 
 import io.fairyproject.mc.map.Framebuffer;
-import io.fairyproject.mc.map.MapIcon;
+import io.fairyproject.mc.map.packet.MapIcon;
 
 import java.util.ArrayList;
 import java.util.Collection;

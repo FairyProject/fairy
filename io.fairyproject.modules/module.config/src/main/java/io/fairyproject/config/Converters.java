@@ -400,6 +400,14 @@ final class Converters {
                 currentLevelSameAsExpected, element, info
         );
         if ((element instanceof Map<?, ?>) && currentLevelSameAsExpected) {
+            if (SERIALIZER_FACTORY != null) {
+                ObjectSerializer<?, ?> serializer = SERIALIZER_FACTORY.findSerializer(info.getElementType());
+
+                if (serializer != null) {
+                    SerializerConverter converter = new SerializerConverter(serializer);
+                    return o -> converter.convertFrom(o, info);
+                }
+            }
             return o -> {
                 Map<String, Object> map = toTypeMap(o, null);
                 Object inst = Reflect.newInstance(info.getElementType());
@@ -449,6 +457,7 @@ final class Converters {
         }
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private static final class SerializerConverter implements Converter<Object, Object> {
 
         private ObjectSerializer serializer;

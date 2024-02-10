@@ -23,13 +23,17 @@ public class BukkitMapItem {
     }
 
     public ItemStack create() {
-        Material material;
         try {
-            material = Material.FILLED_MAP;
-        } catch (NoSuchFieldError ex) {
-            material = Material.MAP;
+            ItemStack item = new ItemStack(Material.FILLED_MAP, 1);
+
+            org.bukkit.inventory.meta.MapMeta meta = (org.bukkit.inventory.meta.MapMeta) item.getItemMeta();
+            meta.setMapId(MapService.MAP_ID);
+            item.setItemMeta(meta);
+
+            return item;
+        } catch (Throwable ex) {
         }
-        return new ItemStack(material, 1, (short) MapService.MAP_ID);
+        return new ItemStack(Material.MAP, 1, (short) MapService.MAP_ID);
     }
 
 }

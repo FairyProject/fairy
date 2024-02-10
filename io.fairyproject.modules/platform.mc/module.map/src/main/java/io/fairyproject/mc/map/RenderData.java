@@ -1,10 +1,12 @@
 package io.fairyproject.mc.map;
 
+import io.fairyproject.mc.map.packet.MapIcon;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 
 import java.util.Collection;
+
 
 @Data
 @RequiredArgsConstructor

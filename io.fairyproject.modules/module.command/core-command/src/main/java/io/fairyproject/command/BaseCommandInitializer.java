@@ -205,7 +205,16 @@ public class BaseCommandInitializer {
         Command command = field.getAnnotation(Command.class);
         if (command != null) {
             if (BaseCommand.class.isAssignableFrom(field.getType())) {
-                this.initialiseSubCommand(field.getType(), command);
+                try {
+                    BaseCommand subCommand = (BaseCommand) field.get(baseCommand);
+                    if (subCommand == null) {
+                        throw new IllegalArgumentException("Field " + field + " marked @Command but not initialised");
+                    }
+
+                    this.initialiseSubCommand(command, subCommand);
+                } catch (IllegalAccessException e) {
+                    throw new IllegalArgumentException("An exception got thrown while registering field command " + field, e);
+                }
             } else {
                 throw new IllegalArgumentException("Field " + field + " marked @Command but not using type " + BaseCommand.class);
             }
@@ -240,10 +249,15 @@ public class BaseCommandInitializer {
             Constructor<?> constructor = clazz.getDeclaredConstructor();
             constructor.setAccessible(true);
             subCommand = (BaseCommand) constructor.newInstance();
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+        } catch (InvocationTargetException | InstantiationException | IllegalAccessException |
+                 NoSuchMethodException e) {
             throw new IllegalArgumentException("An exception got thrown while creating instance for " + clazz.getName() + " (Does it has no arg constructor?)", e);
         }
 
+        initialiseSubCommand(command, subCommand);
+    }
+
+    private void initialiseSubCommand(@Nullable Command command, BaseCommand subCommand) {
         subCommand.parentCommand = baseCommand;
         if (command != null) {
             subCommand.init(command);
