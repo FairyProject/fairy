@@ -1,5 +1,7 @@
 package io.fairyproject.mc.map;
 
+import io.fairyproject.mc.map.packet.MapIcon;
+
 import java.util.Collection;
 
 /**

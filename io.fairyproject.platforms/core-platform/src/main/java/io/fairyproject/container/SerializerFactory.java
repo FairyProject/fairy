@@ -119,6 +119,19 @@ public class SerializerFactory {
     @Nullable
     public ObjectSerializer<?, ?> findSerializer(@NotNull Class<?> type) {
         final SerializerData serializerData = this.serializerByValueType.get(type);
+        if (serializerData == null) {
+            // Search for the serializer by the assignable type
+            for (Map.Entry<Class<?>, SerializerData> entry : this.serializerByValueType.entrySet()) {
+                Class<?> key = entry.getKey();
+                SerializerData value = entry.getValue();
+
+                if (key.isAssignableFrom(type)) {
+                    this.serializerByValueType.put(type, value);
+
+                    return value.getSerializer();
+                }
+            }
+        }
         return serializerData != null ? serializerData.getSerializer() : null;
     }
 

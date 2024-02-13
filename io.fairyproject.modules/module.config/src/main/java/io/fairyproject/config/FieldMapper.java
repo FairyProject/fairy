@@ -33,10 +33,10 @@ import java.lang.reflect.Field;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-enum FieldMapper {
+public enum FieldMapper {
     ;
 
-    static Map<String, Object> instanceToMap(Object inst, MappingInfo mappingInfo) {
+    public static Map<String, Object> instanceToMap(Object inst, MappingInfo mappingInfo) {
         Map<String, Object> map = new LinkedHashMap<>();
         Configuration.Properties props = mappingInfo.getProperties();
         FieldFilter filter = props.getFilter();
@@ -63,7 +63,7 @@ enum FieldMapper {
         return converted;
     }
 
-    static void instanceFromMap(
+    public static void instanceFromMap(
             Object inst, Map<String, Object> instMap, MappingInfo mappingInfo
     ) {
         FieldFilter filter = mappingInfo.getProperties().getFilter();
@@ -121,7 +121,7 @@ enum FieldMapper {
         return props.getFormatter();
     }
 
-    static final class MappingInfo {
+    public static final class MappingInfo {
         private final Configuration<?> configuration;
         private final Configuration.Properties properties;
 
