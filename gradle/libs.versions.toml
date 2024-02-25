@@ -9,12 +9,12 @@ annotations = "19.0.0"
 lombok = "1.18.24"
 persistence-api = "2.2"
 asm = "9.6"
-packetevents = "2.2.0"
+packetevents = "2.2.1"
 bukkit-api = "1.16.5-R0.1-SNAPSHOT"
 
 # Adventure
-adventure = "4.14.0"
-adventure-platform = "4.3.0"
+adventure = "4.16.0"
+adventure-platform = "4.3.2"
 
 # testing
 junit = "5.9.0"

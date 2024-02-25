@@ -31,6 +31,7 @@ import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.Utility;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -100,13 +101,29 @@ public class ClassAccessorCache {
     }
 
     public Field resolveField(ResolverQuery query) throws ReflectiveOperationException {
-        if (fieldCache.containsKey(query)) {
+        if (fieldCache.containsKey(query))
             return fieldCache.get(query);
+
+        if (query.isSupertypes()) {
+            for (Class<?> superClass : Utility.getSuperClasses(parentClass)) {
+                Field field = resolveFieldByClass(superClass, query);
+                if (field != null)
+                    return field;
+            }
+        } else {
+            Field field = resolveFieldByClass(parentClass, query);
+            if (field != null)
+                return field;
         }
 
-        int currentIndex = 0;
+        throw new NoSuchFieldException();
+    }
+
+    @Nullable
+    private Field resolveFieldByClass(Class<?> aClass, ResolverQuery query) throws ReflectiveOperationException {
         Field result = null;
-        for (Field field : this.parentClass.getDeclaredFields()) {
+        int currentIndex = 0;
+        for (Field field : aClass.getDeclaredFields()) {
             if ((query.getName() == null || field.getName().equals(query.getName()))
                     && (query.getReturnType() == null || Utility.wrapPrimitive(query.getReturnType()).equals(Utility.wrapPrimitive(field.getType())))
                     && (query.getModifierOptions() == null || query.getModifierOptions().matches(field.getModifiers()))) {
@@ -132,10 +149,10 @@ public class ClassAccessorCache {
             }
         }
 
-        if (result != null) {
+        if (result != null)
             return this.cache(query, result);
-        }
-        throw new NoSuchFieldException();
+
+        return result;
     }
 
     private Method cache(ResolverQuery query, Method method) throws ReflectiveOperationException {

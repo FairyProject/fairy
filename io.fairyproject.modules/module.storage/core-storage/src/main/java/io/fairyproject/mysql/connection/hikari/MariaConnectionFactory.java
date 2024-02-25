@@ -24,6 +24,7 @@
 
 package io.fairyproject.mysql.connection.hikari;
 
+import com.zaxxer.hikari.HikariConfig;
 import io.fairyproject.RepositoryType;
 import io.fairyproject.mysql.pojo.statement.MySqlStatementBuilder;
 import io.fairyproject.mysql.pojo.statement.SqlStatementBuilder;
@@ -41,12 +42,12 @@ public class MariaConnectionFactory extends HikariConnectionFactory {
 
     @Override
     public void configureDatabase(String address, String port, String databaseName, String username, String password) {
-        this.config.setDataSourceClassName("org.mariadb.jdbc.MariaDbDataSource");
-        this.config.addDataSourceProperty("serverName", address);
-        this.config.addDataSourceProperty("port", port);
-        this.config.addDataSourceProperty("databaseName", databaseName);
-        this.config.setUsername(username);
-        this.config.setPassword(password);
+        config.setDataSourceClassName("org.mariadb.jdbc.MariaDbDataSource");
+        config.addDataSourceProperty("serverName", address);
+        config.addDataSourceProperty("port", port);
+        config.addDataSourceProperty("databaseName", databaseName);
+        config.setUsername(username);
+        config.setPassword(password);
     }
 
     @Override

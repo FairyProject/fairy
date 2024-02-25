@@ -118,6 +118,7 @@ public abstract class AbstractHikariRepositoryProvider extends AbstractSqlReposi
         }
 
         public void setupFactory(AbstractHikariRepositoryProvider repositoryProvider, HikariConnectionFactory factory) {
+            HikariConfig config = factory.getConfig();
             factory.configureDatabase(
                     repositoryProvider.address(),
                     repositoryProvider.port(),
@@ -125,7 +126,6 @@ public abstract class AbstractHikariRepositoryProvider extends AbstractSqlReposi
                     repositoryProvider.username(),
                     repositoryProvider.password()
             );
-            HikariConfig config = factory.getConfig();
 
             config.setConnectionTestQuery("SELECT 1");
             config.setAutoCommit(true);

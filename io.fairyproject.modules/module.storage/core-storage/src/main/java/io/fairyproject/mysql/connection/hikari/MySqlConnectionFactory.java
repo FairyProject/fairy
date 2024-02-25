@@ -24,6 +24,7 @@
 
 package io.fairyproject.mysql.connection.hikari;
 
+import com.zaxxer.hikari.HikariConfig;
 import io.fairyproject.RepositoryType;
 import io.fairyproject.mysql.pojo.statement.MySqlStatementBuilder;
 import io.fairyproject.mysql.pojo.statement.SqlStatementBuilder;
@@ -41,10 +42,10 @@ public class MySqlConnectionFactory extends HikariConnectionFactory {
 
     @Override
     public void configureDatabase(String address, String port, String databaseName, String username, String password) {
-        this.config.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        this.config.setJdbcUrl("jdbc:mysql://" + address + ":" + port + "/" + databaseName);
-        this.config.setUsername(username);
-        this.config.setPassword(password);
+        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        config.setJdbcUrl("jdbc:mysql://" + address + ":" + port + "/" + databaseName);
+        config.setUsername(username);
+        config.setPassword(password);
     }
 
     @Override
