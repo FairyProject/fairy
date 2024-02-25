@@ -24,6 +24,7 @@
 
 package io.fairyproject.mysql.connection.hikari;
 
+import com.zaxxer.hikari.HikariConfig;
 import io.fairyproject.RepositoryType;
 import io.fairyproject.mysql.pojo.statement.PostgresStatementBuilder;
 import io.fairyproject.mysql.pojo.statement.SqlStatementBuilder;
@@ -36,12 +37,12 @@ public class PostgreConnectionFactory extends HikariConnectionFactory {
 
     @Override
     public void configureDatabase(String address, String port, String databaseName, String username, String password) {
-        this.config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
-        this.config.addDataSourceProperty("serverName", address);
-        this.config.addDataSourceProperty("portNumber", port);
-        this.config.addDataSourceProperty("databaseName", databaseName);
-        this.config.addDataSourceProperty("user", username);
-        this.config.addDataSourceProperty("password", password);
+        config.setDataSourceClassName("org.postgresql.ds.PGSimpleDataSource");
+        config.addDataSourceProperty("serverName", address);
+        config.addDataSourceProperty("portNumber", port);
+        config.addDataSourceProperty("databaseName", databaseName);
+        config.addDataSourceProperty("user", username);
+        config.addDataSourceProperty("password", password);
     }
 
     @Override

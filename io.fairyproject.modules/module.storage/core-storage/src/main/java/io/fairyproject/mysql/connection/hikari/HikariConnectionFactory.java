@@ -42,7 +42,7 @@ import java.util.concurrent.TimeUnit;
 public abstract class HikariConnectionFactory extends AbstractConnectionFactory {
 
     @Getter
-    protected HikariConfig config;
+    protected final HikariConfig config = new HikariConfig();
     protected HikariDataSource dataSource;
 
     public abstract String defaultPort();
@@ -55,13 +55,6 @@ public abstract class HikariConnectionFactory extends AbstractConnectionFactory 
 
     @Override
     public void init() {
-        try {
-            this.config = new HikariConfig();
-        } catch (LinkageError ex) {
-            handleLinkageError(ex);
-            throw ex;
-        }
-
         this.config.setPoolName("imanity-hikari");
         this.config.setInitializationFailTimeout(-1);
         this.config.addDataSourceProperty("socketTimeout", String.valueOf(TimeUnit.SECONDS.toMillis(30)));
