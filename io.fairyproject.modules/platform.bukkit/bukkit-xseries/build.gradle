@@ -1,5 +1,5 @@
 dependencies {
-    api "com.github.cryptomorin:XSeries:9.7.0"
+    api "com.github.cryptomorin:XSeries:9.9.0"
 
     compileOnly(libs.spigot)
 }

@@ -24,6 +24,8 @@
 
 package io.fairyproject.bukkit.reflection.resolver;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.lang.reflect.Modifier;
@@ -38,14 +40,25 @@ import java.util.StringJoiner;
  * @see ResolverQuery.Builder
  */
 @Getter
+@AllArgsConstructor
+@Builder
 public class ResolverQuery {
 
     private String name;
     private int index = -1; // -1 == none, -2 == last
     private Class<?> returnType;
     private Class<?>[] types;
+	private boolean supertypes;
 
     private ModifierOptions modifierOptions;
+
+	public ResolverQuery(Class<?> returnType, String name, int index, boolean supertypes, Class<?>... types) {
+		this.returnType = returnType;
+		this.index = index;
+		this.name = name;
+		this.types = types;
+		this.supertypes = supertypes;
+	}
 
 	public ResolverQuery(Class<?> returnType, String name, int index, Class<?>... types) {
 		this.returnType = returnType;
@@ -146,6 +159,11 @@ public class ResolverQuery {
         private Builder() {
         }
 
+		public Builder with(Class<?> returnType, String name, int index, boolean supertypes, Class<?>[] types) {
+			queryList.add(new ResolverQuery(returnType, name, index, supertypes, types));
+			return this;
+		}
+
 		public Builder with(Class<?> returnType, String name, int index, Class<?>[] types) {
 			queryList.add(new ResolverQuery(returnType, name, index, types));
 			return this;
@@ -163,6 +181,11 @@ public class ResolverQuery {
 
 		public Builder with(Class<?> returnType, int index) {
 			queryList.add(new ResolverQuery(returnType, index));
+			return this;
+		}
+
+		public Builder withSupertypes(Class<?> returnType, int index) {
+			queryList.add(new ResolverQuery(returnType, null, index, true));
 			return this;
 		}
 

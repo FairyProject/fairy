@@ -1,6 +1,5 @@
 package io.fairyproject.bukkit.mc;
 
-import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.bukkit.mc.operator.BukkitMCPlayerOperator;
 import io.fairyproject.bukkit.util.PlayerLocaleUtil;

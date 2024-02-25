@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.mc.operator;
 
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
+import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCGameProfile;
@@ -71,7 +72,6 @@ public class BukkitMCPlayerOperatorImpl implements BukkitMCPlayerOperator {
             getDisplayName = this.setupGetDisplayName();
             setDisplayName = this.setupSetDisplayName();
             this.setupGetChannel();
-
         } catch (Throwable e) {
             throw new IllegalStateException("Failed to initialize BukkitMCPlayerOperator.", e);
         }
@@ -125,7 +125,9 @@ public class BukkitMCPlayerOperatorImpl implements BukkitMCPlayerOperator {
 
         getHandle = craftPlayerClass.getDeclaredMethod("getHandle");
         playerConnection = new FieldResolver(entityPlayerClass).resolveByFirstType(playerConnectionClass);
-        networkManager = new FieldResolver(playerConnectionClass).resolveByFirstType(networkManagerClass);
+        networkManager = new FieldResolver(playerConnectionClass).resolve(ResolverQuery.builder()
+                .withSupertypes(networkManagerClass, 0)
+                .build());
         profile = craftPlayerClass.getDeclaredMethod("getProfile");
         Field ping;
         try {

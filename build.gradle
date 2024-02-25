@@ -47,6 +47,7 @@ allprojects {
             name = "sonatype-oss-snapshots"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
+        maven { url "https://repo.codemc.io/repository/maven-releases/" }
         maven { url "https://repo.imanity.dev/imanity-libraries/" }
         maven { url "https://nexus.funkemunky.cc/content/repositories/releases/" }
         maven { url "https://jitpack.io" }
