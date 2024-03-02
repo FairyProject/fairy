@@ -16,10 +16,10 @@ class FairyResourceBukkitMeta : FairyResource {
         fairyExtension: FairyExtension,
         classMapper: Map<ClassType, ClassInfo>
     ): ResourceInfo? {
-        val hasBukkitPlatform = project.configurations.flatMap { it.dependencies }.any {
-            it.isClassBukkitPlatform()
+        val hasBukkit = project.configurations.flatMap { it.dependencies }.any {
+            it.hasBukkitPlatform
         }
-        if (!hasBukkitPlatform)
+        if (!hasBukkit)
             return null
 
         classMapper[ClassType.BUKKIT_PLUGIN] ?: return null
@@ -40,7 +40,7 @@ class FairyResourceBukkitMeta : FairyResource {
         return resourceOf("plugin.yml", stringJoiner.toString().encodeToByteArray())
     }
 
-    private fun Dependency.isClassBukkitPlatform() =
-        group == "io.fairyproject" &&
-                (name == "bukkit-platform" || name == "bukkit-bundles")
+    private val Dependency.hasBukkitPlatform
+    get() = group == "io.fairyproject" &&
+                (name == "bukkit-platform" || name == "bukkit-bundles" || name == "bukkit-bootstrap")
 }
