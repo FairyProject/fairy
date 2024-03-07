@@ -30,6 +30,8 @@ import org.jetbrains.annotations.Nullable;
 public interface ContainerObjectBinder {
     @Nullable ContainerObj getBinding(Class<?> type);
 
+    @Nullable ContainerObj getExactBinding(Class<?> classType);
+
     boolean isBound(Class<?> type);
 
     void bind(Class<?> type, ContainerObj object);

@@ -141,7 +141,7 @@ public class ContainerNodeClassScanner {
     }
 
     private ContainerObj getOrLoadComponentObject(Class<?> javaClass) {
-        ContainerObj binding = this.binder.getBinding(javaClass);
+        ContainerObj binding = this.binder.getExactBinding(javaClass);
         if (binding != null)
             return binding;
 

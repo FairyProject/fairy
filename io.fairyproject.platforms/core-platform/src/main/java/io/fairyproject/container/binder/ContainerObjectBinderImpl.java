@@ -44,6 +44,11 @@ public class ContainerObjectBinderImpl implements ContainerObjectBinder {
         return obj;
     }
 
+    @Override
+    public @Nullable ContainerObj getExactBinding(Class<?> classType) {
+        return this.bindings.get(classType);
+    }
+
     private ContainerObj findBindingAssignableByType(Class<?> type) {
         for (ContainerObj value : this.bindings.values()) {
             Class<?> valueType = value.getType();
