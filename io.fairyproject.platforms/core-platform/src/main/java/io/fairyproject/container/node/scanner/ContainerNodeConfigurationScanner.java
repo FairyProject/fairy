@@ -47,7 +47,6 @@ public class ContainerNodeConfigurationScanner {
     public void load() {
         this.createConfigurationInstance();
 
-        System.out.println("Loading configuration: " + configurationClass.getName());
         for (Method method : configurationClass.getDeclaredMethods()) {
             if (method.isAnnotationPresent(InjectableComponent.class))
                 this.loadConfigurationMethod(method, override);
@@ -90,17 +89,6 @@ public class ContainerNodeConfigurationScanner {
         if (annotation != null) {
             object.setScope(annotation.scope());
         }
-
-        System.out.println("Adding component: " + object.getType().getName());
-
-        /**
-         *  InterfaceA, InterfaceB <- ClassA
-         *
-         *
-         *  ClassA -> ClassA
-         *  InterfaceA -> ClassA
-         *  InterfaceB -> ClassA
-         */
 
         this.scanner.addComponentClass(object, scanner.getNode());
     }
