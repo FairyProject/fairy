@@ -67,7 +67,8 @@ public class ContainerNodeConfigurationScanner {
         InstanceProvider provider = new MethodInvokeInstanceProvider(this.instance, method);
 
         Class<?> javaClass = provider.getType();
-        ContainerObj object = this.binder.getBinding(javaClass);
+        ContainerObj object = this.binder.getExactBinding(javaClass);
+
         if (object != null) {
             if (override) {
                 object.setInstanceProvider(provider);

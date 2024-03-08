@@ -87,6 +87,19 @@ class ContainerObjectBinderImplTest {
         assertTrue(binder.isBound(interfaceType));
     }
 
+
+    @Test
+    void getExactBinding_ShouldReturnExactTheClassThatRequested() {
+        Class<?> classType = SomeClass.class;
+        Class<?> interfaceType = SomeInterface.class;
+
+        ContainerObj classTypeObj = ContainerObj.create(classType);
+
+        binder.bind(classType, classTypeObj);
+
+        assertNull(binder.getExactBinding(interfaceType));
+    }
+
     @Test
     void recreateBinder_ShouldHaveDifferentContent() {
         Class<?> type = SomeClass.class;

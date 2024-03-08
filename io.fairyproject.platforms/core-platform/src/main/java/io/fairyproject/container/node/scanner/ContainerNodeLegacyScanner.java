@@ -81,7 +81,7 @@ public class ContainerNodeLegacyScanner {
         InstanceProvider instanceProvider = new MethodInvokeInstanceProvider(null, method);
         Class<?> type = instanceProvider.getType();
 
-        ContainerObj object = this.binder.getBinding(type);
+        ContainerObj object = this.binder.getExactBinding(type);
         if (object == null) {
             object = scanner.createObject(type);
             object.setInstanceProvider(instanceProvider);
