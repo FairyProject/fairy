@@ -36,8 +36,10 @@ open class FairyResourceAction : Action<Task> {
                 val mainClassInterface = classMapper[ClassType.MAIN_CLASS_INTERFACE]
 
                 classes.forEach {
+                    // Avoid module-info
                     val isMainClass = mainClassInterface?.name == it.classNode.superName || hasFairyLaunch(it)
-                    if (isMainClass) {
+                    if (isMainClass &&
+                        !it.classNode.name.contains("module-info")) {
                         // the super class was main class interface, so it's main class
                         classMapper[ClassType.MAIN_CLASS] = it
                     }
@@ -114,7 +116,7 @@ open class FairyResourceAction : Action<Task> {
 
     private fun pushClassToMapping(classInfo: ClassInfo, classMapper: MutableMap<ClassType, ClassInfo>) {
         ClassType.values().forEach { classType ->
-            if (classType.names.contains(classInfo.name.substringAfterLast("/"))) {
+            if (!classInfo.name.contains("module-info") && classType.names.contains(classInfo.name.substringAfterLast("/"))) {
                 // Duplicated class types
                 if (classMapper.contains(classType))
                     throw IllegalStateException("a project are not suppose to have 2 or more classes that are $classType")
