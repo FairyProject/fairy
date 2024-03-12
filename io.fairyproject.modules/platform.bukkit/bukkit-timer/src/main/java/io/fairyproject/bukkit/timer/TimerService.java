@@ -86,20 +86,32 @@ public class TimerService {
     public void startScheduler() {
         this.mcSchedulerProvider.getGlobalScheduler().scheduleAtFixedRate(() -> {
             this.lock.lock();
-            Iterator<Timer> iterator = this.timers.iterator();
-            while (iterator.hasNext()) {
-                Timer timer = iterator.next();
-                if (timer.isPaused()) {
-                    continue;
-                }
-                timer.tick();
-                if (timer.isElapsed() && timer.elapsed()) {
-                    if (!timer.clear(false, TimerClearEvent.Reason.ELAPSED)) {
+
+            try {
+                Iterator<Timer> iterator = this.timers.iterator();
+                while (iterator.hasNext()) {
+                    Timer timer = iterator.next();
+                    if (timer.isPaused()) {
                         continue;
                     }
-                    iterator.remove();
+
+                    try {
+                        timer.tick();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                    if (timer.isElapsed() && timer.elapsed()) {
+                        if (!timer.clear(false, TimerClearEvent.Reason.ELAPSED)) {
+                            continue;
+                        }
+                        iterator.remove();
+                    }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+
             this.lock.unlock();
         }, 2L, 2L);
     }
