@@ -36,6 +36,8 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.CC;
+import lombok.Getter;
+import lombok.Setter;
 import net.kyori.adventure.text.Component;
 
 import java.util.List;
@@ -46,9 +48,15 @@ public class Sidebar {
     public static final MetadataKey<Sidebar> METADATA_TAG = MetadataKey.create(Fairy.METADATA_PREFIX + "Scoreboard", Sidebar.class);
 
     private final MCPlayer player;
+    private final Component[] teams;
 
     private Component title;
-    private final Component[] teams;
+    @Getter
+    @Setter
+    private int ticks;
+    @Getter
+    @Setter
+    private boolean removed;
 
     public Sidebar(MCPlayer player) {
         this.player = player;
@@ -192,6 +200,10 @@ public class Sidebar {
     }
 
     public void remove() {
+        if (this.isRemoved())
+            return;
+        this.setRemoved(true);
+
         for (int line = 1; line < 15; line++) {
             this.clear(line);
         }
@@ -202,7 +214,7 @@ public class Sidebar {
             return new WrapperPlayServerTeams(
                     "-sb" + line,
                     WrapperPlayServerTeams.TeamMode.UPDATE,
-                    Optional.empty()
+                    (WrapperPlayServerTeams.ScoreBoardTeamInfo) null
             );
         } else {
             teams[line] = null;
@@ -218,7 +230,7 @@ public class Sidebar {
             return new WrapperPlayServerTeams(
                     "-sb" + line,
                     WrapperPlayServerTeams.TeamMode.CREATE,
-                    Optional.empty(),
+                    (WrapperPlayServerTeams.ScoreBoardTeamInfo) null,
                     getEntry(line)
             );
         }
