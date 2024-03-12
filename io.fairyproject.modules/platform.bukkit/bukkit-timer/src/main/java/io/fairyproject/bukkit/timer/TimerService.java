@@ -32,6 +32,7 @@ import io.fairyproject.bukkit.timer.event.TimerClearEvent;
 import io.fairyproject.bukkit.timer.impl.PlayerTimer;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -87,19 +88,17 @@ public class TimerService {
         this.mcSchedulerProvider.getGlobalScheduler().scheduleAtFixedRate(() -> {
             this.lock.lock();
 
-            try {
-                Iterator<Timer> iterator = this.timers.iterator();
-                while (iterator.hasNext()) {
-                    Timer timer = iterator.next();
+            Iterator<Timer> iterator = this.timers.iterator();
+
+            while (iterator.hasNext()) {
+                Timer timer = iterator.next();
+
+                try {
                     if (timer.isPaused()) {
                         continue;
                     }
 
-                    try {
-                        timer.tick();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                    timer.tick();
 
                     if (timer.isElapsed() && timer.elapsed()) {
                         if (!timer.clear(false, TimerClearEvent.Reason.ELAPSED)) {
@@ -107,9 +106,10 @@ public class TimerService {
                         }
                         iterator.remove();
                     }
+                } catch (Exception e) {
+                    Log.error("Error occurred while ticking timer " + timer.getClass().getSimpleName() + "!", e);
+                    timer.clear();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
 
             this.lock.unlock();
