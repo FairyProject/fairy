@@ -139,23 +139,26 @@ public class SidebarService {
                 break;
             }
 
-            Sidebar board = this.get(player);
-            if (board == null) {
+            Sidebar sidebar = this.get(player);
+            if (sidebar == null)
                 continue;
-            }
+
+            sidebar.setTicks(sidebar.getTicks() + 1);
+            if (sidebar.getTicks() < 20)
+                continue;
 
             SidebarInfo entry = this.findAdapter(player);
             if (entry == null) {
-                board.remove();
+                sidebar.remove();
                 continue;
             }
 
-            board.setTitle(entry.getTitle());
-
             if (entry.getLines() == null || entry.getLines().isEmpty()) {
-                board.remove();
+                sidebar.remove();
             } else {
-                board.setLines(entry.getLines());
+                sidebar.setRemoved(false);
+                sidebar.setTitle(entry.getTitle());
+                sidebar.setLines(entry.getLines());
             }
         }
     }
