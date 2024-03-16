@@ -2,6 +2,7 @@ package io.fairyproject.mc.actionbar;
 
 import io.fairyproject.container.*;
 import io.fairyproject.container.collection.ContainerObjCollector;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.metadata.PlayerOnlineValue;
 import io.fairyproject.mc.registry.player.MCPlayerRegistry;
@@ -65,9 +66,11 @@ public class ActionbarService {
     }
 
     private TaskResponse<Void> onTick() {
+
         for (MCPlayer player : this.mcPlayerRegistry.getAllPlayers()) {
             Component current = player.metadata().getOrDefault(ACTIONBAR_CURRENT, Component.empty());
             Component component = this.buildActionbarComponent(player);
+
             if (component == null) {
                 component = Component.empty();
             }
@@ -97,16 +100,22 @@ public class ActionbarService {
     private Component buildActionbarComponent(MCPlayer player) {
         Component retVal = null;
 
-        this.lock.readLock().lock();
         try {
-            for (ActionbarAdapter adapter : this.getSortedAdapters()) {
-                retVal = adapter.build(player);
-                if (retVal != null && !retVal.equals(Component.empty())) {
-                    break;
+            this.lock.readLock().lock();
+            try {
+                for (ActionbarAdapter adapter : this.getSortedAdapters()) {
+                    retVal = adapter.build(player);
+                    if (retVal != null && !retVal.equals(Component.empty())) {
+                        break;
+                    }
                 }
+            } finally {
+                this.lock.readLock().unlock();
             }
-        } finally {
-            this.lock.readLock().unlock();
+
+        } catch (Exception e) {
+            Log.error("Error while building actionbar component", e);
+            return retVal;
         }
 
         return retVal;
