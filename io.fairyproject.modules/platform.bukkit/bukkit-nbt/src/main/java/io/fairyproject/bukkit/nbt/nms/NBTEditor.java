@@ -28,12 +28,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,25 +48,30 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 /**
  * Sets/Gets NBT tags from ItemStacks
- * Supports 1.8-1.19
+ * Supports 1.8-1.20
  *
  * Github: https://github.com/BananaPuncher714/NBTEditor
  * Spigot: https://www.spigotmc.org/threads/269621/
  *
- * @version 7.18.5
+ * @version 7.19.2
  * @author BananaPuncher714
  */
 public final class NBTEditor {
-    private static final Map< String, Class< ? > > classCache;
-    private static final Map< String, Method > methodCache;
-    private static final Map< Class< ? >, Constructor< ? > > constructorCache;
+    private static final Set< ReflectionTarget > reflectionTargets;
+
+    private static final Map< ClassId, Class< ? > > classCache;
+    private static final Map< MethodId, Method > methodCache;
+    private static final Map< ClassId, Constructor< ? > > constructorCache;
+    private static final Map< Class< ? >, Constructor< ? > > NBTConstructors;
     private static final Map< Class< ? >, Class< ? > > NBTClasses;
     private static final Map< Class< ? >, Field > NBTTagFieldCache;
     private static Field NBTListData;
     private static Field NBTCompoundMap;
+    private static Field skullProfile;
     private static final String VERSION;
     private static final MinecraftVersion LOCAL_VERSION;
 
@@ -72,79 +81,51 @@ public final class NBTEditor {
     public static final Type DELETE = Type.DELETE;
 
     static {
-        VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+        VERSION = Bukkit.getServer().getClass().getPackage().getName().split( "\\." )[ 3 ];
         LOCAL_VERSION = MinecraftVersion.get( VERSION );
 
-        classCache = new HashMap< String, Class<?> >();
-        try {
-            if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_16 ) ) {
-                classCache.put( "NBTBase", Class.forName( "net.minecraft.server." + VERSION + "." + "NBTBase" ) );
-                classCache.put( "NBTTagCompound", Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagCompound" ) );
-                classCache.put( "NBTTagList", Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagList" ) );
-                classCache.put( "NBTTagEnd", Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagEnd" ) );
-                classCache.put( "MojangsonParser", Class.forName( "net.minecraft.server." + VERSION + "." + "MojangsonParser" ) );
+        classCache = new HashMap< ClassId, Class< ? > >();
+        methodCache = new HashMap< MethodId, Method >();
+        constructorCache = new HashMap< ClassId, Constructor< ? > >();
 
-                classCache.put( "ItemStack", Class.forName( "net.minecraft.server." + VERSION + "." + "ItemStack" ) );
+        reflectionTargets = new TreeSet< ReflectionTarget >();
+        reflectionTargets.addAll( Arrays.asList(
+                new ReflectionTarget.v1_8().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_9().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_11().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_12().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_13().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_15().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_16().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_17().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_18_R1().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_18_R2().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_19_R1().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_19_R2().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_20_R1().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_20_R2().setClassFetcher( NBTEditor::getNMSClass ),
+                new ReflectionTarget.v1_20_R3().setClassFetcher( NBTEditor::getNMSClass )
+        ) );
 
-                classCache.put( "Entity", Class.forName( "net.minecraft.server." + VERSION + "." + "Entity" ) );
-                classCache.put( "EntityLiving", Class.forName( "net.minecraft.server." + VERSION + "." + "EntityLiving" ) );
+        for ( ReflectionTarget target : reflectionTargets ) {
+            if ( target.getVersion().lessThanOrEqualTo( LOCAL_VERSION ) ) {
+                try {
+                    Method method = target.fetchDeclaredMethod( MethodId.setCraftMetaSkullProfile );
 
-                classCache.put( "BlockPosition", Class.forName( "net.minecraft.server." + VERSION + "." + "BlockPosition" ) );
-                classCache.put( "TileEntity", Class.forName( "net.minecraft.server." + VERSION + "." + "TileEntity" ) );
-                classCache.put( "World", Class.forName( "net.minecraft.server." + VERSION + "." + "World" ) );
-                classCache.put( "IBlockData", Class.forName( "net.minecraft.server." + VERSION + "." + "IBlockData" ) );
+                    if ( method != null ) {
+                        methodCache.put( MethodId.setCraftMetaSkullProfile, method );
 
-                classCache.put( "TileEntitySkull", Class.forName( "net.minecraft.server." + VERSION + "." + "TileEntitySkull" ) );
-
-            } else {
-                classCache.put( "BlockPosition", Class.forName( "net.minecraft.core.BlockPosition" ) );
-
-                classCache.put( "NBTBase", Class.forName( "net.minecraft.nbt.NBTBase" ) );
-                classCache.put( "NBTTagCompound", Class.forName( "net.minecraft.nbt.NBTTagCompound" ) );
-                classCache.put( "NBTTagList", Class.forName( "net.minecraft.nbt.NBTTagList" ) );
-                classCache.put( "NBTTagEnd", Class.forName( "net.minecraft.nbt.NBTTagEnd" ) );
-                classCache.put( "MojangsonParser", Class.forName( "net.minecraft.nbt.MojangsonParser" ) );
-
-                classCache.put( "ItemStack", Class.forName( "net.minecraft.world.item.ItemStack" ) );
-
-                classCache.put( "Entity", Class.forName( "net.minecraft.world.entity.Entity" ) );
-                classCache.put( "EntityLiving", Class.forName( "net.minecraft.world.entity.EntityLiving" ) );
-
-                classCache.put( "World", Class.forName( "net.minecraft.world.level.World" ) );
-                classCache.put( "IBlockData", Class.forName( "net.minecraft.world.level.block.state.IBlockData" ) );
-                classCache.put( "TileEntity", Class.forName( "net.minecraft.world.level.block.entity.TileEntity" ) );
-                classCache.put( "TileEntitySkull", Class.forName( "net.minecraft.world.level.block.entity.TileEntitySkull" ) );
+                        break;
+                    }
+                } catch ( ClassNotFoundException | NoSuchMethodException | SecurityException e ) {
+                    e.printStackTrace();
+                }
             }
-
-            classCache.put( "CraftItemStack", Class.forName( "org.bukkit.craftbukkit." + VERSION + ".inventory." + "CraftItemStack" ) );
-            classCache.put( "CraftMetaSkull", Class.forName( "org.bukkit.craftbukkit." + VERSION + ".inventory." + "CraftMetaSkull" ) );
-
-            classCache.put( "CraftEntity", Class.forName( "org.bukkit.craftbukkit." + VERSION + ".entity." + "CraftEntity" ) );
-
-            classCache.put( "CraftWorld", Class.forName( "org.bukkit.craftbukkit." + VERSION + "." + "CraftWorld" ) );
-            classCache.put( "CraftBlockState", Class.forName( "org.bukkit.craftbukkit." + VERSION + ".block." + "CraftBlockState" ) );
-
-            classCache.put( "GameProfile", Class.forName( "com.mojang.authlib.GameProfile" ) );
-            classCache.put( "Property", Class.forName( "com.mojang.authlib.properties.Property" ) );
-            classCache.put( "PropertyMap", Class.forName( "com.mojang.authlib.properties.PropertyMap" ) );
-        } catch ( ClassNotFoundException e ) {
-            e.printStackTrace();
         }
 
         NBTClasses = new HashMap< Class< ? >, Class< ? > >();
         try {
-            if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_16 ) ) {
-                NBTClasses.put( Byte.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagByte" ) );
-                NBTClasses.put( Boolean.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagByte" ) );
-                NBTClasses.put( String.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagString" ) );
-                NBTClasses.put( Double.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagDouble" ) );
-                NBTClasses.put( Integer.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagInt" ) );
-                NBTClasses.put( Long.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagLong" ) );
-                NBTClasses.put( Short.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagShort" ) );
-                NBTClasses.put( Float.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagFloat" ) );
-                NBTClasses.put( Class.forName( "[B" ), Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagByteArray" ) );
-                NBTClasses.put( Class.forName( "[I" ), Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagIntArray" ) );
-            } else {
+            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_17 ) ) {
                 NBTClasses.put( Byte.class, Class.forName( "net.minecraft.nbt.NBTTagByte" ) );
                 NBTClasses.put( Boolean.class, Class.forName( "net.minecraft.nbt.NBTTagByte" ) );
                 NBTClasses.put( String.class, Class.forName( "net.minecraft.nbt.NBTTagString" ) );
@@ -155,200 +136,46 @@ public final class NBTEditor {
                 NBTClasses.put( Float.class, Class.forName( "net.minecraft.nbt.NBTTagFloat" ) );
                 NBTClasses.put( Class.forName( "[B" ), Class.forName( "net.minecraft.nbt.NBTTagByteArray" ) );
                 NBTClasses.put( Class.forName( "[I" ), Class.forName( "net.minecraft.nbt.NBTTagIntArray" ) );
+            } else {
+                NBTClasses.put( Byte.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagByte" ) );
+                NBTClasses.put( Boolean.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagByte" ) );
+                NBTClasses.put( String.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagString" ) );
+                NBTClasses.put( Double.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagDouble" ) );
+                NBTClasses.put( Integer.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagInt" ) );
+                NBTClasses.put( Long.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagLong" ) );
+                NBTClasses.put( Short.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagShort" ) );
+                NBTClasses.put( Float.class, Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagFloat" ) );
+                NBTClasses.put( Class.forName( "[B" ), Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagByteArray" ) );
+                NBTClasses.put( Class.forName( "[I" ), Class.forName( "net.minecraft.server." + VERSION + "." + "NBTTagIntArray" ) );
             }
         } catch ( ClassNotFoundException e ) {
             e.printStackTrace();
         }
 
-        methodCache = new HashMap< String, Method >();
+        NBTConstructors = new HashMap< Class< ? >, Constructor< ? > >();
         try {
-            if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_17 ) ) {
-                methodCache.put( "get", getNMSClass( "NBTTagCompound" ).getMethod( "get", String.class ) );
-                methodCache.put( "set", getNMSClass( "NBTTagCompound" ).getMethod( "set", String.class, getNMSClass( "NBTBase" ) ) );
-                methodCache.put( "hasKey", getNMSClass( "NBTTagCompound" ).getMethod( "hasKey", String.class ) );
-            } else {
-                methodCache.put( "get", getNMSClass( "NBTTagCompound" ).getMethod( "c", String.class ) );
-                methodCache.put( "set", getNMSClass( "NBTTagCompound" ).getMethod( "a", String.class, getNMSClass( "NBTBase" ) ) );
-                methodCache.put( "hasKey", getNMSClass( "NBTTagCompound" ).getMethod( "e", String.class ) );
-            }
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "setIndex", getNMSClass( "NBTTagList" ).getMethod( "d", int.class, getNMSClass( "NBTBase" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_17 ) ) {
-                methodCache.put( "setIndex", getNMSClass( "NBTTagList" ).getMethod( "set", int.class, getNMSClass( "NBTBase" ) ) );
-            } else {
-                methodCache.put( "setIndex", getNMSClass( "NBTTagList" ).getMethod( "a", int.class, getNMSClass( "NBTBase" ) ) );
-            }
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "add", getNMSClass( "NBTTagList" ).getMethod( "c", int.class, getNMSClass( "NBTBase" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_14 ) ) {
-                methodCache.put( "add", getNMSClass( "NBTTagList" ).getMethod( "add", int.class, getNMSClass( "NBTBase" ) ) );
-            } else {
-                methodCache.put( "add", getNMSClass( "NBTTagList" ).getMethod( "add", getNMSClass( "NBTBase" ) ) );
-            }
-            methodCache.put( "size", getNMSClass( "NBTTagList" ).getMethod( "size" ) );
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "listRemove", getNMSClass( "NBTTagList" ).getMethod( "c", int.class )  );
-            } else if ( LOCAL_VERSION == MinecraftVersion.v1_8 ) {
-                methodCache.put( "listRemove", getNMSClass( "NBTTagList" ).getMethod( "a", int.class )  );
-            } else {
-                methodCache.put( "listRemove", getNMSClass( "NBTTagList" ).getMethod( "remove", int.class )  );
-            }
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "remove", getNMSClass( "NBTTagCompound" ).getMethod( "r", String.class ) );
-            } else {
-                methodCache.put( "remove", getNMSClass( "NBTTagCompound" ).getMethod( "remove", String.class ) );
-            }
-            if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_12 ) ) {
-                methodCache.put( "getKeys", getNMSClass( "NBTTagCompound" ).getMethod( "c" ) );
-            } else if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_17 ) ) {
-                methodCache.put( "getKeys", getNMSClass( "NBTTagCompound" ).getMethod( "getKeys" ) );
-            } else if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_19_R1 ) ){
-                methodCache.put( "getKeys", getNMSClass( "NBTTagCompound" ).getMethod( "d" ) );
-            } else {
-                methodCache.put( "getKeys", getNMSClass( "NBTTagCompound" ).getMethod( "e" ) );
-            }
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_20 ) ) {
-                methodCache.put( "hasTag", getNMSClass( "ItemStack" ).getMethod( "u" ) );
-                methodCache.put( "getTag", getNMSClass( "ItemStack" ).getMethod( "v" ) );
-                methodCache.put( "setTag", getNMSClass( "ItemStack" ).getMethod( "c", getNMSClass( "NBTTagCompound" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_19_R1 ) ) {
-                methodCache.put( "hasTag", getNMSClass( "ItemStack" ).getMethod( "t" ) );
-                methodCache.put( "getTag", getNMSClass( "ItemStack" ).getMethod( "u" ) );
-                methodCache.put( "setTag", getNMSClass( "ItemStack" ).getMethod( "c", getNMSClass( "NBTTagCompound" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R2 ) ) {
-                methodCache.put( "hasTag", getNMSClass( "ItemStack" ).getMethod( "s" ) );
-                methodCache.put( "getTag", getNMSClass( "ItemStack" ).getMethod( "t" ) );
-                methodCache.put( "setTag", getNMSClass( "ItemStack" ).getMethod( "c", getNMSClass( "NBTTagCompound" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "hasTag", getNMSClass( "ItemStack" ).getMethod( "r" ) );
-                methodCache.put( "getTag", getNMSClass( "ItemStack" ).getMethod( "s" ) );
-                methodCache.put( "setTag", getNMSClass( "ItemStack" ).getMethod( "c", getNMSClass( "NBTTagCompound" ) ) );
-            } else {
-                methodCache.put( "hasTag", getNMSClass( "ItemStack" ).getMethod( "hasTag" ) );
-                methodCache.put( "getTag", getNMSClass( "ItemStack" ).getMethod( "getTag" ) );
-                methodCache.put( "setTag", getNMSClass( "ItemStack" ).getMethod( "setTag", getNMSClass( "NBTTagCompound" ) ) );
-            }
-            methodCache.put( "asNMSCopy", getNMSClass( "CraftItemStack" ).getMethod( "asNMSCopy", ItemStack.class ) );
-            methodCache.put( "asBukkitCopy", getNMSClass( "CraftItemStack" ).getMethod( "asBukkitCopy", getNMSClass( "ItemStack" ) ) );
-
-            methodCache.put( "getEntityHandle", getNMSClass( "CraftEntity" ).getMethod( "getHandle" ) );
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "getEntityTag", getNMSClass( "Entity" ).getMethod( "f", getNMSClass( "NBTTagCompound" ) ) );
-                methodCache.put( "setEntityTag", getNMSClass( "Entity" ).getMethod( "g", getNMSClass( "NBTTagCompound" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_16 ) ) {
-                methodCache.put( "getEntityTag", getNMSClass( "Entity" ).getMethod( "save", getNMSClass( "NBTTagCompound" ) ) );
-                methodCache.put( "setEntityTag", getNMSClass( "Entity" ).getMethod( "load", getNMSClass( "NBTTagCompound" ) ) );
-            } else {
-                methodCache.put( "getEntityTag", getNMSClass( "Entity" ).getMethod( "c", getNMSClass( "NBTTagCompound" ) ) );
-                methodCache.put( "setEntityTag", getNMSClass( "Entity" ).getMethod( "f", getNMSClass( "NBTTagCompound" ) ) );
-            }
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "save", getNMSClass( "ItemStack" ).getMethod( "b", getNMSClass( "NBTTagCompound" ) ) );
-            } else {
-                methodCache.put( "save", getNMSClass( "ItemStack" ).getMethod( "save", getNMSClass( "NBTTagCompound" ) ) );
-            }
-
-            if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_10 ) ) {
-                methodCache.put( "createStack", getNMSClass( "ItemStack" ).getMethod( "createStack", getNMSClass( "NBTTagCompound" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_13 ) ) {
-                methodCache.put( "createStack", getNMSClass( "ItemStack" ).getMethod( "a", getNMSClass( "NBTTagCompound" ) ) );
-            }
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "setTileTag", getNMSClass( "TileEntity" ).getMethod( "a", getNMSClass( "NBTTagCompound" ) ) );
-            } else if ( LOCAL_VERSION == MinecraftVersion.v1_16 ) {
-                methodCache.put( "setTileTag", getNMSClass( "TileEntity" ).getMethod( "load", getNMSClass( "IBlockData" ), getNMSClass( "NBTTagCompound" ) ) );
-                methodCache.put( "getType", getNMSClass( "World" ).getMethod( "getType", getNMSClass( "BlockPosition" ) ) );
-            } else if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_12 ) ) {
-                methodCache.put( "setTileTag", getNMSClass( "TileEntity" ).getMethod( "load", getNMSClass( "NBTTagCompound" ) ) );
-            } else {
-                methodCache.put( "setTileTag", getNMSClass( "TileEntity" ).getMethod( "a", getNMSClass( "NBTTagCompound" ) ) );
-            }
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "getTileTag", getNMSClass( "TileEntity" ).getMethod( "m" ) );
-            } else if ( LOCAL_VERSION == MinecraftVersion.v1_8 ) {
-                methodCache.put( "getTileTag", getNMSClass( "TileEntity" ).getMethod( "b", getNMSClass( "NBTTagCompound" ) ) );
-            } else {
-                methodCache.put( "getTileTag", getNMSClass( "TileEntity" ).getMethod( "save", getNMSClass( "NBTTagCompound" ) ) );
-            }
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "getTileEntity", getNMSClass( "World" ).getMethod( "c_", getNMSClass( "BlockPosition" ) ) );
-            } else {
-                methodCache.put( "getTileEntity", getNMSClass( "World" ).getMethod( "getTileEntity", getNMSClass( "BlockPosition" ) ) );
-            }
-            methodCache.put( "getWorldHandle", getNMSClass( "CraftWorld" ).getMethod( "getHandle" ) );
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "setGameProfile", getNMSClass( "TileEntitySkull" ).getMethod( "a", getNMSClass( "GameProfile" ) ) );
-            } else {
-                methodCache.put( "setGameProfile", getNMSClass( "TileEntitySkull" ).getMethod( "setGameProfile", getNMSClass( "GameProfile" ) ) );
-            }
-            methodCache.put( "getProperties", getNMSClass( "GameProfile" ).getMethod( "getProperties" ) );
-            methodCache.put( "getName", getNMSClass( "Property" ).getMethod( "getName" ) );
-            methodCache.put( "getValue", getNMSClass( "Property" ).getMethod( "getValue" ) );
-            methodCache.put( "values", getNMSClass( "PropertyMap" ).getMethod( "values" ) );
-            methodCache.put( "put", getNMSClass( "PropertyMap" ).getMethod( "put", Object.class, Object.class ) );
-
-            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                methodCache.put( "loadNBTTagCompound", getNMSClass( "MojangsonParser" ).getMethod( "a", String.class ) );
-            } else {
-                methodCache.put( "loadNBTTagCompound", getNMSClass( "MojangsonParser" ).getMethod( "parse", String.class ) );
-            }
-        } catch( Exception e ) {
-            e.printStackTrace();
-        }
-
-        try {
-            methodCache.put( "setProfile", getNMSClass( "CraftMetaSkull" ).getDeclaredMethod( "setProfile", getNMSClass( "GameProfile" ) ) );
-            methodCache.get( "setProfile" ).setAccessible( true );
-        } catch( NoSuchMethodException exception ) {
-            // The method doesn't exist, so it's before 1.15.2
-        }
-
-        constructorCache = new HashMap< Class< ? >, Constructor< ? > >();
-        try {
-            constructorCache.put( getNBTTag( Byte.class ), getNBTTag( Byte.class ).getDeclaredConstructor( byte.class ) );
-            constructorCache.put( getNBTTag( Boolean.class ), getNBTTag( Boolean.class ).getDeclaredConstructor( byte.class ) );
-            constructorCache.put( getNBTTag( String.class ), getNBTTag( String.class ).getDeclaredConstructor( String.class ) );
-            constructorCache.put( getNBTTag( Double.class ), getNBTTag( Double.class ).getDeclaredConstructor( double.class ) );
-            constructorCache.put( getNBTTag( Integer.class ), getNBTTag( Integer.class ).getDeclaredConstructor( int.class ) );
-            constructorCache.put( getNBTTag( Long.class ), getNBTTag( Long.class ).getDeclaredConstructor( long.class ) );
-            constructorCache.put( getNBTTag( Float.class ), getNBTTag( Float.class ).getDeclaredConstructor( float.class ) );
-            constructorCache.put( getNBTTag( Short.class ), getNBTTag( Short.class ).getDeclaredConstructor( short.class ) );
-            constructorCache.put( getNBTTag( Class.forName( "[B" ) ), getNBTTag( Class.forName( "[B" ) ).getDeclaredConstructor( Class.forName( "[B" ) ) );
-            constructorCache.put( getNBTTag( Class.forName( "[I" ) ), getNBTTag( Class.forName( "[I" ) ).getDeclaredConstructor( Class.forName( "[I" ) ) );
+            NBTConstructors.put( getNBTTag( Byte.class ), getNBTTag( Byte.class ).getDeclaredConstructor( byte.class ) );
+            NBTConstructors.put( getNBTTag( Boolean.class ), getNBTTag( Boolean.class ).getDeclaredConstructor( byte.class ) );
+            NBTConstructors.put( getNBTTag( String.class ), getNBTTag( String.class ).getDeclaredConstructor( String.class ) );
+            NBTConstructors.put( getNBTTag( Double.class ), getNBTTag( Double.class ).getDeclaredConstructor( double.class ) );
+            NBTConstructors.put( getNBTTag( Integer.class ), getNBTTag( Integer.class ).getDeclaredConstructor( int.class ) );
+            NBTConstructors.put( getNBTTag( Long.class ), getNBTTag( Long.class ).getDeclaredConstructor( long.class ) );
+            NBTConstructors.put( getNBTTag( Float.class ), getNBTTag( Float.class ).getDeclaredConstructor( float.class ) );
+            NBTConstructors.put( getNBTTag( Short.class ), getNBTTag( Short.class ).getDeclaredConstructor( short.class ) );
+            NBTConstructors.put( getNBTTag( Class.forName( "[B" ) ), getNBTTag( Class.forName( "[B" ) ).getDeclaredConstructor( Class.forName( "[B" ) ) );
+            NBTConstructors.put( getNBTTag( Class.forName( "[I" ) ), getNBTTag( Class.forName( "[I" ) ).getDeclaredConstructor( Class.forName( "[I" ) ) );
 
             // This is for 1.15 since Mojang decided to make the constructors private
-            for ( Constructor< ? > cons : constructorCache.values() ) {
+            for ( Constructor< ? > cons : NBTConstructors.values() ) {
                 cons.setAccessible( true );
             }
-
-            constructorCache.put( getNMSClass( "BlockPosition" ), getNMSClass( "BlockPosition" ).getConstructor( int.class, int.class, int.class ) );
-
-            constructorCache.put( getNMSClass( "GameProfile" ), getNMSClass( "GameProfile" ).getConstructor( UUID.class, String.class ) );
-            constructorCache.put( getNMSClass( "Property" ), getNMSClass( "Property" ).getConstructor( String.class, String.class ) );
-
-            if ( LOCAL_VERSION == MinecraftVersion.v1_11 || LOCAL_VERSION == MinecraftVersion.v1_12 ) {
-                constructorCache.put( getNMSClass( "ItemStack" ), getNMSClass( "ItemStack" ).getConstructor( getNMSClass( "NBTTagCompound" ) ) );
-            }
-        } catch( Exception e ) {
+        } catch( ClassNotFoundException | NoSuchMethodException | SecurityException e ) {
             e.printStackTrace();
         }
 
         NBTTagFieldCache = new HashMap< Class< ? >, Field >();
         try {
-            if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_16 ) ) {
-                for ( Class< ? > clazz : NBTClasses.values() ) {
-                    Field data = clazz.getDeclaredField( "data" );
-                    data.setAccessible( true );
-                    NBTTagFieldCache.put( clazz, data );
-                }
-            } else {
+            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_17 ) ) {
                 NBTTagFieldCache.put( NBTClasses.get( Byte.class ), NBTClasses.get( Byte.class ).getDeclaredField( "x" ) );
                 NBTTagFieldCache.put( NBTClasses.get( Boolean.class ), NBTClasses.get( Boolean.class ).getDeclaredField( "x" ) );
                 NBTTagFieldCache.put( NBTClasses.get( String.class ), NBTClasses.get( String.class ).getDeclaredField( "A" ) );
@@ -363,24 +190,37 @@ public final class NBTEditor {
                 for ( Field field : NBTTagFieldCache.values() ) {
                     field.setAccessible( true );
                 }
+            } else {
+                for ( Class< ? > clazz : NBTClasses.values() ) {
+                    Field data = clazz.getDeclaredField( "data" );
+                    data.setAccessible( true );
+                    NBTTagFieldCache.put( clazz, data );
+                }
             }
-        } catch( Exception e ) {
+        } catch( ClassNotFoundException | NoSuchFieldException | SecurityException e ) {
             e.printStackTrace();
         }
 
         try {
-            if ( LOCAL_VERSION.lessThanOrEqualTo( MinecraftVersion.v1_16 ) ) {
-                NBTListData = getNMSClass( "NBTTagList" ).getDeclaredField( "list" );
-                NBTCompoundMap = getNMSClass( "NBTTagCompound" ).getDeclaredField( "map" );
+            if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_17 ) ) {
+                NBTListData = getNMSClass( ClassId.NBTTagList ).getDeclaredField( "c" );
+                NBTCompoundMap = getNMSClass( ClassId.NBTTagCompound ).getDeclaredField( "x" );
             } else {
-                NBTListData = getNMSClass( "NBTTagList" ).getDeclaredField( "c" );
-                NBTCompoundMap = getNMSClass( "NBTTagCompound" ).getDeclaredField( "x" );
+                NBTListData = getNMSClass( ClassId.NBTTagList ).getDeclaredField( "list" );
+                NBTCompoundMap = getNMSClass( ClassId.NBTTagCompound ).getDeclaredField( "map" );
             }
             NBTListData.setAccessible( true );
             NBTCompoundMap.setAccessible( true );
+
+            skullProfile = getNMSClass( ClassId.CraftMetaSkull ).getDeclaredField( "profile" );
+            skullProfile.setAccessible( true );
         } catch( Exception e ) {
             e.printStackTrace();
         }
+    }
+
+    private static Constructor< ? > getNBTTagConstructor( Class< ? > primitiveType ) {
+        return NBTConstructors.get( getNBTTag( primitiveType ) );
     }
 
     private static Class< ? > getNBTTag( Class< ? > primitiveType ) {
@@ -404,25 +244,76 @@ public final class NBTEditor {
         return null;
     }
 
-    private static Method getMethod( String name ) {
-        return methodCache.containsKey( name ) ? methodCache.get( name ) : null;
-    }
-
-    private static Constructor< ? > getConstructor( Class< ? > clazz ) {
-        return constructorCache.containsKey( clazz ) ? constructorCache.get( clazz ) : null;
-    }
-
-    private static Class<?> getNMSClass(String name) {
-        if ( classCache.containsKey( name ) ) {
-            return classCache.get( name );
+    private static Method getMethod( MethodId name ) {
+        if ( methodCache.containsKey( name ) ) {
+            return methodCache.get( name );
         }
 
-        try {
-            return Class.forName("net.minecraft.server." + VERSION + "." + name);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
+        for ( ReflectionTarget target : reflectionTargets ) {
+            // Only check targets that are of the correct version
+            if ( target.getVersion().lessThanOrEqualTo( LOCAL_VERSION ) ) {
+                try {
+                    Method method = target.fetchMethod( name );
+                    if ( method != null ) {
+                        methodCache.put( name, method );
+
+                        return method;
+                    }
+                } catch ( ClassNotFoundException | NoSuchMethodException | SecurityException e ) {
+                    e.printStackTrace();
+                }
+            }
         }
+
+        return null;
+    }
+
+    private static Constructor< ? > getConstructor( ClassId id ) {
+        if ( constructorCache.containsKey( id ) ) {
+            return constructorCache.get( id );
+        }
+
+        for ( ReflectionTarget target : reflectionTargets ) {
+            // Only check targets that are of the correct version
+            if ( target.getVersion().lessThanOrEqualTo( LOCAL_VERSION ) ) {
+                try {
+                    Constructor< ? > cons = target.fetchConstructor( id );
+                    if ( cons != null ) {
+                        constructorCache.put( id, cons );
+
+                        return cons;
+                    }
+                } catch ( ClassNotFoundException | NoSuchMethodException | SecurityException e ) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static Class< ? > getNMSClass( ClassId id ) {
+        if ( classCache.containsKey( id ) ) {
+            return classCache.get( id );
+        }
+
+        for ( ReflectionTarget target : reflectionTargets ) {
+            // Only check targets that are of the correct version
+            if ( target.getVersion().lessThanOrEqualTo( LOCAL_VERSION ) ) {
+                try {
+                    Class< ? > clazz = target.fetchClass( id );
+                    if ( clazz != null ) {
+                        classCache.put( id, clazz );
+
+                        return clazz;
+                    }
+                } catch ( ClassNotFoundException e ) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        throw new IllegalArgumentException( "No such class exists: " + id );
     }
 
     private static String getMatch( String string, String regex ) {
@@ -435,11 +326,12 @@ public final class NBTEditor {
         }
     }
 
+    // For some reason, 1.11 and 1.12 have a constructor for ItemStack that accepts an NBTTagCompound
     private static Object createItemStack( Object compound ) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, InstantiationException {
         if ( LOCAL_VERSION == MinecraftVersion.v1_11 || LOCAL_VERSION == MinecraftVersion.v1_12 ) {
-            return getConstructor( getNMSClass( "ItemStack" ) ).newInstance( compound );
+            return getConstructor( ClassId.ItemStack ).newInstance( compound );
         }
-        return getMethod( "createStack" ).invoke( null, compound );
+        return getMethod( MethodId.createStack ).invoke( null, compound );
     }
 
     /**
@@ -477,35 +369,29 @@ public final class NBTEditor {
         ItemMeta headMeta = head.getItemMeta();
         Object profile = null;
         try {
-            profile = getConstructor( getNMSClass( "GameProfile" ) ).newInstance( UUID.randomUUID(), null );
-            Object propertyMap = getMethod( "getProperties" ).invoke( profile );
-            Object textureProperty = getConstructor( getNMSClass( "Property" ) ).newInstance( "textures", new String( Base64.getEncoder().encode( String.format( "{textures:{SKIN:{\"url\":\"%s\"}}}", skinURL ).getBytes() ) ) );
-            getMethod( "put" ).invoke( propertyMap, "textures", textureProperty );
+            // Use a non-random UUID so heads will stack; in this case, Notch.
+            profile = getConstructor( ClassId.GameProfile ).newInstance( UUID.fromString( "069a79f4-44e9-4726-a5be-fca90e38aaf5" ), "Notch" );
+            Object propertyMap = getMethod( MethodId.getProperties ).invoke( profile );
+            Object textureProperty = getConstructor( ClassId.Property ).newInstance( "textures", new String( Base64.getEncoder().encode( String.format( "{textures:{SKIN:{\"url\":\"%s\"}}}", skinURL ).getBytes() ) ) );
+            getMethod( MethodId.putProperty ).invoke( propertyMap, "textures", textureProperty );
         } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException e1 ) {
             e1.printStackTrace();
         }
 
-        if ( methodCache.containsKey( "setProfile" ) ) {
+        if ( methodCache.containsKey( MethodId.setCraftMetaSkullProfile ) ) {
             try {
-                getMethod( "setProfile" ).invoke( headMeta, profile );
+                getMethod( MethodId.setCraftMetaSkullProfile ).invoke( headMeta, profile );
             } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
                 e.printStackTrace();
             }
         } else {
-            Field profileField = null;
             try {
-                profileField = headMeta.getClass().getDeclaredField("profile");
-            } catch ( NoSuchFieldException | SecurityException e ) {
-                e.printStackTrace();
-            }
-            profileField.setAccessible(true);
-            try {
-                profileField.set(headMeta, profile);
-            } catch (IllegalArgumentException | IllegalAccessException e) {
+                skullProfile.set( headMeta, profile );
+            } catch ( IllegalArgumentException | IllegalAccessException e ) {
                 e.printStackTrace();
             }
         }
-        head.setItemMeta(headMeta);
+        head.setItemMeta( headMeta );
         return head;
     }
 
@@ -517,26 +403,22 @@ public final class NBTEditor {
      * @return
      * The URL of the texture
      */
+    @SuppressWarnings( "unchecked" )
     public static String getTexture( ItemStack head ) {
         ItemMeta meta = head.getItemMeta();
-        Field profileField = null;
-        try {
-            profileField = meta.getClass().getDeclaredField("profile");
-        } catch ( NoSuchFieldException | SecurityException e ) {
-            e.printStackTrace();
+        if ( !( meta instanceof SkullMeta ) ) {
             throw new IllegalArgumentException( "Item is not a player skull!" );
         }
-        profileField.setAccessible(true);
         try {
-            Object profile = profileField.get( meta );
+            Object profile = skullProfile.get( meta );
             if ( profile == null ) {
                 return null;
             }
 
-            Collection< Object > properties = ( Collection< Object > ) getMethod( "values" ).invoke( getMethod( "getProperties" ).invoke( profile ) );
+            Collection< Object > properties = ( Collection< Object > ) getMethod( MethodId.propertyValues ).invoke( getMethod( MethodId.getProperties ).invoke( profile ) );
             for ( Object prop : properties ) {
-                if ( "textures".equals( getMethod( "getName" ).invoke( prop ) ) ) {
-                    String texture = new String( Base64.getDecoder().decode( ( String ) getMethod( "getValue" ).invoke( prop ) ) );
+                if ( "textures".equals( getMethod( MethodId.getPropertyName ).invoke( prop ) ) ) {
+                    String texture = new String( Base64.getDecoder().decode( ( String ) getMethod( MethodId.getPropertyValue ).invoke( prop ) ) );
                     return getMatch( texture, "\\{\"url\":\"(.*?)\"\\}" );
                 }
             }
@@ -574,21 +456,18 @@ public final class NBTEditor {
         }
         try {
             Object stack = null;
-            stack = getMethod( "asNMSCopy" ).invoke( null, item );
-            // Imanity - prevent NPE
-            if (stack == null)
-                return null;
+            stack = getMethod( MethodId.asNMSCopy ).invoke( null, item );
 
             Object tag = null;
 
-            if ( getMethod( "hasTag" ).invoke( stack ).equals( true ) ) {
-                tag = getMethod( "getTag" ).invoke( stack );
+            if ( getMethod( MethodId.itemHasTag ).invoke( stack ).equals( true ) ) {
+                tag = getMethod( MethodId.getItemTag ).invoke( stack );
             } else {
-                tag = getNMSClass( "NBTTagCompound" ).newInstance();
+                tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
             }
 
             return tag;
-        } catch ( Exception exception ) {
+        } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -610,14 +489,14 @@ public final class NBTEditor {
         }
         try {
             Object stack = null;
-            stack = getMethod( "asNMSCopy" ).invoke( null, item );
+            stack = getMethod( MethodId.asNMSCopy ).invoke( null, item );
 
-            Object tag = getNMSClass( "NBTTagCompound" ).newInstance();
+            Object tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
 
-            tag = getMethod( "save" ).invoke( stack, tag );
+            tag = getMethod( MethodId.itemSave ).invoke( stack, tag );
 
             return getNBTTag( tag, keys );
-        } catch ( Exception exception ) {
+        } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -641,14 +520,14 @@ public final class NBTEditor {
             return null;
         }
         try {
-            Object stack = getMethod( "asNMSCopy" ).invoke( null, item );
+            Object stack = getMethod( MethodId.asNMSCopy ).invoke( null, item );
 
             Object tag = null;
 
-            if ( getMethod( "hasTag" ).invoke( stack ).equals( true ) ) {
-                tag = getMethod( "getTag" ).invoke( stack );
+            if ( getMethod( MethodId.itemHasTag ).invoke( stack ).equals( true ) ) {
+                tag = getMethod( MethodId.getItemTag ).invoke( stack );
             } else {
-                tag = getNMSClass( "NBTTagCompound" ).newInstance();
+                tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
             }
 
             if ( keys.length == 0 && value instanceof NBTCompound ) {
@@ -657,9 +536,9 @@ public final class NBTEditor {
                 setTag( tag, value, keys );
             }
 
-            getMethod( "setTag" ).invoke( stack, tag );
-            return ( ItemStack ) getMethod( "asBukkitCopy" ).invoke( null, stack );
-        } catch ( Exception exception ) {
+            getMethod( MethodId.setItemTag ).invoke( stack, tag );
+            return ( ItemStack ) getMethod( MethodId.asBukkitCopy ).invoke( null, stack );
+        } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -685,10 +564,10 @@ public final class NBTEditor {
                 return null;
             }
             if ( count instanceof Byte && id instanceof String ) {
-                return ( ItemStack ) getMethod( "asBukkitCopy" ).invoke( null, createItemStack( tag ) );
+                return ( ItemStack ) getMethod( MethodId.asBukkitCopy ).invoke( null, createItemStack( tag ) );
             }
             return null;
-        } catch ( Exception exception ) {
+        } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -720,14 +599,14 @@ public final class NBTEditor {
             return entity;
         }
         try {
-            Object NMSEntity = getMethod( "getEntityHandle" ).invoke( entity );
+            Object NMSEntity = getMethod( MethodId.getEntityHandle ).invoke( entity );
 
-            Object tag = getNMSClass( "NBTTagCompound" ).newInstance();
+            Object tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
 
-            getMethod( "getEntityTag" ).invoke( NMSEntity, tag );
+            getMethod( MethodId.getEntityTag ).invoke( NMSEntity, tag );
 
             return tag;
-        } catch ( Exception exception ) {
+        } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -748,14 +627,14 @@ public final class NBTEditor {
             return null;
         }
         try {
-            Object NMSEntity = getMethod( "getEntityHandle" ).invoke( entity );
+            Object NMSEntity = getMethod( MethodId.getEntityHandle ).invoke( entity );
 
-            Object tag = getNMSClass( "NBTTagCompound" ).newInstance();
+            Object tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
 
-            getMethod( "getEntityTag" ).invoke( NMSEntity, tag );
+            getMethod( MethodId.getEntityTag ).invoke( NMSEntity, tag );
 
             return getNBTTag( tag, keys );
-        } catch ( Exception exception ) {
+        } catch ( IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -777,11 +656,11 @@ public final class NBTEditor {
             return;
         }
         try {
-            Object NMSEntity = getMethod( "getEntityHandle" ).invoke( entity );
+            Object NMSEntity = getMethod( MethodId.getEntityHandle ).invoke( entity );
 
-            Object tag = getNMSClass( "NBTTagCompound" ).newInstance() ;
+            Object tag = getNMSClass( ClassId.NBTTagCompound ).newInstance() ;
 
-            getMethod( "getEntityTag" ).invoke( NMSEntity, tag );
+            getMethod( MethodId.getEntityTag ).invoke( NMSEntity, tag );
 
             if ( keys.length == 0 && value instanceof NBTCompound ) {
                 tag = ( ( NBTCompound ) value ).tag;
@@ -789,10 +668,9 @@ public final class NBTEditor {
                 setTag( tag, value, keys );
             }
 
-            getMethod( "setEntityTag" ).invoke( NMSEntity, tag );
-        } catch ( Exception exception ) {
+            getMethod( MethodId.setEntityTag ).invoke( NMSEntity, tag );
+        } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException | InstantiationException exception ) {
             exception.printStackTrace();
-            return;
         }
     }
 
@@ -819,27 +697,32 @@ public final class NBTEditor {
     // Gets the NBTTagCompound
     private static Object getCompound( Block block ) {
         try {
-            if ( block == null || !getNMSClass( "CraftBlockState" ).isInstance( block.getState() ) ) {
+            if ( block == null || !getNMSClass( ClassId.CraftBlockState ).isInstance( block.getState() ) ) {
                 return null;
             }
             Location location = block.getLocation();
 
-            Object blockPosition = getConstructor( getNMSClass( "BlockPosition" ) ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
+            Object blockPosition = getConstructor( ClassId.BlockPosition ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
 
-            Object nmsWorld = getMethod( "getWorldHandle" ).invoke( location.getWorld() );
+            Object nmsWorld = getMethod( MethodId.getWorldHandle ).invoke( location.getWorld() );
 
-            Object tileEntity = getMethod( "getTileEntity" ).invoke( nmsWorld, blockPosition );
+            Object tileEntity = getMethod( MethodId.getTileEntity ).invoke( nmsWorld, blockPosition );
+
+            if ( tileEntity == null ) {
+                throw new IllegalArgumentException( block + " is not a tile entity!" );
+            }
 
             Object tag;
+
             if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                tag = getMethod( "getTileTag" ).invoke( tileEntity );
+                tag = getMethod( MethodId.getTileTag ).invoke( tileEntity );
             } else {
-                tag = getNMSClass( "NBTTagCompound" ).newInstance();
-                getMethod( "getTileTag" ).invoke( tileEntity, tag );
+                tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
+                getMethod( MethodId.getTileTag ).invoke( tileEntity, tag );
             }
 
             return tag;
-        } catch( Exception exception ) {
+        } catch( IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -857,27 +740,31 @@ public final class NBTEditor {
      */
     private static NBTCompound getBlockNBTTag( Block block, Object... keys ) {
         try {
-            if ( block == null || !getNMSClass( "CraftBlockState" ).isInstance( block.getState() ) ) {
+            if ( block == null || !getNMSClass( ClassId.CraftBlockState ).isInstance( block.getState() ) ) {
                 return null;
             }
             Location location = block.getLocation();
 
-            Object blockPosition = getConstructor( getNMSClass( "BlockPosition" ) ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
+            Object blockPosition = getConstructor( ClassId.BlockPosition ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
 
-            Object nmsWorld = getMethod( "getWorldHandle" ).invoke( location.getWorld() );
+            Object nmsWorld = getMethod( MethodId.getWorldHandle ).invoke( location.getWorld() );
 
-            Object tileEntity = getMethod( "getTileEntity" ).invoke( nmsWorld, blockPosition );
+            Object tileEntity = getMethod( MethodId.getTileEntity ).invoke( nmsWorld, blockPosition );
+
+            if ( tileEntity == null ) {
+                throw new IllegalArgumentException( block + " is not a tile entity!" );
+            }
 
             Object tag;
             if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                tag = getMethod( "getTileTag" ).invoke( tileEntity );
+                tag = getMethod( MethodId.getTileTag ).invoke( tileEntity );
             } else {
-                tag = getNMSClass( "NBTTagCompound" ).newInstance();
-                getMethod( "getTileTag" ).invoke( tileEntity, tag );
+                tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
+                getMethod( MethodId.getTileTag ).invoke( tileEntity, tag );
             }
 
             return getNBTTag( tag, keys );
-        } catch( Exception exception ) {
+        } catch( IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException exception ) {
             exception.printStackTrace();
             return null;
         }
@@ -896,23 +783,27 @@ public final class NBTEditor {
      */
     private static void setBlockTag( Block block, Object value, Object... keys ) {
         try {
-            if ( block == null || !getNMSClass( "CraftBlockState" ).isInstance( block.getState() ) ) {
+            if ( block == null || !getNMSClass( ClassId.CraftBlockState ).isInstance( block.getState() ) ) {
                 return;
             }
             Location location = block.getLocation();
 
-            Object blockPosition = getConstructor( getNMSClass( "BlockPosition" ) ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
+            Object blockPosition = getConstructor( ClassId.BlockPosition ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
 
-            Object nmsWorld = getMethod( "getWorldHandle" ).invoke( location.getWorld() );
+            Object nmsWorld = getMethod( MethodId.getWorldHandle ).invoke( location.getWorld() );
 
-            Object tileEntity = getMethod( "getTileEntity" ).invoke( nmsWorld, blockPosition );
+            Object tileEntity = getMethod( MethodId.getTileEntity ).invoke( nmsWorld, blockPosition );
+
+            if ( tileEntity == null ) {
+                throw new IllegalArgumentException( block + " is not a tile entity!" );
+            }
 
             Object tag;
             if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_18_R1 ) ) {
-                tag = getMethod( "getTileTag" ).invoke( tileEntity );
+                tag = getMethod( MethodId.getTileTag ).invoke( tileEntity );
             } else {
-                tag = getNMSClass( "NBTTagCompound" ).newInstance();
-                getMethod( "getTileTag" ).invoke( tileEntity, tag );
+                tag = getNMSClass( ClassId.NBTTagCompound ).newInstance();
+                getMethod( MethodId.getTileTag ).invoke( tileEntity, tag );
             }
 
             if ( keys.length == 0 && value instanceof NBTCompound ) {
@@ -922,13 +813,12 @@ public final class NBTEditor {
             }
 
             if ( LOCAL_VERSION == MinecraftVersion.v1_16 ) {
-                getMethod( "setTileTag" ).invoke( tileEntity, getMethod( "getType" ).invoke( nmsWorld, blockPosition ), tag );
+                getMethod( MethodId.setTileTag ).invoke( tileEntity, getMethod( MethodId.getTileType ).invoke( nmsWorld, blockPosition ), tag );
             } else {
-                getMethod( "setTileTag" ).invoke( tileEntity, tag );
+                getMethod( MethodId.setTileTag ).invoke( tileEntity, tag );
             }
-        } catch( Exception exception ) {
+        } catch( IllegalAccessException | InstantiationException | IllegalArgumentException | InvocationTargetException exception ) {
             exception.printStackTrace();
-            return;
         }
     }
 
@@ -942,21 +832,26 @@ public final class NBTEditor {
      */
     public static void setSkullTexture( Block block, String texture ) {
         try {
-            Object profile = getConstructor( getNMSClass( "GameProfile" ) ).newInstance( UUID.randomUUID(), null );
-            Object propertyMap = getMethod( "getProperties" ).invoke( profile );
-            Object textureProperty = getConstructor( getNMSClass( "Property" ) ).newInstance( "textures", new String( Base64.getEncoder().encode( String.format( "{textures:{SKIN:{\"url\":\"%s\"}}}", texture ).getBytes() ) ) );
-            getMethod( "put" ).invoke( propertyMap, "textures", textureProperty );
+            Object profile = getConstructor( ClassId.GameProfile ).newInstance( UUID.randomUUID(), null );
+            Object propertyMap = getMethod( MethodId.getProperties ).invoke( profile );
+            Object textureProperty = getConstructor( ClassId.Property ).newInstance( "textures", new String( Base64.getEncoder().encode( String.format( "{textures:{SKIN:{\"url\":\"%s\"}}}", texture ).getBytes() ) ) );
+            getMethod( MethodId.putProperty ).invoke( propertyMap, "textures", textureProperty );
 
             Location location = block.getLocation();
 
-            Object blockPosition = getConstructor( getNMSClass( "BlockPosition" ) ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
+            Object blockPosition = getConstructor( ClassId.BlockPosition ).newInstance( location.getBlockX(), location.getBlockY(), location.getBlockZ() );
 
-            Object nmsWorld = getMethod( "getWorldHandle" ).invoke( location.getWorld() );
+            Object nmsWorld = getMethod( MethodId.getWorldHandle ).invoke( location.getWorld() );
 
-            Object tileEntity = getMethod( "getTileEntity" ).invoke( nmsWorld, blockPosition );
+            Object tileEntity = getMethod( MethodId.getTileEntity ).invoke( nmsWorld, blockPosition );
 
-            getMethod( "setGameProfile" ).invoke( tileEntity, profile );
-        } catch( Exception exception ) {
+            if ( getNMSClass( ClassId.TileEntitySkull ).isInstance( tileEntity) ) {
+                getMethod( MethodId.setGameProfile ).invoke( tileEntity, profile );
+            } else {
+                throw new IllegalArgumentException( block + " is not a skull!" );
+            }
+
+        } catch( IllegalAccessException | InvocationTargetException | InstantiationException exception ) {
             exception.printStackTrace();
         }
     }
@@ -1004,7 +899,7 @@ public final class NBTEditor {
                 e.printStackTrace();
                 return null;
             }
-        } else if ( getNMSClass( "NBTTagCompound" ).isInstance( object ) ) {
+        } else if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( object ) ) {
             try {
                 return getNBTTag( object, keys );
             } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
@@ -1190,6 +1085,7 @@ public final class NBTEditor {
      * @return
      * A set of keys
      */
+    @SuppressWarnings( "unchecked" )
     public static Collection< String > getKeys( Object object, Object... keys ) {
         Object compound;
         if ( object instanceof ItemStack ) {
@@ -1208,8 +1104,8 @@ public final class NBTEditor {
             NBTCompound nbtCompound = getNBTTag( compound, keys );
 
             Object tag = nbtCompound.tag;
-            if ( getNMSClass( "NBTTagCompound" ).isInstance( tag ) ) {
-                return ( Collection< String > ) getMethod( "getKeys" ).invoke( tag );
+            if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( tag ) ) {
+                return ( Collection< String > ) getMethod( MethodId.compoundKeys ).invoke( tag );
             } else {
                 return null;
             }
@@ -1247,10 +1143,10 @@ public final class NBTEditor {
 
         try {
             NBTCompound nbtCompound = getNBTTag( compound, keys );
-            if ( getNMSClass( "NBTTagCompound" ).isInstance( nbtCompound.tag ) ) {
+            if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( nbtCompound.tag ) ) {
                 return getKeys( nbtCompound ).size();
-            } else if ( getNMSClass( "NBTTagList" ).isInstance( nbtCompound.tag ) ) {
-                return ( int ) getMethod( "size" ).invoke( nbtCompound.tag );
+            } else if ( getNMSClass( ClassId.NBTTagList ).isInstance( nbtCompound.tag ) ) {
+                return ( int ) getMethod( MethodId.listSize ).invoke( nbtCompound.tag );
             }
         } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
             e.printStackTrace();
@@ -1274,6 +1170,7 @@ public final class NBTEditor {
      * @return
      * The new item stack if the object provided is an item, else original object
      */
+    @SuppressWarnings( "unchecked" )
     public static < T > T set( T object, Object value, Object... keys ) {
         if ( object instanceof ItemStack ) {
             return ( T ) setItemTag( ( ItemStack ) object, value, keys );
@@ -1313,7 +1210,7 @@ public final class NBTEditor {
      */
     public static NBTCompound getEmptyNBTCompound() {
         try {
-            return new NBTCompound( getNMSClass( "NBTTagCompound" ).newInstance() );
+            return new NBTCompound( getNMSClass( ClassId.NBTTagCompound ).newInstance() );
         } catch ( InstantiationException | IllegalAccessException e ) {
             e.printStackTrace();
             return null;
@@ -1326,19 +1223,19 @@ public final class NBTEditor {
         if ( value != null && value != Type.DELETE ) {
             if ( value instanceof NBTCompound ) {
                 wrappedValue = ( ( NBTCompound ) value ).tag;
-            } else if ( getNMSClass( "NBTTagList" ).isInstance( value ) || getNMSClass( "NBTTagCompound" ).isInstance( value ) ) {
+            } else if ( getNMSClass( ClassId.NBTTagList ).isInstance( value ) || getNMSClass( ClassId.NBTTagCompound ).isInstance( value ) ) {
                 wrappedValue = value;
             } else if ( value == Type.COMPOUND ) {
-                wrappedValue = getNMSClass( "NBTTagCompound" ).newInstance();
+                wrappedValue = getNMSClass( ClassId.NBTTagCompound ).newInstance();
             } else if ( value == Type.LIST ) {
-                wrappedValue = getNMSClass( "NBTTagList" ).newInstance();
+                wrappedValue = getNMSClass( ClassId.NBTTagList ).newInstance();
             } else {
                 if ( value instanceof Boolean ) {
                     value = ( byte ) ( ( Boolean ) value == true ? 1 : 0 );
                 }
-                Constructor< ? > cons = getConstructor( getNBTTag( value.getClass() ) );
+                Constructor< ? > cons = getNBTTagConstructor( value.getClass() );
                 if ( cons != null ) {
-                    wrappedValue = getConstructor( getNBTTag( value.getClass() ) ).newInstance( value );
+                    wrappedValue = cons.newInstance( value );
                 } else {
                     throw new IllegalArgumentException( "Provided value type(" + value.getClass() + ") is not supported!" );
                 }
@@ -1360,22 +1257,22 @@ public final class NBTEditor {
                     compound = null;
                 }
             } else if ( key != null && key != Type.NEW_ELEMENT ) {
-                compound = getMethod( "get" ).invoke( compound, ( String ) key );
+                compound = getMethod( MethodId.compoundGet ).invoke( compound, ( String ) key );
             }
             if ( compound == null || key == null || key == Type.NEW_ELEMENT ) {
                 if ( keys[ index + 1 ] == null || keys[ index + 1 ] instanceof Integer || keys[ index + 1 ] == Type.NEW_ELEMENT ) {
-                    compound = getNMSClass( "NBTTagList" ).newInstance();
+                    compound = getNMSClass( ClassId.NBTTagList ).newInstance();
                 } else {
-                    compound = getNMSClass( "NBTTagCompound" ).newInstance();
+                    compound = getNMSClass( ClassId.NBTTagCompound ).newInstance();
                 }
-                if ( prevCompound.getClass().getSimpleName().equals( "NBTTagList" ) ) {
+                if ( getNMSClass( ClassId.NBTTagList ).isInstance( prevCompound ) ) {
                     if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_14 ) ) {
-                        getMethod( "add" ).invoke( prevCompound, getMethod( "size" ).invoke( prevCompound ), compound );
+                        getMethod( MethodId.listAdd ).invoke( prevCompound, getMethod( MethodId.listSize ).invoke( prevCompound ), compound );
                     } else {
-                        getMethod( "add" ).invoke( prevCompound, compound );
+                        getMethod( MethodId.listAdd ).invoke( prevCompound, compound );
                     }
                 } else {
-                    getMethod( "set" ).invoke( prevCompound, ( String ) key, compound );
+                    getMethod( MethodId.compoundSet ).invoke( prevCompound, ( String ) key, compound );
                 }
             }
         }
@@ -1383,21 +1280,21 @@ public final class NBTEditor {
             Object lastKey = keys[ keys.length - 1 ];
             if ( lastKey == null || lastKey == Type.NEW_ELEMENT ) {
                 if ( LOCAL_VERSION.greaterThanOrEqualTo( MinecraftVersion.v1_14 ) ) {
-                    getMethod( "add" ).invoke( compound, getMethod( "size" ).invoke( compound ), wrappedValue );
+                    getMethod( MethodId.listAdd ).invoke( compound, getMethod( MethodId.listSize ).invoke( compound ), wrappedValue );
                 } else {
-                    getMethod( "add" ).invoke( compound, wrappedValue );
+                    getMethod( MethodId.listAdd ).invoke( compound, wrappedValue );
                 }
             } else if ( lastKey instanceof Integer ) {
                 if ( wrappedValue == Type.DELETE ) {
-                    getMethod( "listRemove" ).invoke( compound, ( int ) lastKey );
+                    getMethod( MethodId.listRemove ).invoke( compound, ( int ) lastKey );
                 } else {
-                    getMethod( "setIndex" ).invoke( compound, ( int ) lastKey, wrappedValue );
+                    getMethod( MethodId.listSet ).invoke( compound, ( int ) lastKey, wrappedValue );
                 }
             } else {
                 if ( wrappedValue == Type.DELETE ) {
-                    getMethod( "remove" ).invoke( compound, ( String ) lastKey );
+                    getMethod( MethodId.compoundRemove ).invoke( compound, ( String ) lastKey );
                 } else {
-                    getMethod( "set" ).invoke( compound, ( String ) lastKey, wrappedValue );
+                    getMethod( MethodId.compoundSet ).invoke( compound, ( String ) lastKey, wrappedValue );
                 }
             }
         } else {
@@ -1405,9 +1302,9 @@ public final class NBTEditor {
             if ( wrappedValue != null ) {
                 // Only if they're both an NBTTagCompound
                 // Can't do anything if its a list or something
-                if ( getNMSClass( "NBTTagCompound" ).isInstance( wrappedValue ) && getNMSClass( "NBTTagCompound" ).isInstance( compound ) )
+                if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( wrappedValue ) && getNMSClass( ClassId.NBTTagCompound ).isInstance( compound ) )
                     for ( String key : getKeys( wrappedValue ) ) {
-                        getMethod( "set" ).invoke( compound, key, getMethod( "get" ).invoke( wrappedValue, key ) );
+                        getMethod( MethodId.compoundSet ).invoke( compound, key, getMethod( MethodId.compoundGet ).invoke( wrappedValue, key ) );
                     }
             } else {
                 // Did someone make an error?
@@ -1423,9 +1320,9 @@ public final class NBTEditor {
         for ( Object key : keys ) {
             if ( compound == null ) {
                 return null;
-            } else if ( getNMSClass( "NBTTagCompound" ).isInstance( compound ) ) {
-                compound = getMethod( "get" ).invoke( compound, ( String ) key );
-            } else if ( getNMSClass( "NBTTagList" ).isInstance( compound ) ) {
+            } else if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( compound ) ) {
+                compound = getMethod( MethodId.compoundGet ).invoke( compound, ( String ) key );
+            } else if ( getNMSClass( ClassId.NBTTagList ).isInstance( compound ) ) {
                 int keyIndex = ( int ) key;
                 List< ? > tagList = ( List< ? > ) NBTListData.get( compound );
                 if ( keyIndex >= 0 && keyIndex < tagList.size() ) {
@@ -1448,9 +1345,9 @@ public final class NBTEditor {
         for ( Object key : keys ) {
             if ( nbtObj == null ) {
                 return null;
-            } else if ( getNMSClass( "NBTTagCompound" ).isInstance( nbtObj ) ) {
-                nbtObj = getMethod( "get" ).invoke( nbtObj, ( String ) key );
-            } else if ( getNMSClass( "NBTTagList" ).isInstance( nbtObj ) ) {
+            } else if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( nbtObj ) ) {
+                nbtObj = getMethod( MethodId.compoundGet ).invoke( nbtObj, ( String ) key );
+            } else if ( getNMSClass( ClassId.NBTTagList ).isInstance( nbtObj ) ) {
                 int keyIndex = ( int ) key;
                 List< ? > tagList = ( List< ? > ) NBTListData.get( nbtObj );
                 if ( keyIndex >= 0 && keyIndex < tagList.size() ) {
@@ -1464,9 +1361,9 @@ public final class NBTEditor {
         }
         if ( nbtObj == null ) {
             return null;
-        } else if ( getNMSClass( "NBTTagList" ).isInstance( nbtObj ) ) {
+        } else if ( getNMSClass( ClassId.NBTTagList ).isInstance( nbtObj ) ) {
             return getTags( nbtObj );
-        } else if ( getNMSClass( "NBTTagCompound" ).isInstance( nbtObj ) ) {
+        } else if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( nbtObj ) ) {
             return getTags( nbtObj );
         } else {
             return getNBTVar( nbtObj );
@@ -1477,20 +1374,20 @@ public final class NBTEditor {
     private static Object getTags( Object tag ) {
         Map< Object, Object > tags = new HashMap< Object, Object >();
         try {
-            if ( getNMSClass( "NBTTagCompound" ).isInstance( tag ) ) {
+            if ( getNMSClass( ClassId.NBTTagCompound ).isInstance( tag ) ) {
                 Map< String, Object > tagCompound = ( Map< String, Object > ) NBTCompoundMap.get( tag );
                 for ( String key : tagCompound.keySet() ) {
                     Object value = tagCompound.get( key );
-                    if ( getNMSClass( "NBTTagEnd" ).isInstance( value ) ) {
+                    if ( getNMSClass( ClassId.NBTTagEnd ).isInstance( value ) ) {
                         continue;
                     }
                     tags.put( key, getTag( value ) );
                 }
-            } else if ( getNMSClass( "NBTTagList" ).isInstance( tag ) ) {
+            } else if ( getNMSClass( ClassId.NBTTagList ).isInstance( tag ) ) {
                 List< Object > tagList = ( List< Object > ) NBTListData.get( tag );
                 for ( int index = 0; index < tagList.size(); index++ ) {
                     Object value = tagList.get( index );
-                    if ( getNMSClass( "NBTTagEnd" ).isInstance( value ) ) {
+                    if ( getNMSClass( ClassId.NBTTagEnd ).isInstance( value ) ) {
                         continue;
                     }
                     tags.put( index, getTag( value ) );
@@ -1535,7 +1432,7 @@ public final class NBTEditor {
 
         public static NBTCompound fromJson( String json ) {
             try {
-                return new NBTCompound( getMethod( "loadNBTTagCompound" ).invoke( null, json ) );
+                return new NBTCompound( getMethod( MethodId.loadNBTTagCompound ).invoke( null, json ) );
             } catch ( IllegalAccessException | IllegalArgumentException | InvocationTargetException e ) {
                 e.printStackTrace();
                 return null;
@@ -1591,7 +1488,9 @@ public final class NBTEditor {
         v1_19_R1,
         v1_19_R2,
         v1_19_R3,
-        v1_20,
+        v1_20_R1,
+        v1_20_R2,
+        v1_20_R3,
         v1_21,
         v1_22;
 
@@ -1616,5 +1515,431 @@ public final class NBTEditor {
 
     private enum Type {
         COMPOUND, LIST, NEW_ELEMENT, DELETE;
+    }
+
+    private enum ClassId {
+        NBTBase,
+        NBTTagCompound,
+        NBTTagList,
+        NBTTagEnd,
+        MojangsonParser,
+        ItemStack,
+        Entity,
+        EntityLiving,
+        BlockPosition,
+        IBlockData,
+        World,
+        TileEntity,
+        TileEntitySkull,
+        CraftItemStack,
+        CraftMetaSkull,
+        CraftEntity,
+        CraftWorld,
+        CraftBlockState,
+        GameProfile,
+        Property,
+        PropertyMap
+    }
+
+    private enum MethodId {
+        compoundGet,
+        compoundSet,
+        compoundHasKey,
+
+        listSet,
+        listAdd,
+        listSize,
+
+        listRemove,
+        compoundRemove,
+
+        compoundKeys,
+
+        itemHasTag,
+        getItemTag,
+        setItemTag,
+        itemSave,
+
+        asNMSCopy,
+        asBukkitCopy,
+
+        getEntityHandle,
+        getWorldHandle,
+        getTileEntity,
+        getTileType,
+
+        getEntityTag,
+        setEntityTag,
+
+        createStack,
+
+        setTileTag,
+        getTileTag,
+
+        getProperties,
+        setGameProfile,
+
+        setCraftMetaSkullProfile,
+
+        propertyValues,
+        putProperty,
+
+        getPropertyName,
+        getPropertyValue,
+
+        loadNBTTagCompound
+    }
+
+    private static abstract class ReflectionTarget implements Comparable< ReflectionTarget > {
+        private final MinecraftVersion version;
+
+        // Provide an external alternative to fetching classes, kind of like a classloader
+        private Function< ClassId, Class< ? > > classFetcher;
+
+        private final Map< ClassId, String > classTargets = new HashMap< ClassId, String >();
+        private final Map< MethodId, MethodTarget > methodTargets = new HashMap< MethodId, MethodTarget >();
+        private final Map< ClassId, ConstructorTarget > constructorTargets = new HashMap< ClassId, ConstructorTarget >();
+
+        protected ReflectionTarget( MinecraftVersion version ) {
+            this.version = version;
+        }
+
+        protected MinecraftVersion getVersion() {
+            return version;
+        }
+
+        protected final ReflectionTarget setClassFetcher( Function< ClassId, Class< ? > > func ) {
+            this.classFetcher = func;
+
+            return this;
+        }
+
+        protected final void addClass( ClassId name, String path ) {
+            classTargets.put( name, path );
+        }
+
+        protected final void addMethod( MethodId name, ClassId clazz, String methodName, Object... params ) {
+            methodTargets.put( name, new MethodTarget( clazz, methodName, params) );
+        }
+
+        protected final void addConstructor( ClassId clazz, Object... params ) {
+            constructorTargets.put( clazz, new ConstructorTarget( clazz, params ) );
+        }
+
+        protected final Class< ? > fetchClass( final ClassId name ) throws ClassNotFoundException {
+            String className = classTargets.get( name );
+            return className != null ? Class.forName( className ) : null;
+        }
+
+        protected final Method fetchDeclaredMethod( MethodId name ) throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+            MethodTarget target = methodTargets.get( name );
+            if ( target == null ) {
+                return null;
+            }
+
+            Method method = findClass( target.clazz ).getDeclaredMethod( target.name, convert( target.params ) );
+            method.setAccessible( true );
+            return method;
+        }
+
+        protected final Method fetchMethod( MethodId name ) throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+            MethodTarget target = methodTargets.get( name );
+            return target != null ? findClass( target.clazz ).getMethod( target.name, convert( target.params ) ) : null;
+        }
+
+        protected final Constructor< ? > fetchConstructor( ClassId name ) throws NoSuchMethodException, SecurityException, ClassNotFoundException {
+            ConstructorTarget target = constructorTargets.get( name );
+            return target != null ? findClass( target.clazz ).getConstructor( convert( target.params ) ) : null;
+        }
+
+        private final Class< ? >[] convert( Object[] objects ) throws ClassNotFoundException {
+            Class< ? >[] params = new Class< ? >[ objects.length ];
+            for ( int i = 0; i < objects.length; i++ ) {
+                Object obj = objects[ i ];
+                if ( obj instanceof Class ) {
+                    params[ i ] = ( Class < ? > ) obj;
+                } else if ( obj instanceof ClassId ) {
+                    params[ i ] = findClass( ( ClassId ) obj );
+                } else {
+                    throw new IllegalArgumentException( "Invalid parameter type: " + obj );
+                }
+            }
+            return params;
+        }
+
+        private final Class< ? > findClass( ClassId name ) throws ClassNotFoundException {
+            return classFetcher != null ? classFetcher.apply( name ) : fetchClass( name );
+        }
+
+        @Override
+        public int compareTo( ReflectionTarget o ) {
+            // Reverse sort
+            return o.version.compareTo( version );
+        }
+
+        private static class ConstructorTarget {
+            final ClassId clazz;
+            final Object[] params;
+
+            public ConstructorTarget( ClassId clazz, Object... params ) {
+                this.clazz = clazz;
+                this.params = params;
+            }
+        }
+
+        private static class MethodTarget extends ConstructorTarget {
+            final String name;
+
+            public MethodTarget( ClassId clazz, String name, Object... params ) {
+                super( clazz, params );
+                this.name = name;
+            }
+        }
+
+        private static class v1_8 extends ReflectionTarget {
+            protected v1_8() {
+                super( MinecraftVersion.v1_8 );
+
+                addClass( ClassId.NBTBase,             "net.minecraft.server." + VERSION + "." + "NBTBase" );
+                addClass( ClassId.NBTTagCompound,      "net.minecraft.server." + VERSION + "." + "NBTTagCompound" );
+                addClass( ClassId.NBTTagList,          "net.minecraft.server." + VERSION + "." + "NBTTagList" );
+                addClass( ClassId.NBTTagEnd,           "net.minecraft.server." + VERSION + "." + "NBTTagEnd" );
+                addClass( ClassId.MojangsonParser,     "net.minecraft.server." + VERSION + "." + "MojangsonParser" );
+                addClass( ClassId.ItemStack,           "net.minecraft.server." + VERSION + "." + "ItemStack" );
+                addClass( ClassId.Entity,              "net.minecraft.server." + VERSION + "." + "Entity" );
+                addClass( ClassId.EntityLiving,        "net.minecraft.server." + VERSION + "." + "EntityLiving" );
+                addClass( ClassId.BlockPosition,       "net.minecraft.server." + VERSION + "." + "BlockPosition" );
+                addClass( ClassId.IBlockData,          "net.minecraft.server." + VERSION + "." + "IBlockData" );
+                addClass( ClassId.World,               "net.minecraft.server." + VERSION + "." + "World" );
+                addClass( ClassId.TileEntity,          "net.minecraft.server." + VERSION + "." + "TileEntity" );
+                addClass( ClassId.TileEntitySkull,     "net.minecraft.server." + VERSION + "." + "TileEntitySkull" );
+                addClass( ClassId.CraftItemStack,      "org.bukkit.craftbukkit." + VERSION + ".inventory." + "CraftItemStack" );
+                addClass( ClassId.CraftMetaSkull,      "org.bukkit.craftbukkit." + VERSION + ".inventory." + "CraftMetaSkull" );
+                addClass( ClassId.CraftEntity,         "org.bukkit.craftbukkit." + VERSION + ".entity." + "CraftEntity" );
+                addClass( ClassId.CraftWorld,          "org.bukkit.craftbukkit." + VERSION + "." + "CraftWorld" );
+                addClass( ClassId.CraftBlockState,     "org.bukkit.craftbukkit." + VERSION + ".block." + "CraftBlockState" );
+                addClass( ClassId.GameProfile,         "com.mojang.authlib.GameProfile" );
+                addClass( ClassId.Property,            "com.mojang.authlib.properties.Property" );
+                addClass( ClassId.PropertyMap,         "com.mojang.authlib.properties.PropertyMap" );
+
+                addMethod( MethodId.compoundGet, ClassId.NBTTagCompound, "get", String.class );
+                addMethod( MethodId.compoundSet, ClassId.NBTTagCompound, "set", String.class, ClassId.NBTBase );
+                addMethod( MethodId.compoundHasKey, ClassId.NBTTagCompound, "hasKey", String.class );
+
+                addMethod( MethodId.listSet, ClassId.NBTTagList, "a", int.class, ClassId.NBTBase );
+
+                addMethod( MethodId.listAdd, ClassId.NBTTagList, "add", ClassId.NBTBase );
+                addMethod( MethodId.listSize, ClassId.NBTTagList, "size" );
+
+                addMethod( MethodId.listRemove, ClassId.NBTTagList, "a", int.class );
+                addMethod( MethodId.compoundRemove, ClassId.NBTTagCompound, "remove", String.class );
+
+                addMethod( MethodId.compoundKeys, ClassId.NBTTagCompound, "c" );
+
+                addMethod( MethodId.itemHasTag, ClassId.ItemStack, "hasTag" );
+                addMethod( MethodId.getItemTag, ClassId.ItemStack, "getTag" );
+                addMethod( MethodId.setItemTag, ClassId.ItemStack, "setTag", ClassId.NBTTagCompound );
+                addMethod( MethodId.itemSave, ClassId.ItemStack, "save", ClassId.NBTTagCompound );
+
+                addMethod( MethodId.asNMSCopy, ClassId.CraftItemStack, "asNMSCopy", ItemStack.class );
+                addMethod( MethodId.asBukkitCopy, ClassId.CraftItemStack, "asBukkitCopy", ClassId.ItemStack );
+
+                addMethod( MethodId.getEntityHandle, ClassId.CraftEntity, "getHandle" );
+
+                addMethod( MethodId.getEntityTag, ClassId.Entity, "c", ClassId.NBTTagCompound );
+                addMethod( MethodId.setEntityTag, ClassId.Entity, "f", ClassId.NBTTagCompound );
+
+                addMethod( MethodId.createStack, ClassId.ItemStack, "createStack", ClassId.NBTTagCompound );
+
+                addMethod( MethodId.setTileTag, ClassId.TileEntity, "a", ClassId.NBTTagCompound );
+                addMethod( MethodId.getTileTag, ClassId.TileEntity, "b", ClassId.NBTTagCompound );
+
+                addMethod( MethodId.getWorldHandle, ClassId.CraftWorld, "getHandle" );
+                addMethod( MethodId.getTileEntity, ClassId.World, "getTileEntity", ClassId.BlockPosition );
+
+                addMethod( MethodId.getProperties, ClassId.GameProfile, "getProperties" );
+                addMethod( MethodId.setGameProfile, ClassId.TileEntitySkull, "setGameProfile", ClassId.GameProfile );
+
+                addMethod( MethodId.propertyValues, ClassId.PropertyMap, "values" );
+                addMethod( MethodId.putProperty, ClassId.PropertyMap, "put", Object.class, Object.class );
+
+                addMethod( MethodId.getPropertyName, ClassId.Property, "getName" );
+                addMethod( MethodId.getPropertyValue, ClassId.Property, "getValue" );
+
+                addMethod( MethodId.loadNBTTagCompound, ClassId.MojangsonParser, "parse", String.class );
+
+                addConstructor( ClassId.BlockPosition, int.class, int.class, int.class );
+                addConstructor( ClassId.GameProfile, UUID.class, String.class );
+                addConstructor( ClassId.Property, String.class, String.class );
+            }
+        }
+
+        private static class v1_9 extends ReflectionTarget {
+            protected v1_9() {
+                super( MinecraftVersion.v1_9 );
+
+                addMethod( MethodId.listRemove, ClassId.NBTTagList, "remove", int.class );
+
+                addMethod( MethodId.compoundKeys, ClassId.NBTTagCompound, "c" );
+                addMethod( MethodId.getTileTag, ClassId.TileEntity, "save", ClassId.NBTTagCompound );
+            }
+        }
+
+        private static class v1_11 extends ReflectionTarget {
+            protected v1_11() {
+                super( MinecraftVersion.v1_11 );
+
+                addConstructor( ClassId.ItemStack, ClassId.NBTTagCompound );
+            }
+        }
+
+        private static class v1_12 extends ReflectionTarget {
+            protected v1_12() {
+                super( MinecraftVersion.v1_12 );
+
+                addMethod( MethodId.setTileTag, ClassId.TileEntity, "load", ClassId.NBTTagCompound );
+            }
+        }
+
+        private static class v1_13 extends ReflectionTarget {
+            protected v1_13() {
+                super( MinecraftVersion.v1_13 );
+
+                addMethod( MethodId.compoundKeys, ClassId.NBTTagCompound, "getKeys" );
+
+                addMethod( MethodId.createStack, ClassId.ItemStack, "a", ClassId.NBTTagCompound );
+            }
+        }
+
+        private static class v1_15 extends ReflectionTarget {
+            protected v1_15() {
+                super( MinecraftVersion.v1_15 );
+
+                addMethod( MethodId.setCraftMetaSkullProfile, ClassId.CraftMetaSkull, "setProfile", ClassId.GameProfile );
+            }
+        }
+
+        private static class v1_16 extends ReflectionTarget {
+            protected v1_16() {
+                super( MinecraftVersion.v1_16 );
+
+                addMethod( MethodId.getEntityTag, ClassId.Entity, "save", ClassId.NBTTagCompound );
+                addMethod( MethodId.setEntityTag, ClassId.Entity, "load", ClassId.NBTTagCompound );
+
+                addMethod( MethodId.getTileType, ClassId.World, "getType", ClassId.BlockPosition );
+                addMethod( MethodId.setTileTag, ClassId.TileEntity, "load", ClassId.IBlockData, ClassId.NBTTagCompound );
+            }
+        }
+
+        private static class v1_17 extends ReflectionTarget {
+            protected v1_17() {
+                super( MinecraftVersion.v1_17 );
+
+                addClass( ClassId.NBTBase,             "net.minecraft.nbt.NBTBase" );
+                addClass( ClassId.NBTTagCompound,      "net.minecraft.nbt.NBTTagCompound" );
+                addClass( ClassId.NBTTagList,          "net.minecraft.nbt.NBTTagList" );
+                addClass( ClassId.NBTTagEnd,           "net.minecraft.nbt.NBTTagEnd" );
+                addClass( ClassId.MojangsonParser,     "net.minecraft.nbt.MojangsonParser" );
+                addClass( ClassId.ItemStack,           "net.minecraft.world.item.ItemStack" );
+                addClass( ClassId.Entity,              "net.minecraft.world.entity.Entity" );
+                addClass( ClassId.EntityLiving,        "net.minecraft.world.entity.EntityLiving" );
+                addClass( ClassId.BlockPosition,       "net.minecraft.core.BlockPosition" );
+                addClass( ClassId.IBlockData,          "net.minecraft.world.level.block.state.IBlockData" );
+                addClass( ClassId.World,               "net.minecraft.world.level.World" );
+                addClass( ClassId.TileEntity,          "net.minecraft.world.level.block.entity.TileEntity" );
+                addClass( ClassId.TileEntitySkull,     "net.minecraft.world.level.block.entity.TileEntitySkull" );
+
+                addMethod( MethodId.listSet, ClassId.NBTTagList, "set", int.class, ClassId.NBTBase );
+                addMethod( MethodId.setTileTag, ClassId.TileEntity, "load", ClassId.NBTTagCompound );
+            }
+        }
+
+        private static class v1_18_R1 extends ReflectionTarget {
+            protected v1_18_R1() {
+                super( MinecraftVersion.v1_18_R1 );
+
+                addMethod( MethodId.compoundGet, ClassId.NBTTagCompound, "c", String.class );
+                addMethod( MethodId.compoundSet, ClassId.NBTTagCompound, "a", String.class, ClassId.NBTBase );
+                addMethod( MethodId.compoundHasKey, ClassId.NBTTagCompound, "e", String.class );
+
+                addMethod( MethodId.listSet, ClassId.NBTTagList, "d", int.class, ClassId.NBTBase );
+                addMethod( MethodId.listAdd, ClassId.NBTTagList, "c", int.class, ClassId.NBTBase );
+
+                addMethod( MethodId.listRemove, ClassId.NBTTagList, "c", int.class );
+                addMethod( MethodId.compoundRemove, ClassId.NBTTagCompound, "r", String.class );
+
+                addMethod( MethodId.compoundKeys, ClassId.NBTTagCompound, "d" );
+
+                addMethod( MethodId.itemHasTag, ClassId.ItemStack, "r" );
+                addMethod( MethodId.getItemTag, ClassId.ItemStack, "s" );
+                addMethod( MethodId.setItemTag, ClassId.ItemStack, "c", ClassId.NBTTagCompound );
+                addMethod( MethodId.itemSave, ClassId.ItemStack, "b", ClassId.NBTTagCompound );
+
+                addMethod( MethodId.getEntityTag, ClassId.Entity, "f", ClassId.NBTTagCompound );
+                addMethod( MethodId.setEntityTag, ClassId.Entity, "g", ClassId.NBTTagCompound );
+
+                addMethod( MethodId.setTileTag, ClassId.TileEntity, "a", ClassId.NBTTagCompound );
+                addMethod( MethodId.getTileTag, ClassId.TileEntity, "m" );
+                addMethod( MethodId.getTileEntity, ClassId.World, "c_", ClassId.BlockPosition );
+
+                addMethod( MethodId.setGameProfile, ClassId.TileEntitySkull, "a", ClassId.GameProfile );
+
+                addMethod( MethodId.loadNBTTagCompound, ClassId.MojangsonParser, "a", String.class );
+            }
+        }
+
+        private static class v1_18_R2 extends ReflectionTarget {
+            protected v1_18_R2() {
+                super( MinecraftVersion.v1_18_R2 );
+
+                addMethod( MethodId.itemHasTag, ClassId.ItemStack, "s" );
+                addMethod( MethodId.getItemTag, ClassId.ItemStack, "t" );
+            }
+        }
+
+        private static class v1_19_R1 extends ReflectionTarget {
+            protected v1_19_R1() {
+                super( MinecraftVersion.v1_19_R1 );
+
+                addMethod( MethodId.itemHasTag, ClassId.ItemStack, "t" );
+                addMethod( MethodId.getItemTag, ClassId.ItemStack, "u" );
+            }
+        }
+
+        private static class v1_19_R2 extends ReflectionTarget {
+            protected v1_19_R2() {
+                super( MinecraftVersion.v1_19_R2 );
+
+                addMethod( MethodId.compoundKeys, ClassId.NBTTagCompound, "e" );
+            }
+        }
+
+        private static class v1_20_R1 extends ReflectionTarget {
+            protected v1_20_R1() {
+                super( MinecraftVersion.v1_20_R1 );
+
+                addMethod( MethodId.itemHasTag, ClassId.ItemStack, "u" );
+                addMethod( MethodId.getItemTag, ClassId.ItemStack, "v" );
+            }
+        }
+
+        private static class v1_20_R2 extends ReflectionTarget {
+            protected v1_20_R2() {
+                super( MinecraftVersion.v1_20_R2 );
+
+                addMethod( MethodId.getPropertyName, ClassId.Property, "name" );
+                addMethod( MethodId.getPropertyValue, ClassId.Property, "value" );
+            }
+        }
+
+        private static class v1_20_R3 extends ReflectionTarget {
+            protected v1_20_R3() {
+                super( MinecraftVersion.v1_20_R3 );
+
+                addMethod( MethodId.getTileTag, ClassId.TileEntity, "o" );
+                addMethod( MethodId.getPropertyName, ClassId.Property, "name" );
+                addMethod( MethodId.getPropertyValue, ClassId.Property, "value" );
+            }
+        }
     }
 }
