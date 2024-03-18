@@ -2,7 +2,7 @@
 hikari = "3.4.5"
 guava = "30.0-jre"
 gson = "2.8.6"
-yaml = "2.0"
+yaml = "2.2"
 common-lang3 = "3.11"
 common-io = "2.7"
 annotations = "19.0.0"
@@ -11,6 +11,7 @@ persistence-api = "2.2"
 asm = "9.6"
 packetevents = "2.2.1"
 bukkit-api = "1.16.5-R0.1-SNAPSHOT"
+bukkit20-api = "1.20.4-R0.1-SNAPSHOT"
 
 # Adventure
 adventure = "4.16.0"
@@ -23,6 +24,7 @@ mockito = "4.11.0"
 [libraries]
 spigot = { module = "org.spigotmc:spigot-api", version.ref = "bukkit-api" }
 paper = { module = "com.destroystokyo.paper:paper-api", version.ref = "bukkit-api" }
+spigot20 = { module = "org.spigotmc:spigot-api", version.ref = "bukkit20-api" }
 
 hikari-cp = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
