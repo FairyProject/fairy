@@ -55,7 +55,14 @@ public class ContainerNodeLegacyScanner {
 
     private void loadServiceClasses() {
         ClassInfoList serviceClasses = scanResult.getClassesWithAnnotation(Service.class);
-        scanner.loadComponentClasses(serviceClasses, scanner.getNode(), $ -> {});
+        scanner.loadComponentClasses(serviceClasses, scanner.getNode(), obj -> {
+            Class<?> aClass = obj.getType();
+            Service service = aClass.getAnnotation(Service.class);
+
+            for (Class<?> dependClass : service.depends()) {
+                obj.addDependency(dependClass);
+            }
+        });
     }
 
     private void loadObjClasses() {

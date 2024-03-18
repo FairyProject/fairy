@@ -1,7 +1,11 @@
 dependencies {
     api "com.github.cryptomorin:XSeries:9.9.0"
 
-    compileOnly(libs.spigot)
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
+    compileOnly(libs.spigot20)
 }
 
 module {}
+
+sourceCompatibility = 17
+targetCompatibility = 1.8
