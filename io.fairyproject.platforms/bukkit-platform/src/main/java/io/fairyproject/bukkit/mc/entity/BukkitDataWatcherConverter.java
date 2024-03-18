@@ -28,9 +28,6 @@ public class BukkitDataWatcherConverter {
 
     private final BukkitNMSManager bukkitNMSManager;
 
-    private FieldWrapper<?> dataWatcherField;
-    private MethodWrapper<?> dataWatcherWriteMethod;
-    private ConstructorWrapper<?> packetDataSerializerConstructor;
     private Function<Entity, List<EntityData>> converter;
 
     public Class<?> getPacketDataSerializerClass() throws ClassNotFoundException {
@@ -61,46 +58,78 @@ public class BukkitDataWatcherConverter {
             ConstructorWrapper<?> packetDataSerializerConstructor = new ConstructorResolver(packetDataSerializerClass).resolveWrapper(new Class[]{byteBufClass});
 
             try {
-                MethodWrapper<?> dataWatcherWriteMethod = new MethodResolver(dataWatcherClass).resolve(void.class, 0, packetDataSerializerClass);
-
-                converter = ThrowingFunction.sneaky(e -> {
-                    Object handle = MinecraftReflection.getHandle(e);
-                    Object dataWatcher = dataWatcherField.get(handle);
-
-                    Object byteBuf = PacketEvents.getAPI().getNettyManager().getByteBufAllocationOperator().buffer();
-                    Object packetDataSerializer = packetDataSerializerConstructor.newInstance(byteBuf);
-
-                    dataWatcherWriteMethod.invoke(dataWatcher, packetDataSerializer);
-                    PacketWrapper<?> packetWrapper = PacketWrapper.createUniversalPacketWrapper(byteBuf);
-
-                    return packetWrapper.readEntityMetadata();
-                });
+                findConverterPre1_13(
+                        dataWatcherClass,
+                        packetDataSerializerClass,
+                        dataWatcherField,
+                        packetDataSerializerConstructor
+                );
             } catch (Throwable throwable) {
                 // 1.13+
                 Method dataWatcherPackDirtyMethod = new MethodResolver(dataWatcherClass).resolve(new ResolverQuery(List.class, 0).withModifierOptions(ResolverQuery.ModifierOptions.builder()
                         .onlyDynamic(true)
                         .build()));
-                Method dataWatcherPackMethod = new MethodResolver(dataWatcherClass).resolve(new ResolverQuery(void.class, 0, List.class, packetDataSerializerClass).withModifierOptions(ResolverQuery.ModifierOptions.builder()
-                        .onlyStatic(true)
-                        .build()));
-
-                converter = ThrowingFunction.sneaky(e -> {
-                    Object handle = MinecraftReflection.getHandle(e);
-                    Object dataWatcher = dataWatcherField.get(handle);
-
-                    Object byteBuf = PacketEvents.getAPI().getNettyManager().getByteBufAllocationOperator().buffer();
-                    Object packetDataSerializer = packetDataSerializerConstructor.newInstance(byteBuf);
-
-                    Object dataItemList = dataWatcherPackDirtyMethod.invoke(dataWatcher);
-                    dataWatcherPackMethod.invoke(null, dataItemList, packetDataSerializer);
-                    PacketWrapper<?> packetWrapper = PacketWrapper.createUniversalPacketWrapper(byteBuf);
-
-                    return packetWrapper.readEntityMetadata();
-                });
+                findConverterModern(
+                        dataWatcherClass,
+                        packetDataSerializerClass,
+                        dataWatcherField,
+                        packetDataSerializerConstructor,
+                        dataWatcherPackDirtyMethod
+                );
             }
         }
 
         return converter.apply(entity);
+    }
+
+    private void findConverterModern(Class<?> dataWatcherClass, Class<?> packetDataSerializerClass, FieldWrapper<?> dataWatcherField, ConstructorWrapper<?> packetDataSerializerConstructor, Method dataWatcherPackDirtyMethod) throws NoSuchMethodException {
+        Method dataWatcherPackMethod;
+        try {
+            dataWatcherPackMethod = new MethodResolver(dataWatcherClass).resolve(new ResolverQuery(void.class, 0, List.class, packetDataSerializerClass).withModifierOptions(ResolverQuery.ModifierOptions.builder()
+                    .onlyStatic(true)
+                    .build()));
+        } catch (Throwable throwable) {
+            try {
+                Class<?> packetClass = Class.forName("net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata");
+                dataWatcherPackMethod = new MethodResolver(packetClass).resolve(new ResolverQuery(void.class, 0, List.class, packetDataSerializerClass).withModifierOptions(ResolverQuery.ModifierOptions.builder()
+                        .onlyStatic(true)
+                        .build()));
+            } catch (Throwable t) {
+                throw new NoSuchMethodException("DataWatcher.pack(List, PacketDataSerializer) method not found");
+            }
+        }
+
+        Method finalDataWatcherPackMethod = dataWatcherPackMethod;
+        converter = ThrowingFunction.sneaky(e -> {
+            Object handle = MinecraftReflection.getHandle(e);
+            Object dataWatcher = dataWatcherField.get(handle);
+
+            Object byteBuf = PacketEvents.getAPI().getNettyManager().getByteBufAllocationOperator().buffer();
+            Object packetDataSerializer = packetDataSerializerConstructor.newInstance(byteBuf);
+
+            Object dataItemList = dataWatcherPackDirtyMethod.invoke(dataWatcher);
+            finalDataWatcherPackMethod.invoke(null, dataItemList, packetDataSerializer);
+            PacketWrapper<?> packetWrapper = PacketWrapper.createUniversalPacketWrapper(byteBuf);
+
+            return packetWrapper.readEntityMetadata();
+        });
+    }
+
+    private void findConverterPre1_13(Class<?> dataWatcherClass, Class<?> packetDataSerializerClass, FieldWrapper<?> dataWatcherField, ConstructorWrapper<?> packetDataSerializerConstructor) throws ReflectiveOperationException {
+        MethodWrapper<?> dataWatcherWriteMethod = new MethodResolver(dataWatcherClass).resolve(void.class, 0, packetDataSerializerClass);
+
+        converter = ThrowingFunction.sneaky(e -> {
+            Object handle = MinecraftReflection.getHandle(e);
+            Object dataWatcher = dataWatcherField.get(handle);
+
+            Object byteBuf = PacketEvents.getAPI().getNettyManager().getByteBufAllocationOperator().buffer();
+            Object packetDataSerializer = packetDataSerializerConstructor.newInstance(byteBuf);
+
+            dataWatcherWriteMethod.invoke(dataWatcher, packetDataSerializer);
+            PacketWrapper<?> packetWrapper = PacketWrapper.createUniversalPacketWrapper(byteBuf);
+
+            return packetWrapper.readEntityMetadata();
+        });
     }
 
 }
