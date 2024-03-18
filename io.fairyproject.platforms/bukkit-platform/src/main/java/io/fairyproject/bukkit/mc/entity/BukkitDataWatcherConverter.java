@@ -82,21 +82,8 @@ public class BukkitDataWatcherConverter {
         return converter.apply(entity);
     }
 
-    private Method findDataValueWriteMethod(Class<?> dataWatcherClass, Class<?> packetDataSerializerClass) {
-        for (Class<?> innerClass : dataWatcherClass.getDeclaredClasses()) {
-            for (Method method : innerClass.getDeclaredMethods()) {
-                if (method.getReturnType() == void.class
-                        && method.getParameterCount() == 1
-                        && method.getParameterTypes()[0] == packetDataSerializerClass) {
-                    return method;
-                }
-            }
-        }
-        throw new IllegalStateException("DataWatcher.DataValue.write(PacketDataSerializer) method not found");
-    }
-
     private void findConverterModern(Class<?> dataWatcherClass, Class<?> packetDataSerializerClass, FieldWrapper<?> dataWatcherField, ConstructorWrapper<?> packetDataSerializerConstructor, Method dataWatcherPackDirtyMethod) throws NoSuchMethodException {
-        Method dataWatcherPackMethod = null;
+        Method dataWatcherPackMethod;
         try {
             dataWatcherPackMethod = new MethodResolver(dataWatcherClass).resolve(new ResolverQuery(void.class, 0, List.class, packetDataSerializerClass).withModifierOptions(ResolverQuery.ModifierOptions.builder()
                     .onlyStatic(true)
