@@ -29,6 +29,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.regex.Pattern;
 
+/**
+ * Implementation of {@link OBCVersionDecoder}
+ *
+ * @deprecated Outdated since Paper 1.20.4 according to <a href="https://forums.papermc.io/threads/important-dev-psa-future-removal-of-cb-package-relocation.1106/">...</a>
+ */
+@Deprecated
 public class OBCVersionDecoderImpl implements OBCVersionDecoder {
 
     @Override
