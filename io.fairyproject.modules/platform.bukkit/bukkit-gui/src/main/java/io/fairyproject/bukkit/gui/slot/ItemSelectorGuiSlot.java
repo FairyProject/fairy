@@ -283,6 +283,8 @@ public class ItemSelectorGuiSlot implements GuiSlot {
                 if (!canPlace(event, event.getCursor()))
                     return true;
                 break;
+            default:
+                break;
         }
 
         return false;

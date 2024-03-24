@@ -301,6 +301,8 @@ public class Gui {
                 case UNKNOWN:
                     event.setCancelled(true);
                     break;
+                default:
+                    break;
             }
             return;
         }

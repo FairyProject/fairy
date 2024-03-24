@@ -29,7 +29,6 @@ public class OutlinePaneMapping implements PaneMapping {
             List<Integer> slots = new ArrayList<>();
             slotSet = new BitSet(width * height);
 
-            int index = 0;
             for (int i = 0; i < width; i++) {
                 slots.add(getMenuSlot(i, 0));
             }
