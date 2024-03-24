@@ -50,19 +50,19 @@ public class BukkitNMSManagerImpl implements BukkitNMSManager {
 
     @PreInitialize
     public void onPreInitialize() {
-        String versionFormat = OBCVersionDecoder.create().decode(serverClass);
-
-        this.nmsClassResolver = setupNmsClassResolver(versionFormat);
-        this.obcClassResolver = setupObcClassResolver(versionFormat);
+        this.nmsClassResolver = setupNmsClassResolver();
+        this.obcClassResolver = setupObcClassResolver();
     }
 
-    private OBCClassResolver setupObcClassResolver(String versionFormat) {
-        return new OBCClassResolver("org.bukkit.craftbukkit." + versionFormat + ".");
+    private OBCClassResolver setupObcClassResolver() {
+        return new OBCClassResolver(serverClass.getPackage().getName());
     }
 
-    private NMSClassResolver setupNmsClassResolver(String versionFormat) {
+    private NMSClassResolver setupNmsClassResolver() {
         MCVersionMapping mapping = this.versionMappingRegistry.findMapping(this.mcServer.getVersion());
         if (mapping.isNmsPrefix()) {
+            String versionFormat = OBCVersionDecoder.create().decode(serverClass);
+
             return new NMSClassResolver("net.minecraft.server." + versionFormat + ".");
         } else {
             return new NMSClassResolver("net.minecraft.");
