@@ -55,7 +55,7 @@ public class BukkitNMSManagerImpl implements BukkitNMSManager {
     }
 
     private OBCClassResolver setupObcClassResolver() {
-        return new OBCClassResolver(serverClass.getPackage().getName());
+        return new OBCClassResolver(serverClass.getPackage().getName() + ".");
     }
 
     private NMSClassResolver setupNmsClassResolver() {
