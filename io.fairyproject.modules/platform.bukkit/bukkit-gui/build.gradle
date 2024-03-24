@@ -1,0 +1,8 @@
+dependencies {
+    compileOnly libs.spigot
+}
+
+module {
+    depend("platform.bukkit:bukkit-items")
+    depend("platform.bukkit:bukkit-xseries")
+}

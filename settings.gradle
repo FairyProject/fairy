@@ -67,6 +67,7 @@ void initModules() {
     include "io.fairyproject.modules:platform.bukkit:bukkit-timer"
     include "io.fairyproject.modules:platform.bukkit:bukkit-items"
     include "io.fairyproject.modules:platform.bukkit:bukkit-menu"
+    include "io.fairyproject.modules:platform.bukkit:bukkit-gui"
     include "io.fairyproject.modules:platform.bukkit:bukkit-nms"
     include "io.fairyproject.modules:platform.bukkit:bukkit-xseries"
     include "io.fairyproject.modules:platform.bukkit:bukkit-visibility"
