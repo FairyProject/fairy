@@ -81,21 +81,13 @@ public class Gui {
         this.titleUpdating = true;
 
         MCPlayer mcPlayer = MCPlayer.from(player);
-        player.closeInventory();
-
-        MCSchedulers.getEntityScheduler(player).schedule(() -> {
-            if (!this.isOpening())
-                return;
-
-            try {
-                this.inventory = Bukkit.createInventory(null, this.getRows() * 9, MCAdventure.asLegacyString(this.title, mcPlayer.getLocale()));
-                this.renderSlots(player);
-
-                player.openInventory(this.inventory);
-            } finally {
-                this.titleUpdating = false;
-            }
-        }, 1L);
+        try {
+            this.inventory = Bukkit.createInventory(null, this.getRows() * 9, MCAdventure.asLegacyString(this.title, mcPlayer.getLocale()));
+            this.renderSlots(player);
+            player.openInventory(this.inventory);
+        } finally {
+            this.titleUpdating = false;
+        }
     }
 
     public void openOrUpdate(Player player) {
@@ -315,7 +307,7 @@ public class Gui {
 
     private void onInventoryClose(@NotNull InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
-        // if the title is updating, the inventory is already closed
+        // if the title is updating, shouldn't attempt to close the gui
         if (this.titleUpdating)
             return;
 
