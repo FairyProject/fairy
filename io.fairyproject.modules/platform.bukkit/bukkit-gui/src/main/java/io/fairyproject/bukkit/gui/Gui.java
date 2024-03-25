@@ -47,13 +47,14 @@ public class Gui {
     private final List<Consumer<Player>> closeCallbacks;
     private final List<Pane> panes;
     private final boolean[] usedSlots;
-    private final Component title;
+    private Component title;
 
     @Nullable
     private Inventory inventory;
     private GuiSlot[] guiSlots;
     @Getter
     private EventNode<Event> eventNode;
+    private boolean titleUpdating;
     private int maxSlots;
 
     public Gui(BukkitEventNode bukkitEventNode, Component title) {
@@ -68,6 +69,25 @@ public class Gui {
         this.panes = new ArrayList<>();
         this.usedSlots = new boolean[9 * 6];
         this.maxSlots = -1;
+    }
+
+    @SuppressWarnings("deprecation")
+    public void updateTitle(@NotNull Player player, @NotNull Component title) {
+        this.title = title;
+
+        if (!this.isOpening() || this.titleUpdating)
+            return;
+
+        this.titleUpdating = true;
+
+        MCPlayer mcPlayer = MCPlayer.from(player);
+        try {
+            this.inventory = Bukkit.createInventory(null, this.getRows() * 9, MCAdventure.asLegacyString(this.title, mcPlayer.getLocale()));
+            this.renderSlots(player);
+            player.openInventory(this.inventory);
+        } finally {
+            this.titleUpdating = false;
+        }
     }
 
     public void openOrUpdate(Player player) {
@@ -287,6 +307,10 @@ public class Gui {
 
     private void onInventoryClose(@NotNull InventoryCloseEvent event) {
         Player player = (Player) event.getPlayer();
+        // if the title is updating, shouldn't attempt to close the gui
+        if (this.titleUpdating)
+            return;
+
         if (!this.isInventory(event.getInventory()))
             return;
 
