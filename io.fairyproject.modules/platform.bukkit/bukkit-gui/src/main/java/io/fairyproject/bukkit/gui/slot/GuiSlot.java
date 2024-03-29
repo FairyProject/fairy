@@ -74,23 +74,23 @@ public interface GuiSlot {
     }
 
     static GuiSlot nextPage(PaginatedPane pane, ItemStack itemStack) {
-        return new ModPageGuiSlot(pane, itemStack, 1);
+        return new ModPageGuiSlot(pane, itemStack, 1, null);
     }
 
     static GuiSlot previousPage(PaginatedPane pane, ItemStack itemStack) {
-        return new ModPageGuiSlot(pane, itemStack, -1);
+        return new ModPageGuiSlot(pane, itemStack, -1, null);
     }
 
     static GuiSlot nextPage(PaginatedPane pane) {
-        return new ModPageGuiSlot(pane, ItemBuilder.of(XMaterial.ARROW).name("&aNext Page").build(), 1);
+        return new ModPageGuiSlot(pane, ItemBuilder.of(XMaterial.ARROW).name("&aNext Page").build(), 1, null);
     }
 
     static GuiSlot previousPage(PaginatedPane pane) {
-        return new ModPageGuiSlot(pane, ItemBuilder.of(XMaterial.ARROW).name("&aPrevious Page").build(), -1);
+        return new ModPageGuiSlot(pane, ItemBuilder.of(XMaterial.ARROW).name("&aPrevious Page").build(), -1, null);
     }
 
-    static GuiSlot modPage(PaginatedPane pane, ItemStack itemStack, int mod) {
-        return new ModPageGuiSlot(pane, itemStack, mod);
+    static GuiSlot modPage(PaginatedPane pane, ItemStack itemStack, int mod, @Nullable BiConsumer<Player, ClickType> clickCallback) {
+        return new ModPageGuiSlot(pane, itemStack, mod, clickCallback != null ? event -> clickCallback.accept((Player) event.getWhoClicked(), event.getClick()) : null);
     }
 
     ItemStack getItemStack(@NotNull Player player, @NotNull Gui gui);
