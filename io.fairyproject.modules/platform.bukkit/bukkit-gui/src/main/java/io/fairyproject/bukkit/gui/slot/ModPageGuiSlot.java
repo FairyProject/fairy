@@ -8,6 +8,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 public class ModPageGuiSlot implements GuiSlot {
@@ -15,6 +18,8 @@ public class ModPageGuiSlot implements GuiSlot {
     private final PaginatedPane pane;
     private final ItemStack itemStack;
     private final int mod;
+    @Nullable
+    private final Consumer<InventoryClickEvent> clickCallback;
 
     @Override
     public ItemStack getItemStack(@NotNull Player player, @NotNull Gui gui) {
@@ -37,6 +42,9 @@ public class ModPageGuiSlot implements GuiSlot {
         gui.update(player);
 
         XSound.UI_BUTTON_CLICK.play(player);
+
+        if (clickCallback != null)
+            clickCallback.accept(event);
     }
 
     public void sendCannotPrevious(Player player) {
