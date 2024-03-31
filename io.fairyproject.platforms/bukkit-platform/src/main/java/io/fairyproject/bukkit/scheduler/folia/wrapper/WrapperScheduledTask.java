@@ -42,12 +42,12 @@ public class WrapperScheduledTask {
 
     public void cancel() {
         if (cancelMethod == null) {
-            Class<?> scheduledTaskClass = scheduledTask.getClass();
             try {
-                cancelMethod = scheduledTaskClass.getMethod("cancel");
+                Class<?> scheduledTaskClass = Class.forName("io.papermc.paper.threadedregions.scheduler.ScheduledTask");
+                cancelMethod = scheduledTaskClass.getDeclaredMethod("cancel");
                 cancelMethod.setAccessible(true);
-            } catch (NoSuchMethodException e) {
-                throw new IllegalStateException("Cannot find cancel method in " + scheduledTaskClass.getName(), e);
+            } catch (NoSuchMethodException | ClassNotFoundException e) {
+                throw new IllegalStateException("Cannot find cancel method", e);
             }
         }
 
