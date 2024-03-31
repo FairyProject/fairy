@@ -45,6 +45,7 @@ public class WrapperScheduledTask {
             Class<?> scheduledTaskClass = scheduledTask.getClass();
             try {
                 cancelMethod = scheduledTaskClass.getMethod("cancel");
+                cancelMethod.setAccessible(true);
             } catch (NoSuchMethodException e) {
                 throw new IllegalStateException("Cannot find cancel method in " + scheduledTaskClass.getName(), e);
             }
