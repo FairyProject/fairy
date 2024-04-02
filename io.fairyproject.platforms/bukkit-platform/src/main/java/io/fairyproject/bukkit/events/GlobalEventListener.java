@@ -71,6 +71,10 @@ public class GlobalEventListener implements Listener {
         URL url = getClassLoaderURLFromClass(plugin.getClass());
         URL bukkitUrl = getClassLoaderURLFromClass(Server.class);
 
+        if (url == null || bukkitUrl == null)
+            // can't find the class loader URL, ignore it
+            return;
+
         register(Arrays.asList(
                 url,
                 bukkitUrl
