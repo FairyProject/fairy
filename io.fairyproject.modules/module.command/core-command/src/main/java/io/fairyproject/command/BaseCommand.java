@@ -159,8 +159,15 @@ public abstract class BaseCommand implements ICommand {
         this.init(this.getClass().getAnnotation(Command.class));
     }
 
-    public void init(Command command) {
-        new BaseCommandInitializer(this).init(command);
+    public void init(@Nullable Command command) {
+        if (command == null)
+            throw new IllegalArgumentException("Command annotation is null!");
+
+        this.init(command.value(), command.permissionNode());
+    }
+
+    public void init(String[] names, String permission) {
+        new BaseCommandInitializer(this).init(names, permission);
     }
 
     @Override

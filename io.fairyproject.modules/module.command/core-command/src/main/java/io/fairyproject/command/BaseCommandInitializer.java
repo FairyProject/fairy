@@ -29,18 +29,9 @@ public class BaseCommandInitializer {
 
     protected final BaseCommand baseCommand;
 
-    public void init(Command command) {
-        if (command != null) {
-            baseCommand.names = command.value();
-            baseCommand.permission = command.permissionNode();
-
-            if (baseCommand.names.length == 0) {
-                throw new IllegalArgumentException("Command names cannot be empty");
-            }
-        } else {
-            throw new IllegalArgumentException("Command annotation wasn't found in class " + baseCommand.getClass());
-        }
-
+    public void init(String[] names, String permission) {
+        baseCommand.names = names;
+        baseCommand.permission = permission;
         baseCommand.metadata = MetadataMap.create();
         baseCommand.tabCompletion = new HashMap<>();
 
