@@ -265,13 +265,7 @@ public class BaseCommandInitializer {
             subCommand.init();
         }
 
-        for (String commandName : subCommand.getCommandNames()) {
-            baseCommand.subCommands
-                    .computeIfAbsent(commandName.toLowerCase(), k -> ConcurrentHashMap.newKeySet())
-                    .add(subCommand);
-        }
-        baseCommand.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), baseCommand.maxParameterCount);
-        baseCommand.requireInputParameterCount = Math.max(subCommand.getRequireInputParameterCount(), baseCommand.requireInputParameterCount);
+        baseCommand.addSubCommand(subCommand.getCommandNames(), subCommand);
     }
 
 }

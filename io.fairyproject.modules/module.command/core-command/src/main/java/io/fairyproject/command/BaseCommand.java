@@ -138,11 +138,21 @@ public abstract class BaseCommand implements ICommand {
 
     @Override
     public boolean canAccess(CommandContext commandContext) {
-        if (this.permission == null || this.permission.length() == 0) {
+        if (this.permission == null || this.permission.isEmpty()) {
             return true;
         }
 
         return commandContext.hasPermission(this.permission);
+    }
+
+    protected void addSubCommand(@NotNull String[] commandNames, @NotNull ICommand subCommand) {
+        for (String commandName : commandNames) {
+            this.subCommands
+                    .computeIfAbsent(commandName.toLowerCase(), k -> ConcurrentHashMap.newKeySet())
+                    .add(subCommand);
+        }
+        this.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), this.maxParameterCount);
+        this.requireInputParameterCount = Math.max(subCommand.getRequireInputParameterCount(), this.requireInputParameterCount);
     }
 
     public void init() {
