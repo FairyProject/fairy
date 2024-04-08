@@ -25,6 +25,7 @@
 package io.fairyproject.command;
 
 import io.fairyproject.Debug;
+import io.fairyproject.command.annotation.Command;
 import io.fairyproject.command.annotation.CommandPresence;
 import io.fairyproject.command.argument.ArgCompletionHolder;
 import io.fairyproject.command.exception.ArgTransformException;
@@ -85,6 +86,7 @@ public class CommandService {
         );
         this.context.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(BaseCommand.class))
+                .withFilter(obj -> obj.getType().isAnnotationPresent(Command.class))
                 .withAddHandler(ContainerObjCollector.warpInstance(BaseCommand.class, instance -> this.batch.runOrQueue(instance.getClass().getName(), () -> this.registerCommand(instance))))
                 .withRemoveHandler(ContainerObjCollector.warpInstance(BaseCommand.class, instance -> {
                     if (!this.batch.remove(instance.getClass().getName())) {
