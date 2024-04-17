@@ -72,11 +72,6 @@ public class SidebarService {
     }
 
     @Subscribe
-    public void onPlayerJoin(MCPlayerJoinEvent event) {
-        this.getOrCreateScoreboard(event.getPlayer());
-    }
-
-    @Subscribe
     public void onPlayerQuit(MCPlayerQuitEvent event) {
         this.remove(event.getPlayer());
     }
@@ -139,10 +134,7 @@ public class SidebarService {
                 break;
             }
 
-            Sidebar sidebar = this.get(player);
-            if (sidebar == null)
-                continue;
-
+            Sidebar sidebar = this.getOrCreateScoreboard(player);
             sidebar.setTicks(sidebar.getTicks() + 1);
             if (sidebar.getTicks() < 20)
                 continue;
