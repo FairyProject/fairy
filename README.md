@@ -29,6 +29,13 @@ The objective of the project will be a fully `cross-platform` capable framework 
 Where you can write code once and use on every platform with any version.
 To achieve this it's nearly impossible for a single person or a small team, that's why this is open-sourced, if you can contribute the project we would be very appreciated!
 
+## Public projects using Fairy
+- Woolwars - [SpigotMC](https://www.spigotmc.org/resources/woolwars-competitive-pvp-gamemode.116176/), [BuiltByBit](https://builtbybit.com/resources/woolwars-competitive-pvp-gamemode.26119/)
+- RaytraceAntiXray - [SpigotMC](https://www.spigotmc.org/resources/raytraceantixray-ores-entities-tiles.116253/), [BuiltByBit](https://builtbybit.com/resources/raytraceantixray-ores-entities-tiles.41896/)
+- CraftGens - [BuiltByBit](https://builtbybit.com/resources/craftgens-generators-gui-editor.30062/)
+- Brew - [GitHub](https://github.com/FairyProject/brew)
+- *Feel free to open a PR to add your project to here!*
+
 ## Getting Started
 If you are interested in creating a project using Fairy framework, please start from [Preparing Environment](https://github.com/FairyProject/fairy/wiki/Preparing-Environment) and [Setup Project](https://github.com/FairyProject/fairy/wiki/Setup-Project) wiki resource.
 Or you can jump straight over to [project examples](). 
