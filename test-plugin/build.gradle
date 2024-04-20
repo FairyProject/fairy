@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id "io.fairyproject" version "0.7.0b1-SNAPSHOT"
+    id "io.fairyproject" version "0.7.1b7-SNAPSHOT"
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
@@ -16,7 +16,7 @@ fairy {
 
 dependencies {
     implementation(project(":io.fairyproject.bundles:bukkit-bundles"))
-    implementation(project(":io.fairyproject.devtools:bukkit-devtools"))
+    implementation(project(":io.fairyproject.modules:platform.mc:module.sidebar"))
 }
 
 test {

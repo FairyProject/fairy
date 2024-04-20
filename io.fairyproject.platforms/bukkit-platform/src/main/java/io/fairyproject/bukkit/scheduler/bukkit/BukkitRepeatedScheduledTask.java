@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.scheduler.bukkit;
 
+import io.fairyproject.log.Log;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
@@ -74,6 +75,7 @@ public class BukkitRepeatedScheduledTask<R> implements ScheduledTask<R>, Runnabl
                     throw new IllegalStateException("Unexpected value: " + response.getState());
             }
         } catch (Exception e) {
+            Log.error("An error occurred while executing a scheduled task", e);
             future.completeExceptionally(e);
 
             bukkitTask.cancel();
