@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.scheduler.folia;
 
 import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
@@ -60,6 +61,8 @@ public abstract class FoliaAbstractScheduler implements MCTickBasedScheduler {
             try {
                 future.complete(callable.call());
             } catch (Throwable throwable) {
+                Log.error("An error occurred while executing a scheduled task", throwable);
+
                 future.completeExceptionally(throwable);
             }
         });

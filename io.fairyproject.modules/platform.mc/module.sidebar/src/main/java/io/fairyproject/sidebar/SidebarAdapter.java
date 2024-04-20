@@ -26,9 +26,12 @@ package io.fairyproject.sidebar;
 
 import net.kyori.adventure.text.Component;
 import io.fairyproject.mc.MCPlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+@Deprecated
 public interface SidebarAdapter {
 
     default void onBoardCreate(MCPlayer player, Sidebar board) {
@@ -51,5 +54,32 @@ public interface SidebarAdapter {
     }
 
     default int priority() { return 0; }
+
+    static SidebarProvider asProvider(@NotNull SidebarAdapter adapter) {
+        return new SidebarProvider() {
+            @Override
+            public Component getTitle(@NotNull MCPlayer mcPlayer) {
+                return adapter.getTitle(mcPlayer);
+            }
+
+            @Override
+            public List<SidebarLine> getLines(@NotNull MCPlayer mcPlayer) {
+                List<Component> lines = adapter.getLines(mcPlayer);
+                return lines == null ? null : lines.stream()
+                        .map(SidebarLine::of)
+                        .collect(Collectors.toList());
+            }
+
+            @Override
+            public int getPriority() {
+                return adapter.priority();
+            }
+
+            @Override
+            public void onSidebarShown(@NotNull MCPlayer mcPlayer, @NotNull Sidebar sidebar) {
+                adapter.onBoardCreate(mcPlayer, sidebar);
+            }
+        };
+    }
 
 }

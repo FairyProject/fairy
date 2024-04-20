@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.scheduler.folia;
 
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
+import io.fairyproject.log.Log;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
@@ -77,6 +78,7 @@ public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer
                     throw new IllegalStateException("Unexpected value: " + response.getState());
             }
         } catch (Exception e) {
+            Log.error("An error occurred while executing a scheduled task", e);
             future.completeExceptionally(e);
 
             wrapperScheduledTask.cancel();

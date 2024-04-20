@@ -24,6 +24,7 @@
 
 package io.fairyproject.sidebar;
 
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
@@ -34,41 +35,76 @@ import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
+import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.scheduler.response.TaskResponse;
+import io.fairyproject.sidebar.handler.SidebarHandler;
+import io.fairyproject.sidebar.handler.legacy.LegacySidebarHandler;
+import io.fairyproject.sidebar.handler.legacy.V13LegacySidebarHandler;
+import io.fairyproject.sidebar.handler.modern.ModernSidebarHandler;
+import io.fairyproject.sidebar.handler.modern.LunarFixModernSidebarHandler;
 import io.fairyproject.util.Stacktrace;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @InjectableComponent
 @RequiredArgsConstructor
 public class SidebarService {
 
-    private final List<SidebarAdapter> adapters = new ArrayList<>();
-    private final Queue<Runnable> runnableQueue = new ConcurrentLinkedQueue<>();
-    private final AtomicBoolean activated = new AtomicBoolean(false);
+    private static final boolean LUNAR_CLIENT_FIX = System.getProperty("fairy.sidebar.lunar-client-fix", "true").equalsIgnoreCase("true");
+    private final List<SidebarProvider> providers = new ArrayList<>();
+    private final AtomicBoolean taskState = new AtomicBoolean(false);
     private final ContainerContext containerContext;
+    private final MCProtocol mcProtocol;
     private final MCPlayerRegistry mcPlayerRegistry;
     private final MCSchedulerProvider mcSchedulerProvider;
+    private SidebarHandler sidebarHandler;
 
     @PreInitialize
+    @SuppressWarnings("deprecation")
     public void onPreInitialize() {
+        ServerVersion version = mcProtocol.getPacketEvents().getServerManager().getVersion();
+        if (version.isNewerThanOrEquals(ServerVersion.V_1_20_3)) {
+            // 1.20.3+
+            if (LUNAR_CLIENT_FIX) {
+                this.sidebarHandler = new LunarFixModernSidebarHandler();
+            } else {
+                this.sidebarHandler = new ModernSidebarHandler();
+            }
+        } else if (version.isNewerThanOrEquals(ServerVersion.V_1_13)) {
+            // 1.13+
+            this.sidebarHandler = new V13LegacySidebarHandler();
+        } else {
+            // 1.8 - 1.12
+            this.sidebarHandler = new LegacySidebarHandler();
+        }
+
         this.containerContext.objectCollectorRegistry().add(ContainerObjCollector.create()
                 .withFilter(ContainerObjCollector.inherits(SidebarAdapter.class))
-                .withAddHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, this::addAdapter))
-                .withRemoveHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, this::removeAdapter))
+                .withAddHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, adapter -> this.addProvider(SidebarAdapter.asProvider(adapter))))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(SidebarAdapter.class, adapter -> this.removeProvider(SidebarAdapter.asProvider(adapter))))
+        );
+
+        this.containerContext.objectCollectorRegistry().add(ContainerObjCollector.create()
+                .withFilter(ContainerObjCollector.inherits(SidebarProvider.class))
+                .withAddHandler(ContainerObjCollector.warpInstance(SidebarProvider.class, this::addProvider))
+                .withRemoveHandler(ContainerObjCollector.warpInstance(SidebarProvider.class, this::removeProvider))
         );
     }
 
     @PostInitialize
     public void onPostInitialize() {
-        this.activate();
+        this.scheduleTask();
+    }
+
+    @Subscribe
+    public void onPlayerJoin(MCPlayerJoinEvent event) {
+        this.getOrCreate(event.getPlayer());
     }
 
     @Subscribe
@@ -76,128 +112,110 @@ public class SidebarService {
         this.remove(event.getPlayer());
     }
 
-    public void addAdapter(SidebarAdapter adapter) {
-        this.adapters.add(adapter);
-        this.adapters.sort(Collections.reverseOrder(Comparator.comparingInt(SidebarAdapter::priority)));
-        this.activate();
+    public void addProvider(SidebarProvider provider) {
+        this.providers.add(provider);
+        this.providers.sort(Collections.reverseOrder(Comparator.comparingInt(SidebarProvider::getPriority)));
+
+        this.scheduleTask();
     }
 
-    public void removeAdapter(SidebarAdapter adapter) {
-        this.adapters.remove(adapter);
+    public void removeProvider(SidebarProvider provider) {
+        this.providers.remove(provider);
     }
 
-    private void activate() {
-        if (activated.compareAndSet(false, true)) {
-            mcSchedulerProvider.getAsyncScheduler().scheduleAtFixedRate(this::onTick, this.getUpdateTick(), this.getUpdateTick());
-        }
-    }
+    private void scheduleTask() {
+        if (taskState.compareAndSet(false, true))
+            return;
 
-    private int getUpdateTick() {
-        int tick = 2;
-        for (SidebarAdapter adapter : this.adapters) {
-            int adapterTick = adapter.tick();
-            if (adapterTick != -1) {
-                tick = adapterTick;
-                break;
-            }
-        }
-
-        return tick;
+        mcSchedulerProvider.getAsyncScheduler().scheduleAtFixedRate(this::onTick, 2L, 2L);
     }
 
     public TaskResponse<Void> onTick() {
         try {
             this.tick();
-
-            this.runQueue();
-            if (this.adapters.isEmpty()) {
-                this.activated.set(false);
-                return TaskResponse.success(null);
-            }
         } catch (Exception ex) {
             Stacktrace.print(ex);
+        }
+
+        if (this.providers.isEmpty()) {
+            this.taskState.set(false);
+            return TaskResponse.success(null);
         }
 
         return TaskResponse.continueTask();
     }
 
-    public void runQueue() {
-        Runnable runnable;
-        while ((runnable = this.runnableQueue.poll()) != null) {
-            runnable.run();
-        }
-    }
-
     private void tick() {
+        if (!Fairy.isRunning())
+            return;
+
         for (MCPlayer player : this.mcPlayerRegistry.getAllPlayers()) {
-            if (!Fairy.isRunning()) {
-                break;
-            }
+            Sidebar sidebar = this.get(player);
+            if (sidebar == null)
+                continue;
 
-            Sidebar sidebar = this.getOrCreateScoreboard(player);
             sidebar.setTicks(sidebar.getTicks() + 1);
-            if (sidebar.getTicks() < 20)
+            if (sidebar.getTicks() < 2)
                 continue;
 
-            SidebarInfo entry = this.findAdapter(player);
-            if (entry == null) {
+            SidebarData data = this.writeProviderToData(player);
+            if (data == null) {
+                if (sidebar.getProvider() != null)
+                    // Sidebar is hidden
+                    sidebar.getProvider().onSidebarHidden(player, sidebar);
+
                 sidebar.remove();
                 continue;
             }
 
-            if (entry.getLines() == null || entry.getLines().isEmpty()) {
-                sidebar.remove();
-            } else {
-                sidebar.setRemoved(false);
-                sidebar.setTitle(entry.getTitle());
-                sidebar.setLines(entry.getLines());
-            }
+            SidebarProvider provider = data.getProvider();
+            if (!sidebar.isAvailable())
+                // Sidebar is shown
+                provider.onSidebarShown(player, sidebar);
+
+            sidebar.setProvider(provider);
+            sidebar.setTitle(data.getTitle());
+            sidebar.setLines(data.getLines());
         }
     }
 
-    private SidebarInfo findAdapter(MCPlayer player) {
-        SidebarInfo entry = null;
-
-        for (SidebarAdapter adapter : this.adapters) {
-            Component title = adapter.getTitle(player);
-            List<Component> list = adapter.getLines(player);
-            if (title != null && list != null && !list.isEmpty()) {
-                entry = new SidebarInfo(title, list);
-                break;
+    private SidebarData writeProviderToData(MCPlayer player) {
+        for (SidebarProvider provider : this.providers) {
+            Component title = provider.getTitle(player);
+            List<SidebarLine> lines = provider.getLines(player);
+            if (title == null || lines == null || lines.isEmpty()) {
+                continue;
             }
+
+            return new SidebarData(provider, title, lines);
         }
 
-        return entry;
+        return null;
     }
 
     public void remove(MCPlayer player) {
-        Sidebar board = this.get(player);
+        Sidebar sidebar = this.get(player);
+        if (sidebar == null)
+            return;
 
-        if (board != null) {
-            board.remove();
-            player.metadata().remove(Sidebar.METADATA_TAG);
-        }
+        sidebar.remove();
+        player.metadata().remove(Sidebar.METADATA_TAG);
     }
 
     public Sidebar get(MCPlayer player) {
         return player.metadata().getOrNull(Sidebar.METADATA_TAG);
     }
 
-    public Sidebar getOrCreateScoreboard(MCPlayer player) {
-        return player.metadata().getOrPut(Sidebar.METADATA_TAG, () -> {
-            Sidebar board = new Sidebar(player);
-            for (SidebarAdapter adapter : this.adapters) {
-                adapter.onBoardCreate(player, board);
-            }
-            return board;
-        });
+    public Sidebar getOrCreate(MCPlayer player) {
+        return player.metadata().getOrPut(Sidebar.METADATA_TAG, () -> new Sidebar(player, this.sidebarHandler));
     }
 
     @RequiredArgsConstructor
     @Getter
-    private static class SidebarInfo {
+    private static class SidebarData {
+        private final SidebarProvider provider;
         private final Component title;
-        private final List<Component> lines;
+        private final List<SidebarLine> lines;
     }
 
 }

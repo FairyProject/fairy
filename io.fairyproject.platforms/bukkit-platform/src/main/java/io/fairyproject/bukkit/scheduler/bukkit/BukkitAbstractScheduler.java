@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.scheduler.bukkit;
 
+import io.fairyproject.log.Log;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
@@ -44,6 +45,8 @@ public abstract class BukkitAbstractScheduler implements MCTickBasedScheduler {
             try {
                 future.complete(callable.call());
             } catch (Throwable throwable) {
+                Log.error("An error occurred while executing a scheduled task", throwable);
+
                 future.completeExceptionally(throwable);
             }
         }), future);
