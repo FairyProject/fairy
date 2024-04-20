@@ -183,11 +183,9 @@ public class SidebarService {
         for (SidebarProvider provider : this.providers) {
             Component title = provider.getTitle(player);
             List<SidebarLine> lines = provider.getLines(player);
-            if (title == null || lines == null || lines.isEmpty()) {
-                continue;
+            if (title != null && lines != null && !lines.isEmpty()) {
+                return new SidebarData(provider, title, lines);
             }
-
-            return new SidebarData(provider, title, lines);
         }
 
         return null;
