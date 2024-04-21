@@ -56,6 +56,6 @@ public class BukkitSchedulerProvider implements MCSchedulerProvider {
 
     @Override
     public MCScheduler getLocationScheduler(Position position) {
-        return this.bukkitAsyncScheduler;
+        return this.bukkitMainScheduler;
     }
 }
