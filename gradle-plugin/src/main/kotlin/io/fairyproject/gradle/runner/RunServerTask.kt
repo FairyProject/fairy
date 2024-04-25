@@ -24,7 +24,9 @@
 
 package io.fairyproject.gradle.runner
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.JavaExec
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import java.nio.file.Path
 import javax.inject.Inject
 
@@ -35,12 +37,18 @@ import javax.inject.Inject
  * @author LeeGod
  * @see RunServerPlugin
  */
-open class RunServerTask @Inject constructor(artifact: ServerJarArtifact, workDirectory: Path): JavaExec() {
+open class RunServerTask @Inject constructor(private val version: JavaVersion, artifact: ServerJarArtifact, workDirectory: Path): JavaExec() {
 
     init {
         classpath = project.files(artifact.artifactPath)
         workingDir = workDirectory.toFile()
         standardInput = System.`in`
+
+        javaLauncher.set(javaToolchainService.launcherFor { it.languageVersion.set(JavaLanguageVersion.of(javaVersion.majorVersion)) })
+    }
+
+    override fun getJavaVersion(): JavaVersion {
+        return version
     }
 
 }

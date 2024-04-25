@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.*
 
 plugins {
     kotlin("jvm") version "1.9.10"
@@ -6,7 +7,23 @@ plugins {
     `java-gradle-plugin`
 }
 
-version = parent!!.version
+val Project.globalProperties: Properties
+    get() =
+        Properties().apply {
+            var path = project.file("..")
+            // Resolve global.properties file recursively
+            while (!path.resolve("global.properties").exists()) {
+                path = path.parentFile
+            }
+            load(path.resolve("global.properties").inputStream())
+        }
+
+
+fun Project.getGlobalProperty(key: String): String {
+    return this.globalProperties[key].toString()
+}
+
+version = getGlobalProperty("version")
 
 repositories {
     mavenCentral()
@@ -16,11 +33,11 @@ repositories {
 dependencies {
     implementation("io.spring.gradle:dependency-management-plugin:1.1.0")
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.json:json:20220924")
+    implementation("org.json:json:20231013")
     implementation("org.apache.maven:maven-plugin-api:3.8.5")
     implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.7.22")
-    implementation("org.ow2.asm:asm:9.4")
-    implementation("org.ow2.asm:asm-commons:9.4")
+    implementation("org.ow2.asm:asm:9.7")
+    implementation("org.ow2.asm:asm-commons:9.7")
     implementation("com.google.code.gson:gson:2.10")
     implementation("io.github.toolfactory:narcissus:1.0.7")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0")
@@ -37,17 +54,9 @@ gradlePlugin {
     }
 }
 
-pluginBundle {
-    tags = listOf("fairy", "bukkit", "minecraft")
-    website = "https://github.com/FairyProject/fairy"
-    vcsUrl = "https://github.com/FairyProject/fairy"
-}
-
 tasks.withType<Jar> {
     manifest {
-        attributes(
-            "Implementation-Version" to project.version,
-        )
+        attributes["Implementation-Version"] = project.version
     }
 }
 

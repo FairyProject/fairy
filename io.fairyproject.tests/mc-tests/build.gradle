@@ -1,6 +1,0 @@
-dependencies {
-    compileOnly project(":io.fairyproject.platforms:mc-platform")
-
-    api project(":io.fairyproject.tests:core-tests")
-    api "io.netty:netty-all:" + findProperty("netty.version")
-}

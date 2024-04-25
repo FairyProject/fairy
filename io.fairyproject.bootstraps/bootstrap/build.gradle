@@ -1,5 +1,0 @@
-dependencies {
-    compileOnly project(":io.fairyproject.platforms:core-platform")
-
-    testImplementation project(":io.fairyproject.tests:core-tests")
-}

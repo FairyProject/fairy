@@ -1,9 +1,0 @@
-dependencies {
-    compileOnly libs.paper
-}
-
-module {
-    //depend("module.locale:mc-locale")
-    depend("platform.bukkit:bukkit-xseries")
-    depend("platform.bukkit:bukkit-nbt")
-}

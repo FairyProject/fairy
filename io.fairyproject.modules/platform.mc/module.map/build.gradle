@@ -1,8 +1,0 @@
-module {
-    platform("mc")
-    platform("bukkit")
-}
-
-dependencies {
-    compileOnly libs.spigot
-}

@@ -26,7 +26,9 @@ package io.fairyproject.gradle.runner.task
 
 import io.fairyproject.gradle.runner.RunServerExtension
 import io.fairyproject.gradle.runner.ServerJarArtifact
+import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.JavaExec
+import org.gradle.jvm.toolchain.JavaLanguageVersion
 import java.nio.file.Path
 import javax.inject.Inject
 import kotlin.io.path.absolutePathString
@@ -41,7 +43,7 @@ import kotlin.io.path.absolutePathString
 open class PrepareSpigotTask @Inject constructor(
     buildToolDirectory: Path,
     artifact: ServerJarArtifact,
-    extension: RunServerExtension): JavaExec() {
+    private val extension: RunServerExtension): JavaExec() {
 
     init {
         if (artifact.hasArtifact) {
@@ -52,6 +54,11 @@ open class PrepareSpigotTask @Inject constructor(
         mainClass.set("-jar")
         args = listOf(buildToolDirectory.resolve("BuildTools.jar").absolutePathString(), "--rev", extension.version.get())
         workingDir = buildToolDirectory.toFile()
+        javaLauncher.set(javaToolchainService.launcherFor { it.languageVersion.set(JavaLanguageVersion.of(javaVersion.majorVersion)) })
+    }
+
+    override fun getJavaVersion(): JavaVersion {
+        return extension.javaVersion.get()
     }
 
 }

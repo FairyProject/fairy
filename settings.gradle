@@ -33,68 +33,10 @@ pluginManagement {
 
 rootProject.name = "fairy-parent"
 
-void initBundles() {
-    include "io.fairyproject.bundles:bukkit-bundles"
-    include "io.fairyproject.bundles:bukkit-tests-bundles"
-}
-
-void initPlatforms() {
-    include "io.fairyproject.platforms:app-platform"
-    include "io.fairyproject.platforms:bukkit-platform"
-    include "io.fairyproject.platforms:mc-platform"
-    include "io.fairyproject.platforms:core-platform"
-}
-
-void initBootstrap() {
-    include "io.fairyproject.bootstraps:bukkit-bootstrap"
-    include "io.fairyproject.bootstraps:app-bootstrap"
-    include "io.fairyproject.bootstraps:bootstrap"
-}
-
-void initTests() {
-    include "io.fairyproject.tests:bukkit-tests"
-    include "io.fairyproject.tests:app-tests"
-    include "io.fairyproject.tests:core-tests"
-    include "io.fairyproject.tests:mc-tests"
-}
-
-void initDevTools() {
-    include "io.fairyproject.devtools:core-devtools"
-    include "io.fairyproject.devtools:bukkit-devtools"
-}
-
-void initModules() {
-    include "io.fairyproject.modules:platform.bukkit:bukkit-timer"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-items"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-menu"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-gui"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-nms"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-xseries"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-visibility"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-visual"
-    include "io.fairyproject.modules:platform.bukkit:bukkit-nbt"
-
-    include "io.fairyproject.modules:platform.mc:module.hologram"
-    include "io.fairyproject.modules:platform.mc:module.sidebar"
-    include "io.fairyproject.modules:platform.mc:module.tablist"
-    include "io.fairyproject.modules:platform.mc:module.actionbar"
-    include "io.fairyproject.modules:platform.mc:module.map"
-    include "io.fairyproject.modules:platform.mc:module.animation"
-
-    include "io.fairyproject.modules:module.discord"
-    include "io.fairyproject.modules:module.config"
-
-    include "io.fairyproject.modules:platform.mc:module.nametag"
-
-    include "io.fairyproject.modules:module.command:core-command"
-    include "io.fairyproject.modules:module.command:bukkit-command"
-
-    include "io.fairyproject.modules:module.locale:bukkit-locale"
-    include "io.fairyproject.modules:module.locale:mc-locale"
-
-    include "io.fairyproject.modules:module.storage:bukkit-storage"
-    include "io.fairyproject.modules:module.storage:core-storage"
-}
+includeBuild("build-logic")
+includeBuild("framework")
+includeBuild("gradle-plugin")
+includeBuild("shared")
 
 void includeDebug() {
     def debugPlugin = file("debug-plugin.settings.gradle")
@@ -107,15 +49,5 @@ void includeDebug() {
     }
 }
 
-initBundles()
-initBootstrap()
-initDevTools()
-initModules()
-initPlatforms()
-initTests()
-
-include "gradle-plugin"
-include "shared"
-include "bom"
 includeDebug()
 

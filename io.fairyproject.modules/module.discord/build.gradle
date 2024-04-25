@@ -1,9 +1,0 @@
-module {
-    subDepend("module.command:core-command")
-    library("net.dv8tion:JDA:4.3.0_339", "https://m2.dv8tion.net/releases/")
-    exclude("core-command", "io.fairyproject.discord.command")
-}
-
-repositories {
-    mavenCentral() // for transitive dependencies
-}
