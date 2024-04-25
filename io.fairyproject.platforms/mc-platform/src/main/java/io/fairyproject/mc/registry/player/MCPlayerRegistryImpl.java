@@ -71,13 +71,20 @@ public class MCPlayerRegistryImpl implements MCPlayerRegistry {
     }
 
     @Override
-    public @NotNull MCPlayer findPlayerByPlatformPlayer(@NotNull Object platformPlayer) {
+    public @NotNull MCPlayer getByPlatform(@NotNull Object platformPlayer) {
         UUID uuid = this.playerPlatformOperator.getUniqueId(platformPlayer);
         MCPlayer mcPlayer = this.players.get(uuid);
         if (mcPlayer == null)
             throw new IllegalArgumentException("Player with UUID " + uuid + " does not exist");
 
         return mcPlayer;
+    }
+
+    @Override
+    public @Nullable MCPlayer findByPlatform(@NotNull Object platformPlayer) {
+        UUID uuid = this.playerPlatformOperator.getUniqueId(platformPlayer);
+
+        return this.players.get(uuid);
     }
 
     @Override

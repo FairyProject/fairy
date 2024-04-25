@@ -167,7 +167,7 @@ class MCPlayerRegistryImplTest {
     }
 
     @Nested
-    public class FindPlayerByPlatformPlayer {
+    public class FindPlayerByPlatform {
 
         private MCPlayer player;
         private Object nativePlayer;

@@ -38,7 +38,13 @@ public interface MCPlayerRegistry {
 
     @NotNull MCPlayer findPlayerByName(@NotNull String name);
 
-    @NotNull MCPlayer findPlayerByPlatformPlayer(@NotNull Object platformPlayer);
+    @NotNull default MCPlayer findPlayerByPlatformPlayer(@NotNull Object platformPlayer) {
+        return getByPlatform(platformPlayer);
+    }
+
+    @NotNull MCPlayer getByPlatform(@NotNull Object platformPlayer);
+
+    @Nullable MCPlayer findByPlatform(@NotNull Object platformPlayer);
 
     @ApiStatus.Internal
     void addPlayer(@NotNull MCPlayer player);

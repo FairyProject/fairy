@@ -4,13 +4,14 @@ import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.util.BukkitPos;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PreInitialize;
-import io.fairyproject.container.Service;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.event.*;
 import io.fairyproject.mc.event.world.MCWorldUnloadEvent;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.util.Position;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -26,12 +27,14 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @InjectableComponent
+@RequiredArgsConstructor
 public class BukkitEventTransformer {
 
     public static final EventPriority PRIORITY_REGISTRATION = EventPriority.MONITOR;
     private static final Listener DUMMY_LISTENER = new Listener() {
     };
 
+    private final MCPlayerRegistry playerRegistry;
     private Map<Class<? extends Event>, Class<?>> bukkitToMC;
 
     @PreInitialize
@@ -39,13 +42,20 @@ public class BukkitEventTransformer {
         this.bukkitToMC = new ConcurrentHashMap<>();
         this.register(AsyncPlayerPreLoginEvent.class, AsyncLoginEvent.class, this::transformAsyncLoginEvent);
         this.register(PlayerJoinEvent.class, NativePlayerLoginEvent.class, EventPriority.LOWEST, this::transformNativeLoginEvent);
-        this.register(PlayerJoinEvent.class, MCPlayerJoinEvent.class, event -> new MCPlayerJoinEvent(MCPlayer.from(event.getPlayer())));
-        this.register(PlayerQuitEvent.class, MCPlayerQuitEvent.class, event -> new MCPlayerQuitEvent(MCPlayer.from(event.getPlayer())));
+        this.register(PlayerJoinEvent.class, MCPlayerJoinEvent.class, event -> new MCPlayerJoinEvent(playerRegistry.getByPlatform(event.getPlayer())));
+        this.register(PlayerQuitEvent.class, MCPlayerQuitEvent.class, event -> {
+            MCPlayer player = playerRegistry.findByPlatform(event.getPlayer());
+            if (player == null) {
+                return null;
+            }
+            return new MCPlayerQuitEvent(player);
+        });
         this.register(PlayerMoveEvent.class, MCPlayerMoveEvent.class, event -> {
+            Player player = event.getPlayer();
             Position fromPos = BukkitPos.toMCPos(event.getFrom());
             Position toPos = BukkitPos.toMCPos(event.getTo());
 
-            return new MCPlayerMoveEvent(MCPlayer.from(event.getPlayer()), fromPos, toPos);
+            return new MCPlayerMoveEvent(playerRegistry.getByPlatform(player), fromPos, toPos);
         }, (event, mcEvent) -> {
             if (mcEvent.isCancelled()) {
                 event.setCancelled(true);
@@ -60,7 +70,7 @@ public class BukkitEventTransformer {
             Position fromPos = BukkitPos.toMCPos(event.getFrom());
             Position toPos = BukkitPos.toMCPos(event.getTo());
 
-            return new MCPlayerTeleportEvent(MCPlayer.from(event.getPlayer()), fromPos, toPos);
+            return new MCPlayerTeleportEvent(playerRegistry.getByPlatform(event.getPlayer()), fromPos, toPos);
         }, (event, mcEvent) -> {
             if (mcEvent.isCancelled()) {
                 event.setCancelled(true);
@@ -79,7 +89,7 @@ public class BukkitEventTransformer {
                     }
                 });
         this.register(PlayerChangedWorldEvent.class, MCPlayerChangedWorldEvent.class,
-                event -> new MCPlayerChangedWorldEvent(MCPlayer.from(event.getPlayer()), MCWorld.from(event.getFrom()), MCWorld.from(event.getPlayer().getWorld()))
+                event -> new MCPlayerChangedWorldEvent(playerRegistry.getByPlatform(event.getPlayer()), MCWorld.from(event.getFrom()), MCWorld.from(event.getPlayer().getWorld()))
         );
     }
 
@@ -119,7 +129,10 @@ public class BukkitEventTransformer {
             if (!bukkitClass.isInstance(event)) {
                 return;
             }
-            final M mcEvent = transformer.apply(bukkitClass.cast(event));
+            M mcEvent = transformer.apply(bukkitClass.cast(event));
+            if (mcEvent == null) {
+                return;
+            }
             GlobalEventNode.get().call(mcEvent);
             if (postProcessing != null) {
                 postProcessing.accept(bukkitClass.cast(event), mcEvent);
