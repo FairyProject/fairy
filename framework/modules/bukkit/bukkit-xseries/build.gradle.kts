@@ -1,5 +1,5 @@
 plugins {
-    id("io.fairyproject.module.bukkit")
+    id("io.fairyproject.module")
 }
 
 dependencies {
@@ -14,7 +14,13 @@ dependencies {
 tasks {
     withType(JavaCompile::class.java) {
         options.encoding = "UTF-8"
-        sourceCompatibility = "17"
+        sourceCompatibility = "8"
         targetCompatibility = "8"
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
     }
 }

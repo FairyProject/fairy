@@ -4,4 +4,5 @@ plugins {
 
 dependencies {
     api("io.fairyproject:core-command")
+    api("io.fairyproject:bukkit-xseries")
 }

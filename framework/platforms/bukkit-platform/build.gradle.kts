@@ -1,21 +1,20 @@
 plugins {
-    id("io.fairyproject.versioned")
+    id("io.fairyproject.platform")
 }
 
 dependencies {
-    api(project(":mc-platform")) {
-        exclude(group = "com.google.code.gson", module = "gson")
-        exclude(group = "org.yaml", module = "snakeyaml")
-    }
+    api(project(":mc-platform"))
     api("net.kyori:adventure-platform-bukkit:4.3.2")
     api("net.kyori:adventure-text-serializer-bungeecord:4.3.2")
-    api("com.github.retrooper.packetevents:spigot:2.2.1")
+    api("com.github.retrooper.packetevents:spigot:2.2.1-pre-master3") {
+        exclude(group = "net.kyori")
+    }
 
     compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT") {
         exclude(group = "org.yaml", module = "snakeyaml")
     }
     compileOnly("com.mojang:authlib:1.5.21")
-    compileOnly("io.netty:netty-all:4.1.60.Final")
+    compileOnly("io.netty:netty-all:4.1.100.Final")
     compileOnly("com.viaversion:viaversion:4.0.1")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:6.1.5")
     compileOnly("com.sk89q.worldedit:worldedit-core:6.0.0-SNAPSHOT") {

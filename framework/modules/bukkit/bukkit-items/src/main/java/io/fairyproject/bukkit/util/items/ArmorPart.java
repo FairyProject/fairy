@@ -26,8 +26,7 @@ package io.fairyproject.bukkit.util.items;
 
 import lombok.Getter;
 import org.bukkit.Material;
-
-import javax.annotation.Nullable;
+import org.jetbrains.annotations.Nullable;
 
 public enum ArmorPart {
 

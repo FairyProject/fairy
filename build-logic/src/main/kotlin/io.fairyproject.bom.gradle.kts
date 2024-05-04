@@ -6,6 +6,7 @@ plugins {
     id("io.fairyproject.publish")
 }
 
+group = "io.fairyproject"
 version = getGlobalProperty("version")
 
 javaPlatform {

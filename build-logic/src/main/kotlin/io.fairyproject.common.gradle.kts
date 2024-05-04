@@ -7,6 +7,7 @@ plugins {
 group = "io.fairyproject"
 
 repositories {
+    mavenLocal() // development
     mavenCentral()
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://repo.codemc.io/repository/maven-releases/")
@@ -34,10 +35,4 @@ tasks.withType(JavaCompile::class.java).configureEach {
     sourceCompatibility = "8"
     targetCompatibility = "8"
     options.encoding = "UTF-8"
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
 }

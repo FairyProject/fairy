@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    api("io.fairyproject:core-config")
+
     api("com.zaxxer:HikariCP:3.4.5")
     api("org.mongodb:bson:4.2.3")
     api("org.mongodb:mongodb-driver-core:4.2.3")

@@ -4,6 +4,8 @@ import java.util.*
 plugins {
     kotlin("jvm") version "1.9.10"
     id("com.gradle.plugin-publish") version "1.0.0"
+    id("io.fairyproject.common")
+    id("io.fairyproject.publish")
     `java-gradle-plugin`
 }
 
