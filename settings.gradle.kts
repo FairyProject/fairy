@@ -1,3 +1,5 @@
+import java.nio.file.Files
+
 /*
  * MIT License
  *
@@ -24,9 +26,8 @@
 
 pluginManagement {
     repositories {
-        mavenLocal()
         gradlePluginPortal()
-        maven { url "https://repo.imanity.dev/imanity-libraries/" }
+        maven("https://repo.imanity.dev/imanity-libraries/")
     }
 }
 
@@ -38,14 +39,17 @@ includeBuild("framework")
 includeBuild("gradle-plugin")
 includeBuild("shared")
 
-void includeDebug() {
-    def debugPlugin = file("debug-plugin.settings.gradle")
+fun includeDebug() {
+    val debugPlugin = file("debug-plugin.settings.gradle")
     if (debugPlugin.exists()) {
-        apply from: debugPlugin
+        apply(from = debugPlugin)
     } else {
-        debugPlugin.setText("// Uncomment to enable the debug plugin module\n" +
-                "// Make sure you have at least compile the project once before uncommenting\n" +
-                "//include(\"test-plugin\")\n")
+        val lines = listOf(
+            "// Uncomment to enable the debug plugin module",
+            "// Make sure you have at least compile the project once before uncommenting",
+            "//include(\"test-plugin\")\n"
+        )
+        Files.write(debugPlugin.toPath(), lines)
     }
 }
 

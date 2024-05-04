@@ -6,7 +6,7 @@ dependencies {
     api(project(":mc-platform"))
     api("net.kyori:adventure-platform-bukkit:4.3.2")
     api("net.kyori:adventure-text-serializer-bungeecord:4.3.2")
-    api("com.github.retrooper.packetevents:spigot:2.2.1-pre-master3") {
+    api("com.github.retrooper.packetevents:spigot:2.2.1-pre-master4") {
         exclude(group = "net.kyori")
     }
 
