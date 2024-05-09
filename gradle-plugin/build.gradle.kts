@@ -20,7 +20,12 @@ val Project.globalProperties: Properties
             load(path.resolve("global.properties").inputStream())
         }
 
-
+/**
+ * Get global property from global.properties file
+ *
+ * @param key The key of the property
+ * @return The value of the property
+ */
 fun Project.getGlobalProperty(key: String): String {
     return this.globalProperties[key].toString()
 }

@@ -39,6 +39,9 @@ includeBuild("framework")
 includeBuild("gradle-plugin")
 includeBuild("shared")
 
+/**
+ * Include the debug plugin module if the file exists
+ */
 fun includeDebug() {
     val debugPlugin = file("debug-plugin.settings.gradle")
     if (debugPlugin.exists()) {

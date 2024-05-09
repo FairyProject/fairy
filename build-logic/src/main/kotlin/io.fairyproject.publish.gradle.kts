@@ -5,6 +5,8 @@ plugins {
     `maven-publish`
 }
 
+var fairyUrl = "https://github.com/FairyProject/fairy"
+
 afterEvaluate {
     publishing {
         publications {
@@ -27,10 +29,10 @@ afterEvaluate {
                         version = project.version.toString()
                         description = project.description
 
-                        url = "https://github.com/FairyProject/fairy"
+                        url = fairyUrl
                         organization {
                             name = "Fairy Project"
-                            url = "https://github.com/FairyProject/fairy"
+                            url = fairyUrl
                         }
                         licenses {
                             license {
@@ -40,7 +42,7 @@ afterEvaluate {
                             }
                         }
                         scm {
-                            url = "https://github.com/FairyProject/fairy"
+                            url = fairyUrl
                             connection = "scm:git:git://github.com/FairyProject/fairy"
                             developerConnection = "scm:git:git://github.com/FairyProject/fairy"
                         }
@@ -53,7 +55,7 @@ afterEvaluate {
                         }
                         issueManagement {
                             system = "GitHub"
-                            url = "https://github.com/FairyProject/fairy/issues"
+                            url = "$fairyUrl/issues"
                         }
                     }
                 }
