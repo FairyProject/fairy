@@ -1,4 +1,0 @@
-//file:noinspection GroovyAssignabilityCheck
-import io.fairyproject.gradle.ModulePlugin
-
-apply plugin: ModulePlugin

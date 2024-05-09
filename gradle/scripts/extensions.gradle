@@ -1,1 +1,0 @@
-Project.metaClass.spigot = {-> "org.spigotmc:spigot-api:" + findProperty("bukkit.version") }

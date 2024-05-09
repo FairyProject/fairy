@@ -24,6 +24,7 @@
 
 package io.fairyproject.gradle.runner
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
@@ -43,6 +44,7 @@ open class RunServerExtension(objectFactory: ObjectFactory) {
     val args: ListProperty<String> = objectFactory.listProperty(String::class.java)
     val projects: ListProperty<Project> = objectFactory.listProperty(Project::class.java).convention(listOf())
     val buildToolUrl: Property<String> = objectFactory.property(String::class.java).convention("https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar")
+    val javaVersion: Property<JavaVersion> = objectFactory.property(JavaVersion::class.java).convention(JavaVersion.VERSION_1_8)
 
     /**
      * @author runtask gradle plugin

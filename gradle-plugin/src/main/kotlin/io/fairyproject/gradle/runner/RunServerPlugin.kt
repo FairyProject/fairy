@@ -166,7 +166,7 @@ open class RunServerPlugin : Plugin<Project> {
         snapshotDir: Path
     ) {
         project.afterEvaluate {
-            project.tasks.register(taskName, RunServerTask::class.java, artifact, workDir).configure {
+            project.tasks.register(taskName, RunServerTask::class.java, extension.javaVersion.get(), artifact, workDir).configure {
                 if (extension.cleanup.get()) {
                     it.dependsOn("cleanServer")
                 }

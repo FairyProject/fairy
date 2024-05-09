@@ -52,6 +52,7 @@ class FairyGradlePlugin : Plugin<Project> {
 
     private fun configureRepositories(project: Project) {
         project.repositories.maven { it.setUrl(UrlConstants.repositoryUrl) }
+        project.repositories.maven { it.setUrl(UrlConstants.codeMcRepositoryUrl) }
     }
 
     private fun withPluginClassOfAction(action: PluginApplicationAction, project: Project) {
