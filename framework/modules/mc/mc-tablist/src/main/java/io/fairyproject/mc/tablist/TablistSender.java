@@ -40,6 +40,7 @@ import net.kyori.adventure.text.Component;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -52,7 +53,11 @@ public class TablistSender {
 
         if (player.getVersion().isHigherOrEqual(newVersion)) {
             WrapperPlayServerPlayerInfoUpdate packet = new WrapperPlayServerPlayerInfoUpdate(
-                    WrapperPlayServerPlayerInfoUpdate.Action.ADD_PLAYER,
+                    EnumSet.of(
+                            WrapperPlayServerPlayerInfoUpdate.Action.ADD_PLAYER,
+                            WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_DISPLAY_NAME,
+                            WrapperPlayServerPlayerInfoUpdate.Action.UPDATE_LISTED
+                    ),
                     tabEntries.stream().map(this::createModern).collect(Collectors.toList())
             );
             MCProtocol.sendPacket(player, packet);

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@InjectableComponent
+//@InjectableComponent
 public class DebugSidebarProvider implements SidebarProvider {
 
     private int ticks = 0;

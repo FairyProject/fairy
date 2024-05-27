@@ -100,7 +100,7 @@ public class BukkitMCPlayerOperatorImpl implements BukkitMCPlayerOperator {
     private Function<Player, MCGameProfile> setupGetGameProfile() {
         final Function<Player, MCGameProfile> getGameProfile;
         getGameProfile = FilterUnit.<Function<Player, MCGameProfile>>create()
-                .add(player -> new io.fairyproject.bukkit.mc.PaperMCGameProfile(player.getPlayerProfile()), FilterUnit.test(t -> Player.class.getMethod("getPlayerProfile"), NoSuchMethodException.class))
+                .add(player -> new io.fairyproject.bukkit.mc.PaperMCGameProfile(player.getPlayerProfile()), FilterUnit.test(t -> Class.forName("com.destroystokyo.paper.profile.PlayerProfile"), ClassNotFoundException.class))
                 .add(player -> ThrowingSupplier.sneaky(() -> MCGameProfile.from(profile.invoke(player))).get())
                 .find()
                 .orElseThrow(() -> new IllegalStateException("No valid get game profile can be found."));
