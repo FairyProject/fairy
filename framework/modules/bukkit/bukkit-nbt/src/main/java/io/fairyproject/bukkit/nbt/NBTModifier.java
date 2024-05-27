@@ -2,6 +2,7 @@ package io.fairyproject.bukkit.nbt;
 
 import io.fairyproject.Debug;
 import io.fairyproject.bukkit.nbt.impl.NBTModifierMock;
+import io.fairyproject.bukkit.nbt.impl.NBTModifierNBTAPI;
 import io.fairyproject.bukkit.nbt.impl.NBTModifierNMS;
 
 public interface NBTModifier {
@@ -12,7 +13,7 @@ public interface NBTModifier {
             if (Debug.UNIT_TEST) {
                 Companion.INSTANCE = new NBTModifierMock();
             } else {
-                Companion.INSTANCE = new NBTModifierNMS();
+                Companion.INSTANCE = new NBTModifierNBTAPI();
             }
         }
         return Companion.INSTANCE;

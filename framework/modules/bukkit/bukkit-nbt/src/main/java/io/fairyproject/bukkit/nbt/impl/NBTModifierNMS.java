@@ -4,6 +4,7 @@ import io.fairyproject.bukkit.nbt.NBTKey;
 import io.fairyproject.bukkit.nbt.NBTModifier;
 import io.fairyproject.bukkit.nbt.nms.NBTEditor;
 
+@Deprecated
 public class NBTModifierNMS implements NBTModifier {
     @Override
     public boolean has(Object holder, NBTKey key) {

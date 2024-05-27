@@ -60,7 +60,6 @@ public class BukkitNMSManagerImpl implements BukkitNMSManager {
 
     private NMSClassResolver setupNmsClassResolver() {
         MCVersionMapping mapping = this.versionMappingRegistry.findMapping(this.mcServer.getVersion());
-        System.out.println(mapping);
         if (mapping.isNmsPrefix()) {
             String versionFormat = OBCVersionDecoder.create().decode(serverClass);
 

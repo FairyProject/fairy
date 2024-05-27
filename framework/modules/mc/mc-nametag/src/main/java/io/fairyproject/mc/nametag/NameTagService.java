@@ -40,6 +40,7 @@ import io.fairyproject.mc.nametag.update.DuoPlayerNameTagUpdate;
 import io.fairyproject.mc.nametag.update.NameTagUpdate;
 import io.fairyproject.mc.nametag.update.SinglePlayerNameTagUpdate;
 import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.Utility;
@@ -67,6 +68,7 @@ public class NameTagService {
     
     private final ContainerContext containerContext;
     private final MCSchedulerProvider mcSchedulerProvider;
+    private final MCPlayerRegistry mcPlayerRegistry;
 
     @PreInitialize
     public void onPreInitialize() {
@@ -202,7 +204,7 @@ public class NameTagService {
     }
 
     private void applyUpdateAllToPlayer(SinglePlayerNameTagUpdate update) {
-        MCPlayer target = MCPlayer.find(update.getPlayer());
+        MCPlayer target = mcPlayerRegistry.findPlayerByUuid(update.getPlayer());
         if (target != null)
             MCPlayer.all().forEach(player -> this.updateForInternal(player, target));
     }

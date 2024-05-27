@@ -19,4 +19,9 @@ public class NBTKey {
         return nbtKey;
     }
 
+    @Override
+    public String toString() {
+        return String.join(".", keys);
+    }
+
 }

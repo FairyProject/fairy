@@ -25,7 +25,7 @@
 package io.fairyproject.bukkit.nbt.configuration;
 
 import io.fairyproject.bukkit.nbt.NBTModifier;
-import io.fairyproject.bukkit.nbt.impl.NBTModifierNMS;
+import io.fairyproject.bukkit.nbt.impl.NBTModifierNBTAPI;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.Configuration;
 
@@ -34,7 +34,7 @@ public class NMSConfiguration {
 
     @InjectableComponent
     public NBTModifier nbtModifier() {
-        return new NBTModifierNMS();
+        return new NBTModifierNBTAPI();
     }
 
 }
