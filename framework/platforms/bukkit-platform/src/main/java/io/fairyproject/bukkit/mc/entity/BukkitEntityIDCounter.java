@@ -54,6 +54,9 @@ public class BukkitEntityIDCounter implements EntityIDCounter {
             Function<Integer, Integer> function;
             try {
                 FieldWrapper fieldWrapper = new FieldResolver(entityClass).resolveWrapper("entityCount");
+                if (fieldWrapper.getField().getType() != int.class) {
+                    throw new IllegalStateException("entityCount field is not an int!");
+                }
                 function = n -> {
                     int id = (int) fieldWrapper.get(null);
                     fieldWrapper.set(null, id + n);
