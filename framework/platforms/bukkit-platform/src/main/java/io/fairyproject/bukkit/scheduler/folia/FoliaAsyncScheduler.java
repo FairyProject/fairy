@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.scheduler.folia;
 
 import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
+import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCMillisBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
@@ -62,7 +63,8 @@ public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMil
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delayTicks, Duration intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        task.setScheduledTask(scheduler.invoke("runAtFixedRate", bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS));
+        WrapperScheduledTask rawScheduledTask = scheduler.invoke("runAtFixedRate", bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS);
+        task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 
         return task;
     }
