@@ -20,4 +20,5 @@ dependencies {
     }
 
     testImplementation("org.mockito:mockito-core:4.11.0")
+    testImplementation("io.netty:netty-all:4.1.100.Final")
 }

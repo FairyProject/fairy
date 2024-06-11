@@ -35,6 +35,12 @@ java {
     disableAutoTargetJvm()
 }
 
+tasks {
+    test {
+        useJUnitPlatform()
+    }
+}
+
 tasks.withType(JavaCompile::class.java).configureEach {
     options.encoding = "UTF-8"
     options.release = 8

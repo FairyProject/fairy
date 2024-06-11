@@ -55,7 +55,11 @@ public class BukkitEventTransformer {
             Position fromPos = BukkitPos.toMCPos(event.getFrom());
             Position toPos = BukkitPos.toMCPos(event.getTo());
 
-            return new MCPlayerMoveEvent(playerRegistry.getByPlatform(player), fromPos, toPos);
+            MCPlayer mcPlayer = playerRegistry.findByPlatform(player);
+            if (mcPlayer == null)
+                return null;
+
+            return new MCPlayerMoveEvent(mcPlayer, fromPos, toPos);
         }, (event, mcEvent) -> {
             if (mcEvent.isCancelled()) {
                 event.setCancelled(true);
@@ -70,7 +74,11 @@ public class BukkitEventTransformer {
             Position fromPos = BukkitPos.toMCPos(event.getFrom());
             Position toPos = BukkitPos.toMCPos(event.getTo());
 
-            return new MCPlayerTeleportEvent(playerRegistry.getByPlatform(event.getPlayer()), fromPos, toPos);
+            MCPlayer mcPlayer = playerRegistry.findByPlatform(event.getPlayer());
+            if (mcPlayer == null)
+                return null;
+
+            return new MCPlayerTeleportEvent(mcPlayer, fromPos, toPos);
         }, (event, mcEvent) -> {
             if (mcEvent.isCancelled()) {
                 event.setCancelled(true);
@@ -89,7 +97,13 @@ public class BukkitEventTransformer {
                     }
                 });
         this.register(PlayerChangedWorldEvent.class, MCPlayerChangedWorldEvent.class,
-                event -> new MCPlayerChangedWorldEvent(playerRegistry.getByPlatform(event.getPlayer()), MCWorld.from(event.getFrom()), MCWorld.from(event.getPlayer().getWorld()))
+                event -> {
+                    MCPlayer mcPlayer = playerRegistry.findByPlatform(event.getPlayer());
+                    if (mcPlayer == null)
+                        return null;
+
+                    return new MCPlayerChangedWorldEvent(mcPlayer, MCWorld.from(event.getFrom()), MCWorld.from(event.getPlayer().getWorld()));
+                }
         );
     }
 
