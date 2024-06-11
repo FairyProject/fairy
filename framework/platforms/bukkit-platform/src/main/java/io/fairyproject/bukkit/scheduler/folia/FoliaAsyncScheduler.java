@@ -63,7 +63,7 @@ public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMil
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delayTicks, Duration intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        WrapperScheduledTask rawScheduledTask = scheduler.invoke("runAtFixedRate", bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS);
+        Object rawScheduledTask = scheduler.invoke("runAtFixedRate", bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS);
         task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 
         return task;
