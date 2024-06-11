@@ -108,7 +108,8 @@ public class ContainerContext implements ContainerProcessors {
 
     public void stop() {
         try {
-            this.nodeDestroyer.destroy(this.node);
+            if (this.node != null)
+                this.nodeDestroyer.destroy(this.node);
         } finally {
             INSTANCE = null;
         }
