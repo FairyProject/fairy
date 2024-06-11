@@ -31,8 +31,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 public interface MCPlayerRegistry {
+
+    ReentrantLock JOIN_QUIT_LOCK = new ReentrantLock();
 
     @NotNull MCPlayer findPlayerByUuid(@NotNull UUID uuid);
 

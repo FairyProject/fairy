@@ -25,10 +25,12 @@
 package io.fairyproject.bukkit.scheduler.folia;
 
 import io.fairyproject.bukkit.util.BukkitPos;
+import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.scheduler.MCScheduler;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.util.Position;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
@@ -58,5 +60,10 @@ public class FoliaSchedulerProvider implements MCSchedulerProvider {
     @Override
     public MCScheduler getLocationScheduler(Position position) {
         return new FoliaRegionScheduler(plugin, BukkitPos.toBukkitLocation(position));
+    }
+
+    @Override
+    public MCScheduler getChunkScheduler(MCWorld world, int chunkX, int chunkZ) {
+        return new FoliaRegionScheduler(plugin, world.as(World.class), chunkX, chunkZ);
     }
 }

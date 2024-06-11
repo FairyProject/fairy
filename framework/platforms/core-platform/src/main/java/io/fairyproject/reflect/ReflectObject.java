@@ -55,27 +55,45 @@ public class ReflectObject {
     public <T> T get(Class<T> type, int index) {
         Field field = this.accessorCache.resolveField(new ReflectQuery(type, index));
 
-        Object obj = Reflect.getField(this.instance, field);
+        Object obj;
+        try {
+            obj = field.get(this.instance);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Cannot access field " + field.getName(), e);
+        }
         return obj != null ? type.cast(obj) : null;
     }
 
     public <T> T get(String name) {
         Field field = this.accessorCache.resolveField(new ReflectQuery(name));
 
-        Object obj = Reflect.getField(this.instance, field);
+        Object obj;
+        try {
+            obj = field.get(this.instance);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Cannot access field " + field.getName(), e);
+        }
         return obj != null ? (T) obj : null;
     }
 
     public void set(Class<?> type, int index, Object value) {
         Field field = this.accessorCache.resolveField(new ReflectQuery(type, index));
 
-        Reflect.setField(this.instance, field, value);
+        try {
+            field.set(this.instance, value);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Cannot access field " + field.getName(), e);
+        }
     }
 
     public void set(String name, Object value) {
         Field field = this.accessorCache.resolveField(new ReflectQuery(name));
 
-        Reflect.setField(this.instance, field, value);
+        try {
+            field.set(this.instance, value);
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException("Cannot access field " + field.getName(), e);
+        }
     }
 
     public <T> T invoke(String name, Object... parameters) {

@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.scheduler;
 
+import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.util.Position;
 
 public interface MCSchedulerProvider {
@@ -35,5 +36,7 @@ public interface MCSchedulerProvider {
     MCScheduler getEntityScheduler(Object entity);
 
     MCScheduler getLocationScheduler(Position position);
+
+    MCScheduler getChunkScheduler(MCWorld world, int chunkX, int chunkZ);
 
 }

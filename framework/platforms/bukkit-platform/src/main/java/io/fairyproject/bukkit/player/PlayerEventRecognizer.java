@@ -37,10 +37,8 @@ import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerEvent;
 import io.fairyproject.bukkit.events.player.IPlayerEvent;
-import io.fairyproject.reflect.Reflect;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
@@ -117,17 +115,13 @@ public class PlayerEventRecognizer {
     }
 
     private MethodHandleFunction searchMethod(Class<? extends Event> type, boolean put) {
-        MethodHandle methodHandle;
-
         if (!NO_METHODS.contains(type)) {
             for (Method method : type.getMethods()) {
                 if (method.getParameterCount() == 0) {
                     Class<?> returnType = method.getReturnType();
                     if (Player.class.isAssignableFrom(returnType) || HumanEntity.class.isAssignableFrom(returnType)) {
                         try {
-                            methodHandle = Reflect.lookup().unreflect(method);
-
-                            MethodHandleFunction methodHandleFunction = new MethodHandleFunction(methodHandle);
+                            MethodHandleFunction methodHandleFunction = new MethodHandleFunction(method);
                             if (put) {
                                 EVENT_PLAYER_METHODS.put(type, methodHandleFunction);
                             }
@@ -181,7 +175,7 @@ public class PlayerEventRecognizer {
     @RequiredArgsConstructor
     private static class MethodHandleFunction implements Function<Event, Player> {
 
-        private final MethodHandle methodHandle;
+        private final Method methodHandle;
 
         @Override
         public Player apply(Event event) {

@@ -24,16 +24,12 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
-import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
-import org.bukkit.Bukkit;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -41,20 +37,9 @@ import java.util.function.Function;
 
 public abstract class FoliaAbstractScheduler implements MCTickBasedScheduler {
 
-    protected ObjectWrapper getWrapScheduler(String methodName) {
-        try {
-            Method method = Bukkit.class.getMethod(methodName);
-            Object instance = method.invoke(null);
-
-            return new ObjectWrapper(instance);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("Cannot find " + methodName + " method in Bukkit class", e);
-        }
-    }
-
-    protected <R> ScheduledTask<R> doSchedule(Callable<R> callable, Function<Consumer<?>, Object> schedule) {
+    protected <R> ScheduledTask<R> doSchedule(Callable<R> callable, Function<Consumer<io.papermc.paper.threadedregions.scheduler.ScheduledTask>, io.papermc.paper.threadedregions.scheduler.ScheduledTask> schedule) {
         CompletableFuture<R> future = new CompletableFuture<>();
-        Object rawScheduledTask = schedule.apply(task -> {
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask rawScheduledTask = schedule.apply(task -> {
             if (future.isDone())
                 return;
 

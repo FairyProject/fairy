@@ -26,16 +26,13 @@ package io.fairyproject.bukkit.listener.asm;
 
 import io.fairyproject.bukkit.listener.annotation.PlayerSearchAttribute;
 import io.fairyproject.bukkit.player.PlayerEventRecognizer;
-import io.fairyproject.reflect.Reflect;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.bukkit.event.Event;
-import org.bukkit.event.EventException;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.EventExecutor;
 import io.fairyproject.bukkit.listener.FilteredEventList;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Method;
 
 public class MethodHandleEventExecutor implements EventExecutor {
@@ -43,19 +40,16 @@ public class MethodHandleEventExecutor implements EventExecutor {
     private final boolean ignoredFilters;
     private final FilteredEventList eventList;
     private final Class<? extends Event> eventClass;
-    private final MethodHandle handle;
+    private final Method handle;
     private final Class<? extends PlayerEventRecognizer.Attribute<?>>[] attributes;
 
     public MethodHandleEventExecutor(@NonNull Class<? extends Event> eventClass, @NonNull Method m, boolean ignoredFilters, FilteredEventList eventList) {
         this.eventClass = eventClass;
         this.ignoredFilters = ignoredFilters;
         this.eventList = eventList;
-        try {
-            m.setAccessible(true);
-            this.handle = Reflect.lookup().unreflect(m);
-        } catch (IllegalAccessException e) {
-            throw new AssertionError("Unable to set accessible", e);
-        }
+
+        m.setAccessible(true);
+        this.handle = m;
 
         final PlayerSearchAttribute annotation = m.getAnnotation(PlayerSearchAttribute.class);
         if (annotation != null) {

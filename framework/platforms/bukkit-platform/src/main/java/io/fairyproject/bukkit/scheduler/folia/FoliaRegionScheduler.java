@@ -24,40 +24,46 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
-import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
+import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 public class FoliaRegionScheduler extends FoliaAbstractScheduler implements MCTickBasedScheduler {
 
     private final Plugin bukkitPlugin;
-    private final Location location;
-    private final ObjectWrapper scheduler;
-    private final Method isOwnedByCurrentRegion;
+    private final World world;
+    private final int x;
+    private final int z;
+    private final RegionScheduler scheduler;
 
     public FoliaRegionScheduler(Plugin bukkitPlugin, Location location) {
         this.bukkitPlugin = bukkitPlugin;
-        this.location = location;
-        this.scheduler = this.getWrapScheduler("getRegionScheduler");
-        try {
-            isOwnedByCurrentRegion = Bukkit.class.getMethod("isOwnedByCurrentRegion", Location.class);
-        } catch (Throwable e) {
-            throw new IllegalStateException("Cannot find isOwnedByCurrentRegion method in Bukkit", e);
-        }
+        this.world = location.getWorld();
+        this.x = location.getBlockX() >> 4;
+        this.z = location.getBlockZ() >> 4;
+        this.scheduler = Bukkit.getRegionScheduler();
+    }
+
+    public FoliaRegionScheduler(Plugin bukkitPlugin, World world, int x, int z) {
+        this.bukkitPlugin = bukkitPlugin;
+        this.world = world;
+        this.x = x;
+        this.z = z;
+        this.scheduler = Bukkit.getRegionScheduler();
     }
 
     @Override
     public boolean isCurrentThread() {
         try {
-            return (boolean) isOwnedByCurrentRegion.invoke(null, location);
+            return Bukkit.isOwnedByCurrentRegion(world, x, z);
         } catch (Throwable e) {
             throw new IllegalStateException("Cannot invoke isOwnedByCurrentRegion method in Bukkit", e);
         }
@@ -65,18 +71,18 @@ public class FoliaRegionScheduler extends FoliaAbstractScheduler implements MCTi
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable) {
-        return doSchedule(callable, task -> scheduler.invoke("run", bukkitPlugin, location, task));
+        return doSchedule(callable, task -> scheduler.run(bukkitPlugin, world, x, z, task));
     }
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable, long delayTicks) {
-        return doSchedule(callable, task -> scheduler.invoke("runDelayed", bukkitPlugin, location, task, delayTicks));
+        return doSchedule(callable, task -> scheduler.runDelayed(bukkitPlugin, world, x, z, task, delayTicks));
     }
 
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        Object rawScheduledTask = scheduler.invoke("runAtFixedRate", bukkitPlugin, location, task, delayTicks, intervalTicks);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask rawScheduledTask = scheduler.runAtFixedRate(bukkitPlugin, world, x, z, task, delayTicks, intervalTicks);
         task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 
         return task;

@@ -13,8 +13,8 @@ dependencies {
 
     implementation("org.yaml:snakeyaml:1.29")
 
-    compileOnly("org.projectlombok:lombok:1.18.24")
-    annotationProcessor("org.projectlombok:lombok:1.18.24")
+    compileOnly("org.projectlombok:lombok:1.18.32")
+    annotationProcessor("org.projectlombok:lombok:1.18.32")
     compileOnly("org.jetbrains:annotations:23.0.0")
     annotationProcessor("org.jetbrains:annotations:23.0.0")
 

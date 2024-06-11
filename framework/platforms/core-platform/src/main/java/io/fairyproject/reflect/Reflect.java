@@ -24,48 +24,17 @@
 
 package io.fairyproject.reflect;
 
-import io.fairyproject.util.ConditionUtils;
-import io.fairyproject.util.exceptionally.SneakyThrowUtil;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 import org.jetbrains.annotations.Nullable;
-import sun.misc.Unsafe;
 
 import java.lang.annotation.Annotation;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.function.Function;
 
 @UtilityClass
 public class Reflect {
-
-    private static final Unsafe UNSAFE;
-    private static final MethodHandles.Lookup LOOKUP;
-
-    static {
-        try {
-            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-            theUnsafe.setAccessible(true);
-            UNSAFE = (Unsafe) theUnsafe.get(null);
-            UNSAFE.ensureClassInitialized(MethodHandles.Lookup.class);
-            Field lookupField = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
-            Object lookupBase = UNSAFE.staticFieldBase(lookupField);
-            long lookupOffset = UNSAFE.staticFieldOffset(lookupField);
-            LOOKUP = (MethodHandles.Lookup) UNSAFE.getObject(lookupBase, lookupOffset);
-        } catch (Throwable t) {
-            throw new IllegalStateException("Unsafe not found");
-        }
-    }
-
-    public static Unsafe getUnsafe() {
-        return UNSAFE;
-    }
-
-    public static MethodHandles.Lookup lookup() {
-        return LOOKUP;
-    }
 
     public static <T, A extends Annotation> T getAnnotationValue(Class<?> annotatedClass, Class<A> annotation, AnnotationValueFunction<A, T> function) {
         final A a = annotatedClass.getAnnotation(annotation);
@@ -105,40 +74,6 @@ public class Reflect {
         }
 
         return (Class<T>) parameterizedType.getActualTypeArguments()[0];
-    }
-
-    public static void setField(Object src, Field field, Object value) {
-        ConditionUtils.notNull(field, "field");
-        try {
-            MethodHandle methodHandle = lookup().unreflectSetter(field);
-            if (Modifier.isStatic(field.getModifiers())) {
-                methodHandle.invokeWithArguments(value);
-            } else {
-                methodHandle.bindTo(src).invokeWithArguments(value);
-            }
-        } catch (Throwable t) {
-            SneakyThrowUtil.sneakyThrow(t);
-        }
-    }
-
-    public static <T> T getField(Object src, Field field, Class<T> cast) {
-        Object obj = getField(src, field);
-        return obj == null ? null : (T) cast.cast(obj);
-    }
-
-    public static Object getField(Object src, Field field) {
-        ConditionUtils.notNull(field, "field");
-        try {
-            MethodHandle methodHandle = lookup().unreflectGetter(field);
-            if (Modifier.isStatic(field.getModifiers())) {
-                return methodHandle.invokeWithArguments();
-            } else {
-                return methodHandle.bindTo(src).invokeWithArguments();
-            }
-        } catch (Throwable t) {
-            getUnsafe().throwException(t);
-            return null;
-        }
     }
 
     public static Optional<Class<?>> getCallerClass(int depth) {

@@ -24,17 +24,12 @@
 
 package io.fairyproject.mc.registry.player;
 
-import io.fairyproject.FairyPlatform;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.event.GlobalEventNode;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.event.NativePlayerLoginEvent;
-import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import lombok.RequiredArgsConstructor;
-
-import java.util.concurrent.locks.ReentrantLock;
 
 @InjectableComponent
 @RequiredArgsConstructor
@@ -42,14 +37,11 @@ public class MCPlayerListener {
 
     private final MCPlayerRegistry registry;
     private final MCPlayerPlatformOperator platformOperator;
-    private final MCSchedulerProvider mcSchedulerProvider;
     private final GlobalEventNode eventNode;
-    private final ReentrantLock lock = new ReentrantLock();
 
     @PostInitialize
     public void onPostInitialize() {
         this.eventNode.addListener(NativePlayerLoginEvent.class, this::onNativePlayerLogin);
-        this.eventNode.addListener(MCPlayerQuitEvent.class, this::onPlayerQuit);
     }
 
     private void onNativePlayerLogin(NativePlayerLoginEvent event) {
@@ -61,34 +53,12 @@ public class MCPlayerListener {
         Object nativePlayer = event.getNativePlayer();
         mcPlayer.setNative(nativePlayer);
 
-        lock.lock();
+        MCPlayerRegistry.JOIN_QUIT_LOCK.lock();
         try {
             this.registry.addPlayer(mcPlayer);
         } finally {
-            lock.unlock();
+            MCPlayerRegistry.JOIN_QUIT_LOCK.unlock();
         }
-    }
-
-    public void onPlayerQuit(MCPlayerQuitEvent event) {
-        MCPlayer player = event.getPlayer();
-
-        lock.lock();
-        if (!FairyPlatform.INSTANCE.isRunning()) {
-            try {
-                this.registry.removePlayer(player.getUUID());
-            } finally {
-                lock.unlock();
-            }
-            return;
-        }
-
-        mcSchedulerProvider.getGlobalScheduler().schedule(() -> {
-            try {
-                this.registry.removePlayer(player.getUUID());
-            } finally {
-                lock.unlock();
-            }
-        }, 1L);
     }
 
 }

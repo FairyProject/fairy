@@ -31,8 +31,11 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
 }
 
+java {
+    disableAutoTargetJvm()
+}
+
 tasks.withType(JavaCompile::class.java).configureEach {
-    sourceCompatibility = "8"
-    targetCompatibility = "8"
     options.encoding = "UTF-8"
+    options.release = 8
 }

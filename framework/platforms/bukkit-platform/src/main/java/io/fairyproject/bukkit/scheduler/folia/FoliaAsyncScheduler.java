@@ -24,11 +24,12 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
-import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCMillisBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
+import io.papermc.paper.threadedregions.scheduler.AsyncScheduler;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import java.time.Duration;
@@ -37,12 +38,12 @@ import java.util.concurrent.TimeUnit;
 
 public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMillisBasedScheduler {
 
-    private final ObjectWrapper scheduler;
+    private final AsyncScheduler scheduler;
     private final Plugin bukkitPlugin;
 
     public FoliaAsyncScheduler(Plugin bukkitPlugin) {
         this.bukkitPlugin = bukkitPlugin;
-        this.scheduler = this.getWrapScheduler("getAsyncScheduler");
+        this.scheduler = Bukkit.getAsyncScheduler();
     }
 
     @Override
@@ -52,18 +53,18 @@ public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMil
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable) {
-        return doSchedule(callable, task -> scheduler.invoke("runNow", bukkitPlugin, task));
+        return doSchedule(callable, task -> scheduler.runNow(bukkitPlugin, task));
     }
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable, Duration delay) {
-        return doSchedule(callable, task -> scheduler.invoke("runDelayed", bukkitPlugin, task, delay.toNanos(), TimeUnit.NANOSECONDS));
+        return doSchedule(callable, task -> scheduler.runDelayed(bukkitPlugin, task, delay.toNanos(), TimeUnit.NANOSECONDS));
     }
 
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delayTicks, Duration intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        Object rawScheduledTask = scheduler.invoke("runAtFixedRate", bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask rawScheduledTask = scheduler.runAtFixedRate(bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS);
         task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 
         return task;

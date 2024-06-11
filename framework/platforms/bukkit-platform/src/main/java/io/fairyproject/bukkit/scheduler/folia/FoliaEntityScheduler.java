@@ -24,12 +24,11 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
-import io.fairyproject.bukkit.reflection.wrapper.MethodWrapper;
-import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
+import io.papermc.paper.threadedregions.scheduler.EntityScheduler;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
@@ -37,17 +36,14 @@ import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
 
 @RequiredArgsConstructor
 public class FoliaEntityScheduler extends FoliaAbstractScheduler implements MCTickBasedScheduler {
 
     private static Method isOwnedByCurrentRegion;
-    private static Method entityGetScheduler;
 
     private final Entity entity;
     private final Plugin bukkitPlugin;
-    private ObjectWrapper scheduler;
 
     @Override
     public boolean isCurrentThread() {
@@ -66,54 +62,24 @@ public class FoliaEntityScheduler extends FoliaAbstractScheduler implements MCTi
         }
     }
 
-    private static void ensureEntityGetScheduler() {
-        if (entityGetScheduler != null)
-            return;
-
-        try {
-            entityGetScheduler = Entity.class.getMethod("getScheduler");
-        } catch (NoSuchMethodException e) {
-            throw new IllegalStateException("Cannot find getScheduler method in Entity", e);
-        }
-    }
-
-    private ObjectWrapper getEntityScheduler() {
-        if (this.scheduler != null)
-            return this.scheduler;
-
-        ensureEntityGetScheduler();
-
-        try {
-            Object instance = entityGetScheduler.invoke(entity);
-            return this.scheduler = new ObjectWrapper(instance);
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot invoke getScheduler method in Entity", e);
-        }
+    private EntityScheduler getEntityScheduler() {
+        return entity.getScheduler();
     }
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable) {
-        return doSchedule(callable, task -> {
-            MethodWrapper<?> method = getEntityScheduler().getMethod("run", Plugin.class, Consumer.class, Runnable.class);
-
-            return method.invoke(scheduler.getObject(), bukkitPlugin, task, null);
-        });
+        return doSchedule(callable, task -> getEntityScheduler().run(bukkitPlugin, task, null));
     }
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable, long delayTicks) {
-        return doSchedule(callable, task -> {
-            MethodWrapper<?> method = getEntityScheduler().getMethod("runDelayed", Plugin.class, Consumer.class, Runnable.class, long.class);
-
-            return method.invoke(scheduler.getObject(), bukkitPlugin, task, null, delayTicks);
-        });
+        return doSchedule(callable, task -> getEntityScheduler().runDelayed(bukkitPlugin, task, null, delayTicks));
     }
 
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        MethodWrapper<?> method = getEntityScheduler().getMethod("runAtFixedRate", Plugin.class, Consumer.class, Runnable.class, long.class, long.class);
-        Object scheduledTask = method.invoke(scheduler.getObject(), bukkitPlugin, task, null, delayTicks, intervalTicks);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask = getEntityScheduler().runAtFixedRate(bukkitPlugin, task, null, delayTicks, intervalTicks);
         task.setScheduledTask(WrapperScheduledTask.of(scheduledTask));
 
         return task;

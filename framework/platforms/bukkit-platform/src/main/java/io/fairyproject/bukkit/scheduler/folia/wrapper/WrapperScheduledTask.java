@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.scheduler.folia.wrapper;
 
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,33 +33,17 @@ import java.lang.reflect.Method;
 @RequiredArgsConstructor
 public class WrapperScheduledTask {
 
-    private static Method cancelMethod;
-
-    private final Object scheduledTask;
+    private final ScheduledTask scheduledTask;
 
     public Class<?> getTaskClass() {
         return scheduledTask.getClass();
     }
 
     public void cancel() {
-        if (cancelMethod == null) {
-            try {
-                Class<?> scheduledTaskClass = Class.forName("io.papermc.paper.threadedregions.scheduler.ScheduledTask");
-                cancelMethod = scheduledTaskClass.getDeclaredMethod("cancel");
-                cancelMethod.setAccessible(true);
-            } catch (NoSuchMethodException | ClassNotFoundException e) {
-                throw new IllegalStateException("Cannot find cancel method", e);
-            }
-        }
-
-        try {
-            cancelMethod.invoke(scheduledTask);
-        } catch (Exception e) {
-            throw new IllegalStateException("Cannot invoke cancel method in " + scheduledTask.getClass().getName(), e);
-        }
+        scheduledTask.cancel();
     }
 
-    public static WrapperScheduledTask of(@NotNull Object scheduledTask) {
+    public static WrapperScheduledTask of(@NotNull ScheduledTask scheduledTask) {
         return new WrapperScheduledTask(scheduledTask);
     }
 

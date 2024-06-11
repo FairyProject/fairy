@@ -149,31 +149,26 @@ public class BaseCommandInitializer {
                 }
             }
 
-            try {
-                final MethodHandle methodHandle = Reflect.lookup().unreflect(method);
-                ArgCompletionHolder completionHolder;
-                if (String[].class.isAssignableFrom(method.getReturnType())) {
-                    completionHolder = new ArgCompletionHolderStringArray(
-                            methodHandle,
-                            baseCommand,
-                            hasParameter,
-                            completion.value()
-                    );
-                } else if (List.class.isAssignableFrom(method.getReturnType())) {
-                    completionHolder = new ArgCompletionHolderList(
-                            methodHandle,
-                            baseCommand,
-                            hasParameter,
-                            completion.value()
-                    );
-                } else {
-                    Log.error("The return type of @TabCompletion method should be String[] or List<String>", new UnsupportedOperationException());
-                    return;
-                }
-                baseCommand.tabCompletion.put(completion.value(), completionHolder);
-            } catch (IllegalAccessException e) {
-                Log.error("an error got thrown while registering @TabCompletion method", e);
+            ArgCompletionHolder completionHolder;
+            if (String[].class.isAssignableFrom(method.getReturnType())) {
+                completionHolder = new ArgCompletionHolderStringArray(
+                        method,
+                        baseCommand,
+                        hasParameter,
+                        completion.value()
+                );
+            } else if (List.class.isAssignableFrom(method.getReturnType())) {
+                completionHolder = new ArgCompletionHolderList(
+                        method,
+                        baseCommand,
+                        hasParameter,
+                        completion.value()
+                );
+            } else {
+                Log.error("The return type of @TabCompletion method should be String[] or List<String>", new UnsupportedOperationException());
+                return;
             }
+            baseCommand.tabCompletion.put(completion.value(), completionHolder);
         }
     }
 

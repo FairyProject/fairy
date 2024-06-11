@@ -30,10 +30,8 @@ import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 import io.fairyproject.container.processor.ContainerNodeClassScanProcessor;
 import io.fairyproject.container.processor.ContainerNodeInitProcessor;
-import io.fairyproject.container.processor.ContainerObjConstructProcessor;
 import io.fairyproject.container.processor.ContainerObjInitProcessor;
 import io.fairyproject.log.Log;
-import io.fairyproject.reflect.Reflect;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.ClassGraphUtil;
@@ -111,7 +109,7 @@ public class AutowiredAnnotationProcessor implements
         return future.thenAccept(instance -> {
             try {
                 AccessUtil.setAccessible(field);
-                Reflect.setField(fieldInstance, field, instance);
+                field.set(fieldInstance, instance);
             } catch (Exception ex) {
                 Log.error("Failed to set field %s", field, ex);
             }

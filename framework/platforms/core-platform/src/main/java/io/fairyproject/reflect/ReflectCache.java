@@ -24,6 +24,7 @@
 
 package io.fairyproject.reflect;
 
+import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.Utility;
 import io.fairyproject.util.exceptionally.ThrowingSupplier;
 
@@ -160,13 +161,13 @@ public class ReflectCache {
     }
 
     private Method cache(ReflectQuery query, Method method) throws ReflectiveOperationException {
-        Reflect.setAccessible(method);
+        AccessUtil.setAccessible(method);
         this.methodCache.put(query, method);
         return method;
     }
 
     private Field cache(ReflectQuery query, Field field) throws ReflectiveOperationException {
-        Reflect.setAccessible(field);
+        AccessUtil.setAccessible(field);
         this.fieldCache.put(query, field);
         return field;
     }

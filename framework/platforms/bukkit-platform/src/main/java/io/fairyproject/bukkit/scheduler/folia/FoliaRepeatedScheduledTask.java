@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @RequiredArgsConstructor
-public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer<Object> {
+public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer<io.papermc.paper.threadedregions.scheduler.ScheduledTask> {
 
     private final CompletableFuture<R> future = new CompletableFuture<>();
     private final Callable<TaskResponse<R>> callable;
@@ -50,7 +50,7 @@ public class FoliaRepeatedScheduledTask<R> implements ScheduledTask<R>, Consumer
     }
 
     @Override
-    public void accept(Object scheduledTask) {
+    public void accept(io.papermc.paper.threadedregions.scheduler.ScheduledTask scheduledTask) {
         WrapperScheduledTask wrapperScheduledTask = WrapperScheduledTask.of(scheduledTask);
 
         try {

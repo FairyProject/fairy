@@ -6,13 +6,13 @@ import io.fairyproject.command.argument.ArgCompletionHolder;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
-import java.lang.invoke.MethodHandle;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
 
 @RequiredArgsConstructor
 public class ArgCompletionHolderList implements ArgCompletionHolder {
-    private final MethodHandle methodHandle;
+    private final Method methodHandle;
     private final BaseCommand baseCommand;
 
     private final boolean hasParameter;

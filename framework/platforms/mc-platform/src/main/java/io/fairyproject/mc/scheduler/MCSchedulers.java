@@ -25,6 +25,7 @@
 package io.fairyproject.mc.scheduler;
 
 import io.fairyproject.container.Autowired;
+import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.util.Position;
 import lombok.experimental.UtilityClass;
 
@@ -53,6 +54,10 @@ public class MCSchedulers {
 
     public MCScheduler getLocationScheduler(Position position) {
         return mcSchedulerProvider.getLocationScheduler(position);
+    }
+
+    public MCScheduler getChunkScheduler(MCWorld world, int chunkX, int chunkZ) {
+        return mcSchedulerProvider.getChunkScheduler(world, chunkX, chunkZ);
     }
 
 }

@@ -29,6 +29,7 @@ import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.response.TaskResponse;
+import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
@@ -38,12 +39,12 @@ import java.util.concurrent.Callable;
 public class FoliaGlobalRegionScheduler extends FoliaAbstractScheduler implements MCTickBasedScheduler {
 
     private final Plugin bukkitPlugin;
-    private final ObjectWrapper scheduler;
+    private final GlobalRegionScheduler scheduler;
     private final Method isGlobalTickThread;
 
     public FoliaGlobalRegionScheduler(Plugin bukkitPlugin) {
         this.bukkitPlugin = bukkitPlugin;
-        this.scheduler = this.getWrapScheduler("getGlobalRegionScheduler");
+        this.scheduler = Bukkit.getGlobalRegionScheduler();
         try {
             isGlobalTickThread = Bukkit.class.getMethod("isGlobalTickThread");
         } catch (Throwable e) {
@@ -62,18 +63,18 @@ public class FoliaGlobalRegionScheduler extends FoliaAbstractScheduler implement
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable) {
-        return doSchedule(callable, task -> scheduler.invoke("run", bukkitPlugin, task));
+        return doSchedule(callable, task -> scheduler.run(bukkitPlugin, task));
     }
 
     @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable, long delayTicks) {
-        return doSchedule(callable, task -> scheduler.invoke("runDelayed", bukkitPlugin, task, delayTicks));
+        return doSchedule(callable, task -> scheduler.runDelayed(bukkitPlugin, task, delayTicks));
     }
 
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
-        Object rawScheduledTask = scheduler.invoke("runAtFixedRate", bukkitPlugin, task, delayTicks, intervalTicks);
+        io.papermc.paper.threadedregions.scheduler.ScheduledTask rawScheduledTask = scheduler.runAtFixedRate(bukkitPlugin, task, delayTicks, intervalTicks);
         task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 
         return task;

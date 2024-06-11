@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.scheduler.bukkit;
 
+import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.scheduler.MCScheduler;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.util.Position;
@@ -56,6 +57,11 @@ public class BukkitSchedulerProvider implements MCSchedulerProvider {
 
     @Override
     public MCScheduler getLocationScheduler(Position position) {
+        return this.bukkitMainScheduler;
+    }
+
+    @Override
+    public MCScheduler getChunkScheduler(MCWorld world, int chunkX, int chunkZ) {
         return this.bukkitMainScheduler;
     }
 }
