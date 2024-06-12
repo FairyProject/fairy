@@ -37,8 +37,6 @@ import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
 import io.fairyproject.util.terminable.composite.CompositeClosingException;
 import io.fairyproject.util.terminable.composite.CompositeTerminable;
-import io.github.classgraph.ClassGraph;
-import io.github.toolfactory.narcissus.Narcissus;
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,9 +59,9 @@ public abstract class FairyPlatform implements TerminableConsumer {
     private ContainerContext containerContext;
 
     public FairyPlatform() {
-        if (Narcissus.libraryLoaded) {
-            ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
-        }
+//        if (Narcissus.libraryLoaded) {
+//            ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.NARCISSUS;
+//        }
     }
 
     public void preload() {

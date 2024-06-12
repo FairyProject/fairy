@@ -98,12 +98,17 @@ public class NameTagService {
 
     @Subscribe
     public void onPlayerQuit(MCPlayerQuitEvent event) {
-        final String name = event.getPlayer().getName();
-        runAsync(() -> removeNameFromAll(name));
+        MCPlayer player = event.getPlayer();
+        String name = player.getName();
+        runAsync(() -> {
+            removeNameFromAll(name);
+
+            player.metadata().remove(TEAM_INFO_KEY);
+        });
     }
 
     private void removeNameFromAll(String name) {
-        for (MCPlayer player : MCPlayer.all()) {
+        for (MCPlayer player : mcPlayerRegistry.getAllPlayers()) {
             if (player.getName().equals(name))
                 return;
 
@@ -124,7 +129,7 @@ public class NameTagService {
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
                 data.getName(),
                 WrapperPlayServerTeams.TeamMode.REMOVE_ENTITIES,
-                Optional.empty(),
+                (WrapperPlayServerTeams.ScoreBoardTeamInfo) null,
                 name
         );
         MCProtocol.sendPacket(player, packet);
@@ -191,26 +196,25 @@ public class NameTagService {
     }
 
     private void applyUpdatePlayerToPlayer(DuoPlayerNameTagUpdate update) {
-        MCPlayer player = MCPlayer.find(update.getPlayer());
-        MCPlayer target = MCPlayer.find(update.getTarget());
+        MCPlayer player = mcPlayerRegistry.findByPlatform(update.getPlayer());
+        MCPlayer target = mcPlayerRegistry.findByPlatform(update.getTarget());
         if (player != null && target != null)
             this.updateForInternal(player, target);
     }
 
     private void applyUpdatePlayerToAll(SinglePlayerNameTagUpdate update) {
-        MCPlayer target = MCPlayer.find(update.getPlayer());
+        MCPlayer target = mcPlayerRegistry.findByPlatform(update.getPlayer());
         if (target != null)
-            MCPlayer.all().forEach(player -> this.updateForInternal(target, player));
+            mcPlayerRegistry.getAllPlayers().forEach(player -> this.updateForInternal(target, player));
     }
 
     private void applyUpdateAllToPlayer(SinglePlayerNameTagUpdate update) {
         MCPlayer target = mcPlayerRegistry.findPlayerByUuid(update.getPlayer());
-        if (target != null)
-            MCPlayer.all().forEach(player -> this.updateForInternal(player, target));
+        mcPlayerRegistry.getAllPlayers().forEach(player -> this.updateForInternal(player, target));
     }
 
     private void applyUpdateAll() {
-        Utility.twice(MCPlayer.all(), this::updateForInternal);
+        Utility.twice(mcPlayerRegistry.getAllPlayers(), this::updateForInternal);
     }
 
     @Nullable
@@ -244,7 +248,7 @@ public class NameTagService {
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
                 current.getName(),
                 WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
-                Optional.empty(),
+                (WrapperPlayServerTeams.ScoreBoardTeamInfo) null,
                 target.getName()
         );
         MCProtocol.sendPacket(player, packet);
@@ -268,7 +272,7 @@ public class NameTagService {
     }
 
     private void sendDataToAll(NameTagData newData) {
-        for (MCPlayer player : MCPlayer.all())
+        for (MCPlayer player : mcPlayerRegistry.getAllPlayers())
             this.sendCreatePacket(player, newData);
     }
 
@@ -301,7 +305,7 @@ public class NameTagService {
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
                 data.getName(),
                 WrapperPlayServerTeams.TeamMode.CREATE,
-                Optional.of(new WrapperPlayServerTeams.ScoreBoardTeamInfo(
+                new WrapperPlayServerTeams.ScoreBoardTeamInfo(
                         Component.empty(),
                         prefix,
                         suffix,
@@ -309,7 +313,7 @@ public class NameTagService {
                         WrapperPlayServerTeams.CollisionRule.ALWAYS,
                         NamedTextColor.nearestTo(color),
                         WrapperPlayServerTeams.OptionData.NONE
-                ))
+                )
         );
         MCProtocol.sendPacket(mcPlayer, packet);
     }

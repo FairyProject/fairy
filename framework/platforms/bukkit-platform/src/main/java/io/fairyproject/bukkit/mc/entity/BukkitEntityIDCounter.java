@@ -30,7 +30,6 @@ import io.fairyproject.bukkit.reflection.resolver.ResolverQuery;
 import io.fairyproject.bukkit.reflection.wrapper.FieldWrapper;
 import io.fairyproject.mc.entity.EntityIDCounter;
 import io.fairyproject.util.exceptionally.SneakyThrowUtil;
-import io.github.toolfactory.narcissus.Narcissus;
 
 import java.lang.reflect.Field;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -76,11 +75,11 @@ public class BukkitEntityIDCounter implements EntityIDCounter {
                     try {
                         entityCounter = (AtomicInteger) field.get(null);
                     } catch (IllegalAccessException | InternalError ex) {
-                        if (Narcissus.libraryLoaded) {
-                            entityCounter = (AtomicInteger) Narcissus.getStaticField(field);
-                        } else {
+//                        if (Narcissus.libraryLoaded) {
+//                            entityCounter = (AtomicInteger) Narcissus.getStaticField(field);
+//                        } else {
                             throw new IllegalStateException("Couldn't get the entity counter field!", ex);
-                        }
+//                        }
                     }
                 } catch (ReflectiveOperationException e) {
                     SneakyThrowUtil.sneakyThrow(e);

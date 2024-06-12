@@ -1,6 +1,5 @@
 package io.fairyproject.reflect.wrapper;
 
-import io.github.toolfactory.narcissus.Narcissus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,11 +28,11 @@ public interface ReflectWrapper {
         public static ReflectWrapper INSTANCE;
 
         static {
-            if (Narcissus.libraryLoaded) {
-                INSTANCE = new NarcissusReflectWrapper();
-            } else {
+//            if (Narcissus.libraryLoaded) {
+//                INSTANCE = new NarcissusReflectWrapper();
+//            } else {
                 INSTANCE = new DefaultReflectWrapper();
-            }
+//            }
         }
 
     }

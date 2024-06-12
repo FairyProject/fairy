@@ -41,7 +41,7 @@ public class NameTagList {
         this.dataByName.put(name, nameTagData);
     }
 
-    public void remove(String name) {
-        this.dataByName.remove(name);
+    public boolean remove(String name) {
+        return this.dataByName.remove(name) != null;
     }
 }

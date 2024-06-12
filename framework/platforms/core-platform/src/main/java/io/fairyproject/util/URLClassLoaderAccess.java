@@ -2,7 +2,7 @@ package io.fairyproject.util;
 
 import io.fairyproject.Debug;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
-import io.github.toolfactory.narcissus.Narcissus;
+import io.github.toolfactory.jvm.Driver;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -36,9 +36,9 @@ public abstract class URLClassLoaderAccess {
         if (Reflection.isSupported()) {
             Debug.log("Using Reflection URL class loader access");
             return new Reflection(classLoader);
-        } else if (NarcissusUnsafe.isSupported()) {
+        } else if (JvmDriver.isSupported()) {
             Debug.log("Using Narcissus Unsafe URL class loader access");
-            return new NarcissusUnsafe(classLoader);
+            return new JvmDriver(classLoader);
         } else {
             Debug.log("Using NoOp URL class loader access");
             return Noop.INSTANCE;
@@ -91,20 +91,21 @@ public abstract class URLClassLoaderAccess {
         }
     }
 
-    private static class NarcissusUnsafe extends URLClassLoaderAccess {
+    private static class JvmDriver extends URLClassLoaderAccess {
 
+        private static final io.github.toolfactory.jvm.Driver driver = Driver.Factory.getNew();
         private final Collection<URL> unopenedURLs;
         private final Collection<URL> pathURLs;
 
-        protected NarcissusUnsafe(URLClassLoader classLoader) {
+        protected JvmDriver(URLClassLoader classLoader) {
             super(classLoader);
 
             Collection<URL> unopenedURLs;
             Collection<URL> pathURLs;
             try {
-                Object ucp = NarcissusUnsafe.fetchField(URLClassLoader.class, classLoader, "ucp");
-                unopenedURLs = (Collection<URL>) NarcissusUnsafe.fetchField(ucp.getClass(), ucp, "unopenedUrls");
-                pathURLs = (Collection<URL>) NarcissusUnsafe.fetchField(ucp.getClass(), ucp, "path");
+                Object ucp = JvmDriver.fetchField(URLClassLoader.class, classLoader, "ucp");
+                unopenedURLs = (Collection<URL>) JvmDriver.fetchField(ucp.getClass(), ucp, "unopenedUrls");
+                pathURLs = (Collection<URL>) JvmDriver.fetchField(ucp.getClass(), ucp, "path");
             } catch (Throwable e) {
                 unopenedURLs = null;
                 pathURLs = null;
@@ -114,12 +115,16 @@ public abstract class URLClassLoaderAccess {
         }
 
         public static boolean isSupported() {
-            return Narcissus.libraryLoaded;
+            return true;
         }
 
         private static Object fetchField(final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
-            Field field = Narcissus.findField(clazz, name);
-            return Narcissus.getField(object, field);
+            for (Field field : driver.getDeclaredFields(clazz)) {
+                if (field.getName().equals(name)) {
+                    return driver.getFieldValue(object, field);
+                }
+            }
+            throw new NoSuchFieldException(name);
         }
 
         @Override
