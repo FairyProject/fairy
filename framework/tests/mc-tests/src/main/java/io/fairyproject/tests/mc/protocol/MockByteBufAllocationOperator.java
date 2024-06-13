@@ -43,12 +43,27 @@ public class MockByteBufAllocationOperator implements ByteBufAllocationOperator 
     }
 
     @Override
+    public Object buffer(int i) {
+        return null;
+    }
+
+    @Override
     public Object directBuffer() {
         return null;
     }
 
     @Override
+    public Object directBuffer(int i) {
+        return null;
+    }
+
+    @Override
     public Object compositeBuffer() {
+        return null;
+    }
+
+    @Override
+    public Object compositeBuffer(int i) {
         return null;
     }
 }
