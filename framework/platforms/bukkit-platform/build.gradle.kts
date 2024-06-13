@@ -13,7 +13,7 @@ dependencies {
         exclude(group = "org.yaml", module = "snakeyaml")
         exclude(group = "net.kyori")
     }
-    compileOnly("com.mojang:authlib:1.5.21")
+    compileOnly("com.mojang:authlib:6.0.54")
     compileOnly("io.netty:netty-all:4.1.100.Final")
     compileOnly("com.viaversion:viaversion:4.0.1")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:6.1.5")
