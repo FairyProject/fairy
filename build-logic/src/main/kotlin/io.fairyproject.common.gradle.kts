@@ -10,14 +10,53 @@ repositories {
     mavenLocal() // development
     mavenCentral()
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
-    maven("https://repo.codemc.io/repository/maven-releases/")
     maven ("https://repo.imanity.dev/imanity-libraries/")
     maven ("https://nexus.funkemunky.cc/content/repositories/releases/")
     maven ("https://jitpack.io")
-    maven ("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
-    maven ("https://repo.viaversion.com/")
-    maven ("https://maven.enginehub.org/repo/")
-    maven("https://repo.papermc.io/repository/maven-public/")
+    maven {
+        url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
+        content {
+            includeGroup("org.spigotmc")
+            includeGroup("net.md-5")
+        }
+    }
+    maven {
+        url = uri("https://repo.viaversion.com/")
+        content {
+            includeGroup("com.viaversion")
+        }
+    }
+    // World Edit repository
+    maven {
+        url = uri("https://maven.enginehub.org/repo/")
+        content {
+            includeGroup("com.sk89q.worldedit")
+            includeGroup("com.sk89q.lib")
+            includeGroup("com.sk89q")
+        }
+    }
+    // PaperMC repository
+    maven {
+        url = uri("https://repo.papermc.io/repository/maven-public/")
+        content {
+            includeGroup("com.destroystokyo.paper")
+            includeGroup("io.papermc.paper")
+            includeGroup("net.md-5")
+        }
+    }
+    // PacketEvents CodeMC repository
+    maven {
+        url = uri("https://repo.codemc.io/repository/maven-releases/")
+        content {
+            includeGroup("com.github.retrooper")
+        }
+    }
+    maven {
+        url = uri("https://repo.codemc.io/repository/maven-snapshots/")
+        content {
+            includeGroup("com.github.retrooper")
+        }
+    }
 }
 
 dependencies {

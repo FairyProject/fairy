@@ -52,7 +52,18 @@ class FairyGradlePlugin : Plugin<Project> {
 
     private fun configureRepositories(project: Project) {
         project.repositories.maven { it.setUrl(UrlConstants.repositoryUrl) }
-        project.repositories.maven { it.setUrl(UrlConstants.codeMcRepositoryUrl) }
+        project.repositories.maven {
+            it.setUrl(UrlConstants.codeMcReleaseRepositoryUrl)
+            it.content {
+                it.includeGroup("com.github.retrooper")
+            }
+        }
+        project.repositories.maven {
+            it.setUrl(UrlConstants.codeMcSnapshotRepositoryUrl)
+            it.content {
+                it.includeGroup("com.github.retrooper")
+            }
+        }
     }
 
     private fun withPluginClassOfAction(action: PluginApplicationAction, project: Project) {

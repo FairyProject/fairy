@@ -93,7 +93,7 @@ public abstract class URLClassLoaderAccess {
 
     private static class JvmDriver extends URLClassLoaderAccess {
 
-        private static final io.github.toolfactory.jvm.Driver driver = Driver.Factory.getNew();
+        private static final Driver DRIVER = Driver.Factory.getNew();
         private final Collection<URL> unopenedURLs;
         private final Collection<URL> pathURLs;
 
@@ -119,9 +119,9 @@ public abstract class URLClassLoaderAccess {
         }
 
         private static Object fetchField(final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
-            for (Field field : driver.getDeclaredFields(clazz)) {
+            for (Field field : DRIVER.getDeclaredFields(clazz)) {
                 if (field.getName().equals(name)) {
-                    return driver.getFieldValue(object, field);
+                    return DRIVER.getFieldValue(object, field);
                 }
             }
             throw new NoSuchFieldException(name);
