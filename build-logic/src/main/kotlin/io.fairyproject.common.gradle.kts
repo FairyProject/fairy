@@ -7,7 +7,7 @@ plugins {
 group = "io.fairyproject"
 
 repositories {
-    mavenLocal() // development
+//    mavenLocal() // development
     mavenCentral()
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven ("https://repo.imanity.dev/imanity-libraries/")
@@ -57,6 +57,7 @@ repositories {
         url = uri("https://repo.codemc.io/repository/maven-releases/")
         content {
             includeGroup("com.github.retrooper")
+            includeGroup("de.tr7zw")
         }
     }
     maven {
