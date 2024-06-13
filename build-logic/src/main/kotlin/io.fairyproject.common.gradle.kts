@@ -13,6 +13,14 @@ repositories {
     maven ("https://repo.imanity.dev/imanity-libraries/")
     maven ("https://nexus.funkemunky.cc/content/repositories/releases/")
     maven ("https://jitpack.io")
+    // Mojang authlib repository
+    maven {
+        url = uri("https://repo.glaremasters.me/repository/public/")
+        content {
+            includeGroup("com.mojang")
+        }
+    }
+    // SpigotMC repository
     maven {
         url = uri("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
         content {
