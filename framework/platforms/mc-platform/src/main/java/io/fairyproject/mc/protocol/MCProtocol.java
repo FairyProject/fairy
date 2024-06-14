@@ -98,8 +98,10 @@ public class MCProtocol {
                 if (player == null)
                     return;
 
-                MCPlayer mcPlayer = playerRegistry.findPlayerByPlatformPlayer(player);
-                GlobalEventNode.get().call(new MCPlayerPacketReceiveEvent(mcPlayer, event));
+                MCPlayer mcPlayer = playerRegistry.findByPlatform(player);
+                if (mcPlayer != null) {
+                    GlobalEventNode.get().call(new MCPlayerPacketReceiveEvent(mcPlayer, event));
+                }
             }
 
             @Override
@@ -108,8 +110,10 @@ public class MCProtocol {
                 if (player == null)
                     return;
 
-                MCPlayer mcPlayer = playerRegistry.findPlayerByPlatformPlayer(player);
-                GlobalEventNode.get().call(new MCPlayerPacketSendEvent(mcPlayer, event));
+                MCPlayer mcPlayer = playerRegistry.findByPlatform(player);
+                if (mcPlayer != null) {
+                    GlobalEventNode.get().call(new MCPlayerPacketSendEvent(mcPlayer, event));
+                }
             }
 
         }, PacketListenerPriority.LOWEST);
