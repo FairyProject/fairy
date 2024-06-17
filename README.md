@@ -6,7 +6,7 @@
   <a><img alt="Forks" src="https://img.shields.io/github/forks/FairyProject/fairy"></a>
   <a><img alt="Stars" src="https://img.shields.io/github/stars/FairyProject/fairy"></a>
   <a><img alt="License" src="https://img.shields.io/github/license/FairyProject/fairy"></a>
-  <a><img alt="Authors" src="https://img.shields.io/badge/Authors-LeeGod-blue"></a>  
+  <a href="https://docs.fairyproject.io/"><img alt="Docs" src="https://img.shields.io/badge/Documentation-09736c"></a>
 </p>
 
 # Fairy Framework
@@ -15,13 +15,15 @@ Its objective is to bring the beauty of dependency injection and CRUD based desi
 
 Main Maintainer: Imanity Software
 
+Documentation: [docs.fairyproject.io](https://docs.fairyproject.io/)
+
 ### Advantage using Fairy Framework
 Fairy as a universal framework, it mainly built for minecraft server plugins in mind. It's easily the best framework for minecraft server open sourced due to it flexibility, dependency injection pattern, and powerful backing system. 
 
 With the flexibility Fairy had, we also have various platform supported that aren't minecraft related. [Application platform](https://github.com/FairyProject/fairy/tree/v5/io.fairyproject.platforms/app-platform) for independent platform, [Discord module]() built on top of JDA for better experience etc.
 
 ## Project State
-We are currently staying at **`0.7.0`**, the reason why we still have 0 as the major version prefix is because we thought there is missing pieces before we can start with version 1.
+We are currently staying at **`0.7.5`**, the reason why we still have 0 as the major version prefix is because we thought there is missing pieces before we can start with version 1.
 Does not mean it's unusable.
 
 ## Objective
@@ -31,22 +33,21 @@ To achieve this it's nearly impossible for a single person or a small team, that
 
 ## Public projects using Fairy
 - Woolwars - [SpigotMC](https://www.spigotmc.org/resources/woolwars-competitive-pvp-gamemode.116176/), [BuiltByBit](https://builtbybit.com/resources/woolwars-competitive-pvp-gamemode.26119/)
+- Monster Industries - [SpigotMC](https://www.spigotmc.org/resources/20-off-monster-industries-the-classic-revive.116432/), [BuiltByBit](https://builtbybit.com/resources/monster-industries-the-classic-revive.45452/)
 - RaytraceAntiXray - [SpigotMC](https://www.spigotmc.org/resources/raytraceantixray-ores-entities-tiles.116253/), [BuiltByBit](https://builtbybit.com/resources/raytraceantixray-ores-entities-tiles.41896/)
 - CraftGens - [BuiltByBit](https://builtbybit.com/resources/craftgens-generators-gui-editor.30062/)
 - Brew - [GitHub](https://github.com/FairyProject/brew)
 - *Feel free to open a PR to add your project to here!*
 
 ## Getting Started
-If you are interested in creating a project using Fairy framework, please start from [Preparing Environment](https://github.com/FairyProject/fairy/wiki/Preparing-Environment) and [Setup Project](https://github.com/FairyProject/fairy/wiki/Setup-Project) wiki resource.
-Or you can jump straight over to [project examples](). 
+If you are interested in creating a project using Fairy framework, please start with [project template](https://github.com/FairyProject/fairy-bukkit-template) and give our [documentation](https://docs.fairyproject.io/) a read!. 
 
 ## Licensing
 [MIT license](https://github.com/FairyProject/fairy/blob/v5/LICENSE) for the **♥**
 
 ## Contributing
 Contributions can be made via pull requests to this repository.
-If you are not sure what to contribute with, you can either check the 
-[Project board](https://github.com/orgs/FairyProject/projects), 
+If you are not sure what to contribute with, you can check the 
 [Open issues](https://github.com/FairyProject/fairy/issues), 
 or ask us directly in [Discord](https://discord.gg/VMh3QAfvyq).
 
