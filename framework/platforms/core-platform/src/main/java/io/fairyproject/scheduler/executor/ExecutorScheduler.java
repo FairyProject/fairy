@@ -26,6 +26,7 @@ package io.fairyproject.scheduler.executor;
 
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.Scheduler;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 
 import java.time.Duration;
@@ -73,6 +74,14 @@ public class ExecutorScheduler implements Scheduler {
     }
 
     @Override
+    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, Duration delay, Duration interval, RepeatPredicate<?> predicate) {
+        return this.scheduleAtFixedRate(() -> {
+            runnable.run();
+            return TaskResponse.continueTask();
+        }, delay, interval, predicate);
+    }
+
+    @Override
     public <R> ScheduledTask<R> schedule(Callable<R> callable) {
         SingleExecutorScheduledTask<R> task = new SingleExecutorScheduledTask<>(callable);
         task.setScheduledFuture(this.executorService.schedule(task, 0, TimeUnit.MILLISECONDS));
@@ -90,7 +99,12 @@ public class ExecutorScheduler implements Scheduler {
 
     @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delay, Duration interval) {
-        RepeatedExecutorScheduledTask<R> task = new RepeatedExecutorScheduledTask<>(callback);
+        return this.scheduleAtFixedRate(callback, delay, interval, RepeatPredicate.empty());
+    }
+
+    @Override
+    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delay, Duration interval, RepeatPredicate<R> predicate) {
+        RepeatedExecutorScheduledTask<R> task = new RepeatedExecutorScheduledTask<>(callback, predicate);
         task.setScheduledFuture(this.executorService.scheduleAtFixedRate(task, delay.toMillis(), interval.toMillis(), TimeUnit.MILLISECONDS));
 
         return task;

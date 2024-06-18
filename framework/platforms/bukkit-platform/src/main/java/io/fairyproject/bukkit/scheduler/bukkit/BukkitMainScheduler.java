@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.scheduler.bukkit;
 
 import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Bukkit;
@@ -53,8 +54,8 @@ public class BukkitMainScheduler extends BukkitAbstractScheduler {
     }
 
     @Override
-    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
-        BukkitRepeatedScheduledTask<R> task = new BukkitRepeatedScheduledTask<>(callback);
+    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks, RepeatPredicate<R> predicate) {
+        BukkitRepeatedScheduledTask<R> task = new BukkitRepeatedScheduledTask<>(callback, predicate);
         task.setBukkitTask(Bukkit.getScheduler().runTaskTimer(bukkitPlugin, task, delayTicks, intervalTicks));
 
         return task;

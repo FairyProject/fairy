@@ -24,6 +24,7 @@
 
 package io.fairyproject.scheduler.executor;
 
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 
 import java.util.concurrent.Callable;
@@ -31,9 +32,11 @@ import java.util.concurrent.Callable;
 public class RepeatedExecutorScheduledTask<R> extends ExecutorScheduledTask<R> {
 
     private final Callable<TaskResponse<R>> callable;
+    private final RepeatPredicate<R> predicate;
 
-    public RepeatedExecutorScheduledTask(Callable<TaskResponse<R>> callable) {
+    public RepeatedExecutorScheduledTask(Callable<TaskResponse<R>> callable, RepeatPredicate<R> predicate) {
         this.callable = callable;
+        this.predicate = predicate;
     }
 
     @Override
@@ -58,6 +61,10 @@ public class RepeatedExecutorScheduledTask<R> extends ExecutorScheduledTask<R> {
                     scheduledFuture.cancel(false);
                     break;
                 case CONTINUE:
+                    if (!predicate.shouldContinue(this)) {
+                        scheduledFuture.cancel(false);
+                        future.complete(predicate.getDefaultValue());
+                    }
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + result.getState());

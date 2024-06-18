@@ -26,6 +26,7 @@ package io.fairyproject.bukkit.scheduler.bukkit;
 
 import io.fairyproject.log.Log;
 import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
@@ -39,6 +40,7 @@ public class BukkitRepeatedScheduledTask<R> implements ScheduledTask<R>, Runnabl
 
     private final CompletableFuture<R> future = new CompletableFuture<>();
     private final Callable<TaskResponse<R>> callable;
+    private final RepeatPredicate<R> predicate;
 
     @Setter
     private BukkitTask bukkitTask;
@@ -70,6 +72,10 @@ public class BukkitRepeatedScheduledTask<R> implements ScheduledTask<R>, Runnabl
                     bukkitTask.cancel();
                     break;
                 case CONTINUE:
+                    if (!predicate.shouldContinue(this)) {
+                        bukkitTask.cancel();
+                        future.complete(predicate.getDefaultValue());
+                    }
                     break;
                 default:
                     throw new IllegalStateException("Unexpected value: " + response.getState());

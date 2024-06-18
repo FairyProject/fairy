@@ -27,6 +27,7 @@ package io.fairyproject.bukkit.scheduler.folia;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCMillisBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 import io.papermc.paper.threadedregions.scheduler.AsyncScheduler;
 import org.bukkit.Bukkit;
@@ -62,11 +63,16 @@ public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMil
     }
 
     @Override
-    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delayTicks, Duration intervalTicks) {
-        FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
+    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delayTicks, Duration intervalTicks, RepeatPredicate<R> repeatPredicate) {
+        FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback, repeatPredicate);
         io.papermc.paper.threadedregions.scheduler.ScheduledTask rawScheduledTask = scheduler.runAtFixedRate(bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS);
         task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 
         return task;
+    }
+
+    @Override
+    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks, RepeatPredicate<R> predicate) {
+        return scheduleAtFixedRate(callback, Duration.ofMillis(delayTicks * 50), Duration.ofMillis(intervalTicks * 50), predicate);
     }
 }

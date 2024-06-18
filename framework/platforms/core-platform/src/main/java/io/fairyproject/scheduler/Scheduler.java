@@ -24,6 +24,7 @@
 
 package io.fairyproject.scheduler;
 
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,11 +42,15 @@ public interface Scheduler extends Executor {
 
     ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, Duration delay, Duration interval);
 
+    ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, Duration delay, Duration interval, RepeatPredicate<?> predicate);
+
     <R> ScheduledTask<R> schedule(Callable<R> callable);
 
     <R> ScheduledTask<R> schedule(Callable<R> callable, Duration delay);
 
     <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delay, Duration interval);
+
+    <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delay, Duration interval, RepeatPredicate<R> predicate);
 
     @Override
     default void execute(@NotNull Runnable runnable) {

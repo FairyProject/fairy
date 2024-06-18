@@ -25,6 +25,7 @@
 package io.fairyproject.mc.scheduler;
 
 import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 
 import java.time.Duration;
@@ -40,12 +41,20 @@ public interface MCTickBasedScheduler extends MCScheduler {
         return scheduleAtFixedRate(runnable, duration.toMillis() / MILLISECONDS_PER_TICK, interval.toMillis() / MILLISECONDS_PER_TICK);
     }
 
+    default ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, Duration duration, Duration interval, RepeatPredicate<?> predicate) {
+        return scheduleAtFixedRate(runnable, duration.toMillis() / MILLISECONDS_PER_TICK, interval.toMillis() / MILLISECONDS_PER_TICK, predicate);
+    }
+
     default <R> ScheduledTask<R> schedule(Callable<R> callable, Duration duration) {
         return schedule(callable, duration.toMillis() / MILLISECONDS_PER_TICK);
     }
 
     default <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration duration, Duration interval) {
         return scheduleAtFixedRate(callback, duration.toMillis() / MILLISECONDS_PER_TICK, interval.toMillis() / MILLISECONDS_PER_TICK);
+    }
+
+    default <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration duration, Duration interval, RepeatPredicate<R> predicate) {
+        return scheduleAtFixedRate(callback, duration.toMillis() / MILLISECONDS_PER_TICK, interval.toMillis() / MILLISECONDS_PER_TICK, predicate);
     }
 
 }
