@@ -41,9 +41,10 @@ import io.fairyproject.mc.nametag.update.NameTagUpdate;
 import io.fairyproject.mc.nametag.update.SinglePlayerNameTagUpdate;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.registry.player.MCPlayerRegistry;
-import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.metadata.MetadataKey;
+import io.fairyproject.scheduler.executor.ExecutorScheduler;
 import io.fairyproject.util.Utility;
+import io.fairyproject.util.thread.NamedThreadFactory;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -65,9 +66,13 @@ public class NameTagService {
     private final AtomicInteger teamId = new AtomicInteger(0);
     private final Map<NameTag, NameTagData> nameTagData = new ConcurrentHashMap<>();
     private final List<NameTagAdapter> nameTagAdapters = new LinkedList<>();
-    
+    private final ExecutorScheduler scheduler = new ExecutorScheduler(NamedThreadFactory.builder()
+            .name("nametag-update")
+            .daemon(true)
+            .uncaughtExceptionHandler((t, e) -> Log.error("An error occurred while running async task", e))
+            .build());
+
     private final ContainerContext containerContext;
-    private final MCSchedulerProvider mcSchedulerProvider;
     private final MCPlayerRegistry mcPlayerRegistry;
 
     @PreInitialize
@@ -80,7 +85,7 @@ public class NameTagService {
     }
 
     private CompletableFuture<?> runAsync(Runnable runnable) {
-        return this.mcSchedulerProvider.getAsyncScheduler().schedule(() -> {
+        return this.scheduler.schedule(() -> {
             try {
                 runnable.run();
             } catch (Throwable throwable) {

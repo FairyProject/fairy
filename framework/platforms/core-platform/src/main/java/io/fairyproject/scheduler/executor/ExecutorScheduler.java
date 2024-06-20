@@ -29,10 +29,7 @@ import io.fairyproject.scheduler.Scheduler;
 import io.fairyproject.scheduler.response.TaskResponse;
 
 import java.time.Duration;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class ExecutorScheduler implements Scheduler {
 
@@ -41,6 +38,10 @@ public class ExecutorScheduler implements Scheduler {
 
     public ExecutorScheduler(ThreadFactory threadFactory) {
         this.executorService = java.util.concurrent.Executors.newSingleThreadScheduledExecutor(runnable -> this.thread = threadFactory.newThread(runnable));
+    }
+
+    public ExecutorScheduler(ScheduledExecutorService executorService) {
+        this.executorService = executorService;
     }
 
     @Override
