@@ -21,6 +21,7 @@ dependencies {
         exclude(group = "org.yaml", module = "snakeyaml")
     }
 
+    testImplementation("com.github.seeseemelk:MockBukkit-v1.20:3.89.0")
     testImplementation("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT") {
         exclude(group = "org.yaml", module = "snakeyaml")
         exclude(group = "net.kyori")
