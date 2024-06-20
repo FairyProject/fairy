@@ -176,7 +176,7 @@ open class RunServerPlugin : Plugin<Project> {
                 it.dependsOn(prepareTaskName)
 
                 it.group = group
-                it.args = extension.args.get()
+                it.jvmArgs = extension.args.get()
                 if (extension.versionIsSameOrNewerThan(1, 15)) {
                     it.args("--nogui")
                 }
