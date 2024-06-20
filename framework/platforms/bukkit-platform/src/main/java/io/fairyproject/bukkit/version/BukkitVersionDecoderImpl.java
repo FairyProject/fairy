@@ -34,11 +34,11 @@ public class BukkitVersionDecoderImpl implements BukkitVersionDecoder {
     @Override
     public MCVersion decode(Server server) {
         String version = server.getVersion();
-        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+\\.\\d+)");
+        Pattern pattern = Pattern.compile("MC: (\\d+\\.\\d+(\\.\\d+)?)");
         Matcher matcher = pattern.matcher(version);
         if (matcher.find()) {
             String[] versionSplit = matcher.group(1).split("\\.");
-            return MCVersion.of(Integer.parseInt(versionSplit[0]), Integer.parseInt(versionSplit[1]), Integer.parseInt(versionSplit[2]));
+            return MCVersion.of(Integer.parseInt(versionSplit[0]), Integer.parseInt(versionSplit[1]), versionSplit.length > 2 ? Integer.parseInt(versionSplit[2]) : 0);
         }
 
         throw new IllegalArgumentException("Unknown version: " + version);
