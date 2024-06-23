@@ -28,6 +28,7 @@ import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 
 import java.util.concurrent.Callable;
@@ -72,11 +73,11 @@ public abstract class FoliaAbstractScheduler implements MCTickBasedScheduler {
     }
 
     @Override
-    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks) {
+    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks, RepeatPredicate<?> predicate) {
         return scheduleAtFixedRate(() -> {
             runnable.run();
             return TaskResponse.continueTask();
-        }, delayTicks, intervalTicks);
+        }, delayTicks, intervalTicks, predicate);
     }
 
 }

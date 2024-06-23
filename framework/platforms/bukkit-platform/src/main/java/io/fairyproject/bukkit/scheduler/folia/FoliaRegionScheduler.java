@@ -27,6 +27,7 @@ package io.fairyproject.bukkit.scheduler.folia;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 import io.papermc.paper.threadedregions.scheduler.RegionScheduler;
 import org.bukkit.Bukkit;
@@ -80,8 +81,8 @@ public class FoliaRegionScheduler extends FoliaAbstractScheduler implements MCTi
     }
 
     @Override
-    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
-        FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback);
+    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks, RepeatPredicate<R> predicate) {
+        FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback, predicate);
         io.papermc.paper.threadedregions.scheduler.ScheduledTask rawScheduledTask = scheduler.runAtFixedRate(bukkitPlugin, world, x, z, task, delayTicks, intervalTicks);
         task.setScheduledTask(WrapperScheduledTask.of(rawScheduledTask));
 

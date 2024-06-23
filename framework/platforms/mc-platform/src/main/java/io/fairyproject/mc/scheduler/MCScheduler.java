@@ -26,6 +26,7 @@ package io.fairyproject.mc.scheduler;
 
 import io.fairyproject.scheduler.ScheduledTask;
 import io.fairyproject.scheduler.Scheduler;
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 
 import java.util.concurrent.Callable;
@@ -37,10 +38,18 @@ public interface MCScheduler extends Scheduler {
 
     ScheduledTask<?> schedule(Runnable runnable, long delayTicks);
 
-    ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks);
+    default ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks) {
+        return this.scheduleAtFixedRate(runnable, delayTicks, intervalTicks, RepeatPredicate.empty());
+    }
+
+    ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks, RepeatPredicate<?> predicate);
 
     <R> ScheduledTask<R> schedule(Callable<R> callable, long delayTicks);
 
-    <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks);
+    default <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
+        return this.scheduleAtFixedRate(callback, delayTicks, intervalTicks, RepeatPredicate.empty());
+    }
+
+    <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks, RepeatPredicate<R> predicate);
 
 }
