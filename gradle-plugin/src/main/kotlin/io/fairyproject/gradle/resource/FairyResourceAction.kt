@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.jvm.tasks.Jar
 import org.objectweb.asm.ClassReader
+import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import java.io.BufferedOutputStream
 import java.util.jar.JarEntry
@@ -39,7 +40,11 @@ open class FairyResourceAction : Action<Task> {
                     // Avoid module-info
                     val isMainClass = mainClassInterface?.name == it.classNode.superName || hasFairyLaunch(it)
                     if (isMainClass &&
-                        !it.classNode.name.contains("module-info")) {
+                        !it.classNode.name.contains("module-info") &&
+                        // Not abstract
+                        it.classNode.access and Opcodes.ACC_ABSTRACT == 0 &&
+                        // Not interface
+                        it.classNode.access and Opcodes.ACC_INTERFACE == 0) {
                         // the super class was main class interface, so it's main class
                         classMapper[ClassType.MAIN_CLASS] = it
                     }
