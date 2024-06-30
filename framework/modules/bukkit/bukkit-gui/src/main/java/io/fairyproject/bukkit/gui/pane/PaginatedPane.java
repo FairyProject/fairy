@@ -2,7 +2,7 @@ package io.fairyproject.bukkit.gui.pane;
 
 import io.fairyproject.bukkit.gui.pane.mapping.PaneMapping;
 import io.fairyproject.bukkit.gui.slot.GuiSlot;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.List;

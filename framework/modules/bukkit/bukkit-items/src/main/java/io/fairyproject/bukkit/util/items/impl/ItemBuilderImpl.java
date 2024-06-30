@@ -205,7 +205,7 @@ public class ItemBuilderImpl implements ItemBuilder {
     @Override
     public ItemBuilderImpl shiny() {
         return this.editMeta(meta -> {
-            meta.addEnchant(Enchantment.PROTECTION_FIRE, 1, false);
+            meta.addEnchant(Enchantment.UNBREAKING, 1, false);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         });
     }

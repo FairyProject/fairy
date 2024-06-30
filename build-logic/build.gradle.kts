@@ -18,9 +18,9 @@ dependencies {
     compileOnly("org.jetbrains:annotations:23.0.0")
     annotationProcessor("org.jetbrains:annotations:23.0.0")
 
-    implementation("com.google.code.gson:gson:2.8.6")
-    implementation("com.google.guava:guava:31.0.1-jre")
+    implementation("com.google.code.gson:gson:2.8.9")
+    implementation("com.google.guava:guava:32.0.0-android")
     implementation("org.apache.commons:commons-lang3:3.12.0")
-    implementation("org.ow2.asm:asm:9.3")
-    implementation("org.ow2.asm:asm-commons:9.3")
+    implementation("org.ow2.asm:asm:9.7")
+    implementation("org.ow2.asm:asm-commons:9.7")
 }

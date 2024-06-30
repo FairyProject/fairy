@@ -11,7 +11,6 @@ repositories {
     mavenCentral()
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven ("https://repo.imanity.dev/imanity-libraries/")
-    maven ("https://nexus.funkemunky.cc/content/repositories/releases/")
     maven ("https://jitpack.io")
     // Mojang authlib repository
     maven {

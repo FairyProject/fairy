@@ -1,7 +1,7 @@
 package io.fairyproject.bukkit.gui.pane.mapping;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.BitSet;
