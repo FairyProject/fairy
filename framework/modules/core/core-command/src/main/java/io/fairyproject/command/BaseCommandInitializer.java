@@ -8,17 +8,15 @@ import io.fairyproject.command.completion.ArgCompletionHolderStringArray;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.log.Log;
 import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.reflect.Reflect;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.invoke.MethodHandle;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -120,7 +118,7 @@ public class BaseCommandInitializer {
                             Log.error("Duplicate sub command name " + name);
                         } else {
                             baseCommand.subCommands
-                                    .computeIfAbsent(name.toLowerCase(), k -> ConcurrentHashMap.newKeySet())
+                                    .computeIfAbsent(name.toLowerCase(), k -> new CopyOnWriteArraySet<>())
                                     .add(commandMeta);
                             register = true;
                         }
