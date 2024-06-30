@@ -116,7 +116,7 @@ public class MockByteBufOperator implements ByteBufOperator {
 
     @Override
     public void writeMedium(Object o, int i) {
-
+        // do nothing
     }
 
     @Override
