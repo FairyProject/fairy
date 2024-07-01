@@ -85,6 +85,11 @@ public class MockByteBufOperator implements ByteBufOperator {
     }
 
     @Override
+    public int readMedium(Object o) {
+        return 0;
+    }
+
+    @Override
     public int readInt(Object o) {
         return 0;
     }
@@ -106,6 +111,11 @@ public class MockByteBufOperator implements ByteBufOperator {
 
     @Override
     public void writeShort(Object o, int i) {
+        // do nothing
+    }
+
+    @Override
+    public void writeMedium(Object o, int i) {
         // do nothing
     }
 

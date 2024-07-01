@@ -43,6 +43,16 @@ public class BukkitVersionDecoderImplTest {
     }
 
     @Test
+    public void decodeWithTwoDigits_shouldParseCorrectly() {
+        Server server = Mockito.mock(Server.class);
+        Mockito.when(server.getVersion()).thenReturn("Test (MC: 1.17)");
+        BukkitVersionDecoder decoder = new BukkitVersionDecoderImpl();
+        MCVersion version = decoder.decode(server);
+
+        Assertions.assertEquals(MCVersion.of(1, 17, 0), version);
+    }
+
+    @Test
     public void unknownVersion_shouldThrowException() {
         Server server = Mockito.mock(Server.class);
         Mockito.when(server.getVersion()).thenReturn("Unknown thing kek");

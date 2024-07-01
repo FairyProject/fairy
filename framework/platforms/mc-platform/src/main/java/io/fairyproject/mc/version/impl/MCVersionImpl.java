@@ -42,7 +42,10 @@ public class MCVersionImpl implements MCVersion {
 
     @Override
     public String getFormatted() {
-        return String.format("%d.%d.%d", major, minor, patch);
+        if (patch > 0) {
+            return String.format("%d.%d.%d", major, minor, patch);
+        }
+        return String.format("%d.%d", major, minor);
     }
 
     @Override

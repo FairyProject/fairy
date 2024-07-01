@@ -181,9 +181,10 @@ public class SidebarService {
 
     private SidebarData writeProviderToData(MCPlayer player) {
         for (SidebarProvider provider : this.providers) {
+            boolean shouldDisplay = provider.shouldDisplay(player);
             Component title = provider.getTitle(player);
             List<SidebarLine> lines = provider.getLines(player);
-            if (title != null && lines != null && !lines.isEmpty()) {
+            if (shouldDisplay && title != null && lines != null && !lines.isEmpty()) {
                 return new SidebarData(provider, title, lines);
             }
         }

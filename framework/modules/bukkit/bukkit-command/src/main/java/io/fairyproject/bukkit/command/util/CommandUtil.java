@@ -41,21 +41,6 @@ public class CommandUtil {
     }
 
     public ItemStack get(final String input) {
-        // TODO - remove support for number
-        if (CommandUtil.isInteger(input)) {
-            return XMaterial.matchXMaterial(Integer.parseInt(input), (byte) 0).orElse(XMaterial.AIR).parseItem();
-        }
-
-        if (input.contains(":")) {
-            final String[] names = input.split(":");
-            if (CommandUtil.isShort(names[1])) {
-                if (CommandUtil.isInteger(names[0])) {
-                    return XMaterial.matchXMaterial(Integer.parseInt(input), (byte) 0).orElse(XMaterial.AIR).parseItem();
-                }
-            } else
-                return null;
-        }
-
         XMaterial material = XMaterial.matchXMaterial(input).orElse(null);
         if (material == null) {
             return null;

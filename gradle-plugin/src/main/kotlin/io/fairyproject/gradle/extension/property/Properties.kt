@@ -57,4 +57,10 @@ class BukkitProperties : Properties(PlatformType.BUKKIT) {
         list
     }
 
+    val libraries: MutableList<String> by lazy {
+        val list = mutableListOf<String>()
+        this["libraries"] = list
+        list
+    }
+
 }

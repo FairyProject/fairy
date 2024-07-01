@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import io.fairyproject.bootstrap.PluginFileReader;
 import io.fairyproject.bootstrap.instance.PluginInstance;
 import io.fairyproject.bootstrap.platform.PlatformBootstrap;
+import io.fairyproject.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPluginLoader;
@@ -91,15 +92,18 @@ class BukkitPluginTest {
 
         @Test
         void testFullLoad() {
+            Plugin plugin = Mockito.mock(Plugin.class);
+
             JsonObject file = new JsonObject();
             Mockito.when(platformBootstrap.preload()).thenReturn(true);
             Mockito.when(pluginFileReader.read(Mockito.any())).thenReturn(file);
+            Mockito.when(pluginInstance.getPlugin()).thenReturn(plugin);
 
             bukkitPlugin.onLoad();
 
             assertSame(bukkitPlugin, BukkitPlugin.INSTANCE);
             Mockito.verify(pluginInstance).init(file);
-            Mockito.verify(platformBootstrap).load(Mockito.any());
+            Mockito.verify(platformBootstrap).load(plugin);
             Mockito.verify(pluginInstance).onLoad();
             Mockito.verify(pluginManager, Mockito.never()).disablePlugin(bukkitPlugin);
         }

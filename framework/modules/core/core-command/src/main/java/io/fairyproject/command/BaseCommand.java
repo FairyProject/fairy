@@ -40,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public abstract class BaseCommand implements ICommand {
 
@@ -148,7 +149,7 @@ public abstract class BaseCommand implements ICommand {
     protected void addSubCommand(@NotNull String[] commandNames, @NotNull ICommand subCommand) {
         for (String commandName : commandNames) {
             this.subCommands
-                    .computeIfAbsent(commandName.toLowerCase(), k -> ConcurrentHashMap.newKeySet())
+                    .computeIfAbsent(commandName.toLowerCase(), k -> new CopyOnWriteArraySet<>())
                     .add(subCommand);
         }
         this.maxParameterCount = Math.max(subCommand.getMaxParameterCount(), this.maxParameterCount);

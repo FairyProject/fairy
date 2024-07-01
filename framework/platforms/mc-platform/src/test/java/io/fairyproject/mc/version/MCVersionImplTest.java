@@ -68,6 +68,13 @@ public class MCVersionImplTest {
     }
 
     @Test
+    public void getFormatted_minorOnly() {
+        MCVersion version = MCVersion.of(2);
+
+        assertEquals("1.2", version.getFormatted());
+    }
+
+    @Test
     public void isHigherThan() {
         MCVersionImpl version = new MCVersionImpl(1, 17, 1);
 

@@ -24,6 +24,7 @@
 
 package io.fairyproject.bukkit.plugin.impl;
 
+import be.seeseemelk.mockbukkit.MockBukkit;
 import env.fake.FakeServer;
 import io.fairyproject.mock.MockPlugin;
 import io.fairyproject.plugin.Plugin;
@@ -32,6 +33,7 @@ import org.bukkit.Server;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -49,16 +51,23 @@ class ClassLoaderJavaPluginIdentifierTest {
 
     @BeforeEach
     void setUp() {
+        MockBukkit.mock();
+
         Server server = Mockito.mock(Server.class);
         PluginManager pluginManager = Mockito.mock(PluginManager.class);
         Mockito.when(server.getPluginManager()).thenReturn(pluginManager);
 
-        javaPlugin = Mockito.mock(JavaPlugin.class);
+        javaPlugin = MockBukkit.createMockPlugin();
         Mockito.when(pluginManager.getPlugin("test")).thenReturn(javaPlugin);
 
         classLoaderJavaPluginIdentifier = new ClassLoaderJavaPluginIdentifier(server);
 
         pluginClassLoader = new SamplePluginClassLoader(new MockPlugin(), getClass());
+    }
+
+    @AfterEach
+    void tearDown() {
+        MockBukkit.unmock();
     }
 
     @Test

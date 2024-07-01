@@ -24,8 +24,8 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
-import io.fairyproject.container.object.Obj;
-import org.apache.commons.lang.StringUtils;
+import io.fairyproject.container.InjectableComponent;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -34,7 +34,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 
-@Obj
+@InjectableComponent
 public class WorldParameterTransformer extends BukkitArgTransformer<World> {
 
 	@Override

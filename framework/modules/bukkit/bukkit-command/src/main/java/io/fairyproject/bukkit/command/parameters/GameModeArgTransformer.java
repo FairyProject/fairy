@@ -24,11 +24,11 @@
 
 package io.fairyproject.bukkit.command.parameters;
 
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
-import io.fairyproject.container.object.Obj;
 import io.fairyproject.mc.MCServer;
 import io.fairyproject.mc.version.MCVersion;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Obj
+@InjectableComponent
 public class GameModeArgTransformer extends BukkitArgTransformer<GameMode> {
 
 	private final Map<String, GameMode> gamemodeMap = new HashMap<>();

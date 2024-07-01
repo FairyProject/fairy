@@ -24,9 +24,10 @@
 
 package io.fairyproject.bukkit.util.items.impl;
 
-import com.cryptomorin.xseries.SkullUtils;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.profiles.builder.XSkull;
+import com.cryptomorin.xseries.profiles.objects.Profileable;
 import io.fairyproject.bukkit.nbt.NBTKey;
 import io.fairyproject.bukkit.nbt.NBTModifier;
 import io.fairyproject.bukkit.util.items.ItemBuilder;
@@ -186,7 +187,7 @@ public class ItemBuilderImpl implements ItemBuilder {
     @Override
     public ItemBuilderImpl skull(String owner) {
         if (XMaterial.PLAYER_HEAD.isSimilar(itemStack)) {
-            return editMeta(itemMeta -> SkullUtils.applySkin(itemMeta, owner));
+            return editMeta(itemMeta -> XSkull.of(itemMeta).profile(Profileable.username(owner)).apply());
         } else {
             throw new IllegalArgumentException("skull() only applicable for human skull item!");
         }
@@ -204,7 +205,7 @@ public class ItemBuilderImpl implements ItemBuilder {
     @Override
     public ItemBuilderImpl shiny() {
         return this.editMeta(meta -> {
-            meta.addEnchant(Enchantment.PROTECTION_FIRE, 1, false);
+            meta.addEnchant(Enchantment.UNBREAKING, 1, false);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         });
     }

@@ -23,6 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -59,8 +60,8 @@ public class HologramImpl implements Hologram {
         this.lines = new ArrayList<>();
         this.entities = new ArrayList<>();
         this.viewers = new ConcurrentHashMap<>();
-        this.attackHandlers = ConcurrentHashMap.newKeySet();
-        this.interactHandlers = ConcurrentHashMap.newKeySet();
+        this.attackHandlers = new CopyOnWriteArraySet<>();
+        this.interactHandlers = new CopyOnWriteArraySet<>();
     }
 
     @Override

@@ -1,15 +1,28 @@
+import composite.cleanTask
 import composite.publishTask
+import composite.testTask
 
-subprojects.forEach {
-    it.plugins.whenPluginAdded(CompositeSubprojectsAction(it))
-}
+subprojects.forEach { p ->
+    p.tasks.findByName("test")?.let {
+        tasks.testTask.dependsOn(it)
+    }
 
-/**
- * This class is used to add a dependency to the publishing task of the subprojects.
- */
-class CompositeSubprojectsAction(private val project: Project): Action<Plugin<*>> {
-    override fun execute(t: Plugin<*>) {
-        if (t is MavenPublishPlugin)
-            tasks.publishTask.dependsOn(project.tasks.getByName("publish"))
+    p.tasks.findByName("publish")?.let {
+        tasks.publishTask.dependsOn(it)
+    }
+
+    p.tasks.findByName("clean")?.let {
+        tasks.cleanTask.dependsOn(it)
+    }
+
+    p.tasks.whenTaskAdded {
+        if (name == "test")
+            tasks.testTask.dependsOn(this)
+
+        if (name == "publish")
+            tasks.publishTask.dependsOn(this)
+
+        if (name == "clean")
+            tasks.cleanTask.dependsOn(this)
     }
 }

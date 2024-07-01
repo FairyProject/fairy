@@ -31,9 +31,16 @@ class FairyResourceBukkitMeta : FairyResource {
         stringJoiner.add("description: ${project.description}");
         stringJoiner.add("main: ${classMapper[ClassType.BUKKIT_PLUGIN]!!.name.replace('/', '.')}")
         fairyExtension.bukkitProperties().forEach { key, value ->
-            if (value is List<*>)
-                stringJoiner.add("$key: [${value.joinToString(", ")}]")
-            else
+            if (value is List<*>) {
+                stringJoiner.add("$key:")
+                value.forEach {
+                    if (it is String) {
+                        stringJoiner.add("- \'$it\'")
+                    } else {
+                        stringJoiner.add("- $it")
+                    }
+                }
+            } else
                 stringJoiner.add("$key: $value")
         }
 
