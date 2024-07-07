@@ -31,6 +31,7 @@ import io.fairyproject.container.object.Obj;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
@@ -44,7 +45,7 @@ import io.fairyproject.bukkit.listener.events.Events;
 @RegisterAsListener
 public class CallEventListener implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onEntityDamage(EntityDamageEvent event) {
         Entity entity = event.getEntity();
         if (event instanceof EntityDamageByEntityEvent) {
