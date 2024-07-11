@@ -27,7 +27,7 @@ public class MCVersionMappingCacheImpl implements MCVersionMappingCache {
         File dataFolder = Fairy.getPlatform().getDataFolder();
         Path path = new File(dataFolder, "cache-protocol-versions.json").toPath();
         if (!Files.exists(path)) {
-            throw new IllegalStateException("No version mappings found in cache file");
+            return null;
         }
 
         try {
