@@ -30,6 +30,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.util.CoordXZ;
@@ -38,9 +39,9 @@ import io.fairyproject.bukkit.visual.event.PreHandleVisualClaimEvent;
 import io.fairyproject.bukkit.visual.event.PreHandleVisualEvent;
 import io.fairyproject.bukkit.visual.sender.VisualBlockSender;
 import io.fairyproject.bukkit.visual.type.VisualType;
+import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
 import io.fairyproject.container.PreDestroy;
-import io.fairyproject.container.Service;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.scheduler.MCSchedulerProvider;
 import io.fairyproject.mc.util.BlockPosition;
@@ -65,7 +66,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Predicate;
 
-@Service
+@InjectableComponent
+@RegisterAsListener
 public class VisualBlockService implements Listener {
 
     private final Table<UUID, VisualPosition, VisualBlock> table = HashBasedTable.create();
@@ -142,10 +144,7 @@ public class VisualBlockService implements Listener {
                         if (Math.abs(edge.getBlockZ() - toZ) > 7) {
                             continue;
                         }
-                        final Location location2 = edge.toLocation(location.getWorld());
-                        if (location2 == null) {
-                            continue;
-                        }
+                        Location location2 = edge.toLocation(location.getWorld());
                         for (int y = minHeight; y <= maxHeight; y++) {
                             positions.add(new VisualPosition(location2.getBlockX(), y, location2.getBlockZ(), player.getWorld().getName(), type));
                         }
@@ -208,6 +207,25 @@ public class VisualBlockService implements Listener {
                 final CoordXZ chunkPosition = new CoordXZ((byte) (x % 16), (byte) (z % 16));
                 synchronized (claimPositionTable) {
                     claimPositionTable.put(chunkPair, chunkPosition, claim);
+                }
+                claimCache.invalidate(worldPosition);
+            }
+        }
+    }
+
+    public void removeClaim(VisualBlockClaim claim) {
+        final World world = claim.getWorld();
+        final int minX = Math.min(claim.getMaxX(), claim.getMinX());
+        final int maxX = Math.max(claim.getMaxX(), claim.getMinX());
+        final int minZ = Math.min(claim.getMaxZ(), claim.getMinZ());
+        final int maxZ = Math.max(claim.getMaxZ(), claim.getMinZ());
+        for (int x = minX; x <= maxX; x++) {
+            for (int z = minZ; z <= maxZ; z++) {
+                final CoordinatePair worldPosition = new CoordinatePair(world, x, z);
+                final CoordinatePair chunkPair = new CoordinatePair(world, x >> 4, z >> 4);
+                final CoordXZ chunkPosition = new CoordXZ((byte) (x % 16), (byte) (z % 16));
+                synchronized (claimPositionTable) {
+                    claimPositionTable.remove(chunkPair, chunkPosition);
                 }
                 claimCache.invalidate(worldPosition);
             }

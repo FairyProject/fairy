@@ -97,6 +97,8 @@ public class StateMachineImpl implements StateMachine {
 
             this.current = state;
             StateConfig current = this.states.get(state);
+            if (current == null)
+                throw new IllegalStateException("State " + this.current + " is not registered");
             this.onStateStart(current, signal);
         });
         return previous;
