@@ -61,6 +61,7 @@ public class MCVersionMappingRegistry {
         try {
             JsonArray jsonElements = this.cache.read();
             if (jsonElements == null) {
+                Log.info("Cached version mappings not found, loading...");
                 jsonElements = loadAndWrite();
             }
 
@@ -76,7 +77,7 @@ public class MCVersionMappingRegistry {
                     Log.info("Cached version mappings loaded successfully!");
                 }
             } else {
-                Log.info("Cached version mappings loaded successfully!");
+                Log.info("Version mappings loaded successfully!");
             }
         } catch (IOException e) {
             Log.error("Failed to load version mappings...");
