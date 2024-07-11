@@ -24,11 +24,32 @@
 
 package io.fairyproject.mc.version;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 
 public class MCVersionMappingRegistryTest {
+
+    @Test
+    public void isCacheValid_shouldThrow() {
+        MCVersionMappingRegistry registry = new MCVersionMappingRegistry();
+        Assertions.assertThrows(IllegalArgumentException.class, registry::isCacheValid);
+    }
+
+    @Test
+    public void isCacheValid_latestExists_shouldReturnTrue() throws IOException {
+        MCVersionMappingRegistry registry = new MCVersionMappingRegistry();
+        JsonArray array = registry.getCache().load();
+        for (JsonElement jsonElement : array) {
+            JsonObject asJsonObject = jsonElement.getAsJsonObject();
+
+            registry.loadVersionFromMinecraftData(asJsonObject);
+        }
+        Assertions.assertTrue(registry.isCacheValid());
+    }
 
     @Nested
     class FindMapping {
@@ -85,14 +106,19 @@ public class MCVersionMappingRegistryTest {
     }
 
     @Nested
-    class LoadFromInternet {
+    class Read {
 
         private MCVersionMappingRegistry registry;
 
         @BeforeEach
         public void setup() throws IOException {
             this.registry = new MCVersionMappingRegistry();
-            this.registry.loadFromInternet();
+            JsonArray array = this.registry.getCache().load();
+            for (JsonElement jsonElement : array) {
+                JsonObject asJsonObject = jsonElement.getAsJsonObject();
+
+                this.registry.loadVersionFromMinecraftData(asJsonObject);
+            }
         }
 
         @Test

@@ -28,22 +28,17 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.stream.JsonReader;
 import io.fairyproject.Debug;
-import io.fairyproject.Fairy;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.log.Log;
 import io.fairyproject.mc.util.VersionFormatUtil;
+import io.fairyproject.mc.version.cache.MCVersionMappingCache;
+import io.fairyproject.mc.version.cache.MCVersionMappingCacheImpl;
+import lombok.Getter;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeSet;
@@ -51,7 +46,12 @@ import java.util.TreeSet;
 @InjectableComponent
 public class MCVersionMappingRegistry {
 
+    // Hardcoded latest version to validate cache
+    private static final MCVersion LATEST_VERSION = MCVersion.of(1, 21, 0);
+
     private final Gson gson = new Gson();
+    @Getter
+    private final MCVersionMappingCache cache = new MCVersionMappingCacheImpl(gson);
     private final Map<Integer, MCVersionMapping> mappingByVersion = new HashMap<>();
     private final Map<Integer, MCVersionMapping> mappingByProtocol = new HashMap<>();
     private final TreeSet<Integer> versions = new TreeSet<>();
@@ -59,45 +59,50 @@ public class MCVersionMappingRegistry {
     @PreInitialize
     public void onPreInitialize() throws IOException {
         try {
-            JsonArray jsonElements = this.loadFromInternet();
-            if (Debug.UNIT_TEST)
-                return;
+            JsonArray jsonElements = this.cache.read();
+            if (jsonElements == null) {
+                Log.info("Cached version mappings not found, loading...");
+                jsonElements = loadAndWrite();
+            }
 
-            this.writeToCacheFile(jsonElements);
-        } catch (IOException e) {
-            Log.error("Failed to load version mappings from internet, loading from local resources...");
-            this.readFromCacheFile();
-        }
-    }
+            readAll(jsonElements);
+            if (!this.isCacheValid()) {
+                Log.info("Cached version mappings are outdated, reloading...");
+                jsonElements = loadAndWrite();
 
-    private void readFromCacheFile() {
-        File dataFolder = Fairy.getPlatform().getDataFolder();
-        Path path = new File(dataFolder, "cache-protocol-versions.json").toPath();
-        if (!Files.exists(path)) {
-            throw new IllegalStateException("No version mappings found in cache file");
-        }
-
-        try {
-            JsonArray jsonElements = gson.fromJson(new JsonReader(new InputStreamReader(Files.newInputStream(path))), JsonArray.class);
-            for (JsonElement element : jsonElements) {
-                JsonObject object = element.getAsJsonObject();
-                this.loadVersionFromMinecraftData(object);
+                readAll(jsonElements);
+                if (!this.isCacheValid()) {
+                    Log.error("Failed to load version mappings...");
+                } else {
+                    Log.info("Cached version mappings loaded successfully!");
+                }
+            } else {
+                Log.info("Version mappings loaded successfully!");
             }
         } catch (IOException e) {
-            Log.error("Failed to read version mappings from file", e);
+            Log.error("Failed to load version mappings...");
         }
     }
 
-    private void writeToCacheFile(JsonArray jsonElements) {
-        File dataFolder = Fairy.getPlatform().getDataFolder();
-        Path path = new File(dataFolder, "cache-protocol-versions.json").toPath();
-        try {
-            if (Files.exists(path))
-                Files.delete(path);
-            Files.write(path, gson.toJson(jsonElements).getBytes(), StandardOpenOption.CREATE, StandardOpenOption.WRITE);
-        } catch (IOException e) {
-            Log.error("Failed to write version mappings to file", e);
+    private @NotNull JsonArray loadAndWrite() throws IOException {
+        JsonArray jsonElements;
+        jsonElements = this.cache.load();
+        if (!Debug.UNIT_TEST)
+            this.cache.write(jsonElements);
+        return jsonElements;
+    }
+
+    private void readAll(JsonArray jsonElements) {
+        for (JsonElement jsonElement : jsonElements) {
+            JsonObject object = jsonElement.getAsJsonObject();
+
+            this.loadVersionFromMinecraftData(object);
         }
+    }
+
+    protected boolean isCacheValid() {
+        MCVersionMapping mapping = this.findMapping(LATEST_VERSION);
+        return mapping != null;
     }
 
     public MCVersionMapping findMapping(int major, int minor, int patch) {
@@ -121,19 +126,6 @@ public class MCVersionMappingRegistry {
         this.mappingByVersion.put(version, mapping);
         this.mappingByProtocol.put(mapping.getProtocolVersion(), mapping);
         this.versions.add(version);
-    }
-
-    public JsonArray loadFromInternet() throws IOException {
-        URLConnection urlConnection = new URL("https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/common/protocolVersions.json").openConnection();
-        // load the output of the connection into a json array
-        JsonArray jsonArray = gson.fromJson(new JsonReader(new InputStreamReader(urlConnection.getInputStream())), JsonArray.class);
-        // iterate over the array and register each version
-        for (JsonElement element : jsonArray) {
-            JsonObject object = element.getAsJsonObject();
-            this.loadVersionFromMinecraftData(object);
-        }
-
-        return jsonArray;
     }
 
     protected void loadVersionFromMinecraftData(JsonObject object) {
