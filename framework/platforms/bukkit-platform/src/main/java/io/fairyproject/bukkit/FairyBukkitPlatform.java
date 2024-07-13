@@ -28,7 +28,7 @@ import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
-import io.fairyproject.bukkit.impl.BukkitPluginHandler;
+import io.fairyproject.bukkit.plugin.BukkitPluginHandler;
 import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
@@ -82,9 +82,10 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         }
 
         PluginManager.initialize(new BukkitPluginHandler());
-        // Use log4j for bukkit platform
-        if (!Debug.UNIT_TEST)
+        if (!Debug.UNIT_TEST) {
+            // Use log4j for bukkit platform
             Log.set(new Log4jLogger());
+        }
     }
 
     @Override

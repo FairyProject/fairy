@@ -7,6 +7,7 @@ import io.fairyproject.mc.MCEntity;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.util.BlockPosition;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -17,6 +18,8 @@ public class MCMetadata {
     private static final MetaRegistry<String> WORLDS = new MetaRegistryImpl<>();
     private static final MetaRegistry<UUID> ENTITIES = new MetaRegistryImpl<>();
     private static final MetaRegistry<Long> BLOCKS = new MetaRegistryImpl<>();
+    @ApiStatus.Internal
+    public static MCMetadataBridge BRIDGE;
 
     public static MetaRegistry<UUID> getPlayerRegistry() {
         return PLAYERS;
@@ -73,7 +76,7 @@ public class MCMetadata {
         } else if (holder instanceof BlockPosition) {
             return provideBlock((BlockPosition) holder);
         }
-        return null;
+        return BRIDGE.provide(holder);
     }
 
     public static void clear() {
