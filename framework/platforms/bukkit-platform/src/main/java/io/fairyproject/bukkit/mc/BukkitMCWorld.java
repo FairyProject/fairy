@@ -1,6 +1,5 @@
 package io.fairyproject.bukkit.mc;
 
-import io.fairyproject.bukkit.FairyBukkitPlatform;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.event.GlobalEventNode;

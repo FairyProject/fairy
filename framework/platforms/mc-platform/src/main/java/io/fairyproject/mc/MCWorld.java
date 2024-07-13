@@ -1,6 +1,8 @@
 package io.fairyproject.mc;
 
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.event.EventNode;
+import io.fairyproject.mc.data.MCMetadata;
 import io.fairyproject.mc.event.trait.MCWorldEvent;
 import io.fairyproject.mc.util.AudienceProxy;
 import io.fairyproject.metadata.MetadataMap;
@@ -32,7 +34,12 @@ public interface MCWorld extends AudienceProxy {
 
     EventNode<MCWorldEvent> getEventNode();
 
+    @Deprecated
     MetadataMap getMetadata();
+
+    default MetaStorage getMetaStorage() {
+        return MCMetadata.provideWorld(this.getName());
+    }
 
     List<MCPlayer> getPlayers();
 

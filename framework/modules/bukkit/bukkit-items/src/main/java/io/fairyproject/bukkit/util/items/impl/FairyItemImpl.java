@@ -4,8 +4,8 @@ import io.fairyproject.bukkit.util.items.FairyItem;
 import io.fairyproject.bukkit.util.items.FairyItemRegistry;
 import io.fairyproject.bukkit.util.items.ItemBuilder;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.metadata.MetadataMap;
 import lombok.Getter;
 import lombok.NonNull;
 import org.bukkit.inventory.ItemStack;
@@ -20,7 +20,7 @@ public class FairyItemImpl implements FairyItem {
 
     private final FairyItemRegistry itemRegistry;
     private final String name;
-    private final MetadataMap metadataMap;
+    private final MetaStorage metaStorage;
     private final List<ItemBehaviour> behaviours;
     private final Function<MCPlayer, ItemBuilder> itemProvider;
 
@@ -29,12 +29,12 @@ public class FairyItemImpl implements FairyItem {
     public FairyItemImpl(
             @NonNull FairyItemRegistry itemRegistry,
             @NonNull String name,
-            @NonNull MetadataMap metadataMap,
+            @NonNull MetaStorage metaStorage,
             @NonNull List<ItemBehaviour> behaviours,
             @NonNull Function<MCPlayer, ItemBuilder> itemProvider) {
         this.itemRegistry = itemRegistry;
         this.name = name;
-        this.metadataMap = metadataMap;
+        this.metaStorage = metaStorage;
         this.behaviours = behaviours;
         this.itemProvider = itemProvider;
         this.closed = true;

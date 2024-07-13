@@ -27,6 +27,8 @@ package io.fairyproject.bukkit.command.map;
 import io.fairyproject.bukkit.command.BukkitCommandExecutor;
 import io.fairyproject.bukkit.command.sync.SyncCommandHandler;
 import io.fairyproject.command.BaseCommand;
+import io.fairyproject.data.MetaKey;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.metadata.MetadataMap;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +40,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class DefaultBukkitCommandMap implements BukkitCommandMap {
 
-    public static final MetadataKey<BukkitCommandExecutor> EXECUTOR_KEY = MetadataKey.create("fairy:command-executor", BukkitCommandExecutor.class);
+    public static final MetaKey<BukkitCommandExecutor> EXECUTOR_KEY = MetaKey.create("fairy:command-executor", BukkitCommandExecutor.class);
 
     private final CommandMap commandMap;
     private final Map<String, Command> knownCommands;
@@ -59,18 +61,18 @@ public class DefaultBukkitCommandMap implements BukkitCommandMap {
         }
 
 
-        command.getMetadata().put(EXECUTOR_KEY, commandExecutor);
+        command.getMetaStorage().put(EXECUTOR_KEY, commandExecutor);
         commandMap.register(fallbackPrefix, commandExecutor);
         syncCommandHandler.sync();
     }
 
     @Override
     public void unregister(BaseCommand command) {
-        MetadataMap metadata = command.getMetadata();
+        MetaStorage metaStorage = command.getMetaStorage();
         if (!this.isRegistered(command))
             throw new IllegalArgumentException("Command not registered");
 
-        metadata.ifPresent(EXECUTOR_KEY, commandExecutor -> {
+        metaStorage.ifPresent(EXECUTOR_KEY, commandExecutor -> {
             String fallbackPrefix = commandExecutor.getFallbackPrefix();
 
             unregisterKnownCommand(fallbackPrefix, commandExecutor.getName());
@@ -79,7 +81,7 @@ public class DefaultBukkitCommandMap implements BukkitCommandMap {
             }
 
             commandExecutor.unregister(commandMap);
-            metadata.remove(EXECUTOR_KEY);
+            metaStorage.remove(EXECUTOR_KEY);
         });
 
         syncCommandHandler.sync();
@@ -91,7 +93,7 @@ public class DefaultBukkitCommandMap implements BukkitCommandMap {
 
     @Override
     public boolean isRegistered(BaseCommand command) {
-        return command.getMetadata().has(EXECUTOR_KEY);
+        return command.getMetaStorage().contains(EXECUTOR_KEY);
     }
 
     private void unregisterKnownCommand(String fallbackPrefix, String alias) {

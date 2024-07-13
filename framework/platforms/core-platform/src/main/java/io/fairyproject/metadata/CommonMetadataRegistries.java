@@ -31,6 +31,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Optional;
 import java.util.UUID;
 
+@Deprecated
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class CommonMetadataRegistries {
 

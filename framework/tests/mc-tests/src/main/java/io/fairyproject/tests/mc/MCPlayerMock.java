@@ -112,7 +112,7 @@ public abstract class MCPlayerMock implements MCPlayer {
     }
 
     @Override
-    public <T> T as(Class<T> playerClass) {
+    public <T> T as(@NotNull Class<T> playerClass) {
         if (playerClass.isAssignableFrom(originalInstance.getClass())) {
             return playerClass.cast(this.originalInstance);
         }

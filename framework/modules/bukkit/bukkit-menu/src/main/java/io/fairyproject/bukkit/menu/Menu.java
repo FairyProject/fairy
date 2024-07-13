@@ -32,12 +32,12 @@ import io.fairyproject.bukkit.events.BukkitEventFilter;
 import io.fairyproject.bukkit.events.BukkitEventNode;
 import io.fairyproject.bukkit.menu.event.ButtonClickEvent;
 import io.fairyproject.bukkit.menu.event.MenuCloseEvent;
-import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.container.Autowired;
+import io.fairyproject.data.MetaKey;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.event.EventNode;
+import io.fairyproject.mc.data.MCMetadata;
 import io.fairyproject.mc.scheduler.MCSchedulers;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.CC;
 import io.fairyproject.util.terminable.Terminable;
 import io.fairyproject.util.terminable.TerminableConsumer;
@@ -66,7 +66,7 @@ import java.util.function.Function;
 @Setter
 public abstract class Menu implements TerminableConsumer {
 
-    private static final MetadataKey<Menu> METADATA = MetadataKey.create("fairy:menu", Menu.class);
+    private static final MetaKey<Menu> METADATA = MetaKey.create("fairy:menu", Menu.class);
     private static final Map<Class<? extends Menu>, List<Menu>> MENU_BY_TYPE = new ConcurrentHashMap<>();
 
     @Deprecated
@@ -323,7 +323,7 @@ public abstract class Menu implements TerminableConsumer {
         this.openMillis = System.currentTimeMillis();
 
         this.player = player;
-        Metadata.provide(player).put(METADATA, this);
+        MCMetadata.provide(player).put(METADATA, this);
         Menu.addMenu(this);
 
         this.render(true);
@@ -345,7 +345,7 @@ public abstract class Menu implements TerminableConsumer {
         }
         this.opening = false;
 
-        MetadataMap metadataMap = Metadata.provideForPlayer(this.player);
+        MetaStorage metadataMap = MCMetadata.provide(this.player);
         Menu existing = metadataMap.getOrNull(METADATA);
         if (existing == this) {
             metadataMap.remove(METADATA);
@@ -535,7 +535,7 @@ public abstract class Menu implements TerminableConsumer {
     }
 
     public static Menu getMenuByUuid(UUID uuid) {
-        return Metadata.provideForPlayer(uuid).getOrNull(METADATA);
+        return MCMetadata.provide(uuid).getOrNull(METADATA);
     }
 
     public static <T extends Menu> List<T> getMenusByType(Class<T> type) {

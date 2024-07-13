@@ -24,6 +24,7 @@
 
 package io.fairyproject.scheduler.executor;
 
+import io.fairyproject.scheduler.repeat.RepeatPredicate;
 import io.fairyproject.scheduler.response.TaskResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +47,7 @@ class RepeatedExecutorScheduledTaskTest {
     void setUp() {
         scheduledFuture = Mockito.mock(ScheduledFuture.class);
         Callable<TaskResponse<String>> callable = () -> this.callable.call();
-        repeatedExecutorScheduledTask = new RepeatedExecutorScheduledTask<>(callable);
+        repeatedExecutorScheduledTask = new RepeatedExecutorScheduledTask<>(callable, RepeatPredicate.empty());
         repeatedExecutorScheduledTask.setScheduledFuture(scheduledFuture);
     }
 

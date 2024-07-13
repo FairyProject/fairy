@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 import java.util.UUID;
 
+@Deprecated
 public class PlayerOnlineValue<T> implements TransientValue<T> {
 
     private final T value;

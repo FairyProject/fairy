@@ -82,7 +82,7 @@ public class BukkitMCEntity implements MCEntity {
     }
 
     @Override
-    public <T> T as(Class<T> playerClass) {
+    public <T> T as(@NotNull Class<T> playerClass) {
         if (!playerClass.isInstance(this.entity)) {
             throw new ClassCastException();
         }

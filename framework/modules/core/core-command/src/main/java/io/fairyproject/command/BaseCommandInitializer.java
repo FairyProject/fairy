@@ -6,8 +6,8 @@ import io.fairyproject.command.argument.ArgProperty;
 import io.fairyproject.command.completion.ArgCompletionHolderList;
 import io.fairyproject.command.completion.ArgCompletionHolderStringArray;
 import io.fairyproject.container.Autowired;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.log.Log;
-import io.fairyproject.metadata.MetadataMap;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,7 +30,7 @@ public class BaseCommandInitializer {
     public void init(String[] names, String permission) {
         baseCommand.names = names;
         baseCommand.permission = permission;
-        baseCommand.metadata = MetadataMap.create();
+        baseCommand.metaStorage = MetaStorage.create();
         baseCommand.tabCompletion = new HashMap<>();
 
         Order order = baseCommand.getAnnotation(Order.class);

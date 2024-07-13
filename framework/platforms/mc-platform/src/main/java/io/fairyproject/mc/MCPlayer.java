@@ -29,14 +29,12 @@ public interface MCPlayer extends MCEntity, Audience {
         return Companion.BRIDGE.all();
     }
 
-    @NotNull
-    @Deprecated
+    @Nullable
     static <T> MCPlayer from(@Nullable T originalPlayer) {
-        return Containers.get(MCPlayerRegistry.class).findPlayerByPlatformPlayer(originalPlayer);
+        return Containers.get(MCPlayerRegistry.class).findByPlatform(originalPlayer);
     }
 
     @Nullable
-    @Deprecated
     static MCPlayer find(UUID uuid) {
         return Companion.BRIDGE.find(uuid);
     }
@@ -116,6 +114,7 @@ public interface MCPlayer extends MCEntity, Audience {
      *
      * @return metadata map
      */
+    @Deprecated
     default MetadataMap metadata() {
         return CommonMetadataRegistries.provide(this.getUUID());
     }
@@ -205,7 +204,6 @@ public interface MCPlayer extends MCEntity, Audience {
      */
     Channel getChannel();
 
-    @Deprecated
     class Companion {
 
         public static Bridge BRIDGE = null;
@@ -213,7 +211,6 @@ public interface MCPlayer extends MCEntity, Audience {
 
     }
 
-    @Deprecated
     interface Bridge {
 
         UUID from(@NotNull Object obj);

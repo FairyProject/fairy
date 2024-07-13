@@ -31,6 +31,7 @@ import io.fairyproject.bukkit.command.sync.SyncCommandHandler;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.plugin.impl.SpecifyJavaPluginIdentifier;
 import io.fairyproject.command.BaseCommand;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.metadata.MetadataMap;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -53,15 +54,15 @@ class DefaultBukkitCommandMapTest {
     private CommandMap commandMap;
     private Map<String, Command> knownCommands;
     private BaseCommand command;
-    private MetadataMap metadata;
+    private MetaStorage metadata;
 
     @BeforeEach
     void setUp() {
         commandMap = Mockito.mock(CommandMap.class);
         command = Mockito.mock(BaseCommand.class);
-        metadata = MetadataMap.create();
+        metadata = MetaStorage.create();
         Mockito.when(command.getCommandNames()).thenReturn(new String[]{"test", "test2"});
-        Mockito.when(command.getMetadata()).thenReturn(metadata);
+        Mockito.when(command.getMetaStorage()).thenReturn(metadata);
 
         knownCommands = new HashMap<>();
         Mockito.when(commandMap.register(Mockito.anyString(), Mockito.any()))
@@ -118,7 +119,7 @@ class DefaultBukkitCommandMapTest {
     void registerShouldAvoidDuplicateNames() {
         BaseCommand secondCommand = Mockito.mock(BaseCommand.class);
         Mockito.when(secondCommand.getCommandNames()).thenReturn(new String[]{"test3", "test2"});
-        Mockito.when(secondCommand.getMetadata()).thenReturn(MetadataMap.create());
+        Mockito.when(secondCommand.getMetaStorage()).thenReturn(MetaStorage.create());
 
         defaultBukkitCommandMap.register(command);
 
@@ -132,7 +133,7 @@ class DefaultBukkitCommandMapTest {
         defaultBukkitCommandMap.unregister(command);
 
         assertTrue(knownCommands.isEmpty());
-        assertFalse(metadata.has(DefaultBukkitCommandMap.EXECUTOR_KEY));
+        assertFalse(metadata.contains(DefaultBukkitCommandMap.EXECUTOR_KEY));
         assertFalse(executor.isRegistered());
         Mockito.verify(syncCommandHandler, Mockito.times(2)).sync();
     }

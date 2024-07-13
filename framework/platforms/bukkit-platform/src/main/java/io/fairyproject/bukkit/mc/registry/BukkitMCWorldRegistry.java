@@ -25,10 +25,10 @@
 package io.fairyproject.bukkit.mc.registry;
 
 import io.fairyproject.bukkit.mc.BukkitMCWorld;
-import io.fairyproject.bukkit.metadata.Metadata;
+import io.fairyproject.data.MetaKey;
 import io.fairyproject.mc.MCWorld;
+import io.fairyproject.mc.data.MCMetadata;
 import io.fairyproject.mc.registry.MCWorldRegistry;
-import io.fairyproject.metadata.MetadataKey;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class BukkitMCWorldRegistry implements MCWorldRegistry {
 
-    private final MetadataKey<MCWorld> KEY = MetadataKey.create("fairy:mc-world", MCWorld.class);
+    private final MetaKey<MCWorld> KEY = MetaKey.create("fairy:mc-world", MCWorld.class);
     private final BukkitAudiences bukkitAudiences;
 
     @Override
@@ -49,7 +49,9 @@ public class BukkitMCWorldRegistry implements MCWorldRegistry {
             throw new UnsupportedOperationException();
         }
         World world = (World) worldObj;
-        return Metadata.provideForWorld(world).getOrPut(KEY, () -> new BukkitMCWorld(world, bukkitAudiences));
+        return MCMetadata
+                .provide(world)
+                .computeIfAbsent(KEY, () -> new BukkitMCWorld(world, bukkitAudiences));
     }
 
     @Override

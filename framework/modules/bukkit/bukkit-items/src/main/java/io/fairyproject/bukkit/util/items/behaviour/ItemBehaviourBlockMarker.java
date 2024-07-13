@@ -26,15 +26,12 @@ package io.fairyproject.bukkit.util.items.behaviour;
 
 import com.cryptomorin.xseries.XSound;
 import io.fairyproject.bukkit.listener.ListenerRegistry;
-import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.util.items.FairyItem;
-import io.fairyproject.bukkit.util.items.FairyItemRef;
 import io.fairyproject.bukkit.util.items.FairyItemRegistry;
-import io.fairyproject.container.Autowired;
-import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.data.MetaKey;
+import io.fairyproject.data.MetaStorage;
+import io.fairyproject.mc.data.MCMetadata;
 import io.fairyproject.mc.registry.player.MCPlayerRegistry;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -46,7 +43,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
 
-    private static final MetadataKey<String> METADATA = MetadataKey.createStringKey("fairy:block-marker");
+    private static final MetaKey<String> METADATA = MetaKey.create("fairy:block-marker", String.class);
 
     private final FairyItemRegistry fairyItemRegistry;
     private final MCPlayerRegistry mcPlayerRegistry;
@@ -74,7 +71,7 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         if (item != this.item)
             return;
 
-        Metadata.provideForBlock(block).put(METADATA, this.item.getName());
+        MCMetadata.provide(block).put(METADATA, this.item.getName());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -82,13 +79,13 @@ public class ItemBehaviourBlockMarker extends ItemBehaviourListener {
         Player player = event.getPlayer();
         final Block block = event.getBlock();
 
-        final MetadataMap metadataMap = Metadata.provideForBlock(block);
-        final String itemKey = metadataMap.getOrNull(METADATA);
+        final MetaStorage metaStorage = MCMetadata.provide(block);
+        final String itemKey = metaStorage.getOrNull(METADATA);
         if (itemKey == null || !itemKey.equals(this.item.getName())) {
             return;
         }
 
-        metadataMap.remove(METADATA);
+        metaStorage.remove(METADATA);
         final FairyItem item = this.fairyItemRegistry.get(itemKey);
         if (item == null)
             return;
