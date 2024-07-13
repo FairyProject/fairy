@@ -6,11 +6,11 @@ import io.fairyproject.bukkit.gui.pane.Pane;
 import io.fairyproject.bukkit.gui.slot.GuiSlot;
 import io.fairyproject.bukkit.events.BukkitEventFilter;
 import io.fairyproject.bukkit.events.BukkitEventNode;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.MCAdventure;
 import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.scheduler.MCSchedulers;
-import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
@@ -39,7 +39,7 @@ public class Gui {
     @Getter
     private final int id;
     @Getter
-    private final MetadataMap metadataMap;
+    private final MetaStorage metaStorage;
     private final BukkitEventNode bukkitEventNode;
     private final Map<Integer, EventNode<InventoryEvent>> slotEventNodes;
     private final List<Consumer<Player>> openCallbacks;
@@ -63,7 +63,7 @@ public class Gui {
         this.openCallbacks = new ArrayList<>();
         this.drawCallbacks = new ArrayList<>();
         this.closeCallbacks = new ArrayList<>();
-        this.metadataMap = MetadataMap.create();
+        this.metaStorage = MetaStorage.create();
         this.slotEventNodes = new HashMap<>();
         this.title = title;
         this.panes = new ArrayList<>();

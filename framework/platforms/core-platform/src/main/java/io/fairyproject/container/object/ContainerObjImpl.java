@@ -3,6 +3,7 @@ package io.fairyproject.container.object;
 import io.fairyproject.container.Threading;
 import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.scope.InjectableScope;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.AsyncUtils;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,7 @@ import java.util.concurrent.CompletableFuture;
 public class ContainerObjImpl implements ContainerObj {
 
     private final Class<?> type;
-    private final MetadataMap metadataMap;
+    private final MetaStorage metaStorage;
     private final Set<Class<?>> dependencies;
     private Threading.Mode threadingMode;
     private InjectableScope scope;
@@ -21,7 +22,7 @@ public class ContainerObjImpl implements ContainerObj {
 
     public ContainerObjImpl(Class<?> type) {
         this.type = type;
-        this.metadataMap = MetadataMap.create();
+        this.metaStorage = MetaStorage.create();
         this.dependencies = new HashSet<>();
         this.threadingMode = Threading.Mode.SYNC;
         this.scope = InjectableScope.SINGLETON;
@@ -77,8 +78,8 @@ public class ContainerObjImpl implements ContainerObj {
     }
 
     @Override
-    public @NotNull MetadataMap getMetadata() {
-        return this.metadataMap;
+    public @NotNull MetaStorage getMetadata() {
+        return this.metaStorage;
     }
 
     @Override

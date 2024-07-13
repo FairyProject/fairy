@@ -3,10 +3,9 @@ package io.fairyproject.bukkit.util.items;
 import io.fairyproject.bukkit.util.items.behaviour.ItemBehaviour;
 import io.fairyproject.bukkit.util.items.impl.FairyItemImpl;
 import io.fairyproject.container.Autowired;
+import io.fairyproject.data.MetaKey;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.metadata.MetadataMap;
-import io.fairyproject.metadata.TransientValue;
 import io.fairyproject.util.terminable.Terminable;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -27,7 +26,7 @@ public interface FairyItem extends Terminable {
 
     @NotNull String getName();
 
-    @NotNull MetadataMap getMetadataMap();
+    @NotNull MetaStorage getMetaStorage();
 
     @NotNull Iterable<ItemBehaviour> getBehaviours();
 
@@ -74,7 +73,7 @@ public interface FairyItem extends Terminable {
 
         private final String name;
         private Function<MCPlayer, ItemBuilder> itemProvider;
-        private final MetadataMap metadataMap = MetadataMap.create();
+        private final MetaStorage metaStorage = MetaStorage.create();
         private final List<ItemBehaviour> behaviours = new ArrayList<>();
 
         private Builder(@NotNull String name) {
@@ -99,24 +98,19 @@ public interface FairyItem extends Terminable {
             return this;
         }
 
-        public Builder transformMeta(@NotNull Consumer<MetadataMap> consumer) {
-            consumer.accept(this.metadataMap);
+        public Builder transformMeta(@NotNull Consumer<MetaStorage> consumer) {
+            consumer.accept(this.metaStorage);
             return this;
         }
 
-        public <T> Builder put(@NotNull MetadataKey<T> metadataKey, @NotNull T value) {
-            this.metadataMap.put(metadataKey, value);
-            return this;
-        }
-
-        public <T> Builder put(@NotNull MetadataKey<T> metadataKey, @NotNull TransientValue<T> value) {
-            this.metadataMap.put(metadataKey, value);
+        public <T> Builder put(@NotNull MetaKey<T> metadataKey, @NotNull T value) {
+            this.metaStorage.put(metadataKey, value);
             return this;
         }
 
         @Deprecated
         public FairyItem build() {
-            FairyItem fairyItem = new FairyItemImpl(REGISTRY, this.name, this.metadataMap, this.behaviours, this.itemProvider);
+            FairyItem fairyItem = new FairyItemImpl(REGISTRY, this.name, this.metaStorage, this.behaviours, this.itemProvider);
             REGISTRY.register(fairyItem);
 
             return fairyItem;
@@ -124,11 +118,11 @@ public interface FairyItem extends Terminable {
 
         @Deprecated
         public FairyItem create() {
-            return new FairyItemImpl(REGISTRY, this.name, this.metadataMap, this.behaviours, this.itemProvider);
+            return new FairyItemImpl(REGISTRY, this.name, this.metaStorage, this.behaviours, this.itemProvider);
         }
 
         public FairyItem create(FairyItemRegistry itemRegistry) {
-            FairyItem fairyItem = new FairyItemImpl(itemRegistry, this.name, this.metadataMap, this.behaviours, this.itemProvider);
+            FairyItem fairyItem = new FairyItemImpl(itemRegistry, this.name, this.metaStorage, this.behaviours, this.itemProvider);
             itemRegistry.register(fairyItem);
 
             return fairyItem;

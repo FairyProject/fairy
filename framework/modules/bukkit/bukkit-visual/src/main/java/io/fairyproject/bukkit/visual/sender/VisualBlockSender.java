@@ -29,16 +29,16 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import com.google.common.collect.HashMultimap;
 import io.fairyproject.Fairy;
-import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
 import io.fairyproject.bukkit.visual.sender.impl.BukkitVisualData;
 import io.fairyproject.bukkit.visual.sender.impl.NewVisualData;
 import io.fairyproject.bukkit.visual.sender.impl.OldVisualData;
 import io.fairyproject.bukkit.visual.util.BlockPositionData;
+import io.fairyproject.data.MetaKey;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.data.MCMetadata;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.util.BlockPosition;
-import io.fairyproject.metadata.MetadataKey;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -47,7 +47,7 @@ import java.util.*;
 
 public class VisualBlockSender {
 
-    public final MetadataKey<VisualContainer> fakeBlocksMetadataKey = MetadataKey.create(Fairy.METADATA_PREFIX + "FakeBlockMap", VisualContainer.class);
+    public final MetaKey<VisualContainer> fakeBlocksMetadataKey = MetaKey.create(Fairy.METADATA_PREFIX + "FakeBlockMap", VisualContainer.class);
     private final List<VisualData> visualDataList;
 
     public VisualBlockSender(BukkitNMSManager nmsManager) {
@@ -59,7 +59,7 @@ public class VisualBlockSender {
     }
 
     public void send(Player player, Map<BlockPosition, XMaterial> blockMap, List<BlockPosition> replace, boolean send) {
-        VisualContainer visualContainer = Metadata.provideForPlayer(player).getOrPut(fakeBlocksMetadataKey, VisualContainer::new);
+        VisualContainer visualContainer = MCMetadata.provide(player).computeIfAbsent(fakeBlocksMetadataKey, VisualContainer::new);
         HashMultimap<BlockPosition, BlockPositionData> map = HashMultimap.create();
 
         for (final Map.Entry<BlockPosition, XMaterial> entry : blockMap.entrySet()) {
@@ -121,8 +121,9 @@ public class VisualBlockSender {
     }
 
     public void clearFakeBlocks(Player player, boolean send) {
-        VisualContainer visualContainer = Metadata.provideForPlayer(player).getOrNull(fakeBlocksMetadataKey);
-        if (visualContainer == null) return;
+        VisualContainer visualContainer = MCMetadata.provide(player).getOrNull(fakeBlocksMetadataKey);
+        if (visualContainer == null)
+            return;
 
         if (send) {
             send(player, Collections.emptyMap(), new ArrayList<>(visualContainer.keySet()), true);

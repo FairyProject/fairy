@@ -28,7 +28,7 @@ public class MetaRegistryImpl<K extends Serializable> implements MetaRegistry<K>
     }
 
     @Override
-    public void destroy() {
+    public void clear() {
         cache.clear();
     }
 

@@ -29,7 +29,7 @@ public class MetaStorageImplBenchmark {
 
             metaKeys = new MetaKey[keys];
             for (int i = 0; i < keys; i++) {
-                metaKeys[i] = new MetaKeyImpl<>("key" + i, Integer.class);
+                metaKeys[i] = MetaKey.create("key" + i, Integer.class);
             }
 
             metadataKeys = new MetadataKey[keys];

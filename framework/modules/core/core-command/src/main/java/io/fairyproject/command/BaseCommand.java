@@ -30,6 +30,7 @@ import io.fairyproject.command.argument.ArgProperty;
 import io.fairyproject.command.exception.ArgTransformException;
 import io.fairyproject.command.util.CoreCommandUtil;
 import io.fairyproject.container.Autowired;
+import io.fairyproject.data.MetaStorage;
 import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.entry.Entry;
 import lombok.Getter;
@@ -53,7 +54,7 @@ public abstract class BaseCommand implements ICommand {
     protected Map<String, ArgCompletionHolder> tabCompletion;
 
     @Getter
-    protected MetadataMap metadata;
+    protected MetaStorage metaStorage;
     protected PresenceProvider<?> presenceProvider;
 
     @Nullable

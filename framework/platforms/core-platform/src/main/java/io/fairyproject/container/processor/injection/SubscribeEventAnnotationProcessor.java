@@ -27,19 +27,19 @@ package io.fairyproject.container.processor.injection;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.processor.ContainerObjDestroyProcessor;
 import io.fairyproject.container.processor.ContainerObjInitProcessor;
+import io.fairyproject.data.MetaKey;
 import io.fairyproject.event.Event;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.event.EventSubscribeRegistry;
 import io.fairyproject.event.GlobalEventNode;
-import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.util.AsyncUtils;
 
 import java.util.concurrent.CompletableFuture;
 
 public class SubscribeEventAnnotationProcessor implements ContainerObjInitProcessor, ContainerObjDestroyProcessor {
 
-    private static final MetadataKey<EventNode> KEY = MetadataKey.create("fairy:event-node", EventNode.class);
-
+    @SuppressWarnings("rawtypes")
+    private static final MetaKey<EventNode> KEY = MetaKey.create("fairy:event-node", EventNode.class);
 
     @Override
     public CompletableFuture<?> processPostInitialization(ContainerObj object, Object instance) {
@@ -56,6 +56,7 @@ public class SubscribeEventAnnotationProcessor implements ContainerObjInitProces
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void processPreDestroy(ContainerObj object, Object instance) {
         object.getMetadata().ifPresent(KEY, eventNode -> GlobalEventNode.get().removeChild(eventNode));
     }

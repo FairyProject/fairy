@@ -21,7 +21,7 @@ class MetaStorageImplTest {
 
     @BeforeEach
     void setUp() {
-        testKey = new MetaKeyImpl<>("test", Integer.class);
+        testKey = MetaKey.create("test", Integer.class);
         metaStorage = new MetaStorageImpl();
     }
 
@@ -71,7 +71,7 @@ class MetaStorageImplTest {
     void testConcurrentAccess() throws InterruptedException {
         for (int k = 0; k < 10; k++) {
             MetaStorageImpl metaStorage = new MetaStorageImpl();
-            MetaKey<Integer> testKey = new MetaKeyImpl<>("testKey", Integer.class);
+            MetaKey<Integer> testKey = MetaKey.create("testKey", Integer.class);
             int numberOfThreads = 1000;
             ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
             CountDownLatch startGate = new CountDownLatch(1);

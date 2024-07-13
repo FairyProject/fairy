@@ -3,7 +3,7 @@ package io.fairyproject.container.object;
 import io.fairyproject.container.Threading;
 import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.scope.InjectableScope;
-import io.fairyproject.metadata.MetadataMap;
+import io.fairyproject.data.MetaStorage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -33,7 +33,7 @@ public interface ContainerObj {
 
     void addDependency(@NotNull Class<?> dependClass);
 
-    @NotNull MetadataMap getMetadata();
+    @NotNull MetaStorage getMetadata();
 
     default boolean isSingletonScope() {
         return this.getScope() == InjectableScope.SINGLETON;
