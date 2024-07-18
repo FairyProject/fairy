@@ -90,6 +90,86 @@ public interface MetaKey<T> {
     }
 
     /**
+     * Create a new meta key with boolean type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<Boolean> createBoolean(String name) {
+        return create(name, Boolean.class);
+    }
+
+    /**
+     * Create a new meta key with integer type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<Integer> createInt(String name) {
+        return create(name, Integer.class);
+    }
+
+    /**
+     * Create a new meta key with long type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<Long> createLong(String name) {
+        return create(name, Long.class);
+    }
+
+    /**
+     * Create a new meta key with float type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<Float> createFloat(String name) {
+        return create(name, Float.class);
+    }
+
+    /**
+     * Create a new meta key with double type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<Double> createDouble(String name) {
+        return create(name, Double.class);
+    }
+
+    /**
+     * Create a new meta key with string type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<String> createString(String name) {
+        return create(name, String.class);
+    }
+
+    /**
+     * Create a new meta key with byte type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<Byte> createByte(String name) {
+        return create(name, Byte.class);
+    }
+
+    /**
+     * Create a new meta key with short type
+     *
+     * @param name the name of the key
+     * @return the new meta key
+     */
+    static MetaKey<Short> createShort(String name) {
+        return create(name, Short.class);
+    }
+
+    /**
      * Create a new meta key
      *
      * @param name the name of the key
