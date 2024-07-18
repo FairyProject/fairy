@@ -28,11 +28,11 @@ import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
 import io.fairyproject.bukkit.events.PostServicesInitialEvent;
+import io.fairyproject.bukkit.logger.ConsoleSenderLogger;
 import io.fairyproject.bukkit.plugin.BukkitPluginHandler;
 import io.fairyproject.bukkit.listener.FilteredListener;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
-import io.fairyproject.bukkit.logger.Log4jLogger;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
@@ -84,7 +84,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
         PluginManager.initialize(new BukkitPluginHandler());
         if (!Debug.UNIT_TEST) {
             // Use log4j for bukkit platform
-            Log.set(new Log4jLogger());
+            Log.set(new ConsoleSenderLogger(Bukkit.getConsoleSender()));
         }
     }
 

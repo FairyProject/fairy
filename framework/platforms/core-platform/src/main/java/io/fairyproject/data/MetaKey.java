@@ -52,6 +52,7 @@ public interface MetaKey<T> {
      * @param value the value to cast
      * @return the casted value
      */
+    @SuppressWarnings("unchecked")
     default T cast(Object value) {
         if (value == null)
             return null;
@@ -61,10 +62,10 @@ public interface MetaKey<T> {
             if (obj == null)
                 return null;
 
-            return getType().getType().cast(obj);
+            return (T) obj;
         }
 
-        return getType().getType().cast(value);
+        return (T) value;
     }
 
     /**
