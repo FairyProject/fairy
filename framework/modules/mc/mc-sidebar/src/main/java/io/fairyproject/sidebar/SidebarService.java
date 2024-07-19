@@ -155,7 +155,7 @@ public class SidebarService {
                 continue;
 
             sidebar.setTicks(sidebar.getTicks() + 1);
-            if (sidebar.getTicks() < 2)
+            if (sidebar.getTicks() < 20)
                 continue;
 
             SidebarData data = this.writeProviderToData(player);
