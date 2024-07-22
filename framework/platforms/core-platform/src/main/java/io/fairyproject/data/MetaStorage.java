@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.ref.Reference;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -21,6 +22,17 @@ public interface MetaStorage {
      */
     default boolean contains(@NotNull MetaKey<?> key) {
         return getOrNull(key) != null;
+    }
+
+    /**
+     * Get the optinoal value for the given key
+     *
+     * @param key the key
+     * @return the value or an empty optional if no value is found
+     * @param <T> the type of the value
+     */
+    default <T> Optional<T> get(@NotNull MetaKey<T> key) {
+        return Optional.ofNullable(getOrNull(key));
     }
 
     /**
