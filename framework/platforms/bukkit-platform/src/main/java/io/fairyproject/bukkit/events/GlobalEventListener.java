@@ -34,15 +34,14 @@ import io.github.classgraph.ClassInfo;
 import io.github.classgraph.ClassInfoList;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Server;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.server.PluginEnableEvent;
 import org.bukkit.plugin.EventExecutor;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.RegisteredListener;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
@@ -52,7 +51,7 @@ import java.util.function.Consumer;
 @RegisterAsListener
 public class GlobalEventListener implements Listener {
 
-    private final Set<Class<? extends Event>> registeredEvents = new HashSet<>();
+    private final Set<HandlerList> handlerLists = Collections.newSetFromMap(new IdentityHashMap<>());
     private final List<Consumer<Event>> listeners = new ArrayList<>();
     private final Server server;
 
@@ -115,26 +114,19 @@ public class GlobalEventListener implements Listener {
         } catch (ClassNotFoundException ex) {
             return;
         }
-        if (!this.shouldRegisterEventClass(eventClass))
-            return;
 
-        if (this.registeredEvents.contains(eventClass))
+        HandlerList handlerList = getHandlerList(eventClass);
+        if (handlerList == null)
             return;
 
         EventExecutor eventExecutor = (ignored, event) -> {
-            if (eventClass.isInstance(event)) // only fire if the event is instance of the class, avoid duplicate firing
-                this.onEventFired(event);
+            this.onEventFired(event);
         };
 
-        this.registeredEvents.add(eventClass);
-        this.server.getPluginManager().registerEvent(eventClass, listener, EventPriority.NORMAL, eventExecutor, mainPlugin);
+        handlerList.register(new RegisteredListener(listener, eventExecutor, EventPriority.NORMAL, mainPlugin, false));
     }
 
     private boolean shouldRegisterEventClass(Class<?> eventClass) {
-        if (getRegistrationClass(eventClass) == null)
-            // you can't register this class, ignore it
-            return false;
-
         // https://github.com/PaperMC/Paper/blob/d6d2b6f4e51b24867b609cf747ac6d8c6345c449/patches/server/0089-Add-handshake-event-to-allow-plugins-to-handle-clien.patch#L20C114-L20C114
         // NEVER register PlayerHandshakeEvent by paper, if there is 1 registered listener of this, it requires one of the listener to handle everything
         // which causes bungee cord IP forwarding to just, stop working...
@@ -143,15 +135,23 @@ public class GlobalEventListener implements Listener {
     }
 
     // copied from bukkit's SimplePluginManager
-    private @Nullable Class<?> getRegistrationClass(Class<?> clazz) {
+    private @Nullable HandlerList getHandlerList(Class<?> clazz) {
         try {
-            clazz.getDeclaredMethod("getHandlerList");
-            return clazz;
+            Method method = clazz.getDeclaredMethod("getHandlerList");
+            method.setAccessible(true);
+            HandlerList handlerList = (HandlerList) method.invoke(null);
+            if (!shouldRegisterEventClass(clazz))
+                return null;
+
+            if (this.handlerLists.add(handlerList))
+                return handlerList;
+
+            return null;
         } catch (NoSuchMethodException e) {
             if (clazz.getSuperclass() != null
                     && !clazz.getSuperclass().equals(Event.class)
                     && Event.class.isAssignableFrom(clazz.getSuperclass())) {
-                return getRegistrationClass(clazz.getSuperclass().asSubclass(Event.class));
+                return getHandlerList(clazz.getSuperclass().asSubclass(Event.class));
             } else {
                 return null;
             }
