@@ -113,7 +113,6 @@ public class GlobalEventListener implements Listener {
         try {
             eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
         } catch (ClassNotFoundException ex) {
-//            Log.error("Failed to load class " + classInfo.getName() + " while registering global events");
             return;
         }
         if (!this.shouldRegisterEventClass(eventClass))
@@ -156,6 +155,8 @@ public class GlobalEventListener implements Listener {
             } else {
                 return null;
             }
+        } catch (Throwable e) {
+            return null;
         }
     }
 
