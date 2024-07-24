@@ -15,6 +15,8 @@ Its objective is to bring the beauty of dependency injection and CRUD based desi
 
 Main Maintainer: Imanity Software
 
+Supported by: ![](https://www.ej-technologies.com/images/product_banners/jprofiler_small.png)
+
 Documentation: [docs.fairyproject.io](https://docs.fairyproject.io/)
 
 ### Advantage using Fairy Framework
