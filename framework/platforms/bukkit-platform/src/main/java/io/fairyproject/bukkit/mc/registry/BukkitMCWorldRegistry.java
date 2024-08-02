@@ -24,21 +24,28 @@
 
 package io.fairyproject.bukkit.mc.registry;
 
+import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.mc.BukkitMCWorld;
 import io.fairyproject.data.MetaKey;
 import io.fairyproject.mc.MCWorld;
 import io.fairyproject.mc.data.MCMetadata;
+import io.fairyproject.mc.event.world.MCWorldUnloadEvent;
 import io.fairyproject.mc.registry.MCWorldRegistry;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.world.WorldUnloadEvent;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class BukkitMCWorldRegistry implements MCWorldRegistry {
+@RegisterAsListener
+public class BukkitMCWorldRegistry implements MCWorldRegistry, Listener {
 
     private final MetaKey<MCWorld> KEY = MetaKey.create("fairy:mc-world", MCWorld.class);
     private final BukkitAudiences bukkitAudiences;
@@ -51,7 +58,7 @@ public class BukkitMCWorldRegistry implements MCWorldRegistry {
         World world = (World) worldObj;
         return MCMetadata
                 .provide(world)
-                .computeIfAbsent(KEY, () -> new BukkitMCWorld(world, bukkitAudiences));
+                .computeIfAbsent(KEY, () -> new BukkitMCWorld(world.getName(), bukkitAudiences));
     }
 
     @Override
@@ -68,5 +75,10 @@ public class BukkitMCWorldRegistry implements MCWorldRegistry {
         return Bukkit.getWorlds().stream()
                 .map(this::convert)
                 .collect(Collectors.toList());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onWorldUnload(WorldUnloadEvent event) {
+        MCMetadata.provide(event.getWorld().getName()).remove(KEY);
     }
 }

@@ -33,6 +33,7 @@ import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.event.Subscribe;
 import io.fairyproject.mc.MCPlayer;
+import io.fairyproject.mc.data.MCMetadata;
 import io.fairyproject.mc.event.MCPlayerJoinEvent;
 import io.fairyproject.mc.event.MCPlayerQuitEvent;
 import io.fairyproject.mc.protocol.MCProtocol;
@@ -124,7 +125,7 @@ public class SidebarService {
     }
 
     private void scheduleTask() {
-        if (taskState.compareAndSet(false, true))
+        if (!taskState.compareAndSet(false, true))
             return;
 
         mcSchedulerProvider.getAsyncScheduler().scheduleAtFixedRate(this::onTick, 2L, 2L);
@@ -155,7 +156,7 @@ public class SidebarService {
                 continue;
 
             sidebar.setTicks(sidebar.getTicks() + 1);
-            if (sidebar.getTicks() < 20)
+            if (sidebar.getTicks() < 10)
                 continue;
 
             SidebarData data = this.writeProviderToData(player);
@@ -198,15 +199,15 @@ public class SidebarService {
             return;
 
         sidebar.remove();
-        player.metadata().remove(Sidebar.METADATA_TAG);
+        MCMetadata.providePlayer(player).remove(Sidebar.METADATA_TAG);
     }
 
     public Sidebar get(MCPlayer player) {
-        return player.metadata().getOrNull(Sidebar.METADATA_TAG);
+        return MCMetadata.providePlayer(player).getOrNull(Sidebar.METADATA_TAG);
     }
 
     public Sidebar getOrCreate(MCPlayer player) {
-        return player.metadata().getOrPut(Sidebar.METADATA_TAG, () -> new Sidebar(player, this.sidebarHandler));
+        return MCMetadata.providePlayer(player).computeIfAbsent(Sidebar.METADATA_TAG, () -> new Sidebar(player, this.sidebarHandler));
     }
 
     @RequiredArgsConstructor

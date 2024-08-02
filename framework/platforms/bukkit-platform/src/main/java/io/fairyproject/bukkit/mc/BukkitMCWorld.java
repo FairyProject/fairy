@@ -10,6 +10,7 @@ import io.fairyproject.mc.event.trait.MCWorldEvent;
 import io.fairyproject.metadata.MetadataMap;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 
 import java.util.List;
@@ -17,19 +18,23 @@ import java.util.stream.Collectors;
 
 public class BukkitMCWorld implements MCWorld {
 
-    private final World world;
+    private final String worldName;
     private final EventNode<MCWorldEvent> eventNode;
     private final BukkitAudiences audiences;
 
-    public BukkitMCWorld(World world, BukkitAudiences bukkitAudiences) {
-        this.world = world;
+    public BukkitMCWorld(String worldName, BukkitAudiences bukkitAudiences) {
+        this.worldName = worldName;
         this.audiences = bukkitAudiences;
         this.eventNode = GlobalEventNode.get().map(this, MCEventFilter.WORLD);
     }
 
+    public World getWorld() {
+        return Bukkit.getWorld(this.worldName);
+    }
+
     @Override
     public String getName() {
-        return this.world.getName();
+        return this.getWorld().getName();
     }
 
     @Override
@@ -39,27 +44,27 @@ public class BukkitMCWorld implements MCWorld {
 
     @Override
     public List<MCPlayer> getPlayers() {
-        return this.world.getPlayers().stream()
+        return this.getWorld().getPlayers().stream()
                 .map(MCPlayer::from)
                 .collect(Collectors.toList());
     }
 
     @Override
     public MetadataMap getMetadata() {
-        return Metadata.provideForWorld(this.world);
+        return Metadata.provideForWorld(this.getWorld());
     }
 
     @Override
     public <T> T as(Class<T> worldClass) {
-        if (!worldClass.isInstance(this.world)) {
+        if (!worldClass.isInstance(this.getWorld())) {
             throw new ClassCastException();
         }
-        return worldClass.cast(this.world);
+        return worldClass.cast(this.getWorld());
     }
 
     @Override
     public int getMaxY() {
-        return this.world.getMaxHeight();
+        return this.getWorld().getMaxHeight();
     }
 
     @Override

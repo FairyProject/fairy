@@ -27,7 +27,6 @@ package io.fairyproject.util;
 import lombok.experimental.UtilityClass;
 
 import java.text.DecimalFormat;
-import java.util.concurrent.TimeUnit;
 
 @UtilityClass
 public class FormatUtil {
@@ -47,16 +46,13 @@ public class FormatUtil {
     }
 
     public String formatMillisToMinutesAndHours(long millis) {
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
+        int seconds = (int) Math.ceil(millis / 1000.0);
         return String.format("%02d:%02d", seconds / 3600, seconds % 3600 / 60);
     }
 
     public String formatMillis(long millis) {
-        long seconds = TimeUnit.MILLISECONDS.toSeconds(millis);
-        if (seconds >= 3600) {
-            return String.format("%02d:%02d:%02d", seconds / 3600, seconds % 3600 / 60, seconds % 60);
-        }
-        return String.format("%02d:%02d", seconds / 60, seconds % 60);
+        int seconds = (int) Math.ceil(millis / 1000.0);
+        return formatSeconds(seconds);
     }
 
     public String formatMillisToSecondWithDecimal(long millis) {
@@ -75,7 +71,7 @@ public class FormatUtil {
     }
 
     public String formatTimes(long millis) {
-        int seconds = (int) TimeUnit.MILLISECONDS.toSeconds(millis);
+        int seconds = (int) Math.ceil(millis / 1000.0);
         return seconds >= 3600 ? (seconds / 3600) + "h" : seconds >= 60 ? (seconds / 60 + 1) + "m" : seconds + "s";
     }
 

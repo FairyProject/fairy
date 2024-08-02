@@ -23,12 +23,12 @@ dependencies {
 }
 
 runServer {
-    version = "1.21"
-    javaVersion.set(JavaVersion.VERSION_21)
+    version = "1.8.8"
+    javaVersion.set(JavaVersion.VERSION_1_8)
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(8))
     }
 }

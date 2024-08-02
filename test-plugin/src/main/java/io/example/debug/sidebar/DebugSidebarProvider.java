@@ -12,10 +12,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-//@InjectableComponent
+@InjectableComponent
 public class DebugSidebarProvider implements SidebarProvider {
 
-    private int ticks = 0;
+    private int ticks = 5;
     private int disabled = 0;
 
     @Override
@@ -36,8 +36,8 @@ public class DebugSidebarProvider implements SidebarProvider {
             lines.add(SidebarLine.of(Component.text("Line " + i)));
         }
         if (ticks >= 15) {
-            ticks = 0;
-            disabled = 10;
+            ticks = 5;
+//            disabled = 10;
         }
         return lines;
     }

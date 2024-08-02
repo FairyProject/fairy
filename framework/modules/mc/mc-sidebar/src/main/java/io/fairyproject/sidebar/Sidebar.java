@@ -25,8 +25,8 @@
 package io.fairyproject.sidebar;
 
 import io.fairyproject.Fairy;
+import io.fairyproject.data.MetaKey;
 import io.fairyproject.mc.MCPlayer;
-import io.fairyproject.metadata.MetadataKey;
 import io.fairyproject.sidebar.handler.SidebarHandler;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,7 +41,7 @@ import java.util.Objects;
 @Setter
 public class Sidebar {
 
-    public static final MetadataKey<Sidebar> METADATA_TAG = MetadataKey.create(Fairy.METADATA_PREFIX + "Scoreboard", Sidebar.class);
+    public static final MetaKey<Sidebar> METADATA_TAG = MetaKey.create(Fairy.METADATA_PREFIX + "Scoreboard", Sidebar.class);
     private static final int MAX_LINES = 15;
 
     private final MCPlayer player;

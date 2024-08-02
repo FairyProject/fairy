@@ -9,6 +9,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collections;
 import java.util.Set;
 
 @InjectableComponent
@@ -18,7 +19,7 @@ public class DebugTablistAdapter implements TablistAdapter {
 
     @Override
     public @Nullable Set<TabSlot> getSlots(MCPlayer player) {
-        return Set.of(new TabSlot()
+        return Collections.singleton(new TabSlot()
                 .slot(1)
                 .column(TabColumn.LEFT)
                 .text(Component.text("Test " + index++))
