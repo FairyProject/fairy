@@ -63,6 +63,27 @@ public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMil
     }
 
     @Override
+    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks) {
+        return scheduleAtFixedRate(runnable, Duration.ofMillis(delayTicks * 50), Duration.ofMillis(intervalTicks * 50));
+    }
+
+    @Override
+    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, Duration duration, Duration interval) {
+        return scheduleAtFixedRate(() -> {
+            runnable.run();
+            return TaskResponse.continueTask();
+        }, duration, interval, RepeatPredicate.empty());
+    }
+
+    @Override
+    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks, RepeatPredicate<?> predicate) {
+        return scheduleAtFixedRate(() -> {
+            runnable.run();
+            return TaskResponse.continueTask();
+        }, delayTicks, intervalTicks, predicate);
+    }
+
+    @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration delayTicks, Duration intervalTicks, RepeatPredicate<R> repeatPredicate) {
         FoliaRepeatedScheduledTask<R> task = new FoliaRepeatedScheduledTask<>(callback, repeatPredicate);
         io.papermc.paper.threadedregions.scheduler.ScheduledTask rawScheduledTask = scheduler.runAtFixedRate(bukkitPlugin, task, delayTicks.toNanos(), intervalTicks.toNanos(), TimeUnit.NANOSECONDS);
@@ -72,7 +93,30 @@ public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMil
     }
 
     @Override
+    public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, Duration duration, Duration interval, RepeatPredicate<?> predicate) {
+        return scheduleAtFixedRate(() -> {
+            runnable.run();
+            return TaskResponse.continueTask();
+        }, duration, interval, predicate);
+    }
+
+    @Override
+    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks) {
+        return scheduleAtFixedRate(callback, Duration.ofMillis(delayTicks * 50), Duration.ofMillis(intervalTicks * 50));
+    }
+
+    @Override
+    public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, Duration duration, Duration interval) {
+        return scheduleAtFixedRate(callback, duration, interval, RepeatPredicate.empty());
+    }
+
+    @Override
     public <R> ScheduledTask<R> scheduleAtFixedRate(Callable<TaskResponse<R>> callback, long delayTicks, long intervalTicks, RepeatPredicate<R> predicate) {
         return scheduleAtFixedRate(callback, Duration.ofMillis(delayTicks * 50), Duration.ofMillis(intervalTicks * 50), predicate);
+    }
+
+    @Override
+    public ScheduledTask<?> schedule(Runnable runnable, long delayTicks) {
+        return schedule(runnable, Duration.ofMillis(delayTicks * 50));
     }
 }
