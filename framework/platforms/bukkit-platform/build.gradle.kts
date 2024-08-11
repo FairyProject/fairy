@@ -4,9 +4,9 @@ plugins {
 
 dependencies {
     api(project(":mc-platform"))
-    api("net.kyori:adventure-platform-bukkit:4.3.3")
-    api("net.kyori:adventure-text-serializer-bungeecord:4.3.3")
-    api("com.github.retrooper:packetevents-spigot:2.4.1-SNAPSHOT") {
+    api("net.kyori:adventure-platform-bukkit:4.3.4")
+    api("net.kyori:adventure-text-serializer-bungeecord:4.3.4")
+    api("com.github.retrooper:packetevents-spigot:2.5.0-SNAPSHOT") {
         exclude(group = "net.kyori")
     }
     compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT") {

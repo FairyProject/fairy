@@ -12,9 +12,9 @@ import org.jetbrains.annotations.NotNull;
 public class MCPlayerProtocolPacketEvent implements MCPlayerEvent, Cancellable {
 
     private final MCPlayer player;
-    private final ProtocolPacketEvent<?> event;
+    private final ProtocolPacketEvent event;
 
-    public MCPlayerProtocolPacketEvent(MCPlayer player, ProtocolPacketEvent<?> event) {
+    public MCPlayerProtocolPacketEvent(MCPlayer player, ProtocolPacketEvent event) {
         this.player = player;
         this.event = event;
     }
@@ -36,7 +36,7 @@ public class MCPlayerProtocolPacketEvent implements MCPlayerEvent, Cancellable {
         return this.event.getPacketType();
     }
 
-    public ProtocolPacketEvent<?> getEvent() {
+    public ProtocolPacketEvent getEvent() {
         return event;
     }
 
