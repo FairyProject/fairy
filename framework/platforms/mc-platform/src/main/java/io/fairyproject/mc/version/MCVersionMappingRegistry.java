@@ -80,7 +80,7 @@ public class MCVersionMappingRegistry {
                 Log.info("Version mappings loaded successfully!");
             }
         } catch (IOException e) {
-            Log.error("Failed to load version mappings...");
+            Log.error("Failed to load version mappings...", e);
         }
     }
 
