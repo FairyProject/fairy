@@ -15,6 +15,7 @@ import io.fairyproject.util.ConditionUtils;
 import lombok.Getter;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -318,16 +319,12 @@ public class Gui {
     }
 
     private void onInventoryClick(@NotNull InventoryClickEvent event) {
-        if (!this.isInventory(event.getClickedInventory())) {
-            switch (event.getAction()) {
-                case COLLECT_TO_CURSOR:
-                case MOVE_TO_OTHER_INVENTORY:
-                case UNKNOWN:
-                    event.setCancelled(true);
-                    break;
-                default:
-                    break;
-            }
+
+        if (!isInventory(getOpenedTopInventory(event.getWhoClicked())))
+            return;
+
+        if (isTryingToShiftItemFromPlayerInvToGui(event) || isNotClickingGuiInvWhileOpenIt(event)) {
+            event.setCancelled(true);
             return;
         }
 
@@ -338,10 +335,39 @@ public class Gui {
             return;
 
         GuiSlot guiSlot = guiSlots[slot];
+
         if (guiSlot == null)
             return;
 
         guiSlot.onInventoryClick(event, this);
+    }
+
+    private boolean isNotClickingGuiInvWhileOpenIt(InventoryClickEvent event) {
+        return !this.isInventory(event.getClickedInventory()) && this.isInventory(getOpenedTopInventory(event.getWhoClicked()));
+    }
+
+    private boolean isTryingToShiftItemFromPlayerInvToGui(InventoryClickEvent event) {
+        if (this.isInventory(event.getClickedInventory())) {
+            return false;
+        }
+
+        if (!this.isInventory(getOpenedTopInventory(event.getWhoClicked()))) {
+            return false;
+        }
+
+        switch (event.getAction()) {
+            case COLLECT_TO_CURSOR:
+            case MOVE_TO_OTHER_INVENTORY:
+            case UNKNOWN:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    private Inventory getOpenedTopInventory(HumanEntity player) {
+        InventoryView view = player.getOpenInventory();
+        return view == null ? null : view.getTopInventory();
     }
 
     private void onInventoryDrag(@NotNull InventoryDragEvent event) {
