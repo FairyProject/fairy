@@ -13,7 +13,7 @@ public class LegacyAdventureUtilTest {
     @Test
     public void shouldParseLegacyChatColor() {
         assertEquals(
-                LegacyAdventureUtil.deserialize("&6Hello"),
+                LegacyAdventureUtil.decode("&6Hello"),
                 Component.text("Hello").color(NamedTextColor.GOLD)
         );
     }
@@ -21,7 +21,7 @@ public class LegacyAdventureUtilTest {
     @Test
     public void shouldParseHexColor() {
         assertEquals(
-                LegacyAdventureUtil.deserialize("&#ff0000Hello"),
+                LegacyAdventureUtil.decode("&#ff0000Hello"),
                 Component.text("Hello").color(TextColor.color(255, 0, 0))
         );
     }
@@ -29,9 +29,8 @@ public class LegacyAdventureUtilTest {
     @Test
     public void complexTestcases() {
         assertEquals(
-                LegacyAdventureUtil.deserialize("&7[&r&#b92b27&lW&#aa235a&lO&#9a1b8d&lR&#8b13c0&lK&7]"),
+                LegacyAdventureUtil.decode("&7[&r&#b92b27&lW&#aa235a&lO&#9a1b8d&lR&#8b13c0&lK&7]"),
                 MiniMessage.miniMessage().deserialize("<gray>[<reset><#b92b27><bold>W<#aa235a><bold>O<#9a1b8d><bold>R<#8b13c0><bold>K<gray>]")
         );
     }
 }
-
