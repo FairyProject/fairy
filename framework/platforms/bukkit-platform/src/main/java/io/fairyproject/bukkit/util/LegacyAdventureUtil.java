@@ -68,7 +68,7 @@ public class LegacyAdventureUtil {
         return MiniMessage.miniMessage().deserialize(fromLegacy(legacyText, '&'), tagResolver);
     }
 
-    public static String fromLegacy(String text, char code) {
+    public String fromLegacy(String text, char code) {
         StringBuilder stringBuilder = new StringBuilder();
         int lastIndex = 0;
 
