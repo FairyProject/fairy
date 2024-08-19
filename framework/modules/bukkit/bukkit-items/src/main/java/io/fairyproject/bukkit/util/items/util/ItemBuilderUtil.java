@@ -49,7 +49,7 @@ public class ItemBuilderUtil {
             .add((skullMeta, player) -> {
                 if (GAME_PROFILE_FIELD == null) {
                     ThrowingRunnable.sneaky(() -> {
-                        BukkitNMSManager bukkitNMSManager = Containers.get(BukkitNMSManagerImpl.class);
+                        BukkitNMSManager bukkitNMSManager = Containers.get(BukkitNMSManager.class);
                         Class<?> entityHumanClass = bukkitNMSManager.getNmsClassResolver().resolve("world.entity.player.EntityHuman", "EntityHuman");
                         Class<?> craftMetaSkullClass = bukkitNMSManager.getObcClassResolver().resolve("inventory.CraftMetaSkull");
 
