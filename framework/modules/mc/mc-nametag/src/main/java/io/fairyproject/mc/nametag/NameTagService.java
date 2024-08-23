@@ -41,10 +41,10 @@ import io.fairyproject.mc.nametag.update.NameTagUpdate;
 import io.fairyproject.mc.nametag.update.SinglePlayerNameTagUpdate;
 import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.registry.player.MCPlayerRegistry;
+import io.fairyproject.mc.scheduler.MCSchedulers;
 import io.fairyproject.metadata.MetadataKey;
-import io.fairyproject.scheduler.executor.ExecutorScheduler;
+import io.fairyproject.scheduler.Scheduler;
 import io.fairyproject.util.Utility;
-import io.fairyproject.util.thread.NamedThreadFactory;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -66,11 +66,7 @@ public class NameTagService {
     private final AtomicInteger teamId = new AtomicInteger(0);
     private final Map<NameTag, NameTagData> nameTagData = new ConcurrentHashMap<>();
     private final List<NameTagAdapter> nameTagAdapters = new LinkedList<>();
-    private final ExecutorScheduler scheduler = new ExecutorScheduler(NamedThreadFactory.builder()
-            .name("nametag-update")
-            .daemon(true)
-            .uncaughtExceptionHandler((t, e) -> Log.error("An error occurred while running async task", e))
-            .build());
+    private final Scheduler scheduler = MCSchedulers.getGlobalScheduler();
 
     private final ContainerContext containerContext;
     private final MCPlayerRegistry mcPlayerRegistry;
