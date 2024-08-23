@@ -72,6 +72,11 @@ public class MockPacketEventsAPI extends PacketEventsAPI<Plugin> {
     }
 
     @Override
+    public boolean isTerminated() {
+        return false;
+    }
+
+    @Override
     public Plugin getPlugin() {
         return FairyPlatform.INSTANCE.getMainPlugin();
     }
