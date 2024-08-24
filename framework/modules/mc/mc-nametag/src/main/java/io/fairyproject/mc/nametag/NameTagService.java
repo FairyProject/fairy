@@ -66,7 +66,6 @@ public class NameTagService {
     private final AtomicInteger teamId = new AtomicInteger(0);
     private final Map<NameTag, NameTagData> nameTagData = new ConcurrentHashMap<>();
     private final List<NameTagAdapter> nameTagAdapters = new LinkedList<>();
-    private final Scheduler scheduler = MCSchedulers.getGlobalScheduler();
 
     private final ContainerContext containerContext;
     private final MCPlayerRegistry mcPlayerRegistry;
@@ -81,7 +80,7 @@ public class NameTagService {
     }
 
     private CompletableFuture<?> runAsync(Runnable runnable) {
-        return this.scheduler.schedule(() -> {
+        return MCSchedulers.getGlobalScheduler().schedule(() -> {
             try {
                 runnable.run();
             } catch (Throwable throwable) {
