@@ -24,25 +24,15 @@
 
 package io.fairyproject.bukkit.events;
 
-import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.events.handler.HandlerListCollection;
 import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.PostInitialize;
-import io.fairyproject.util.Stacktrace;
-import io.github.classgraph.ClassGraph;
-import io.github.classgraph.ClassInfo;
-import io.github.classgraph.ClassInfoList;
+import io.fairyproject.log.Log;
 import lombok.RequiredArgsConstructor;
-import org.bukkit.Server;
 import org.bukkit.event.*;
-import org.bukkit.event.server.PluginEnableEvent;
-import org.bukkit.plugin.EventExecutor;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.RegisteredListener;
-import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Method;
-import java.net.URL;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -51,125 +41,34 @@ import java.util.function.Consumer;
 @RegisterAsListener
 public class GlobalEventListener implements Listener {
 
-    private final Set<HandlerList> handlerLists = Collections.newSetFromMap(new IdentityHashMap<>());
     private final List<Consumer<Event>> listeners = new ArrayList<>();
-    private final Server server;
 
     @PostInitialize
     public void onPostInitialize() {
-        register(Collections.emptyList());
-    }
+        Log.info("Attempting to inject global event listeners...");
 
-    @EventHandler
-    public void onPluginEnable(PluginEnableEvent event) {
-        Plugin plugin = event.getPlugin();
-        if (!plugin.isEnabled())
-            // funny hahna
+        try {
+            Field allLists = HandlerList.class.getDeclaredField("allLists");
+            allLists.setAccessible(true);
+
+            allLists.set(null, new HandlerListCollection(HandlerList.getHandlerLists(), this));
+        } catch (Throwable throwable) {
+            Log.error("Failed to inject global event listeners, some features may not work properly.", throwable);
+            throwable.printStackTrace();
             return;
+        }
 
-        URL url = getClassLoaderURLFromClass(plugin.getClass());
-        URL bukkitUrl = getClassLoaderURLFromClass(Server.class);
-
-        if (url == null || bukkitUrl == null)
-            // can't find the class loader URL, ignore it
-            return;
-
-        register(Arrays.asList(
-                url,
-                bukkitUrl
-        ));
-    }
-
-    private URL getClassLoaderURLFromClass(Class<?> clazz) {
-        return clazz.getProtectionDomain().getCodeSource().getLocation();
+        Log.info("Successfully injected global event listeners.");
     }
 
     public void addListener(Consumer<Event> listener) {
         this.listeners.add(listener);
     }
 
-    private void onEventFired(Event event) {
+    public void onEventFired(Event event) {
         for (Consumer<Event> listener : this.listeners) {
             listener.accept(event);
         }
-    }
-
-    private void register(List<URL> urls) {
-        Plugin mainPlugin = FairyBukkitPlatform.PLUGIN;
-        Listener listener = new Listener() {};
-
-        try {
-            for (ClassInfo classInfo : scan(urls)) {
-                registerClass(mainPlugin, listener, classInfo);
-            }
-        } catch (Throwable throwable) {
-            Stacktrace.print(throwable);
-        }
-    }
-
-    private void registerClass(Plugin mainPlugin, Listener listener, ClassInfo classInfo) {
-        Class<? extends Event> eventClass;
-        try {
-            eventClass = (Class<? extends Event>) Class.forName(classInfo.getName());
-        } catch (ClassNotFoundException ex) {
-            return;
-        }
-
-        HandlerList handlerList = getHandlerList(eventClass);
-        if (handlerList == null)
-            return;
-
-        EventExecutor eventExecutor = (ignored, event) -> {
-            this.onEventFired(event);
-        };
-
-        handlerList.register(new RegisteredListener(listener, eventExecutor, EventPriority.NORMAL, mainPlugin, false));
-    }
-
-    private boolean shouldRegisterEventClass(Class<?> eventClass) {
-        // https://github.com/PaperMC/Paper/blob/d6d2b6f4e51b24867b609cf747ac6d8c6345c449/patches/server/0089-Add-handshake-event-to-allow-plugins-to-handle-clien.patch#L20C114-L20C114
-        // NEVER register PlayerHandshakeEvent by paper, if there is 1 registered listener of this, it requires one of the listener to handle everything
-        // which causes bungee cord IP forwarding to just, stop working...
-        // what a stupid shit
-        return !eventClass.getName().equals("com.destroystokyo.paper.event.player.PlayerHandshakeEvent");
-    }
-
-    // copied from bukkit's SimplePluginManager
-    private @Nullable HandlerList getHandlerList(Class<?> clazz) {
-        try {
-            Method method = clazz.getDeclaredMethod("getHandlerList");
-            method.setAccessible(true);
-            HandlerList handlerList = (HandlerList) method.invoke(null);
-            if (!shouldRegisterEventClass(clazz))
-                return null;
-
-            if (this.handlerLists.add(handlerList))
-                return handlerList;
-
-            return null;
-        } catch (NoSuchMethodException e) {
-            if (clazz.getSuperclass() != null
-                    && !clazz.getSuperclass().equals(Event.class)
-                    && Event.class.isAssignableFrom(clazz.getSuperclass())) {
-                return getHandlerList(clazz.getSuperclass().asSubclass(Event.class));
-            } else {
-                return null;
-            }
-        } catch (Throwable e) {
-            return null;
-        }
-    }
-
-    private ClassInfoList scan(List<URL> urls) {
-        ClassGraph classGraph = new ClassGraph();
-        if (!urls.isEmpty()) {
-            classGraph.overrideClasspath(urls.toArray(new URL[0]));
-        }
-
-        return classGraph.enableClassInfo().scan()
-                .getClassInfo(Event.class.getName())
-                .getSubclasses()
-                .filter(classInfo -> !classInfo.isAbstract());
     }
 
 }
