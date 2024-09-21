@@ -55,14 +55,14 @@ repositories {
     maven {
         url = uri("https://repo.codemc.io/repository/maven-releases/")
         content {
-            includeGroup("com.github.retrooper")
+//            includeGroup("com.github.retrooper")
             includeGroup("de.tr7zw")
         }
     }
     maven {
         url = uri("https://repo.codemc.io/repository/maven-snapshots/")
         content {
-            includeGroup("com.github.retrooper")
+//            includeGroup("com.github.retrooper")
         }
     }
 }
