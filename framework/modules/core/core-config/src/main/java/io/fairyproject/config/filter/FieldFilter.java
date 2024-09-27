@@ -56,7 +56,7 @@ public interface FieldFilter extends Predicate<Field> {
         Class<?> current = cls;
         do {
             if (current == cls || accepted.contains(current)) {
-                fields.addAll(Arrays.asList(current.getDeclaredFields()));
+                fields.addAll(0, Arrays.asList(current.getDeclaredFields()));
             }
             current = current.getSuperclass();
         } while (current != Object.class && current != null);
