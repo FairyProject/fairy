@@ -72,8 +72,8 @@ public class TextDisplayHologramEntity extends AbstractHologramEntity {
         WrapperPlayServerEntityTeleport packet = new WrapperPlayServerEntityTeleport(
                 this.entityId,
                 this.packetPosition(),
-                this.hologram.getPosition().getPitch(),
                 this.hologram.getPosition().getYaw(),
+                this.hologram.getPosition().getPitch(),
                 false
         );
         WrapperPlayServerEntityMetadata metadataPacket = new WrapperPlayServerEntityMetadata(
@@ -101,10 +101,10 @@ public class TextDisplayHologramEntity extends AbstractHologramEntity {
     private List<EntityData> createEntityData(MCPlayer mcPlayer) {
         List<EntityData> entityDataList = new ArrayList<>();
 
-        entityDataList.add(new EntityData(22, EntityDataTypes.COMPONENT, MCAdventure.asItemString(line.render(mcPlayer), mcPlayer.getLocale()))); // text
-        entityDataList.add(new EntityData(23, EntityDataTypes.CAT_VARIANT, 200)); // line width
-        entityDataList.add(new EntityData(24, EntityDataTypes.CAT_VARIANT, 0x40000000)); // background color
-        entityDataList.add(new EntityData(25, EntityDataTypes.CAT_VARIANT, -1)); // text opacity
+        entityDataList.add(new EntityData(23, EntityDataTypes.COMPONENT, MCAdventure.asItemString(line.render(mcPlayer), mcPlayer.getLocale()))); // text
+        entityDataList.add(new EntityData(24, EntityDataTypes.INT, 200)); // line width
+        entityDataList.add(new EntityData(25, EntityDataTypes.INT, 0x40000000)); // background color
+        entityDataList.add(new EntityData(26, EntityDataTypes.BYTE, (byte) -1)); // text opacity
         /**
          * bit mask
          * 0x01 = has shadow
@@ -116,7 +116,7 @@ public class TextDisplayHologramEntity extends AbstractHologramEntity {
         boolean isSeeThrough = false;
         boolean useDefaultBackgroundColor = true;
         int alignment = 0;
-        entityDataList.add(new EntityData(26, EntityDataTypes.CAT_VARIANT, (hasShadow ? 0x01 : 0) | (isSeeThrough ? 0x02 : 0) | (useDefaultBackgroundColor ? 0x04 : 0) | alignment));
+        entityDataList.add(new EntityData(27, EntityDataTypes.BYTE, (byte)((hasShadow ? 0x01 : 0) | (isSeeThrough ? 0x02 : 0) | (useDefaultBackgroundColor ? 0x04 : 0) | alignment)));
 
         return entityDataList;
     }
