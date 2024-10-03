@@ -24,6 +24,8 @@
 
 package io.fairyproject.mc.hologram.entity.impl;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityDataTypes;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -99,12 +101,13 @@ public class TextDisplayHologramEntity extends AbstractHologramEntity {
     }
 
     private List<EntityData> createEntityData(MCPlayer mcPlayer) {
+        boolean modern = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_20_2);
         List<EntityData> entityDataList = new ArrayList<>();
 
-        entityDataList.add(new EntityData(23, EntityDataTypes.COMPONENT, MCAdventure.asItemString(line.render(mcPlayer), mcPlayer.getLocale()))); // text
-        entityDataList.add(new EntityData(24, EntityDataTypes.INT, 200)); // line width
-        entityDataList.add(new EntityData(25, EntityDataTypes.INT, 0x40000000)); // background color
-        entityDataList.add(new EntityData(26, EntityDataTypes.BYTE, (byte) -1)); // text opacity
+        entityDataList.add(new EntityData(modern ? 23 : 22, EntityDataTypes.COMPONENT, MCAdventure.asItemString(line.render(mcPlayer), mcPlayer.getLocale()))); // text
+        entityDataList.add(new EntityData(modern ? 24 : 23, EntityDataTypes.CAT_VARIANT, 200)); // line width
+        entityDataList.add(new EntityData(modern ? 25 : 24, EntityDataTypes.CAT_VARIANT, 0x40000000)); // background color
+        entityDataList.add(new EntityData(modern ? 26 : 25, EntityDataTypes.CAT_VARIANT, (byte) -1)); // text opacity
         /**
          * bit mask
          * 0x01 = has shadow
@@ -116,7 +119,7 @@ public class TextDisplayHologramEntity extends AbstractHologramEntity {
         boolean isSeeThrough = false;
         boolean useDefaultBackgroundColor = true;
         int alignment = 0;
-        entityDataList.add(new EntityData(27, EntityDataTypes.BYTE, (byte)((hasShadow ? 0x01 : 0) | (isSeeThrough ? 0x02 : 0) | (useDefaultBackgroundColor ? 0x04 : 0) | alignment)));
+        entityDataList.add(new EntityData(modern ? 27 : 26, EntityDataTypes.CAT_VARIANT, (byte)((hasShadow ? 0x01 : 0) | (isSeeThrough ? 0x02 : 0) | (useDefaultBackgroundColor ? 0x04 : 0) | alignment)));
 
         return entityDataList;
     }
