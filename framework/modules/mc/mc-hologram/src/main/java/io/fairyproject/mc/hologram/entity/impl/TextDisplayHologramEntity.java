@@ -105,9 +105,9 @@ public class TextDisplayHologramEntity extends AbstractHologramEntity {
         List<EntityData> entityDataList = new ArrayList<>();
 
         entityDataList.add(new EntityData(modern ? 23 : 22, EntityDataTypes.COMPONENT, MCAdventure.asItemString(line.render(mcPlayer), mcPlayer.getLocale()))); // text
-        entityDataList.add(new EntityData(modern ? 24 : 23, EntityDataTypes.CAT_VARIANT, 200)); // line width
-        entityDataList.add(new EntityData(modern ? 25 : 24, EntityDataTypes.CAT_VARIANT, 0x40000000)); // background color
-        entityDataList.add(new EntityData(modern ? 26 : 25, EntityDataTypes.CAT_VARIANT, (byte) -1)); // text opacity
+        entityDataList.add(new EntityData(modern ? 24 : 23, EntityDataTypes.INT, 200)); // line width
+        entityDataList.add(new EntityData(modern ? 25 : 24, EntityDataTypes.INT, 0x40000000)); // background color
+        entityDataList.add(new EntityData(modern ? 26 : 25, EntityDataTypes.BYTE, (byte) -1)); // text opacity
         /**
          * bit mask
          * 0x01 = has shadow
@@ -119,7 +119,7 @@ public class TextDisplayHologramEntity extends AbstractHologramEntity {
         boolean isSeeThrough = false;
         boolean useDefaultBackgroundColor = true;
         int alignment = 0;
-        entityDataList.add(new EntityData(modern ? 27 : 26, EntityDataTypes.CAT_VARIANT, (byte)((hasShadow ? 0x01 : 0) | (isSeeThrough ? 0x02 : 0) | (useDefaultBackgroundColor ? 0x04 : 0) | alignment)));
+        entityDataList.add(new EntityData(modern ? 27 : 26, EntityDataTypes.BYTE, (byte)((hasShadow ? 0x01 : 0) | (isSeeThrough ? 0x02 : 0) | (useDefaultBackgroundColor ? 0x04 : 0) | alignment)));
 
         return entityDataList;
     }
