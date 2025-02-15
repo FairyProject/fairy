@@ -28,9 +28,7 @@ class FairyGradlePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         extension = project.extensions.create("fairy", FairyExtension::class.java)
         
-        project.afterEvaluate {
-            configureRepositories(project)
-        }
+        configureRepositories(project)
 
         project.plugins.apply(JavaBasePlugin::class.java)
         project.plugins.apply(FairyResourcePlugin::class.java)
