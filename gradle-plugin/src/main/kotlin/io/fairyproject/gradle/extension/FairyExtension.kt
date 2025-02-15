@@ -19,6 +19,18 @@ open class FairyExtension(objectFactory: ObjectFactory) {
     private val properties = mutableMapOf<PlatformType, Properties>()
 
     /**
+     * Whether to override the project's existing repositories
+     * Default is false, meaning keep existing configuration
+     */
+    var overrideRepositories: Boolean = false
+
+    /**
+     * Whether to add default Fairy repositories
+     * Default is true
+     */
+    var addDefaultRepositories: Boolean = true
+
+    /**
      * Get properties for bukkit platform
      */
     fun bukkitProperties(): BukkitProperties = this.properties.computeIfAbsent(PlatformType.BUKKIT) { BukkitProperties() } as BukkitProperties
