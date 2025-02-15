@@ -23,10 +23,14 @@ import org.gradle.api.tasks.SourceSetContainer
 class FairyGradlePlugin : Plugin<Project> {
 
     private lateinit var sourceSets: SourceSetContainer
+    private lateinit var extension: FairyExtension
 
     override fun apply(project: Project) {
-        project.extensions.create("fairy", FairyExtension::class.java)
-        this.configureRepositories(project)
+        extension = project.extensions.create("fairy", FairyExtension::class.java)
+        
+        project.afterEvaluate {
+            configureRepositories(project)
+        }
 
         project.plugins.apply(JavaBasePlugin::class.java)
         project.plugins.apply(FairyResourcePlugin::class.java)
@@ -51,18 +55,28 @@ class FairyGradlePlugin : Plugin<Project> {
     }
 
     private fun configureRepositories(project: Project) {
-        project.repositories.maven { it.setUrl(UrlConstants.repositoryUrl) }
-        project.repositories.maven {
-            it.setUrl(UrlConstants.codeMcReleaseRepositoryUrl)
-            it.content {
-                it.includeGroup("com.github.retrooper")
-            }
+        if (extension.overrideRepositories) {
+            project.repositories.clear()
         }
-        project.repositories.maven {
-            it.setUrl(UrlConstants.codeMcSnapshotRepositoryUrl)
-            it.content {
-                it.includeGroup("com.github.retrooper")
-            }
+
+        if (extension.addDefaultRepositories) {
+            project.repositories.addFirst(project.repositories.maven { 
+                it.setUrl(UrlConstants.repositoryUrl)
+            })
+
+            project.repositories.addFirst(project.repositories.maven {
+                it.setUrl(UrlConstants.codeMcReleaseRepositoryUrl)
+                it.content {
+                    it.includeGroup("com.github.retrooper")
+                }
+            })
+
+            project.repositories.addFirst(project.repositories.maven {
+                it.setUrl(UrlConstants.codeMcSnapshotRepositoryUrl)
+                it.content {
+                    it.includeGroup("com.github.retrooper")
+                }
+            })
         }
     }
 
