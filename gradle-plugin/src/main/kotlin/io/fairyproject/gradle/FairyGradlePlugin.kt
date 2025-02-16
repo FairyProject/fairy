@@ -25,6 +25,11 @@ class FairyGradlePlugin : Plugin<Project> {
     private lateinit var sourceSets: SourceSetContainer
     private lateinit var extension: FairyExtension
 
+    companion object {
+        private const val OVERRIDE_REPOS_PROP = "fairy.repositories.override"
+        private const val ADD_DEFAULT_REPOS_PROP = "fairy.repositories.addDefault"
+    }
+
     override fun apply(project: Project) {
         extension = project.extensions.create("fairy", FairyExtension::class.java)
         
@@ -53,28 +58,67 @@ class FairyGradlePlugin : Plugin<Project> {
     }
 
     private fun configureRepositories(project: Project) {
-        if (extension.overrideRepositories) {
+        // 檢查是否為真實專案
+        if (project.name == "gradle-kotlin-dsl-accessors") {
+            project.logger.debug("Skipping repository configuration for internal project: ${project.name}")
+            return
+        }
+
+        project.logger.warn("Project name: ${project.name}")
+        project.logger.warn("Project path: ${project.path}")
+
+        val overrideRepos = project.findProperty(OVERRIDE_REPOS_PROP)?.toString()?.toBoolean() == true
+        val addDefaultRepos = project.findProperty(ADD_DEFAULT_REPOS_PROP)?.toString()?.toBoolean() != false
+
+        project.logger.warn("overrideRepositories: $overrideRepos")
+        project.logger.warn("addDefaultRepositories: $addDefaultRepos")
+
+        if (overrideRepos) {
             project.repositories.clear()
         }
 
-        if (extension.addDefaultRepositories) {
-            project.repositories.addFirst(project.repositories.maven { 
-                it.setUrl(UrlConstants.repositoryUrl)
-            })
+        if (addDefaultRepos) {
+            // 列出當前的 repositories
+            project.logger.info("列出專案 repositories:")
+            project.repositories.forEach {
+                project.logger.info(it.toString())
+            }
 
-            project.repositories.addFirst(project.repositories.maven {
-                it.setUrl(UrlConstants.codeMcReleaseRepositoryUrl)
-                it.content {
-                    it.includeGroup("com.github.retrooper")
-                }
-            })
+            // 添加 Fairy repository
+            try {
+                project.repositories.addFirst(project.repositories.maven {
+                    it.setUrl(UrlConstants.repositoryUrl)
+                })
+                project.logger.info("已添加 Fairy repository: ${UrlConstants.repositoryUrl}")
+            } catch (e: Exception) {
+                project.logger.info("無法添加 Fairy repository: ${e.message}")
+            }
 
-            project.repositories.addFirst(project.repositories.maven {
-                it.setUrl(UrlConstants.codeMcSnapshotRepositoryUrl)
-                it.content {
-                    it.includeGroup("com.github.retrooper")
-                }
-            })
+            // 添加 CodeMC Release repository
+            try {
+                project.repositories.addFirst(project.repositories.maven {
+                    it.setUrl(UrlConstants.codeMcReleaseRepositoryUrl)
+                    it.content {
+                        it.includeGroup("com.github.retrooper")
+                    }
+                })
+                project.logger.info("已添加 CodeMC Release repository: ${UrlConstants.codeMcReleaseRepositoryUrl}")
+            } catch (e: Exception) {
+                project.logger.info("無法添加 CodeMC Release repository: ${e.message}")
+            }
+
+            // 添加 CodeMC Snapshot repository
+            try {
+                project.repositories.addFirst(project.repositories.maven {
+                    it.setUrl(UrlConstants.codeMcSnapshotRepositoryUrl)
+                    it.content {
+                        it.includeGroup("com.github.retrooper")
+                    }
+                })
+                project.logger.info("已添加 CodeMC Snapshot repository: ${UrlConstants.codeMcSnapshotRepositoryUrl}")
+            } catch (e: Exception) {
+                project.logger.info("無法添加 CodeMC Snapshot repository: ${e.message}")
+            }
         }
     }
 
