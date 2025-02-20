@@ -1,9 +1,8 @@
 package io.fairyproject.gradle.resource
 
-import io.fairyproject.gradle.extension.FairyExtension
+import io.fairyproject.gradle.extension.property.Properties
 import io.fairyproject.gradle.resource.impl.FairyResourceBukkitMeta
 import io.fairyproject.gradle.resource.impl.FairyResourcePluginMeta
-import org.gradle.api.Project
 
 /**
  * The resource generator.
@@ -14,8 +13,7 @@ interface FairyResource {
      * Generate the resource.
      */
     fun generate(
-        project: Project,
-        fairyExtension: FairyExtension,
+        context: FairyResourceGenerateContext,
         classMapper: Map<ClassType, ClassInfo>
     ): ResourceInfo?
 
@@ -28,6 +26,19 @@ interface FairyResource {
 
     }
 
+}
+
+data class FairyResourceGenerateContext(
+    val projectName: String,
+    val projectVersion: String,
+    val projectDescription: String,
+    val hasBukkitPlatform: Boolean,
+    val mainPackage: String?,
+    val fairyPackage: String?,
+    val props: Map<String, Any>
+) {
+    val pluginName: String
+        get() = props["name"]?.toString() ?: projectName
 }
 
 /**
