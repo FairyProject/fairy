@@ -82,6 +82,7 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
                                 info.version,
                                 info.description,
                                 hasBukkitPlatform.get(),
+                                extension.get().name.orNull,
                                 extension.get().mainPackage.orNull,
                                 extension.get().fairyPackage.orNull,
                                 extension.get().bukkitPropertiesRaw()

@@ -33,12 +33,13 @@ data class FairyResourceGenerateContext(
     val projectVersion: String,
     val projectDescription: String,
     val hasBukkitPlatform: Boolean,
+    private val _pluginName: String?,
     val mainPackage: String?,
     val fairyPackage: String?,
     val props: Map<String, Any>
 ) {
     val pluginName: String
-        get() = props["name"]?.toString() ?: projectName
+        get() = _pluginName ?: projectName
 }
 
 /**
