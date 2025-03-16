@@ -36,67 +36,64 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
         val file = jar.archiveFile.get().asFile
         val outputFile = kotlin.io.path.createTempFile(file.nameWithoutExtension, file.extension).toFile()
 
-        JarFile(file).use { inJar ->
-            JarOutputStream(BufferedOutputStream(outputFile.outputStream())).use { output ->
-                kotlin.runCatching {
-                    val classMapper = mutableMapOf<ClassType, ClassInfo>()
-                    val classes = mutableListOf<ClassInfo>()
+        JarFile(file).use { inJar -> JarOutputStream(BufferedOutputStream(outputFile.outputStream())).use { output ->
+            kotlin.runCatching {
+                val classMapper = mutableMapOf<ClassType, ClassInfo>()
+                val classes = mutableListOf<ClassInfo>()
 
-                    // Read input jar information and copy to temporary file
-                    readJarClasses(inJar, output, classes, classMapper)
+                // Read input jar information and copy to temporary file
+                readJarClasses(inJar, output, classes, classMapper)
 
-                    // Second loop to identify main class
-                    val mainClassInterface = classMapper[ClassType.MAIN_CLASS_INTERFACE]
+                // Second loop to identify main class
+                val mainClassInterface = classMapper[ClassType.MAIN_CLASS_INTERFACE]
 
-                    classes.forEach {
-                        // Avoid module-info
-                        val isMainClass = mainClassInterface?.name == it.classNode.superName || hasFairyLaunch(it)
-                        if (isMainClass &&
-                            !it.classNode.name.contains("module-info") &&
-                            // Not abstract
-                            it.classNode.access and Opcodes.ACC_ABSTRACT == 0 &&
-                            // Not interface
-                            it.classNode.access and Opcodes.ACC_INTERFACE == 0
-                        ) {
-                            // the super class was main class interface, so it's main class
-                            classMapper[ClassType.MAIN_CLASS] = it
-                        }
+                classes.forEach {
+                    // Avoid module-info
+                    val isMainClass = mainClassInterface?.name == it.classNode.superName || hasFairyLaunch(it)
+                    if (isMainClass &&
+                        !it.classNode.name.contains("module-info") &&
+                        // Not abstract
+                        it.classNode.access and Opcodes.ACC_ABSTRACT == 0 &&
+                        // Not interface
+                        it.classNode.access and Opcodes.ACC_INTERFACE == 0) {
+                        // the super class was main class interface, so it's main class
+                        classMapper[ClassType.MAIN_CLASS] = it
                     }
-
-                    classMapper[ClassType.MAIN_CLASS] ?: run {
-                        println("[Fairy] Main class not found, no resources will be generated.")
-                        return
-                    }
-
-                    classMapper[ClassType.BUKKIT_PLUGIN] ?: run {
-                        println("[Fairy] Bukkit plugin class not found, no resources will be generated.")
-                        return
-                    }
-
-                    // Generate resource
-                    FairyResource.ALL.forEach {
-                        val info = projectInfo.get()
-                        it.generate(
-                            FairyResourceGenerateContext(
-                                info.name,
-                                info.version,
-                                info.description,
-                                hasBukkitPlatform.get(),
-                                extension.get().name.orNull,
-                                extension.get().mainPackage.orNull,
-                                extension.get().fairyPackage.orNull,
-                                extension.get().bukkitPropertiesRaw()
-                            ), classMapper
-                        )?.let { resource ->
-                            output.putNextEntry(JarEntry(resource.name))
-                            output.write(resource.byteArray)
-                        }
-                    }
-                }.getOrElse { e ->
-                    e.printStackTrace()
                 }
+
+                classMapper[ClassType.MAIN_CLASS] ?: run {
+                    println("[Fairy] Main class not found, no resources will be generated.")
+                    return
+                }
+
+                classMapper[ClassType.BUKKIT_PLUGIN] ?: run {
+                    println("[Fairy] Bukkit plugin class not found, no resources will be generated.")
+                    return
+                }
+
+                // Generate resource
+                FairyResource.ALL.forEach {
+                    val info = projectInfo.get()
+                    it.generate(
+                        FairyResourceGenerateContext(
+                            info.name,
+                            info.version,
+                            info.description,
+                            hasBukkitPlatform.get(),
+                            extension.get().name.orNull,
+                            extension.get().mainPackage.orNull,
+                            extension.get().fairyPackage.orNull,
+                            extension.get().bukkitPropertiesRaw()
+                        ), classMapper
+                    )?.let { resource ->
+                        output.putNextEntry(JarEntry(resource.name))
+                        output.write(resource.byteArray)
+                    }
+                }
+            }.getOrElse { e ->
+                e.printStackTrace()
             }
-        }
+        }}
 
         // Write temporary file back to original file
         outputFile.copyTo(file, true)
@@ -107,8 +104,7 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
         inJar: JarFile,
         output: JarOutputStream,
         classes: MutableList<ClassInfo>,
-        classMapper: MutableMap<ClassType, ClassInfo>
-    ) {
+        classMapper: MutableMap<ClassType, ClassInfo>) {
         for (entry in inJar.entries()) {
             if (this.shouldExcludeFile(entry)) continue
             val bytes = inJar.getInputStream(entry).readBytes()
@@ -127,8 +123,7 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
     private fun readClass(
         bytes: ByteArray,
         classes: MutableList<ClassInfo>,
-        classMapper: MutableMap<ClassType, ClassInfo>
-    ) {
+        classMapper: MutableMap<ClassType, ClassInfo>) {
         val classReader = ClassReader(bytes)
         val classNode = ClassNode()
 
@@ -167,22 +162,14 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
 
     private fun hasDependency(project: Project, name: String): Boolean {
         // hacky? I don't know
-        return project.configurations.any { configuration ->
-            configuration.dependencies.any { dependency ->
-                dependency.name.equals(
-                    name
-                )
-            }
-        }
+        return project.configurations.any { configuration -> configuration.dependencies.any { dependency -> dependency.name.equals(name) } }
     }
 
     private fun hasInternalMetadata(classInfo: ClassInfo): Boolean =
-        classInfo.classNode.visibleAnnotations?.any { annotation -> annotation.desc.contains(ClassConstants.INTERNAL_META) }
-            ?: false
+        classInfo.classNode.visibleAnnotations?.any { annotation -> annotation.desc.contains(ClassConstants.INTERNAL_META) } ?: false
 
     private fun hasFairyLaunch(classInfo: ClassInfo): Boolean =
-        classInfo.classNode.visibleAnnotations?.any { annotation -> annotation.desc.contains(ClassConstants.FAIRY_LAUNCH) }
-            ?: false
+        classInfo.classNode.visibleAnnotations?.any { annotation -> annotation.desc.contains(ClassConstants.FAIRY_LAUNCH) } ?: false
 }
 
 /**

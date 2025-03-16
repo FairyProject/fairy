@@ -1,6 +1,5 @@
 package io.fairyproject.gradle.resource
 
-import io.fairyproject.gradle.extension.property.Properties
 import io.fairyproject.gradle.resource.impl.FairyResourceBukkitMeta
 import io.fairyproject.gradle.resource.impl.FairyResourcePluginMeta
 

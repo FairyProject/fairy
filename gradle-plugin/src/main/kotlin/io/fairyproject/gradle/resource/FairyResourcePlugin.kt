@@ -9,9 +9,9 @@ import org.gradle.jvm.tasks.Jar
 /**
  * The resource plugin.
  */
-class FairyResourcePlugin : Plugin<Project> {
+class FairyResourcePlugin: Plugin<Project> {
     override fun apply(project: Project) {
-        project.tasks.withType(Jar::class.java).configureEach { configureJarTask(project, it) }
+        project.tasks.withType(Jar::class.java) { configureJarTask(project, it) }
     }
 
     private fun configureJarTask(project: Project, jar: Jar) {
