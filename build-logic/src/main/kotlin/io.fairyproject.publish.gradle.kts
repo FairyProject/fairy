@@ -63,15 +63,14 @@ afterEvaluate {
         }
 
         repositories {
-            mavenLocal()
-//            maven {
-//                name = "Production"
-//                url = uri("https://repo.imanity.dev/imanity-libraries/")
-//                credentials {
-//                    username = findProperty("imanityLibrariesUsername").toString()
-//                    password = findProperty("imanityLibrariesPassword").toString()
-//                }
-//            }
+            maven {
+                name = "Production"
+                url = uri("https://repo.imanity.dev/imanity-libraries/")
+                credentials {
+                    username = findProperty("imanityLibrariesUsername").toString()
+                    password = findProperty("imanityLibrariesPassword").toString()
+                }
+            }
         }
     }
 }
