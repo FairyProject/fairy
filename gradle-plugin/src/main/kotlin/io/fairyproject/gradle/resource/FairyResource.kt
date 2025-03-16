@@ -27,6 +27,9 @@ interface FairyResource {
 
 }
 
+/**
+ * The context for generating the resource.
+ */
 data class FairyResourceGenerateContext(
     val projectName: String,
     val projectVersion: String,

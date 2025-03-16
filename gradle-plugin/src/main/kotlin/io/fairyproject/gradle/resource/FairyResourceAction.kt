@@ -184,4 +184,7 @@ enum class ClassType(vararg val names: String) {
  */
 data class ClassInfo(val name: String, val classNode: ClassNode)
 
+/**
+ * Project information.
+ */
 data class ProjectInfo(val name: String, val version: String, val description: String)
