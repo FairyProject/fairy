@@ -59,7 +59,7 @@ public class ItemBuilderImpl implements ItemBuilder {
     }
 
     public ItemBuilderImpl(final ItemStack itemStack) {
-        this.itemStack = itemStack;
+        this.itemStack = itemStack.clone();
     }
 
     @Override
