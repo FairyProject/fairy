@@ -2,9 +2,11 @@ package io.fairyproject.gradle.resource
 
 import io.fairyproject.gradle.constants.ClassConstants
 import io.fairyproject.gradle.extension.FairyExtension
+import org.gradle.api.provider.Property;
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.tasks.Input
 import org.gradle.jvm.tasks.Jar
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
@@ -13,15 +15,24 @@ import java.io.BufferedOutputStream
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import java.util.jar.JarOutputStream
+import javax.inject.Inject
 
 /**
  * Action for resource plugin.
  */
-open class FairyResourceAction : Action<Task> {
+abstract class FairyResourceAction @Inject constructor() : Action<Task> {
+
+    @get:Input
+    abstract val extension: Property<FairyExtension>
+
+    @get:Input
+    abstract val projectInfo: Property<ProjectInfo>
+
+    @get:Input
+    abstract val hasBukkitPlatform: Property<Boolean>
+
     override fun execute(task: Task) {
         val jar = task as Jar
-        val project = jar.project
-        val extension = project.extensions.getByType(FairyExtension::class.java)
         val file = jar.archiveFile.get().asFile
         val outputFile = kotlin.io.path.createTempFile(file.nameWithoutExtension, file.extension).toFile()
 
@@ -62,7 +73,19 @@ open class FairyResourceAction : Action<Task> {
 
                 // Generate resource
                 FairyResource.ALL.forEach {
-                    it.generate(project, extension, classMapper)?.let { resource ->
+                    val info = projectInfo.get()
+                    it.generate(
+                        FairyResourceGenerateContext(
+                            info.name,
+                            info.version,
+                            info.description,
+                            hasBukkitPlatform.get(),
+                            extension.get().name.orNull,
+                            extension.get().mainPackage.orNull,
+                            extension.get().fairyPackage.orNull,
+                            extension.get().bukkitPropertiesRaw()
+                        ), classMapper
+                    )?.let { resource ->
                         output.putNextEntry(JarEntry(resource.name))
                         output.write(resource.byteArray)
                     }
@@ -160,3 +183,8 @@ enum class ClassType(vararg val names: String) {
  * Class information.
  */
 data class ClassInfo(val name: String, val classNode: ClassNode)
+
+/**
+ * Project information.
+ */
+data class ProjectInfo(val name: String, val version: String, val description: String)
