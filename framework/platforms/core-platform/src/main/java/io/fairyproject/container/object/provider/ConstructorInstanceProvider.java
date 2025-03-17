@@ -25,16 +25,23 @@
 package io.fairyproject.container.object.provider;
 
 import io.fairyproject.container.ContainerConstruct;
+import io.fairyproject.container.type.TypeDescriptor;
+import io.fairyproject.container.util.GenericTypeUtils;
 import io.fairyproject.util.AccessUtil;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 
 public class ConstructorInstanceProvider implements InstanceProvider {
 
     private final Class<?> type;
     private final Constructor<?> constructor;
+
+    @Getter
+    private final TypeDescriptor[] parameterTypeDescriptors;
 
     public ConstructorInstanceProvider(Class<?> type) throws ReflectiveOperationException {
         if (Modifier.isAbstract(type.getModifiers()))
@@ -42,6 +49,13 @@ public class ConstructorInstanceProvider implements InstanceProvider {
 
         this.type = type;
         this.constructor = this.resolveConstructor();
+
+        // Initialize parameter type descriptors
+        Parameter[] parameters = this.constructor.getParameters();
+        this.parameterTypeDescriptors = new TypeDescriptor[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            this.parameterTypeDescriptors[i] = GenericTypeUtils.getTypeDescriptorFromParameter(parameters[i]);
+        }
     }
 
     @Override

@@ -26,6 +26,7 @@ package io.fairyproject.container.object.resolver;
 
 import io.fairyproject.container.binder.ContainerObjectBinder;
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.type.TypeDescriptor;
 import io.fairyproject.util.ConditionUtils;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
@@ -58,6 +59,26 @@ public class ContainerObjectResolverImpl implements ContainerObjectResolver {
     public @NotNull CompletableFuture<Object> resolveInstance(@NotNull Class<?> type) throws Exception {
         ContainerObj object = this.binder.getBinding(type);
         ConditionUtils.notNull(object, String.format("Couldn't find container object %s!", type.getName()));
+
+        CompletableFuture<Object> future;
+        switch (object.getScope()) {
+            case SINGLETON:
+                future = singletonObjectFactory.createInstance(object.getType());
+                break;
+            case PROTOTYPE:
+                future = prototypeObjectFactory.createInstance(object.getType());
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + object.getScope());
+        }
+
+        return future;
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Object> resolveInstance(@NotNull TypeDescriptor typeDescriptor) throws Exception {
+        ContainerObj object = this.binder.getBinding(typeDescriptor);
+        ConditionUtils.notNull(object, String.format("Couldn't find container object %s!", typeDescriptor));
 
         CompletableFuture<Object> future;
         switch (object.getScope()) {

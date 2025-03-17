@@ -25,6 +25,8 @@
 package io.fairyproject.container.binder;
 
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.type.TypeDescriptor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
@@ -33,6 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ContainerObjectBinderImpl implements ContainerObjectBinder {
 
     private final Map<Class<?>, ContainerObj> bindings = new ConcurrentHashMap<>();
+    private final Map<TypeDescriptor, ContainerObj> typeDescriptorBindings = new ConcurrentHashMap<>();
 
     @Override
     @Nullable
@@ -67,11 +70,47 @@ public class ContainerObjectBinderImpl implements ContainerObjectBinder {
     @Override
     public void bind(Class<?> type, ContainerObj object) {
         this.bindings.put(type, object);
+        // Also register with type descriptor for backward compatibility
+        this.typeDescriptorBindings.put(object.getTypeDescriptor(), object);
     }
 
     @Override
     public void unbind(Class<?> type) {
-        this.bindings.remove(type);
+        ContainerObj obj = this.bindings.remove(type);
+        if (obj != null) {
+            this.typeDescriptorBindings.remove(obj.getTypeDescriptor());
+        }
     }
-
+    
+    @Override
+    @Nullable
+    public ContainerObj getBinding(@NotNull TypeDescriptor typeDescriptor) {
+        // First check for exact match
+        ContainerObj obj = this.typeDescriptorBindings.get(typeDescriptor);
+        if (obj != null) {
+            return obj;
+        }
+        
+        // Then check for compatible types
+        for (Map.Entry<TypeDescriptor, ContainerObj> entry : this.typeDescriptorBindings.entrySet()) {
+            if (entry.getKey().isAssignableTo(typeDescriptor)) {
+                return entry.getValue();
+            }
+        }
+        
+        // Finally fallback to class-based lookup
+        return this.getBinding(typeDescriptor.getRawType());
+    }
+    
+    @Override
+    public boolean isBound(@NotNull TypeDescriptor typeDescriptor) {
+        return this.getBinding(typeDescriptor) != null;
+    }
+    
+    @Override
+    public void bind(@NotNull TypeDescriptor typeDescriptor, @NotNull ContainerObj object) {
+        this.typeDescriptorBindings.put(typeDescriptor, object);
+        // Also update the raw type binding for backward compatibility
+        this.bindings.put(typeDescriptor.getRawType(), object);
+    }
 }

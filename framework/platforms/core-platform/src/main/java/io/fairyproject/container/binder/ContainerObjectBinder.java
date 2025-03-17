@@ -25,6 +25,8 @@
 package io.fairyproject.container.binder;
 
 import io.fairyproject.container.object.ContainerObj;
+import io.fairyproject.container.type.TypeDescriptor;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface ContainerObjectBinder {
@@ -37,4 +39,28 @@ public interface ContainerObjectBinder {
     void bind(Class<?> type, ContainerObj object);
 
     void unbind(Class<?> type);
+    
+    /**
+     * Get a binding using type descriptor information, supporting generic types.
+     *
+     * @param typeDescriptor The type descriptor
+     * @return The container object, or null if not found
+     */
+    @Nullable ContainerObj getBinding(@NotNull TypeDescriptor typeDescriptor);
+    
+    /**
+     * Check if a binding exists for the given type descriptor.
+     *
+     * @param typeDescriptor The type descriptor
+     * @return true if a binding exists
+     */
+    boolean isBound(@NotNull TypeDescriptor typeDescriptor);
+    
+    /**
+     * Bind an object with its type descriptor.
+     *
+     * @param typeDescriptor The type descriptor
+     * @param object The container object
+     */
+    void bind(@NotNull TypeDescriptor typeDescriptor, @NotNull ContainerObj object);
 }

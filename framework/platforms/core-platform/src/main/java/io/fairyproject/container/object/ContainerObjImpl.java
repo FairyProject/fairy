@@ -3,12 +3,16 @@ package io.fairyproject.container.object;
 import io.fairyproject.container.Threading;
 import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.scope.InjectableScope;
+import io.fairyproject.container.type.TypeDescriptor;
 import io.fairyproject.data.MetaStorage;
-import io.fairyproject.metadata.MetadataMap;
 import io.fairyproject.util.AsyncUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public class ContainerObjImpl implements ContainerObj {
@@ -19,6 +23,7 @@ public class ContainerObjImpl implements ContainerObj {
     private Threading.Mode threadingMode;
     private InjectableScope scope;
     private InstanceProvider instanceProvider;
+    private TypeDescriptor typeDescriptor;
 
     public ContainerObjImpl(Class<?> type) {
         this.type = type;
@@ -26,6 +31,7 @@ public class ContainerObjImpl implements ContainerObj {
         this.dependencies = new HashSet<>();
         this.threadingMode = Threading.Mode.SYNC;
         this.scope = InjectableScope.SINGLETON;
+        this.typeDescriptor = new TypeDescriptor(type);
     }
 
     @Override
@@ -83,6 +89,16 @@ public class ContainerObjImpl implements ContainerObj {
     }
 
     @Override
+    public @NotNull TypeDescriptor getTypeDescriptor() {
+        return this.typeDescriptor;
+    }
+
+    @Override
+    public void setTypeDescriptor(@NotNull TypeDescriptor typeDescriptor) {
+        this.typeDescriptor = typeDescriptor;
+    }
+
+    @Override
     public CompletableFuture<Object> createInstanceFromProvider(Object[] objects) {
         InstanceProvider instanceProvider = this.getInstanceProvider();
         if (instanceProvider == null)
@@ -102,7 +118,7 @@ public class ContainerObjImpl implements ContainerObj {
 
     @Override
     public String toString() {
-        return this.getType().toString();
+        return this.typeDescriptor.toString();
     }
 
     @Override
@@ -112,12 +128,11 @@ public class ContainerObjImpl implements ContainerObj {
         if (o == null || getClass() != o.getClass())
             return false;
         ContainerObjImpl that = (ContainerObjImpl) o;
-        return this.getType() == that.getType();
+        return Objects.equals(this.typeDescriptor, that.typeDescriptor);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.type);
+        return Objects.hash(this.typeDescriptor);
     }
-
 }
