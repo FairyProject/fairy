@@ -33,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 
-@RequiredArgsConstructor
 public class MethodInvokeInstanceProvider implements InstanceProvider {
 
     private final Object instance;

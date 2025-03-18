@@ -83,10 +83,10 @@ public class ContainerObjectResolverImpl implements ContainerObjectResolver {
         CompletableFuture<Object> future;
         switch (object.getScope()) {
             case SINGLETON:
-                future = singletonObjectFactory.createInstance(object.getType());
+                future = singletonObjectFactory.createInstance(typeDescriptor);
                 break;
             case PROTOTYPE:
-                future = prototypeObjectFactory.createInstance(object.getType());
+                future = prototypeObjectFactory.createInstance(typeDescriptor);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + object.getScope());
