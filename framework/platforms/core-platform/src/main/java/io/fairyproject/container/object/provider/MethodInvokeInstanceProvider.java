@@ -24,16 +24,34 @@
 
 package io.fairyproject.container.object.provider;
 
+import io.fairyproject.container.type.TypeDescriptor;
+import io.fairyproject.container.util.GenericTypeUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 
-@RequiredArgsConstructor
 public class MethodInvokeInstanceProvider implements InstanceProvider {
 
     private final Object instance;
     private final Method method;
+
+    @Getter
+    private final TypeDescriptor[] parameterTypeDescriptors;
+
+    public MethodInvokeInstanceProvider(Object instance, Method method) {
+        this.instance = instance;
+        this.method = method;
+
+        // Initialize parameter type descriptors
+        Parameter[] parameters = this.method.getParameters();
+        this.parameterTypeDescriptors = new TypeDescriptor[parameters.length];
+        for (int i = 0; i < parameters.length; i++) {
+            this.parameterTypeDescriptors[i] = GenericTypeUtils.getTypeDescriptorFromParameter(parameters[i]);
+        }
+    }
 
     @Override
     public Class<?> getType() {

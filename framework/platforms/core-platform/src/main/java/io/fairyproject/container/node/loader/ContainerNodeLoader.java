@@ -32,12 +32,14 @@ import io.fairyproject.container.node.loader.collection.InstanceEntry;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
 import io.fairyproject.container.object.provider.InstanceProvider;
+import io.fairyproject.container.object.resolver.ContainerObjectFactory;
 import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 import io.fairyproject.container.object.singleton.SingletonObjectRegistry;
 import io.fairyproject.container.processor.ContainerNodeInitProcessor;
 import io.fairyproject.container.processor.ContainerObjConstructProcessor;
 import io.fairyproject.container.processor.ContainerObjInitProcessor;
 import io.fairyproject.container.scope.InjectableScope;
+import io.fairyproject.container.type.TypeDescriptor;
 import io.fairyproject.util.AsyncUtils;
 import io.fairyproject.util.exceptionally.ThrowingRunnable;
 import io.fairyproject.util.thread.BlockingThreadAwaitQueue;
@@ -64,8 +66,28 @@ public class ContainerNodeLoader {
     public boolean load() {
         this.containerObjectResolver = ContainerObjectResolver.create(
                 this.context.containerObjectBinder(),
-                this::findSingletonInstance,
-                this::findPrototypeInstance
+                new ContainerObjectFactory() {
+                    @Override
+                    public CompletableFuture<Object> createInstance(Class<?> type) throws Exception {
+                        return findSingletonInstance(type);
+                    }
+                    
+                    @Override
+                    public CompletableFuture<Object> createInstance(TypeDescriptor typeDescriptor) throws Exception {
+                        return findSingletonInstance(typeDescriptor);
+                    }
+                },
+                new ContainerObjectFactory() {
+                    @Override
+                    public CompletableFuture<Object> createInstance(Class<?> type) throws Exception {
+                        return findPrototypeInstance(type);
+                    }
+                    
+                    @Override
+                    public CompletableFuture<Object> createInstance(TypeDescriptor typeDescriptor) throws Exception {
+                        return findPrototypeInstance(typeDescriptor);
+                    }
+                }
         );
         this.collection = InstanceCollection.create();
 
@@ -117,6 +139,28 @@ public class ContainerNodeLoader {
             return this.provideInstance(obj);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to provide instance for " + type.getName(), e);
+        }
+    }
+
+    private CompletableFuture<Object> findSingletonInstance(TypeDescriptor typeDescriptor) {
+        SingletonObjectRegistry singletonObjectRegistry = this.context.singletonObjectRegistry();
+        // 注意：当前 SingletonObjectRegistry 可能还没有支持 TypeDescriptor，这里先使用 rawType
+        Object instance = singletonObjectRegistry.getSingleton(typeDescriptor.getRawType());
+        if (instance == null)
+            throw new IllegalStateException("Singleton instance for " + typeDescriptor + " is null!");
+
+        return CompletableFuture.completedFuture(instance);
+    }
+
+    private CompletableFuture<Object> findPrototypeInstance(TypeDescriptor typeDescriptor) {
+        ContainerObj obj = this.context.containerObjectBinder().getBinding(typeDescriptor);
+        if (obj == null)
+            throw new IllegalStateException("Container object for " + typeDescriptor + " is null!");
+
+        try {
+            return this.provideInstance(obj);
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to provide instance for " + typeDescriptor, e);
         }
     }
 

@@ -31,6 +31,8 @@ import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 import io.fairyproject.container.processor.ContainerNodeClassScanProcessor;
 import io.fairyproject.container.processor.ContainerNodeInitProcessor;
 import io.fairyproject.container.processor.ContainerObjInitProcessor;
+import io.fairyproject.container.type.TypeDescriptor;
+import io.fairyproject.container.util.GenericTypeUtils;
 import io.fairyproject.log.Log;
 import io.fairyproject.util.AccessUtil;
 import io.fairyproject.util.AsyncUtils;
@@ -103,8 +105,17 @@ public class AutowiredAnnotationProcessor implements
     }
 
     public CompletableFuture<?> injectAutowiredField(Field field, Object fieldInstance, ContainerObjectResolver resolver) throws Exception {
-        Class<?> type = field.getType();
-        CompletableFuture<Object> future = resolver.resolveInstance(type);
+        // Get the type descriptor including generic information
+        TypeDescriptor typeDescriptor = GenericTypeUtils.getTypeDescriptorFromField(field);
+        
+        // Try to resolve using the full type descriptor first
+        CompletableFuture<Object> future;
+        try {
+            future = resolver.resolveInstance(typeDescriptor);
+        } catch (Exception e) {
+            // If resolving with generic type fails, fallback to raw type
+            future = resolver.resolveInstance(typeDescriptor.getRawType());
+        }
 
         return future.thenAccept(instance -> {
             try {
