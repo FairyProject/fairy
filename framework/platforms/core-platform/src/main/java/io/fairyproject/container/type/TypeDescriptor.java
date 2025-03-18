@@ -81,10 +81,8 @@ public class TypeDescriptor {
             Type targetType = target.getGenericTypes()[i];
             
             // For Class types, check assignability
-            if (targetType instanceof Class<?> && thisType instanceof Class<?>) {
-                if (!((Class<?>) targetType).isAssignableFrom((Class<?>) thisType)) {
-                    return false;
-                }
+            if (targetType instanceof Class<?> && thisType instanceof Class<?> && !((Class<?>) targetType).isAssignableFrom((Class<?>) thisType)) {
+                return false;
             }
         }
         
