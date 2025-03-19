@@ -2,10 +2,10 @@ package io.fairyproject.gradle.resource
 
 import io.fairyproject.gradle.constants.ClassConstants
 import io.fairyproject.gradle.extension.FairyExtension
-import org.gradle.api.provider.Property;
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.jvm.tasks.Jar
 import org.objectweb.asm.ClassReader

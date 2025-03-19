@@ -20,7 +20,6 @@ class FairyResourcePlugin: Plugin<Project> {
 
         val hasBukkitPlatform by lazy {
             project.configurations
-                .filter { it.isCanBeResolved }
                 .flatMap { it.dependencies }
                 .any { it.isBukkitPlatform }
         }
@@ -28,7 +27,10 @@ class FairyResourcePlugin: Plugin<Project> {
         val action = project.objects.newInstance(FairyResourceAction::class.java).apply {
             this.extension.set(extension)
             this.projectInfo.set(projectInfo)
-            this.hasBukkitPlatform.set(hasBukkitPlatform)
+            // Set the value of hasBukkitPlatform after the project is evaluated, otherwise it will be always false
+            project.afterEvaluate {
+                this.hasBukkitPlatform.set(hasBukkitPlatform)
+            }
         }
 
         jar.doLast("fairyResource", action)
