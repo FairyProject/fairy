@@ -16,8 +16,7 @@ class FairyResourcePlugin: Plugin<Project> {
 
     private fun configureJarTask(project: Project, jar: Jar) {
         val extension = project.extensions.findByType(FairyExtension::class.java) ?: return
-        val projectInfo = ProjectInfo(project.name, project.version.toString(), project.description ?: "")
-
+        
         val hasBukkitPlatform by lazy {
             project.configurations
                 .flatMap { it.dependencies }
@@ -26,9 +25,10 @@ class FairyResourcePlugin: Plugin<Project> {
 
         val action = project.objects.newInstance(FairyResourceAction::class.java).apply {
             this.extension.set(extension)
-            this.projectInfo.set(projectInfo)
-            // Set the value of hasBukkitPlatform after the project is evaluated, otherwise it will be always false
+            // Set the value of hasBukkitPlatform and projectInfo after the project is evaluated
             project.afterEvaluate {
+                val projectInfo = ProjectInfo(project.name, project.version.toString(), project.description ?: "")
+                this.projectInfo.set(projectInfo)
                 this.hasBukkitPlatform.set(hasBukkitPlatform)
             }
         }
