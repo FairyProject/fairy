@@ -39,7 +39,7 @@ public class BukkitMCPlayerMock extends MCPlayerMock {
     }
 
     @Override
-    public @NotNull List<EntityData> data() {
+    public @NotNull List<EntityData<?>> data() {
         throw new UnsupportedOperationException();
     }
 
