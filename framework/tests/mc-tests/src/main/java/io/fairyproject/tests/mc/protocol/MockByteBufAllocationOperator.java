@@ -66,4 +66,9 @@ public class MockByteBufAllocationOperator implements ByteBufAllocationOperator 
     public Object compositeBuffer(int i) {
         return null;
     }
+
+    @Override
+    public Object emptyBuffer() {
+        return null;
+    }
 }

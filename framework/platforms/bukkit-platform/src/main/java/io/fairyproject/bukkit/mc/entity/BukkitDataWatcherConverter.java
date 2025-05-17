@@ -28,7 +28,7 @@ public class BukkitDataWatcherConverter {
 
     private final BukkitNMSManager bukkitNMSManager;
 
-    private Function<Entity, List<EntityData>> converter;
+    private Function<Entity, List<EntityData<?>>> converter;
 
     public Class<?> getPacketDataSerializerClass() throws ClassNotFoundException {
         return this.bukkitNMSManager.getNmsClassResolver().resolve("network.PacketDataSerializer", "network.FriendlyByteBuf", "PacketDataSerializer");
@@ -46,7 +46,7 @@ public class BukkitDataWatcherConverter {
         );
     }
 
-    public @NotNull List<EntityData> convert(@NotNull Entity entity) throws ReflectiveOperationException {
+    public @NotNull List<EntityData<?>> convert(@NotNull Entity entity) throws ReflectiveOperationException {
         if (converter == null) {
             Class<?> entityClass = getEntityClass();
             Class<?> dataWatcherClass = getDataWatcherClass();

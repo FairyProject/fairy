@@ -248,4 +248,9 @@ public class MockByteBufOperator implements ByteBufOperator {
     public Object resetWriterIndex(Object o) {
         return null;
     }
+
+    @Override
+    public Object allocateNewBuffer(Object o) {
+        return null;
+    }
 }
