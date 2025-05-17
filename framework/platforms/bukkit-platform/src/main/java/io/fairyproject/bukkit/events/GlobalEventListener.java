@@ -33,6 +33,8 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.event.*;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -48,12 +50,33 @@ public class GlobalEventListener implements Listener {
         Log.info("Attempting to inject global event listeners...");
 
         try {
+            HandlerListCollection collection = new HandlerListCollection(HandlerList.getHandlerLists(), this);
             Field allLists = HandlerList.class.getDeclaredField("allLists");
-            allLists.setAccessible(true);
+            if (Modifier.isFinal(allLists.getModifiers())) {
+                // 1.21.5 became final for no reason
 
-            allLists.set(null, new HandlerListCollection(HandlerList.getHandlerLists(), this));
+                Class<?> unsafeClass;
+                try {
+                    unsafeClass = Class.forName("sun.misc.Unsafe");
+                } catch (ClassNotFoundException e) {
+                    unsafeClass = Class.forName("jdk.internal.misc.Unsafe");
+                }
+                final Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
+                unsafeField.setAccessible(true);
+                final Object unsafe = unsafeField.get(null);
+
+                final Method staticFieldBaseMethod = unsafeClass.getDeclaredMethod("staticFieldBase", Field.class);
+                final Method staticFieldOffsetMethod = unsafeClass.getDeclaredMethod("staticFieldOffset", Field.class);
+                final Method putObjectMethod = unsafeClass.getDeclaredMethod("putObject", Object.class, long.class, Object.class);
+                final Object staticFieldBase = staticFieldBaseMethod.invoke(unsafe, allLists);
+                final long staticFieldOffset = (Long) staticFieldOffsetMethod.invoke(unsafe, allLists);
+                putObjectMethod.invoke(unsafe, staticFieldBase, staticFieldOffset, collection);
+            } else {
+                allLists.setAccessible(true);
+                allLists.set(null, collection);
+            }
         } catch (Throwable throwable) {
-            Log.error("Failed to inject global event listeners, some features may not work properly.", throwable);
+            Log.error("Failed to inject global event listeners, some features may not work properly. (are you using a JDK?)", throwable);
             throwable.printStackTrace();
             return;
         }
