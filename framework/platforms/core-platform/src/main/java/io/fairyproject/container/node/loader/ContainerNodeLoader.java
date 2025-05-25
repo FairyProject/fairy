@@ -31,7 +31,9 @@ import io.fairyproject.container.node.loader.collection.InstanceCollection;
 import io.fairyproject.container.node.loader.collection.InstanceEntry;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.container.object.provider.ConstructorInstanceProvider;
 import io.fairyproject.container.object.provider.InstanceProvider;
+import io.fairyproject.container.object.provider.MethodInvokeInstanceProvider;
 import io.fairyproject.container.object.resolver.ContainerObjectFactory;
 import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 import io.fairyproject.container.object.singleton.SingletonObjectRegistry;
@@ -249,7 +251,17 @@ public class ContainerNodeLoader {
             throw new IllegalStateException("Instance provider for " + objectType.getName() + " is null!");
         }
 
-        CompletableFuture<Object[]> future = this.containerObjectResolver.resolveInstances(instanceProvider.getDependencies());
+        CompletableFuture<Object[]> future;
+        if (instanceProvider instanceof ConstructorInstanceProvider) {
+            ConstructorInstanceProvider constructorProvider = (ConstructorInstanceProvider) instanceProvider;
+            future = this.resolveInstancesByTypeDescriptors(constructorProvider.getParameterTypeDescriptors());
+        } else if (instanceProvider instanceof MethodInvokeInstanceProvider) {
+            MethodInvokeInstanceProvider methodProvider = (MethodInvokeInstanceProvider) instanceProvider;
+            future = this.resolveInstancesByTypeDescriptors(methodProvider.getParameterTypeDescriptors());
+        } else {
+            future = this.containerObjectResolver.resolveInstances(instanceProvider.getDependencies());
+        }
+
         return future.thenApplyAsync(objects -> createInstance(obj, objects, instanceProvider), obj.getThreadingMode().getExecutor()).thenCompose(this::callConstructProcessors).thenApply(instance -> {
             if (obj.isSingletonScope()) {
                 singletonObjectRegistry.registerSingleton(obj.getTypeDescriptor(), instance);
@@ -309,6 +321,20 @@ public class ContainerNodeLoader {
             ContainerLogger.report(this.node, obj, throwable, "initializing");
             return null;
         }
+    }
+
+    private CompletableFuture<Object[]> resolveInstancesByTypeDescriptors(TypeDescriptor[] typeDescriptors) throws Exception {
+        Object[] args = new Object[typeDescriptors.length];
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[typeDescriptors.length];
+
+        for (int i = 0; i < args.length; i++) {
+            TypeDescriptor typeDescriptor = typeDescriptors[i];
+            int index = i;
+
+            futures[i] = this.containerObjectResolver.resolveInstance(typeDescriptor).thenAccept(instance -> args[index] = instance);
+        }
+
+        return CompletableFuture.allOf(futures).thenApply($ -> args);
     }
 
 }
