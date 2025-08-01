@@ -3,12 +3,13 @@ package io.fairyproject.bukkit.nbt.impl;
 import io.fairyproject.bukkit.nbt.NBTKey;
 import io.fairyproject.bukkit.nbt.NBTModifier;
 
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NBTModifierMock implements NBTModifier {
 
-    private final Map<Object, Map<NBTKey, Object>> cache = new ConcurrentHashMap<>(4);
+    private final Map<Object, Map<NBTKey, Object>> cache = new IdentityHashMap<>(4);
 
     private Map<NBTKey, Object> getMap(Object holder) {
         return this.cache.computeIfAbsent(holder, i -> new ConcurrentHashMap<>());
