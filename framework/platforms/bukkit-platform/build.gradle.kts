@@ -9,7 +9,7 @@ dependencies {
     api("com.github.retrooper:packetevents-spigot:2.10.0-SNAPSHOT") {
         exclude(group = "net.kyori")
     }
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT") {
+    compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT") {
         exclude(group = "org.yaml", module = "snakeyaml")
         exclude(group = "net.kyori")
     }
@@ -22,7 +22,7 @@ dependencies {
     }
 
     testImplementation("com.github.seeseemelk:MockBukkit-v1.20:3.89.0")
-    testImplementation("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT") {
+    testImplementation("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT") {
         exclude(group = "org.yaml", module = "snakeyaml")
         exclude(group = "net.kyori")
     }

@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    compileOnly("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("org.spigotmc:spigot-api:1.21.3-R0.1-SNAPSHOT")
 
     api("io.fairyproject:core-command")
     api("com.github.cryptomorin:XSeries:13.5.0")
