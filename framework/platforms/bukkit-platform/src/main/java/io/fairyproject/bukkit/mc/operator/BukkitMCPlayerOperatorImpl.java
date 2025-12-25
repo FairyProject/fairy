@@ -119,9 +119,9 @@ public class BukkitMCPlayerOperatorImpl implements BukkitMCPlayerOperator {
 
     private void setupGetChannel() throws ReflectiveOperationException {
         Class<?> craftPlayerClass = nmsManager.getObcClassResolver().resolve("entity.CraftPlayer");
-        Class<?> entityPlayerClass = nmsManager.getNmsClassResolver().resolve("server.level.EntityPlayer", "EntityPlayer");
-        Class<?> playerConnectionClass = nmsManager.getNmsClassResolver().resolve("server.network.PlayerConnection", "PlayerConnection");
-        Class<?> networkManagerClass = nmsManager.getNmsClassResolver().resolve("network.NetworkManager", "NetworkManager");
+        Class<?> entityPlayerClass = nmsManager.getNmsClassResolver().resolve("server.level.ServerPlayer" ,"server.level.EntityPlayer", "EntityPlayer");
+        Class<?> playerConnectionClass = nmsManager.getNmsClassResolver().resolve("server.network.ServerGamePacketListenerImpl", "server.network.PlayerConnection", "PlayerConnection");
+        Class<?> networkManagerClass = nmsManager.getNmsClassResolver().resolve("network.Connection", "network.NetworkManager", "NetworkManager");
 
         getHandle = craftPlayerClass.getDeclaredMethod("getHandle");
         playerConnection = new FieldResolver(entityPlayerClass).resolveByFirstType(playerConnectionClass);
