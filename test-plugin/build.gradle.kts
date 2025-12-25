@@ -23,8 +23,8 @@ dependencies {
 }
 
 runServer {
-    version = "1.8.8"
-    javaVersion.set(JavaVersion.VERSION_1_8)
+    version = "1.21.11"
+    javaVersion.set(JavaVersion.VERSION_21)
 }
 
 java {
