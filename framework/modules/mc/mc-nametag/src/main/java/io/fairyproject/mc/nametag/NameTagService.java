@@ -24,6 +24,7 @@
 
 package io.fairyproject.mc.nametag;
 
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerTeams;
 import io.fairyproject.Fairy;
 import io.fairyproject.container.ContainerContext;
@@ -48,6 +49,7 @@ import io.fairyproject.util.Utility;
 import lombok.RequiredArgsConstructor;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextColor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -69,6 +71,7 @@ public class NameTagService {
 
     private final ContainerContext containerContext;
     private final MCPlayerRegistry mcPlayerRegistry;
+    private final MCProtocol mcProtocol;
 
     @PreInitialize
     public void onPreInitialize() {
@@ -99,7 +102,8 @@ public class NameTagService {
     @Subscribe
     public void onPlayerQuit(MCPlayerQuitEvent event) {
         MCPlayer player = event.getPlayer();
-        String name = player.getName();
+        // Use game profile name to support disguised players
+        String name = player.getGameProfile().getName();
         runAsync(() -> {
             removeNameFromAll(name);
 
@@ -239,17 +243,20 @@ public class NameTagService {
 
         nameTag = event.getNameTag();
 
+        // Use game profile name to support disguised players
+        String targetName = target.getGameProfile().getName();
+
         NameTagList list = player.metadata().getOrPut(TEAM_INFO_KEY, NameTagList::new);
-        this.removeNameFromList(target.getName(), player, list);
+        this.removeNameFromList(targetName, player, list);
 
         NameTagData current = this.getOrCreateData(nameTag);
-        list.add(target.getName(), current);
+        list.add(targetName, current);
 
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
                 current.getName(),
                 WrapperPlayServerTeams.TeamMode.ADD_ENTITIES,
                 (WrapperPlayServerTeams.ScoreBoardTeamInfo) null,
-                target.getName()
+                targetName
         );
         MCProtocol.sendPacket(player, packet);
     }
@@ -300,6 +307,13 @@ public class NameTagService {
             color = prefix.color();
             if (color == null)
                 color = NamedTextColor.WHITE;
+        }
+
+        // On legacy versions (< 1.13), the team color field doesn't color the player's name.
+        // We need to apply the color to the prefix so it gets serialized with the legacy color code.
+        ServerVersion version = mcProtocol.getPacketEvents().getServerManager().getVersion();
+        if (version.isOlderThan(ServerVersion.V_1_13) && prefix.equals(Component.empty())) {
+            prefix = Component.text("", Style.style(color));
         }
 
         WrapperPlayServerTeams packet = new WrapperPlayServerTeams(
