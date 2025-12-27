@@ -340,6 +340,14 @@ public class Gui {
             return;
 
         guiSlot.onInventoryClick(event, this);
+
+        // If the inventory was closed during the click callback (e.g., player.closeInventory() was called),
+        // we need to update the player's inventory to prevent "fake items" from appearing in their cursor.
+        // This commonly happens with shift-click operations where Bukkit's internal processing is interrupted.
+        if (!this.isOpening()) {
+            Player player = (Player) event.getWhoClicked();
+            player.updateInventory();
+        }
     }
 
     private boolean isNotClickingGuiInvWhileOpenIt(InventoryClickEvent event) {
