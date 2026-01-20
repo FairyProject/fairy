@@ -18,6 +18,7 @@ fairy {
 dependencies {
     implementation("io.fairyproject:hytale-bootstrap")
     implementation("io.fairyproject:hytale-platform")
+    implementation("io.fairyproject:hytale-command")
 }
 
 java {
