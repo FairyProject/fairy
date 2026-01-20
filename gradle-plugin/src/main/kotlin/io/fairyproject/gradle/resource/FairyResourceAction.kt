@@ -31,6 +31,9 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
     @get:Input
     abstract val hasBukkitPlatform: Property<Boolean>
 
+    @get:Input
+    abstract val hasHytalePlatform: Property<Boolean>
+
     override fun execute(task: Task) {
         val jar = task as Jar
         val file = jar.archiveFile.get().asFile
@@ -66,8 +69,10 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
                     return
                 }
 
-                classMapper[ClassType.BUKKIT_PLUGIN] ?: run {
-                    println("[Fairy] Bukkit plugin class not found, no resources will be generated.")
+                val hasBukkitPluginClass = classMapper.containsKey(ClassType.BUKKIT_PLUGIN)
+                val hasHytalePluginClass = classMapper.containsKey(ClassType.HYTALE_PLUGIN)
+                if (!hasBukkitPluginClass && !hasHytalePluginClass) {
+                    println("[Fairy] No platform plugin class found (BukkitPlugin or HytalePlugin), no resources will be generated.")
                     return
                 }
 
@@ -80,10 +85,12 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
                             info.version,
                             info.description,
                             hasBukkitPlatform.get(),
+                            hasHytalePlatform.get(),
                             extension.get().name.orNull,
                             extension.get().mainPackage.orNull,
                             extension.get().fairyPackage.orNull,
-                            extension.get().bukkitPropertiesRaw()
+                            extension.get().bukkitPropertiesRaw(),
+                            extension.get().hytalePropertiesRaw()
                         ), classMapper
                     )?.let { resource ->
                         output.putNextEntry(JarEntry(resource.name))
@@ -156,6 +163,7 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
     private fun shouldExcludeFile(jarEntry: JarEntry): Boolean {
         if (jarEntry.name.equals("module.json")) return true
         if (jarEntry.name.equals("plugin.yml")) return true
+        if (jarEntry.name.equals("manifest.json")) return true
 
         return false
     }
@@ -176,7 +184,7 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
  * Class type.
  */
 enum class ClassType(vararg val names: String) {
-    MAIN_CLASS, MAIN_CLASS_INTERFACE("Plugin", "Application"), BUKKIT_PLUGIN("BukkitPlugin");
+    MAIN_CLASS, MAIN_CLASS_INTERFACE("Plugin", "Application"), BUKKIT_PLUGIN("BukkitPlugin"), HYTALE_PLUGIN("HytalePlugin");
 }
 
 /**
