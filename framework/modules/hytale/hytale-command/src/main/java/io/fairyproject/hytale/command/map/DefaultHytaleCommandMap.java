@@ -36,7 +36,6 @@ import io.fairyproject.hytale.FairyHytalePlatform;
 import io.fairyproject.hytale.command.HytaleCommandExecutor;
 import io.fairyproject.hytale.command.HytalePlayerCommandExecutor;
 import io.fairyproject.hytale.command.event.HytalePlayerCommandContext;
-import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -54,11 +53,14 @@ import java.lang.reflect.Parameter;
  * {@link HytalePlayerCommandContext} as a parameter.</p>
  */
 @InjectableComponent
-@RequiredArgsConstructor
 public class DefaultHytaleCommandMap implements HytaleCommandMap {
 
     public static final MetaKey<AbstractCommand> EXECUTOR_KEY = MetaKey.create("fairy:hytale-command-executor", AbstractCommand.class);
     public static final MetaKey<CommandRegistration> REGISTRATION_KEY = MetaKey.create("fairy:hytale-command-registration", CommandRegistration.class);
+
+    public DefaultHytaleCommandMap() {
+        System.out.println("DefaultHytaleCommandMap initialized");
+    }
 
     @Override
     public void register(BaseCommand command) {

@@ -1,0 +1,21 @@
+Group {
+  LayoutMode: Right;
+  Anchor: (Top: 20, Right: 20, Height: 60);
+
+  Group #Box {
+  Background: #000000(0.2);
+    Anchor: (Left: 0);
+    Padding: (Horizontal: 20, Vertical: 10);
+    LayoutMode: Left;
+
+    Group {
+      Background: "../Common/WIPIcon.png";
+      Anchor: (Width: 40, Height: 40, Right: 10);
+    }
+
+    Label #TitleLabel {
+      Style: (FontSize: 32, Alignment: Center);
+    }
+
+  }
+}

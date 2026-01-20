@@ -27,6 +27,7 @@ package io.fairyproject.gradle.runner.hytale.task
 import io.fairyproject.gradle.runner.hytale.HytaleServerArtifact
 import io.fairyproject.gradle.runner.hytale.RunHytaleServerExtension
 import org.gradle.api.JavaVersion
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.JavaExec
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import java.nio.file.Path
@@ -47,7 +48,18 @@ open class RunHytaleServerTask @Inject constructor(
 ) : JavaExec() {
 
     init {
-        classpath = project.files(artifact.serverJarPath)
+        // Set main class for Hytale server
+        mainClass.set("com.hypixel.hytale.Main")
+
+        // Get project's source set
+        val mainSourceSet = project.extensions
+            .getByType(JavaPluginExtension::class.java)
+            .sourceSets
+            .getByName("main")
+
+        // Classpath: HytaleServer.jar + project's runtime classpath (compiled classes + dependencies)
+        classpath = project.files(artifact.serverJarPath) + mainSourceSet.runtimeClasspath
+
         workingDir = workDirectory.toFile()
         standardInput = System.`in`
 
@@ -59,6 +71,17 @@ open class RunHytaleServerTask @Inject constructor(
         // Hytale server requires specific arguments
         args("--assets", artifact.assetsPath.toAbsolutePath().toString())
         args("--bind", extension.bindAddress.get())
+        // Point to src/main where manifest.json is generated in resources/
+        args("--mods", project.file("src/main").absolutePath)
+        args("--auth-mode", extension.authMode.get())
+
+        if (extension.allowOp.get()) {
+            args("--allow-op")
+        }
+
+        if (extension.disableSentry.get()) {
+            args("--disable-sentry")
+        }
     }
 
     override fun getJavaVersion(): JavaVersion {

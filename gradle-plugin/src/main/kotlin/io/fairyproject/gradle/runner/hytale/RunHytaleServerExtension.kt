@@ -80,4 +80,19 @@ open class RunHytaleServerExtension(objectFactory: ObjectFactory) {
      */
     val downloaderPath: Property<String> = objectFactory.property(String::class.java)
 
+    /**
+     * Allow OP commands (default true).
+     */
+    val allowOp: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(true)
+
+    /**
+     * Disable Sentry error reporting (default true).
+     */
+    val disableSentry: Property<Boolean> = objectFactory.property(Boolean::class.java).convention(true)
+
+    /**
+     * Authentication mode: "authenticated", "unauthenticated", or "mixed" (default "authenticated").
+     */
+    val authMode: Property<String> = objectFactory.property(String::class.java).convention("authenticated")
+
 }

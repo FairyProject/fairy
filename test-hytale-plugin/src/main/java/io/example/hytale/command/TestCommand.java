@@ -24,7 +24,13 @@
 
 package io.example.hytale.command;
 
+import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import io.example.hytale.component.HelloComponent;
+import io.example.hytale.huds.ExampleHud;
+import io.example.hytale.pages.ExamplePage;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.MessageType;
 import io.fairyproject.command.annotation.Arg;
@@ -51,6 +57,10 @@ public class TestCommand extends BaseCommand {
 
     @Autowired
     private HelloComponent helloComponent;
+
+    public TestCommand() {
+        System.out.println("[TestCommand] Command component created!");
+    }
 
     @Override
     public String getDescription() {
@@ -135,6 +145,14 @@ public class TestCommand extends BaseCommand {
         context.sendMessage(MessageType.INFO, "UUID: " + context.getPlayerUuid());
         context.sendMessage(MessageType.INFO, "Valid: " + context.isPlayerValid());
         context.sendMessage(MessageType.INFO, "In Store Thread: " + context.isInStoreThread());
+    }
+
+    @Command("ui")
+    public void ui(HytalePlayerCommandContext context) {
+        Player playerComponent = context.getPlayerComponent();
+        Ref<EntityStore> ref = context.getRef();
+        PlayerRef playerRef = context.getPlayerRef();
+        playerComponent.getPageManager().openCustomPage(ref, context.getStore(), new ExamplePage(playerRef));
     }
 
     /**

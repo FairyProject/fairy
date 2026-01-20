@@ -34,6 +34,9 @@ import io.fairyproject.log.Log;
 import io.fairyproject.util.Stacktrace;
 import lombok.RequiredArgsConstructor;
 
+import java.net.URL;
+import java.nio.file.Paths;
+
 import static io.fairyproject.Debug.log;
 
 @RequiredArgsConstructor
@@ -62,12 +65,39 @@ public class RootNodeLoader {
             if (!Debug.UNIT_TEST) {
                 classScanner.getUrls().add(this.getClass().getProtectionDomain().getCodeSource().getLocation());
                 classScanner.getClassLoaders().add(ContainerContext.class.getClassLoader());
+
+                // Also add URLs from devtools classpath for development mode
+                addDevtoolsClasspathUrls(classScanner);
             }
 
             classScanner.scan();
         } catch (Throwable throwable) {
             Log.error("Error while scanning classes for framework", Stacktrace.simplifyStacktrace(throwable));
             Fairy.getPlatform().shutdown();
+        }
+    }
+
+    private void addDevtoolsClasspathUrls(ContainerNodeClassScanner classScanner) {
+        String classpathProperty = System.getProperty("io.fairyproject.devtools.classpath");
+        if (classpathProperty == null || classpathProperty.isEmpty()) {
+            return;
+        }
+
+        // Parse format: name1|path1,path2:name2|path3,path4
+        String[] entries = classpathProperty.split(":");
+        for (String entry : entries) {
+            try {
+                String[] parts = entry.split("\\|");
+                if (parts.length < 2) continue;
+
+                String paths = parts[1];
+                for (String path : paths.split(",")) {
+                    URL url = Paths.get(path).toUri().toURL();
+                    classScanner.getUrls().add(url);
+                }
+            } catch (Exception e) {
+                // Ignore parsing errors
+            }
         }
     }
 

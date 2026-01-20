@@ -27,12 +27,14 @@ package io.fairyproject.gradle.runner.hytale
 import io.fairyproject.gradle.FairyGradlePlugin
 import io.fairyproject.gradle.runner.ClasspathRegistry
 import io.fairyproject.gradle.runner.hytale.action.CopyHytaleSnapshotAction
+import io.fairyproject.gradle.runner.hytale.task.GenerateHytaleManifestTask
 import io.fairyproject.gradle.runner.hytale.task.PrepareHytaleBuildTask
 import io.fairyproject.gradle.runner.hytale.task.PrepareHytaleDownloaderTask
 import io.fairyproject.gradle.runner.hytale.task.RunHytaleServerTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.jvm.tasks.Jar
@@ -91,6 +93,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
         configurePrepareHytaleBuild(downloaderDir, downloadsDir, workDir, artifact)
         configureCopyHytaleModJar(workDir)
         configureCleanHytaleServer(workDir)
+        configureGenerateHytaleManifest()
         configureRunHytaleServer(artifact, workDir, snapshotDir)
     }
 
@@ -168,6 +171,31 @@ open class RunHytaleServerPlugin : Plugin<Project> {
         }
     }
 
+    private fun configureGenerateHytaleManifest() {
+        val javaExtension = project.extensions.getByType(JavaPluginExtension::class.java)
+        val mainSourceSet = javaExtension.sourceSets.getByName("main")
+
+        project.tasks.register("generateHytaleManifest", GenerateHytaleManifestTask::class.java) {
+            it.group = group
+            it.description = "Generates Hytale manifest.json for development"
+
+            // Input: compiled classes directory
+            it.classesDir.set(mainSourceSet.output.classesDirs.singleFile)
+
+            // Input: runtime classpath (to find HytalePlugin from hytale-bootstrap)
+            it.runtimeClasspath.from(mainSourceSet.runtimeClasspath)
+
+            // Output: src/main/ so manifest.json is at root of --mods path
+            it.outputDir.set(project.file("src/main/resources"))
+
+            it.projectName.set(project.name)
+            it.projectVersion.set(project.version.toString())
+            it.projectDescription.set(project.description ?: "")
+
+            it.dependsOn("classes")
+        }
+    }
+
     private fun configureRunHytaleServer(
         artifact: HytaleServerArtifact,
         workDir: Path,
@@ -186,8 +214,8 @@ open class RunHytaleServerPlugin : Plugin<Project> {
                     it.dependsOn("cleanHytaleServer")
                 }
                 it.doFirst(CopyHytaleSnapshotAction(snapshotDir, workDir))
-                it.dependsOn("copyHytaleModJar")
                 it.dependsOn("prepareHytaleBuild")
+                it.dependsOn("generateHytaleManifest")
 
                 it.group = group
                 it.description = "Runs the Hytale server with mods"

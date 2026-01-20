@@ -52,7 +52,13 @@ public class LibraryHandlerPluginListener implements PluginListenerAdapter {
 
     @Override
     public void onPluginInitial(Plugin plugin) {
-        final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) plugin.getPluginClassLoader());
+        ClassLoader pluginClassLoader = plugin.getPluginClassLoader();
+        if (!(pluginClassLoader instanceof URLClassLoader)) {
+            // In Java 9+, the system classloader is not a URLClassLoader
+            // Skip library injection for non-URLClassLoader classloaders
+            return;
+        }
+        final URLClassLoaderAccess classLoader = URLClassLoaderAccess.create((URLClassLoader) pluginClassLoader);
         this.libraryHandler.addClassLoader(plugin, classLoader);
     }
 
