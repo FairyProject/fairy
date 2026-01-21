@@ -34,23 +34,29 @@ import io.fairyproject.data.MetaKey;
 import io.fairyproject.data.MetaStorage;
 import io.fairyproject.hytale.FairyHytalePlatform;
 import io.fairyproject.hytale.command.HytaleCommandExecutor;
+import io.fairyproject.hytale.command.HytaleMixedCommandExecutor;
 import io.fairyproject.hytale.command.HytalePlayerCommandExecutor;
+import io.fairyproject.hytale.command.event.HytaleCommandContext;
 import io.fairyproject.hytale.command.event.HytalePlayerCommandContext;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
 
 /**
  * Default implementation of HytaleCommandMap that registers commands with Hytale's CommandRegistry.
  *
- * <p>This implementation supports two types of command executors:</p>
+ * <p>This implementation supports three types of command executors:</p>
  * <ul>
- *   <li>{@link HytaleCommandExecutor} - For general commands that can be executed by any sender</li>
- *   <li>{@link HytalePlayerCommandExecutor} - For player-only commands that need thread-safe access to player/world data</li>
+ *   <li>{@link HytaleCommandExecutor} - For commands where all methods use HytaleCommandContext (any sender)</li>
+ *   <li>{@link HytalePlayerCommandExecutor} - For commands where all methods use HytalePlayerCommandContext (player-only, thread-safe)</li>
+ *   <li>{@link HytaleMixedCommandExecutor} - For commands with mixed context types (supports both player and console)</li>
  * </ul>
  *
- * <p>The executor type is automatically detected by checking if any command method uses
- * {@link HytalePlayerCommandContext} as a parameter.</p>
+ * <p>The executor type is automatically detected by analyzing the command method parameters:</p>
+ * <ul>
+ *   <li>If all methods use HytalePlayerCommandContext → HytalePlayerCommandExecutor</li>
+ *   <li>If all methods use HytaleCommandContext → HytaleCommandExecutor</li>
+ *   <li>If methods use both types → HytaleMixedCommandExecutor</li>
+ * </ul>
  */
 @InjectableComponent
 public class DefaultHytaleCommandMap implements HytaleCommandMap {
@@ -58,24 +64,25 @@ public class DefaultHytaleCommandMap implements HytaleCommandMap {
     public static final MetaKey<AbstractCommand> EXECUTOR_KEY = MetaKey.create("fairy:hytale-command-executor", AbstractCommand.class);
     public static final MetaKey<CommandRegistration> REGISTRATION_KEY = MetaKey.create("fairy:hytale-command-registration", CommandRegistration.class);
 
-    public DefaultHytaleCommandMap() {
-        System.out.println("DefaultHytaleCommandMap initialized");
-    }
-
     @Override
     public void register(BaseCommand command) {
         if (this.isRegistered(command)) {
             throw new IllegalArgumentException("Command already registered: " + command.getCommandNames()[0]);
         }
 
-        // Auto-detect if this is a player command by checking method parameters
-        boolean isPlayerCommand = hasPlayerCommandContext(command.getClass());
+        // Analyze command methods to determine executor type
+        ContextTypeInfo contextInfo = analyzeContextTypes(command.getClass());
 
         AbstractCommand commandExecutor;
-        if (isPlayerCommand) {
+        if (contextInfo.hasOnlyPlayerContext()) {
+            // All methods require player context - use player-only executor (thread-safe)
             commandExecutor = new HytalePlayerCommandExecutor(command);
-        } else {
+        } else if (contextInfo.hasOnlyGeneralContext()) {
+            // All methods use general context - use general executor (any sender)
             commandExecutor = new HytaleCommandExecutor(command);
+        } else {
+            // Mixed context types - use mixed executor (supports both player and console)
+            commandExecutor = new HytaleMixedCommandExecutor(command);
         }
 
         CommandRegistry commandRegistry = getCommandRegistry();
@@ -86,28 +93,57 @@ public class DefaultHytaleCommandMap implements HytaleCommandMap {
     }
 
     /**
-     * Check if any @Command annotated method in the class uses HytalePlayerCommandContext as a parameter.
+     * Analyzes the command class to determine what context types are used by @Command methods.
      */
-    private boolean hasPlayerCommandContext(Class<?> clazz) {
+    private ContextTypeInfo analyzeContextTypes(Class<?> clazz) {
+        boolean hasPlayerContext = false;
+        boolean hasGeneralContext = false;
+
         for (Method method : clazz.getDeclaredMethods()) {
             if (!method.isAnnotationPresent(Command.class)) {
                 continue;
             }
 
-            for (Parameter parameter : method.getParameters()) {
-                if (HytalePlayerCommandContext.class.isAssignableFrom(parameter.getType())) {
-                    return true;
-                }
+            Class<?>[] paramTypes = method.getParameterTypes();
+            if (paramTypes.length == 0) {
+                continue;
+            }
+
+            Class<?> firstParam = paramTypes[0];
+            if (HytalePlayerCommandContext.class.isAssignableFrom(firstParam)) {
+                hasPlayerContext = true;
+            } else if (HytaleCommandContext.class.isAssignableFrom(firstParam)) {
+                hasGeneralContext = true;
             }
         }
 
         // Also check superclass methods
         Class<?> superclass = clazz.getSuperclass();
         if (superclass != null && superclass != Object.class) {
-            return hasPlayerCommandContext(superclass);
+            ContextTypeInfo superInfo = analyzeContextTypes(superclass);
+            hasPlayerContext = hasPlayerContext || superInfo.hasPlayerContext;
+            hasGeneralContext = hasGeneralContext || superInfo.hasGeneralContext;
         }
 
-        return false;
+        return new ContextTypeInfo(hasPlayerContext, hasGeneralContext);
+    }
+
+    private static class ContextTypeInfo {
+        final boolean hasPlayerContext;
+        final boolean hasGeneralContext;
+
+        ContextTypeInfo(boolean hasPlayerContext, boolean hasGeneralContext) {
+            this.hasPlayerContext = hasPlayerContext;
+            this.hasGeneralContext = hasGeneralContext;
+        }
+
+        boolean hasOnlyPlayerContext() {
+            return hasPlayerContext && !hasGeneralContext;
+        }
+
+        boolean hasOnlyGeneralContext() {
+            return hasGeneralContext && !hasPlayerContext;
+        }
     }
 
     @Override

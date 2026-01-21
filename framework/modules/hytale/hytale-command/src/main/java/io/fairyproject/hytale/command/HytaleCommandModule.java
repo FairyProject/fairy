@@ -39,9 +39,12 @@ public class HytaleCommandModule {
 
     @PreInitialize
     public void onPreInitialize() {
-        // Register presence provider for general commands (HytaleCommandContext)
+        // Register presence providers for Hytale commands
+        // The command framework uses exact type matching, so we need to register
+        // separate providers for each context type:
+        // - DefaultPresenceProvider for HytaleCommandContext (any sender)
+        // - PlayerPresenceProvider for HytalePlayerCommandContext (player-only)
         commandService.registerDefaultPresenceProvider(new DefaultPresenceProvider());
-        // Register presence provider for player commands (HytalePlayerCommandContext)
         commandService.registerDefaultPresenceProvider(new PlayerPresenceProvider());
     }
 }

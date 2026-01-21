@@ -27,26 +27,34 @@ package io.fairyproject.hytale.command.presence;
 import com.hypixel.hytale.server.core.Message;
 import io.fairyproject.command.MessageType;
 import io.fairyproject.command.PresenceProvider;
+import io.fairyproject.hytale.command.event.HytaleCommandContext;
 import io.fairyproject.hytale.command.event.HytalePlayerCommandContext;
 
 /**
- * Presence provider for Hytale player commands using Hytale's Message API.
- * This provider is specifically for {@link HytalePlayerCommandContext} which provides
- * access to player-specific data like World, PlayerRef, etc.
+ * Presence provider for Hytale player commands.
+ *
+ * <p>This provider is registered for {@link HytalePlayerCommandContext} type but accepts
+ * the base {@link HytaleCommandContext} in sendMessage(). This is necessary because when
+ * console tries to execute a player-only command, the framework sends an error message
+ * using this provider, but the actual context is HytaleCommandContext (not player context).</p>
  */
-public class PlayerPresenceProvider implements PresenceProvider<HytalePlayerCommandContext> {
+public class PlayerPresenceProvider implements PresenceProvider<HytaleCommandContext> {
 
     private static final String COLOR_INFO = "#55FFFF";    // Aqua
     private static final String COLOR_WARN = "#FFAA00";    // Gold
     private static final String COLOR_ERROR = "#FF5555";   // Red
 
     @Override
-    public Class<HytalePlayerCommandContext> type() {
-        return HytalePlayerCommandContext.class;
+    @SuppressWarnings("unchecked")
+    public Class<HytaleCommandContext> type() {
+        // Return HytalePlayerCommandContext.class for registration purposes
+        // This ensures the framework registers this provider for player context methods
+        // The unchecked cast is safe because we accept HytaleCommandContext in sendMessage()
+        return (Class<HytaleCommandContext>) (Class<?>) HytalePlayerCommandContext.class;
     }
 
     @Override
-    public void sendMessage(HytalePlayerCommandContext commandContext, MessageType messageType, String... messages) {
+    public void sendMessage(HytaleCommandContext commandContext, MessageType messageType, String... messages) {
         String color;
         switch (messageType) {
             case WARN:

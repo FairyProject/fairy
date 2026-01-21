@@ -37,19 +37,19 @@ import io.fairyproject.command.annotation.Arg;
 import io.fairyproject.command.annotation.Command;
 import io.fairyproject.container.Autowired;
 import io.fairyproject.container.InjectableComponent;
+import io.fairyproject.hytale.command.event.HytaleCommandContext;
 import io.fairyproject.hytale.command.event.HytalePlayerCommandContext;
 
 /**
  * Test command for demonstrating Fairy's command system on Hytale.
  *
- * <p>This command uses {@link HytalePlayerCommandContext} which means:</p>
+ * <p>This command demonstrates mixed context types:</p>
  * <ul>
- *   <li>It can only be executed by players (not console)</li>
- *   <li>It runs on the correct thread for the player's world</li>
- *   <li>It has access to player-specific data like World, PlayerRef, etc.</li>
+ *   <li>Sub-commands using {@link HytaleCommandContext} can be executed by any sender (player or console)</li>
+ *   <li>Sub-commands using {@link HytalePlayerCommandContext} can only be executed by players</li>
  * </ul>
  *
- * <p>The executor type is automatically detected based on the context parameter type.</p>
+ * <p>The executor type is automatically detected based on the context parameter types used in the command methods.</p>
  */
 @Command({"test", "t", "hytaletest"})
 @InjectableComponent
@@ -71,7 +71,7 @@ public class TestCommand extends BaseCommand {
      * /test - Shows help message
      */
     @Command("#")
-    public void noArgs(HytalePlayerCommandContext context) {
+    public void noArgs(HytaleCommandContext context) {
         context.sendMessage(MessageType.INFO, "=== Hytale Test Plugin Commands ===");
         context.sendMessage(MessageType.INFO, "/test hello [name] - Greet someone");
         context.sendMessage(MessageType.INFO, "/test info - Show plugin info");
@@ -85,7 +85,7 @@ public class TestCommand extends BaseCommand {
      * /test hello [name] - Greets the player or a specified name
      */
     @Command("hello")
-    public void hello(HytalePlayerCommandContext context, @Arg(defaultValue = "World") String name) {
+    public void hello(HytaleCommandContext context, @Arg(defaultValue = "World") String name) {
         String greeting = helloComponent.sayHello(name);
         context.sendMessage(MessageType.INFO, greeting);
     }
@@ -94,7 +94,7 @@ public class TestCommand extends BaseCommand {
      * /test info - Shows plugin information
      */
     @Command("info")
-    public void info(HytalePlayerCommandContext context) {
+    public void info(HytaleCommandContext context) {
         context.sendMessage(MessageType.INFO, "Plugin: Hytale Test Plugin");
         context.sendMessage(MessageType.INFO, "Framework: Fairy Project");
         context.sendMessage(MessageType.INFO, "Platform: Hytale");
@@ -105,7 +105,7 @@ public class TestCommand extends BaseCommand {
      * /test echo <message> - Echoes a message back to the sender
      */
     @Command("echo")
-    public void echo(HytalePlayerCommandContext context, @Arg String message) {
+    public void echo(HytaleCommandContext context, @Arg String message) {
         context.sendMessage(MessageType.INFO, "Echo: " + message);
     }
 
@@ -113,7 +113,7 @@ public class TestCommand extends BaseCommand {
      * /test add <a> <b> - Adds two numbers together
      */
     @Command("add")
-    public void add(HytalePlayerCommandContext context, @Arg int a, @Arg int b) {
+    public void add(HytaleCommandContext context, @Arg int a, @Arg int b) {
         int result = a + b;
         context.sendMessage(MessageType.INFO, a + " + " + b + " = " + result);
     }
@@ -122,7 +122,7 @@ public class TestCommand extends BaseCommand {
      * /test warn - Test warning message
      */
     @Command("warn")
-    public void warn(HytalePlayerCommandContext context) {
+    public void warn(HytaleCommandContext context) {
         context.sendMessage(MessageType.WARN, "This is a warning message!");
     }
 
@@ -130,7 +130,7 @@ public class TestCommand extends BaseCommand {
      * /test error - Test error message
      */
     @Command("error")
-    public void error(HytalePlayerCommandContext context) {
+    public void error(HytaleCommandContext context) {
         context.sendMessage(MessageType.ERROR, "This is an error message!");
     }
 
