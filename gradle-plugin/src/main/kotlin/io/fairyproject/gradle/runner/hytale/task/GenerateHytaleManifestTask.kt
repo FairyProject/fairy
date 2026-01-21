@@ -41,6 +41,7 @@ import org.objectweb.asm.ClassReader
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import java.io.File
+import java.io.IOException
 import java.util.jar.JarFile
 
 /**
@@ -51,6 +52,10 @@ import java.util.jar.JarFile
  * @author LeeGod
  */
 abstract class GenerateHytaleManifestTask : DefaultTask() {
+
+    companion object {
+        private const val CLASS_FILE_EXTENSION = ".class"
+    }
 
     @get:InputDirectory
     abstract val classesDir: DirectoryProperty
@@ -126,7 +131,7 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
         val pluginInterfaceClass = findPluginInterfaceClass()
 
         classesDirectory.walkTopDown()
-            .filter { it.isFile && it.extension == "class" }
+            .filter { it.isFile && it.name.endsWith(CLASS_FILE_EXTENSION) }
             .forEach { classFile ->
                 val className = findMainClassInFile(classFile, pluginInterfaceClass)
                 if (className != null) return className
@@ -137,34 +142,38 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
 
     private fun findPluginInterfaceClass(): String? {
         // Look for Plugin or Application class with @FairyInternalIdentityMeta
-        runtimeClasspath.files
-            .filter { it.isFile && it.extension == "jar" }
-            .forEach { jarFile ->
-                try {
-                    JarFile(jarFile).use { jar ->
-                        for (entry in jar.entries()) {
-                            if (!entry.name.endsWith(".class")) continue
-                            val simpleName = entry.name.substringAfterLast("/").removeSuffix(".class")
-                            if (simpleName != "Plugin" && simpleName != "Application") continue
+        for (jarFile in runtimeClasspath.files.filter { it.isFile && it.extension == "jar" }) {
+            val result = findPluginInterfaceInJar(jarFile)
+            if (result != null) return result
+        }
+        return null
+    }
 
-                            val bytes = jar.getInputStream(entry).readBytes()
-                            val classReader = ClassReader(bytes)
-                            val classNode = ClassNode()
-                            classReader.accept(classNode, ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
+    private fun findPluginInterfaceInJar(jarFile: File): String? {
+        try {
+            JarFile(jarFile).use { jar ->
+                for (entry in jar.entries()) {
+                    if (!entry.name.endsWith(CLASS_FILE_EXTENSION)) continue
+                    val simpleName = entry.name.substringAfterLast("/").removeSuffix(CLASS_FILE_EXTENSION)
+                    if (simpleName != "Plugin" && simpleName != "Application") continue
 
-                            val hasInternalMeta = classNode.visibleAnnotations?.any {
-                                it.desc.contains(ClassConstants.INTERNAL_META)
-                            } ?: false
+                    val bytes = jar.getInputStream(entry).readBytes()
+                    val classReader = ClassReader(bytes)
+                    val classNode = ClassNode()
+                    classReader.accept(classNode, ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
 
-                            if (hasInternalMeta) {
-                                return classNode.name
-                            }
-                        }
+                    val hasInternalMeta = classNode.visibleAnnotations?.any {
+                        it.desc.contains(ClassConstants.INTERNAL_META)
+                    } ?: false
+
+                    if (hasInternalMeta) {
+                        return classNode.name
                     }
-                } catch (e: Exception) {
-                    // Ignore
                 }
             }
+        } catch (e: IOException) {
+            logger.debug("Could not read JAR file: ${jarFile.name}", e)
+        }
         return null
     }
 
@@ -209,7 +218,7 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
         val classesDirectory = classesDir.get().asFile
         if (classesDirectory.exists()) {
             classesDirectory.walkTopDown()
-                .filter { it.isFile && it.extension == "class" }
+                .filter { it.isFile && it.name.endsWith(CLASS_FILE_EXTENSION) }
                 .forEach { classFile ->
                     val className = findHytalePluginInClassFile(classFile)
                     if (className != null) return className
@@ -217,12 +226,10 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
         }
 
         // Then, scan runtime classpath JARs (for HytalePlugin from hytale-bootstrap)
-        runtimeClasspath.files
-            .filter { it.isFile && it.extension == "jar" }
-            .forEach { jarFile ->
-                val className = findHytalePluginInJar(jarFile)
-                if (className != null) return className
-            }
+        for (jarFile in runtimeClasspath.files.filter { it.isFile && it.extension == "jar" }) {
+            val className = findHytalePluginInJar(jarFile)
+            if (className != null) return className
+        }
 
         return null
     }
@@ -231,16 +238,16 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
         try {
             JarFile(jarFile).use { jar ->
                 for (entry in jar.entries()) {
-                    if (!entry.name.endsWith(".class")) continue
-                    if (!entry.name.endsWith("HytalePlugin.class")) continue
+                    if (!entry.name.endsWith(CLASS_FILE_EXTENSION)) continue
+                    if (!entry.name.endsWith("HytalePlugin${CLASS_FILE_EXTENSION}")) continue
 
                     val bytes = jar.getInputStream(entry).readBytes()
                     val className = findHytalePluginInBytes(bytes)
                     if (className != null) return className
                 }
             }
-        } catch (e: Exception) {
-            // Ignore JAR read errors
+        } catch (e: IOException) {
+            logger.debug("Could not read JAR file: ${jarFile.name}", e)
         }
         return null
     }

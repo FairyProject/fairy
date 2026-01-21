@@ -157,15 +157,15 @@ open class PrepareHytaleBuildTask @Inject constructor(
         } else null
 
         ZipFile(zipFile).use { zip ->
-            zip.entries().asSequence().forEach { entry ->
+            for (entry in zip.entries().asSequence()) {
                 // Skip Client directory - only extract Server and Assets
                 if (entry.name.startsWith("Client/")) {
-                    return@forEach
+                    continue
                 }
 
                 // Skip mods directory to preserve plugins
                 if (entry.name.startsWith("mods/") || entry.name == "mods") {
-                    return@forEach
+                    continue
                 }
 
                 val targetPath = workDirectory.resolve(entry.name)

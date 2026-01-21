@@ -44,16 +44,16 @@ import java.net.URLClassLoader;
 public class FairyHytalePlatform extends FairyPlatform implements TerminableConsumer {
 
     public static PluginBase PLUGIN;
-    private static Runnable shutdownCallback;
 
     private final URLClassLoaderAccess classLoader;
     private final File dataFolder;
     private final CompositeTerminable compositeTerminable;
+    private final Runnable shutdownCallback;
 
     public FairyHytalePlatform(PluginBase plugin, Runnable shutdownCallback, File dataFolder) {
         FairyPlatform.INSTANCE = this;
-        PLUGIN = plugin;
-        FairyHytalePlatform.shutdownCallback = shutdownCallback;
+        this.shutdownCallback = shutdownCallback;
+        setPlugin(plugin);
 
         this.dataFolder = dataFolder;
         this.compositeTerminable = CompositeTerminable.create();
@@ -94,9 +94,13 @@ public class FairyHytalePlatform extends FairyPlatform implements TerminableCons
 
     @Override
     public void shutdown() {
-        if (shutdownCallback != null) {
-            shutdownCallback.run();
+        if (this.shutdownCallback != null) {
+            this.shutdownCallback.run();
         }
+    }
+
+    private static synchronized void setPlugin(PluginBase plugin) {
+        PLUGIN = plugin;
     }
 
     @Override

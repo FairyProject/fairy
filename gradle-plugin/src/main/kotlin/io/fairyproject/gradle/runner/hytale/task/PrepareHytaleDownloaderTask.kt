@@ -47,6 +47,26 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
     private val extension: RunHytaleServerExtension
 ) : DefaultTask() {
 
+    companion object {
+        private const val OS_NAME_PROPERTY = "os.name"
+        private const val OS_ARCH_PROPERTY = "os.arch"
+
+        /**
+         * Gets the path to the Hytale downloader executable.
+         */
+        fun getDownloaderPath(downloaderDirectory: Path, extension: RunHytaleServerExtension): Path {
+            if (extension.downloaderPath.isPresent) {
+                return Path.of(extension.downloaderPath.get())
+            }
+            val binaryName = if (System.getProperty(OS_NAME_PROPERTY).lowercase().contains("win")) {
+                "hytale-downloader.exe"
+            } else {
+                "hytale-downloader"
+            }
+            return downloaderDirectory.resolve(binaryName)
+        }
+    }
+
     private val downloaderPath: Path
         get() = downloaderDirectory.resolve(getDownloaderBinaryName())
 
@@ -122,7 +142,7 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
     }
 
     private fun getOsName(): String {
-        val osName = System.getProperty("os.name").lowercase()
+        val osName = System.getProperty(OS_NAME_PROPERTY).lowercase()
         return when {
             osName.contains("win") -> "windows"
             osName.contains("mac") || osName.contains("darwin") -> "macos"
@@ -132,7 +152,7 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
     }
 
     private fun getArchName(): String {
-        val arch = System.getProperty("os.arch").lowercase()
+        val arch = System.getProperty(OS_ARCH_PROPERTY).lowercase()
         return when {
             arch.contains("amd64") || arch.contains("x86_64") -> "amd64"
             arch.contains("aarch64") || arch.contains("arm64") -> "arm64"
@@ -141,21 +161,6 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
     }
 
     private fun isWindows(): Boolean {
-        return System.getProperty("os.name").lowercase().contains("win")
+        return System.getProperty(OS_NAME_PROPERTY).lowercase().contains("win")
     }
-
-    companion object {
-        fun getDownloaderPath(downloaderDirectory: Path, extension: RunHytaleServerExtension): Path {
-            if (extension.downloaderPath.isPresent) {
-                return Path.of(extension.downloaderPath.get())
-            }
-            val binaryName = if (System.getProperty("os.name").lowercase().contains("win")) {
-                "hytale-downloader.exe"
-            } else {
-                "hytale-downloader"
-            }
-            return downloaderDirectory.resolve(binaryName)
-        }
-    }
-
 }
