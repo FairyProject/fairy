@@ -50,13 +50,16 @@ import java.nio.file.Path
  */
 open class RunHytaleServerPlugin : Plugin<Project> {
 
-    private val group = "runHytaleServer"
+    companion object {
+        private const val PLUGIN_NAME = "runHytaleServer"
+    }
+
     private lateinit var project: Project
     private lateinit var extension: RunHytaleServerExtension
 
     override fun apply(project: Project) {
         this.project = project
-        extension = project.extensions.create("runHytaleServer", RunHytaleServerExtension::class.java)
+        extension = project.extensions.create(PLUGIN_NAME, RunHytaleServerExtension::class.java)
 
         project.afterEvaluate {
             configureProject(extension, project)
@@ -105,7 +108,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
             downloaderDir,
             extension
         ).configure {
-            it.group = group
+            it.group = PLUGIN_NAME
             it.description = "Downloads the Hytale Downloader CLI"
         }
     }
@@ -125,7 +128,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
             artifact,
             extension
         ).configure {
-            it.group = group
+            it.group = PLUGIN_NAME
             it.description = "Downloads and extracts Hytale server files"
             it.dependsOn("prepareHytaleDownloader")
         }
@@ -142,7 +145,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
 
             it.into(workDir.resolve("mods"))
             it.duplicatesStrategy = DuplicatesStrategy.INCLUDE
-            it.group = group
+            it.group = PLUGIN_NAME
             it.description = "Copies mod JARs to the Hytale server mods directory"
         }
     }
@@ -167,7 +170,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
                 // Don't delete mods directory on clean
                 file.name != "mods" && file.name != ".fairy-hytale-version"
             } ?: emptyList<Any>())
-            it.group = group
+            it.group = PLUGIN_NAME
             it.description = "Cleans the Hytale server work directory"
         }
     }
@@ -178,7 +181,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
         val fairyExtension = project.extensions.findByType(FairyExtension::class.java)
 
         project.tasks.register("generateHytaleManifest", GenerateHytaleManifestTask::class.java) {
-            it.group = group
+            it.group = PLUGIN_NAME
             it.description = "Generates Hytale manifest.json for development"
 
             // Input: compiled classes directory
@@ -212,7 +215,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
     ) {
         project.afterEvaluate {
             project.tasks.register(
-                "runHytaleServer",
+                PLUGIN_NAME,
                 RunHytaleServerTask::class.java,
                 extension.javaVersion.get(),
                 artifact,
@@ -226,7 +229,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
                 it.dependsOn("prepareHytaleBuild")
                 it.dependsOn("generateHytaleManifest")
 
-                it.group = group
+                it.group = PLUGIN_NAME
                 it.description = "Runs the Hytale server with mods"
                 it.jvmArgs = extension.args.get()
 

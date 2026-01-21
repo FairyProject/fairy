@@ -168,21 +168,17 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
                     val simpleName = it.name.substringAfterLast("/").removeSuffix(CLASS_FILE_EXTENSION)
                     simpleName == "Plugin" || simpleName == "Application"
                 }
-                .mapNotNull { entry -> checkForInternalMeta(j, entry) }
+                .mapNotNull { entry ->
+                    val bytes = j.getInputStream(entry).readBytes()
+                    val classNode = ClassNode()
+                    ClassReader(bytes).accept(classNode, ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
+                    val hasInternalMeta = classNode.visibleAnnotations?.any {
+                        it.desc.contains(ClassConstants.INTERNAL_META)
+                    } ?: false
+                    if (hasInternalMeta) classNode.name else null
+                }
                 .firstOrNull()
         }
-    }
-
-    private fun checkForInternalMeta(jar: JarFile, entry: java.util.zip.ZipEntry): String? {
-        val bytes = jar.getInputStream(entry).readBytes()
-        val classNode = ClassNode()
-        ClassReader(bytes).accept(classNode, ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES)
-
-        val hasInternalMeta = classNode.visibleAnnotations?.any {
-            it.desc.contains(ClassConstants.INTERNAL_META)
-        } ?: false
-
-        return if (hasInternalMeta) classNode.name else null
     }
 
     private fun findMainClassInFile(classFile: File, pluginInterfaceClass: String?): String? {
