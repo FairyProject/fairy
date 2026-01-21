@@ -131,26 +131,16 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
         val classesDirectory = classesDir.get().asFile
         if (!classesDirectory.exists()) return null
 
-        // First, find the Plugin/Application interface class from runtime classpath
-        val pluginInterfaceClass = findPluginInterfaceClass()
+        // Find the Plugin/Application interface class from runtime classpath
+        val pluginInterfaceClass = runtimeClasspath.files
+            .filter { it.isFile && it.extension == "jar" }
+            .mapNotNull { findPluginInterfaceInJar(it) }
+            .firstOrNull()
 
-        classesDirectory.walkTopDown()
+        return classesDirectory.walkTopDown()
             .filter { it.isFile && it.name.endsWith(CLASS_FILE_EXTENSION) }
-            .forEach { classFile ->
-                val className = findMainClassInFile(classFile, pluginInterfaceClass)
-                if (className != null) return className
-            }
-
-        return null
-    }
-
-    private fun findPluginInterfaceClass(): String? {
-        // Look for Plugin or Application class with @FairyInternalIdentityMeta
-        for (jarFile in runtimeClasspath.files.filter { it.isFile && it.extension == "jar" }) {
-            val result = findPluginInterfaceInJar(jarFile)
-            if (result != null) return result
-        }
-        return null
+            .mapNotNull { findMainClassInFile(it, pluginInterfaceClass) }
+            .firstOrNull()
     }
 
     private fun findPluginInterfaceInJar(jarFile: File): String? {

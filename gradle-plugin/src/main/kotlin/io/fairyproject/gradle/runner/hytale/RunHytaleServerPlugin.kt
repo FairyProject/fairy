@@ -50,6 +50,7 @@ import java.nio.file.Path
  */
 open class RunHytaleServerPlugin : Plugin<Project> {
 
+    /** Plugin constants. */
     companion object {
         private const val PLUGIN_NAME = "runHytaleServer"
     }
