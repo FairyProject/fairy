@@ -70,6 +70,19 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
     @get:Input
     abstract val projectDescription: Property<String>
 
+    // FairyExtension inputs - these affect the generated manifest
+    @get:Input
+    @get:org.gradle.api.tasks.Optional
+    abstract val fairyName: Property<String>
+
+    @get:Input
+    @get:org.gradle.api.tasks.Optional
+    abstract val fairyMainPackage: Property<String>
+
+    @get:Input
+    @get:org.gradle.api.tasks.Optional
+    abstract val fairyFairyPackage: Property<String>
+
     private val gson = GsonBuilder().setPrettyPrinting().create()
 
     @TaskAction
@@ -93,13 +106,13 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
 
         // Generate manifest.json
         val hytaleProps = extension?.hytalePropertiesRaw() ?: emptyMap()
-        val manifest = buildManifest(hytalePluginClass, hytaleProps, extension)
+        val manifest = buildManifest(hytalePluginClass, hytaleProps)
         val manifestFile = File(outputDirectory, "manifest.json")
         manifestFile.writeText(gson.toJson(manifest))
         logger.lifecycle("[Fairy] Generated Hytale manifest.json at ${manifestFile.absolutePath}")
 
         // Generate fairy.json
-        val fairyJson = buildFairyJson(mainClass, extension)
+        val fairyJson = buildFairyJson(mainClass)
         val fairyFile = File(outputDirectory, "fairy.json")
         fairyFile.writeText(gson.toJson(fairyJson))
         logger.lifecycle("[Fairy] Generated fairy.json at ${fairyFile.absolutePath}")
@@ -182,12 +195,12 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
         return classNode.name.replace("/", ".")
     }
 
-    private fun buildFairyJson(mainClass: String, extension: FairyExtension?): Map<String, Any?> {
+    private fun buildFairyJson(mainClass: String): Map<String, Any?> {
         val json = mutableMapOf<String, Any?>()
-        json["name"] = extension?.name?.orNull ?: projectName.get()
+        json["name"] = fairyName.orNull ?: projectName.get()
         json["mainClass"] = mainClass
-        extension?.mainPackage?.orNull?.let { json["shadedPackage"] = it }
-        extension?.fairyPackage?.orNull?.let { json["fairyPackage"] = it }
+        fairyMainPackage.orNull?.let { json["shadedPackage"] = it }
+        fairyFairyPackage.orNull?.let { json["fairyPackage"] = it }
         return json
     }
 
@@ -265,14 +278,13 @@ abstract class GenerateHytaleManifestTask : DefaultTask() {
 
     private fun buildManifest(
         hytalePluginClass: String,
-        hytaleProps: Map<String, Any>,
-        extension: FairyExtension?
+        hytaleProps: Map<String, Any>
     ): Map<String, Any> {
         val manifest = mutableMapOf<String, Any>()
 
         manifest["Main"] = hytalePluginClass
         manifest["Group"] = (hytaleProps["Group"] as? String)?.takeIf { it.isNotEmpty() } ?: "io.fairyproject"
-        manifest["Name"] = extension?.name?.orNull ?: projectName.get()
+        manifest["Name"] = fairyName.orNull ?: projectName.get()
         manifest["Version"] = normalizeToSemver(projectVersion.get())
         manifest["Description"] = projectDescription.get()
 

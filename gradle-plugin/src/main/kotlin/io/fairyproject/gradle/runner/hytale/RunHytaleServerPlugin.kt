@@ -25,6 +25,7 @@
 package io.fairyproject.gradle.runner.hytale
 
 import io.fairyproject.gradle.FairyGradlePlugin
+import io.fairyproject.gradle.extension.FairyExtension
 import io.fairyproject.gradle.runner.ClasspathRegistry
 import io.fairyproject.gradle.runner.hytale.action.CopyHytaleSnapshotAction
 import io.fairyproject.gradle.runner.hytale.task.GenerateHytaleManifestTask
@@ -174,6 +175,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
     private fun configureGenerateHytaleManifest() {
         val javaExtension = project.extensions.getByType(JavaPluginExtension::class.java)
         val mainSourceSet = javaExtension.sourceSets.getByName("main")
+        val fairyExtension = project.extensions.findByType(FairyExtension::class.java)
 
         project.tasks.register("generateHytaleManifest", GenerateHytaleManifestTask::class.java) {
             it.group = group
@@ -191,6 +193,13 @@ open class RunHytaleServerPlugin : Plugin<Project> {
             it.projectName.set(project.name)
             it.projectVersion.set(project.version.toString())
             it.projectDescription.set(project.description ?: "")
+
+            // FairyExtension inputs - track changes to these properties
+            fairyExtension?.let { ext ->
+                it.fairyName.set(ext.name)
+                it.fairyMainPackage.set(ext.mainPackage)
+                it.fairyFairyPackage.set(ext.fairyPackage)
+            }
 
             it.dependsOn("classes")
         }
