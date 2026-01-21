@@ -34,7 +34,7 @@ class FairyResourceHytaleMeta : FairyResource {
         manifest["Name"] = context.pluginName
 
         // Set Version from context - must be valid semver format
-        manifest["Version"] = normalizeToSemver(context.projectVersion)
+        manifest["Version"] = convertToValidSemver(context.projectVersion)
 
         // Set Description from context
         manifest["Description"] = context.projectDescription
@@ -84,23 +84,16 @@ class FairyResourceHytaleMeta : FairyResource {
         return resourceOf("manifest.json", json.encodeToByteArray())
     }
 
-    /**
-     * Normalize version string to valid semver format.
-     * Hytale requires versions in semver format (e.g., "1.0.0").
-     */
-    private fun normalizeToSemver(version: String): String {
-        // If version is unspecified or empty, return default
+    private fun convertToValidSemver(version: String): String {
         if (version.isBlank() || version == "unspecified") {
             return "0.0.1"
         }
 
-        // Simple semver regex pattern: major.minor.patch with optional pre-release/build
         val semverRegex = Regex("""^\d+\.\d+\.\d+(-[\w.]+)?(\+[\w.]+)?$""")
         if (semverRegex.matches(version)) {
             return version
         }
 
-        // Try to extract numbers from version string
         val numbers = Regex("""\d+""").findAll(version).map { it.value }.toList()
         return when {
             numbers.size >= 3 -> "${numbers[0]}.${numbers[1]}.${numbers[2]}"

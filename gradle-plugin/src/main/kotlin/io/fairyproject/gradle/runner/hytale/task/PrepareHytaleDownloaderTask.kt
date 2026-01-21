@@ -47,6 +47,7 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
     private val extension: RunHytaleServerExtension
 ) : DefaultTask() {
 
+    /** OS property constants and utility functions. */
     companion object {
         private const val OS_NAME_PROPERTY = "os.name"
         private const val OS_ARCH_PROPERTY = "os.arch"
@@ -77,6 +78,9 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
         }
     }
 
+    /**
+     * Downloads and prepares the Hytale Downloader CLI if not already present.
+     */
     @TaskAction
     fun prepareDownloader() {
         if (extension.downloaderPath.isPresent) {

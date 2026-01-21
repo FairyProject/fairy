@@ -52,6 +52,9 @@ open class PrepareHytaleBuildTask @Inject constructor(
     private val extension: RunHytaleServerExtension
 ) : DefaultTask() {
 
+    /**
+     * Downloads and extracts Hytale server files using the Hytale Downloader CLI.
+     */
     @TaskAction
     fun prepareBuild() {
         // If artifact already exists, skip (always downloads latest)
@@ -150,45 +153,49 @@ open class PrepareHytaleBuildTask @Inject constructor(
 
         // Preserve mods directory if it exists
         val modsDir = workDirectory.resolve("mods")
-        val modsBackup = if (modsDir.exists()) {
-            val backup = Files.createTempDirectory("fairy-hytale-mods-backup")
-            modsDir.toFile().copyRecursively(backup.toFile(), overwrite = true)
-            backup
-        } else null
+        val modsBackup = backupModsDirectory(modsDir)
 
         ZipFile(zipFile).use { zip ->
-            for (entry in zip.entries().asSequence()) {
-                // Skip Client directory - only extract Server and Assets
-                if (entry.name.startsWith("Client/")) {
-                    continue
-                }
-
-                // Skip mods directory to preserve plugins
-                if (entry.name.startsWith("mods/") || entry.name == "mods") {
-                    continue
-                }
-
-                val targetPath = workDirectory.resolve(entry.name)
-
-                if (entry.isDirectory) {
-                    targetPath.createDirectories()
-                } else {
-                    targetPath.parent?.createDirectories()
-                    zip.getInputStream(entry).use { input ->
-                        Files.copy(input, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
-                    }
-                }
-            }
+            zip.entries().asSequence()
+                .filter { shouldExtractEntry(it.name) }
+                .forEach { entry -> extractZipEntry(zip, entry) }
         }
 
-        // Restore mods directory
-        if (modsBackup != null) {
-            modsDir.createDirectories()
-            modsBackup.toFile().copyRecursively(modsDir.toFile(), overwrite = true)
-            modsBackup.toFile().deleteRecursively()
-        }
+        restoreModsDirectory(modsBackup, modsDir)
 
         println("Server files extracted to: $workDirectory")
+    }
+
+    private fun backupModsDirectory(modsDir: Path): Path? {
+        if (!modsDir.exists()) return null
+        val backup = Files.createTempDirectory("fairy-hytale-mods-backup")
+        modsDir.toFile().copyRecursively(backup.toFile(), overwrite = true)
+        return backup
+    }
+
+    private fun shouldExtractEntry(entryName: String): Boolean {
+        if (entryName.startsWith("Client/")) return false
+        if (entryName.startsWith("mods/") || entryName == "mods") return false
+        return true
+    }
+
+    private fun extractZipEntry(zip: ZipFile, entry: java.util.zip.ZipEntry) {
+        val targetPath = workDirectory.resolve(entry.name)
+        if (entry.isDirectory) {
+            targetPath.createDirectories()
+        } else {
+            targetPath.parent?.createDirectories()
+            zip.getInputStream(entry).use { input ->
+                Files.copy(input, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+            }
+        }
+    }
+
+    private fun restoreModsDirectory(modsBackup: Path?, modsDir: Path) {
+        if (modsBackup == null) return
+        modsDir.createDirectories()
+        modsBackup.toFile().copyRecursively(modsDir.toFile(), overwrite = true)
+        modsBackup.toFile().deleteRecursively()
     }
 
 }
