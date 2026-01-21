@@ -25,9 +25,12 @@
 package io.fairyproject.hytale;
 
 import com.hypixel.hytale.server.core.plugin.PluginBase;
+import io.fairyproject.Debug;
 import io.fairyproject.FairyPlatform;
 import io.fairyproject.PlatformType;
+import io.fairyproject.hytale.logger.HytaleILogger;
 import io.fairyproject.hytale.plugin.HytalePluginHandler;
+import io.fairyproject.log.Log;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.URLClassLoaderAccess;
 import io.fairyproject.util.terminable.Terminable;
@@ -62,6 +65,9 @@ public class FairyHytalePlatform extends FairyPlatform implements TerminableCons
         }
 
         PluginManager.initialize(new HytalePluginHandler());
+        if (!Debug.UNIT_TEST) {
+            Log.set(new HytaleILogger());
+        }
     }
 
     @NotNull
