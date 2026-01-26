@@ -150,8 +150,9 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
     }
 
     private fun pushClassToMapping(classInfo: ClassInfo, classMapper: MutableMap<ClassType, ClassInfo>) {
-        ClassType.values().forEach { classType ->
-            if (!classInfo.name.contains("module-info") && classType.names.contains(classInfo.name.substringAfterLast("/"))) {
+        ClassType.entries.forEach { classType ->
+            val className = classInfo.name.substringAfterLast("/")
+            if (!classInfo.name.contains("module-info") && classType.names.contains(className)) {
                 // Duplicated class types
                 if (classMapper.contains(classType))
                     throw IllegalStateException("a project are not suppose to have 2 or more classes that are $classType")
