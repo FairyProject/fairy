@@ -165,6 +165,7 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
         if (jarEntry.name.equals("module.json")) return true
         if (jarEntry.name.equals("plugin.yml")) return true
         if (jarEntry.name.equals("manifest.json")) return true
+        if (jarEntry.name.equals("fairy.json")) return true
 
         return false
     }
