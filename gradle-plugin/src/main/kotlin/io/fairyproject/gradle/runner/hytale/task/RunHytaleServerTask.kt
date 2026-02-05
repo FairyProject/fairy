@@ -40,7 +40,7 @@ import javax.inject.Inject
  * @author LeeGod
  * @see io.fairyproject.gradle.runner.hytale.RunHytaleServerPlugin
  */
-open class RunHytaleServerTask @Inject constructor(
+abstract class RunHytaleServerTask @Inject constructor(
     private val version: JavaVersion,
     artifact: HytaleServerArtifact,
     workDirectory: Path,

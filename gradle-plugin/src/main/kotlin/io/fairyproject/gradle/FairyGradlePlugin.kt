@@ -44,7 +44,7 @@ class FairyGradlePlugin : Plugin<Project> {
     }
 
     private fun configurePlugin(project: Project, language: String) {
-        sourceSets.all { sourceSet ->
+        sourceSets.configureEach { sourceSet ->
             project.tasks.named(sourceSet.getCompileTaskName(language)) {
                 val action = project.objects.newInstance(FairyCompilerAction::class.java)
                 it.doLast("fairyCompile", action)

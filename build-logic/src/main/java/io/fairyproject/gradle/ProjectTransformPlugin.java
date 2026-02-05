@@ -19,7 +19,7 @@ public class ProjectTransformPlugin implements Plugin<Project> {
     }
 
     private void configurePlugin(Project project, String language) {
-        sourceSets.all(sourceSet -> {
+        sourceSets.configureEach(sourceSet -> {
             project.getTasks().named(sourceSet.getCompileTaskName(language), AbstractCompile.class, compile -> {
                 ModuleCompilerAction action = project.getObjects().newInstance(ModuleCompilerAction.class);
                 compile.doLast("extraCompile", action);

@@ -40,7 +40,7 @@ import kotlin.io.path.absolutePathString
  * @author LeeGod
  * @see io.fairyproject.gradle.runner.RunServerPlugin
  */
-open class PrepareSpigotTask @Inject constructor(
+abstract class PrepareSpigotTask @Inject constructor(
     buildToolDirectory: Path,
     artifact: ServerJarArtifact,
     private val extension: RunServerExtension): JavaExec() {

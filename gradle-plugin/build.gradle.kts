@@ -1,9 +1,10 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.*
 
 plugins {
-    kotlin("jvm") version "1.9.10"
-    id("com.gradle.plugin-publish") version "1.0.0"
+    kotlin("jvm") version "2.1.21"
+    id("com.gradle.plugin-publish") version "1.3.1"
     id("io.fairyproject.common")
     id("io.fairyproject.publish")
     `java-gradle-plugin`
@@ -42,7 +43,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     implementation("org.json:json:20231013")
     implementation("org.apache.maven:maven-plugin-api:3.8.5")
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:1.7.22")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin-api:2.1.21")
     implementation("org.ow2.asm:asm:9.9.1")
     implementation("org.ow2.asm:asm-commons:9.9.1")
     implementation("com.google.code.gson:gson:2.10")
@@ -61,12 +62,14 @@ gradlePlugin {
     }
 }
 
-tasks.withType<Jar> {
+tasks.withType<Jar>().configureEach {
     manifest {
         attributes["Implementation-Version"] = project.version
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_1_8)
+    }
 }
