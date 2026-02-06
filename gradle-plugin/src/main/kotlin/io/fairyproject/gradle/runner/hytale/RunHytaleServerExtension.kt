@@ -62,7 +62,7 @@ open class RunHytaleServerExtension(objectFactory: ObjectFactory) {
     /**
      * Java version (default Java 25 for Hytale).
      */
-    val javaVersion: Property<JavaVersion> = objectFactory.property(JavaVersion::class.java).convention(JavaVersion.VERSION_24)
+    val javaVersion: Property<JavaVersion> = objectFactory.property(JavaVersion::class.java).convention(JavaVersion.VERSION_25)
 
     /**
      * Bind address (default "0.0.0.0:5520").
