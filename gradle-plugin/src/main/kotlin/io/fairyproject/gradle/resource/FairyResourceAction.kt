@@ -114,16 +114,18 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
         classMapper: MutableMap<ClassType, ClassInfo>) {
         for (entry in inJar.entries()) {
             if (this.shouldExcludeFile(entry)) continue
-            val bytes = inJar.getInputStream(entry).readBytes()
-            // The entry is a class file
-            if (entry.name.endsWith(".class")) {
-                // Read class through ASM
-                readClass(bytes, classes, classMapper)
-            }
 
-            // Copy it to temporary file
             output.putNextEntry(JarEntry(entry.name))
-            output.write(bytes)
+
+            if (entry.name.endsWith(".class")) {
+                // Class files need to be read into memory for ASM analysis
+                val bytes = inJar.getInputStream(entry).readBytes()
+                readClass(bytes, classes, classMapper)
+                output.write(bytes)
+            } else {
+                // Non-class files are streamed directly to avoid OOM on large entries
+                inJar.getInputStream(entry).use { it.copyTo(output) }
+            }
         }
     }
 
