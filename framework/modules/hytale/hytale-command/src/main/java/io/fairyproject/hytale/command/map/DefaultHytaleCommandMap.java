@@ -38,6 +38,7 @@ import io.fairyproject.hytale.command.HytaleMixedCommandExecutor;
 import io.fairyproject.hytale.command.HytalePlayerCommandExecutor;
 import io.fairyproject.hytale.command.event.HytaleCommandContext;
 import io.fairyproject.hytale.command.event.HytalePlayerCommandContext;
+import io.fairyproject.log.Log;
 
 import java.lang.reflect.Method;
 
@@ -70,6 +71,8 @@ public class DefaultHytaleCommandMap implements HytaleCommandMap {
             throw new IllegalArgumentException("Command already registered: " + command.getCommandNames()[0]);
         }
 
+        Log.info("Registering command: " + command.getClass().getName());
+
         // Analyze command methods to determine executor type
         ContextTypeInfo contextInfo = analyzeContextTypes(command.getClass());
 
@@ -90,6 +93,8 @@ public class DefaultHytaleCommandMap implements HytaleCommandMap {
 
         command.getMetaStorage().put(EXECUTOR_KEY, commandExecutor);
         command.getMetaStorage().put(REGISTRATION_KEY, registration);
+
+        Log.info("Registered command: " + command.getClass().getName() + " " + registration);
     }
 
     /**
