@@ -50,7 +50,8 @@ fun includeDebug() {
         val lines = listOf(
             "// Uncomment to enable the debug plugin module",
             "// Make sure you have at least compile the project once before uncommenting",
-            "//include(\"test-plugin\")\n"
+            "//include(\"test-plugin\")\n",
+            "//include(\"test-hytale-plugin\")\n",
         )
         Files.write(debugPlugin.toPath(), lines)
     }

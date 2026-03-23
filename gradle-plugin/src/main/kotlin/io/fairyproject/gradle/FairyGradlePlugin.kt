@@ -6,6 +6,7 @@ import io.fairyproject.gradle.dependency.DependencyManagementPluginAction
 import io.fairyproject.gradle.extension.FairyExtension
 import io.fairyproject.gradle.resource.FairyResourcePlugin
 import io.fairyproject.gradle.runner.RunServerPlugin
+import io.fairyproject.gradle.runner.hytale.RunHytaleServerPlugin
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyPlugin
@@ -31,6 +32,7 @@ class FairyGradlePlugin : Plugin<Project> {
         project.plugins.apply(JavaBasePlugin::class.java)
         project.plugins.apply(FairyResourcePlugin::class.java)
         project.plugins.apply(RunServerPlugin::class.java)
+        project.plugins.apply(RunHytaleServerPlugin::class.java)
 
         sourceSets = project.extensions.getByType(JavaPluginExtension::class.java).sourceSets
         project.plugins.withType(JavaPlugin::class.java) { configurePlugin(project, "java") }
@@ -42,7 +44,7 @@ class FairyGradlePlugin : Plugin<Project> {
     }
 
     private fun configurePlugin(project: Project, language: String) {
-        sourceSets.all { sourceSet ->
+        sourceSets.configureEach { sourceSet ->
             project.tasks.named(sourceSet.getCompileTaskName(language)) {
                 val action = project.objects.newInstance(FairyCompilerAction::class.java)
                 it.doLast("fairyCompile", action)

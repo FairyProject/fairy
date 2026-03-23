@@ -64,3 +64,69 @@ class BukkitProperties : Properties(PlatformType.BUKKIT) {
     }
 
 }
+
+/**
+ * Author information for Hytale plugin.
+ */
+data class HytaleAuthor(
+    var name: String = "",
+    var email: String = "",
+    var url: String = ""
+)
+
+/**
+ * The properties of a Hytale plugin.
+ */
+class HytaleProperties : Properties(PlatformType.HYTALE) {
+
+    var group: String
+        get() = this["Group"] as? String ?: ""
+        set(value) { this["Group"] = value }
+
+    var website: String
+        get() = this["Website"] as? String ?: ""
+        set(value) { this["Website"] = value }
+
+    var serverVersion: String
+        get() = this["ServerVersion"] as? String ?: ""
+        set(value) { this["ServerVersion"] = value }
+
+    var disabledByDefault: Boolean
+        get() = this["DisabledByDefault"] as? Boolean ?: false
+        set(value) { this["DisabledByDefault"] = value }
+
+    var includesAssetPack: Boolean
+        get() = this["IncludesAssetPack"] as? Boolean ?: true
+        set(value) { this["IncludesAssetPack"] = value }
+
+    val authors: MutableList<HytaleAuthor> by lazy {
+        val list = mutableListOf<HytaleAuthor>()
+        this["Authors"] = list
+        list
+    }
+
+    val dependencies: MutableMap<String, String> by lazy {
+        val map = mutableMapOf<String, String>()
+        this["Dependencies"] = map
+        map
+    }
+
+    val optionalDependencies: MutableMap<String, String> by lazy {
+        val map = mutableMapOf<String, String>()
+        this["OptionalDependencies"] = map
+        map
+    }
+
+    val loadBefore: MutableMap<String, String> by lazy {
+        val map = mutableMapOf<String, String>()
+        this["LoadBefore"] = map
+        map
+    }
+
+    val subPlugins: MutableList<String> by lazy {
+        val list = mutableListOf<String>()
+        this["SubPlugins"] = list
+        list
+    }
+
+}

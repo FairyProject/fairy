@@ -1,6 +1,7 @@
 package io.fairyproject.gradle.resource
 
 import io.fairyproject.gradle.resource.impl.FairyResourceBukkitMeta
+import io.fairyproject.gradle.resource.impl.FairyResourceHytaleMeta
 import io.fairyproject.gradle.resource.impl.FairyResourcePluginMeta
 
 /**
@@ -20,7 +21,8 @@ interface FairyResource {
 
         val ALL = arrayOf(
             FairyResourcePluginMeta(),
-            FairyResourceBukkitMeta()
+            FairyResourceBukkitMeta(),
+            FairyResourceHytaleMeta()
         )
 
     }
@@ -35,10 +37,12 @@ data class FairyResourceGenerateContext(
     val projectVersion: String,
     val projectDescription: String,
     val hasBukkitPlatform: Boolean,
+    val hasHytalePlatform: Boolean,
     private val _pluginName: String?,
     val mainPackage: String?,
     val fairyPackage: String?,
-    val props: Map<String, Any>
+    val props: Map<String, Any>,
+    val hytaleProps: Map<String, Any>
 ) {
     val pluginName: String
         get() = _pluginName ?: projectName

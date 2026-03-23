@@ -44,13 +44,13 @@ public class RelocationHandlerImpl implements RelocationHandler {
             Library.builder()
                     .groupId("org.ow2.asm")
                     .artifactId("asm")
-                    .version("9.7")
+                    .version("9.9.1")
                     .build(),
             // asm-commons
             Library.builder()
                     .groupId("org.ow2.asm")
                     .artifactId("asm-commons")
-                    .version("9.7")
+                    .version("9.9.1")
                     .build(),
             // jar-relocator
             Library.builder()

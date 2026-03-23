@@ -31,6 +31,9 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
     @get:Input
     abstract val hasBukkitPlatform: Property<Boolean>
 
+    @get:Input
+    abstract val hasHytalePlatform: Property<Boolean>
+
     override fun execute(task: Task) {
         val jar = task as Jar
         val file = jar.archiveFile.get().asFile
@@ -66,8 +69,10 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
                     return
                 }
 
-                classMapper[ClassType.BUKKIT_PLUGIN] ?: run {
-                    println("[Fairy] Bukkit plugin class not found, no resources will be generated.")
+                val hasBukkitPluginClass = classMapper.containsKey(ClassType.BUKKIT_PLUGIN)
+                val hasHytalePluginClass = classMapper.containsKey(ClassType.HYTALE_PLUGIN)
+                if (!hasBukkitPluginClass && !hasHytalePluginClass) {
+                    println("[Fairy] No platform plugin class found (BukkitPlugin or HytalePlugin), no resources will be generated.")
                     return
                 }
 
@@ -80,10 +85,12 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
                             info.version,
                             info.description,
                             hasBukkitPlatform.get(),
+                            hasHytalePlatform.get(),
                             extension.get().name.orNull,
                             extension.get().mainPackage.orNull,
                             extension.get().fairyPackage.orNull,
-                            extension.get().bukkitPropertiesRaw()
+                            extension.get().bukkitPropertiesRaw(),
+                            extension.get().hytalePropertiesRaw()
                         ), classMapper
                     )?.let { resource ->
                         output.putNextEntry(JarEntry(resource.name))
@@ -107,16 +114,18 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
         classMapper: MutableMap<ClassType, ClassInfo>) {
         for (entry in inJar.entries()) {
             if (this.shouldExcludeFile(entry)) continue
-            val bytes = inJar.getInputStream(entry).readBytes()
-            // The entry is a class file
-            if (entry.name.endsWith(".class")) {
-                // Read class through ASM
-                readClass(bytes, classes, classMapper)
-            }
 
-            // Copy it to temporary file
             output.putNextEntry(JarEntry(entry.name))
-            output.write(bytes)
+
+            if (entry.name.endsWith(".class")) {
+                // Class files need to be read into memory for ASM analysis
+                val bytes = inJar.getInputStream(entry).readBytes()
+                readClass(bytes, classes, classMapper)
+                output.write(bytes)
+            } else {
+                // Non-class files are streamed directly to avoid OOM on large entries
+                inJar.getInputStream(entry).use { it.copyTo(output) }
+            }
         }
     }
 
@@ -143,8 +152,9 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
     }
 
     private fun pushClassToMapping(classInfo: ClassInfo, classMapper: MutableMap<ClassType, ClassInfo>) {
-        ClassType.values().forEach { classType ->
-            if (!classInfo.name.contains("module-info") && classType.names.contains(classInfo.name.substringAfterLast("/"))) {
+        ClassType.entries.forEach { classType ->
+            val className = classInfo.name.substringAfterLast("/")
+            if (!classInfo.name.contains("module-info") && classType.names.contains(className)) {
                 // Duplicated class types
                 if (classMapper.contains(classType))
                     throw IllegalStateException("a project are not suppose to have 2 or more classes that are $classType")
@@ -156,6 +166,8 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
     private fun shouldExcludeFile(jarEntry: JarEntry): Boolean {
         if (jarEntry.name.equals("module.json")) return true
         if (jarEntry.name.equals("plugin.yml")) return true
+        if (jarEntry.name.equals("manifest.json")) return true
+        if (jarEntry.name.equals("fairy.json")) return true
 
         return false
     }
@@ -176,7 +188,7 @@ abstract class FairyResourceAction @Inject constructor() : Action<Task> {
  * Class type.
  */
 enum class ClassType(vararg val names: String) {
-    MAIN_CLASS, MAIN_CLASS_INTERFACE("Plugin", "Application"), BUKKIT_PLUGIN("BukkitPlugin");
+    MAIN_CLASS, MAIN_CLASS_INTERFACE("Plugin", "Application"), BUKKIT_PLUGIN("BukkitPlugin"), HYTALE_PLUGIN("HytalePlugin");
 }
 
 /**

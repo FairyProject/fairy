@@ -7,6 +7,7 @@ public enum PlatformType {
     MC,
     VELOCITY,
     NUKKIT,
-    APP
+    APP,
+    HYTALE
 
 }

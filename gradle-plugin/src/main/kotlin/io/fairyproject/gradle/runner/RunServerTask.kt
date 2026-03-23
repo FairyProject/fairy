@@ -37,7 +37,7 @@ import javax.inject.Inject
  * @author LeeGod
  * @see RunServerPlugin
  */
-open class RunServerTask @Inject constructor(private val version: JavaVersion, artifact: ServerJarArtifact, workDirectory: Path): JavaExec() {
+abstract class RunServerTask @Inject constructor(private val version: JavaVersion, artifact: ServerJarArtifact, workDirectory: Path): JavaExec() {
 
     init {
         classpath = project.files(artifact.artifactPath)

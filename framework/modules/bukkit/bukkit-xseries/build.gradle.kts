@@ -12,7 +12,7 @@ dependencies {
 }
 
 tasks {
-    withType(JavaCompile::class.java) {
+    withType(JavaCompile::class.java).configureEach {
         options.encoding = "UTF-8"
         sourceCompatibility = "8"
         targetCompatibility = "8"

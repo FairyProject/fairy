@@ -1,0 +1,34 @@
+$C = "../Common.ui";
+
+$C.@PageOverlay {}
+
+$C.@Container {
+  Anchor: (Width: 600, Height: 700);
+
+  #Title {
+    Group {
+      $C.@Title {
+        @Text = %example.customUI.example.title;
+      }
+    }
+  }
+
+  #Content {
+    LayoutMode: Top;
+    Padding: (Horizontal: 10);
+
+    ItemSlotButton {
+      Padding: (Full: 6);
+      LayoutMode: Left;
+
+      ItemSlot #ItemSlot {
+        Anchor: (Full: 0, Height: 68, Width: 68);
+        ShowQualityBackground: true;
+      }
+    }
+
+
+  }
+}
+
+$C.@BackButton {}

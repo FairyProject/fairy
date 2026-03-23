@@ -1,6 +1,7 @@
 package io.fairyproject.gradle.extension
 
 import io.fairyproject.gradle.extension.property.BukkitProperties
+import io.fairyproject.gradle.extension.property.HytaleProperties
 import io.fairyproject.gradle.extension.property.Properties
 import io.fairyproject.gradle.platform.PlatformType
 import org.gradle.api.model.ObjectFactory
@@ -28,5 +29,14 @@ open class FairyExtension(objectFactory: ObjectFactory) {
      */
     fun bukkitPropertiesRaw(): Map<String, Any> = this.properties.computeIfAbsent(PlatformType.BUKKIT) { BukkitProperties() }
 
+    /**
+     * Get properties for hytale platform
+     */
+    fun hytaleProperties(): HytaleProperties = this.properties.computeIfAbsent(PlatformType.HYTALE) { HytaleProperties() } as HytaleProperties
+
+    /**
+     * Get properties for hytale platform in raw format
+     */
+    fun hytalePropertiesRaw(): Map<String, Any> = this.properties.computeIfAbsent(PlatformType.HYTALE) { HytaleProperties() }
 
 }

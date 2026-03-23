@@ -4,11 +4,6 @@ plugins {
     id("io.fairyproject.publish")
 }
 
-configurations {
-    compileOnly {
-        isCanBeResolved = true
-    }
-}
 
 //sourceSets {
 //    test.get().compileClasspath += configurations.compileOnly.get()
