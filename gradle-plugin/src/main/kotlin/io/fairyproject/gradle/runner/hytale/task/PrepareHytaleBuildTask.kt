@@ -95,20 +95,49 @@ open class PrepareHytaleBuildTask @Inject constructor(
         command.add(outputZip.toAbsolutePath().toString())
         command.add("-patchline")
         command.add(extension.patchline.get())
-        command.add("-skip-update-check")
+//        command.add("-skip-update-check")
 
         println("Executing: ${command.joinToString(" ")}")
 
+        val result = executeDownloader(command)
+
+        if (result.exitCode != 0) {
+            if (result.hasExpiredToken) {
+                val credentialsFile = downloaderDirectory.resolve(".hytale-downloader-credentials.json")
+                if (credentialsFile.exists()) {
+                    println("Detected expired OAuth2 refresh token. Deleting credentials to re-authenticate...")
+                    credentialsFile.deleteIfExists()
+
+                    // Retry — downloader will prompt for fresh OAuth login
+                    val retryResult = executeDownloader(command)
+                    if (retryResult.exitCode != 0) {
+                        error("Hytale Downloader failed with exit code: ${retryResult.exitCode} after re-authentication attempt")
+                    }
+                    return
+                }
+            }
+            error("Hytale Downloader failed with exit code: ${result.exitCode}")
+        }
+    }
+
+    private data class DownloaderResult(val exitCode: Int, val hasExpiredToken: Boolean)
+
+    private fun executeDownloader(command: List<String>): DownloaderResult {
         val processBuilder = ProcessBuilder(command)
             .directory(downloaderDirectory.toFile())
             .redirectErrorStream(true)
 
         val process = processBuilder.start()
 
+        var hasExpiredToken = false
+
         // Forward output to console in real-time for OAuth authentication
         val outputThread = Thread {
             process.inputStream.bufferedReader().forEachLine { line ->
                 println(line)
+                if (line.contains("invalid_grant") || line.contains("refresh token", ignoreCase = true)) {
+                    hasExpiredToken = true
+                }
             }
         }
         outputThread.start()
@@ -116,9 +145,7 @@ open class PrepareHytaleBuildTask @Inject constructor(
         val exitCode = process.waitFor()
         outputThread.join()
 
-        if (exitCode != 0) {
-            error("Hytale Downloader failed with exit code: $exitCode")
-        }
+        return DownloaderResult(exitCode, hasExpiredToken)
     }
 
     private fun getVersion(downloaderPath: Path): String {
