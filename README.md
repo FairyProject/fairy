@@ -42,6 +42,9 @@ To achieve this it's nearly impossible for a single person or a small team, that
 - legacy-lands-library - [GitHub](https://github.com/LegacyLands/legacy-lands-library)
 - *Feel free to open a PR to add your project to here!*
 
+## Prerequisites
+- **Java 21** or higher is required for development and compilation.
+
 ## Getting Started
 If you are interested in creating a project using Fairy framework, please start with [project template](https://github.com/FairyProject/fairy-bukkit-template) and give our [documentation](https://docs.fairyproject.io/) a read!. 
 
