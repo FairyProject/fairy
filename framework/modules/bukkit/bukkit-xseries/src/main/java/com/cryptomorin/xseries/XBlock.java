@@ -70,7 +70,7 @@ public final class XBlock {
             XMaterial.MAGMA_BLOCK, XMaterial.LAVA, XMaterial.CAMPFIRE, XMaterial.FIRE, XMaterial.SOUL_FIRE
     ));
     public static final byte CAKE_SLICES = 6;
-    private static final boolean ISFLAT = XMaterial.supports(13);
+    private static final boolean ISFLAT = XMaterial.supports(1, 13);
     private static final Map<XMaterial, XMaterial> ITEM_TO_BLOCK = new EnumMap<>(XMaterial.class);
 
     static {

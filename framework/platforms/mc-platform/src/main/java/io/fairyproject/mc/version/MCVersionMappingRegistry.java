@@ -47,7 +47,7 @@ import java.util.TreeSet;
 public class MCVersionMappingRegistry {
 
     // Hardcoded latest version to validate cache
-    private static final MCVersion LATEST_VERSION = MCVersion.of(1, 21, 0);
+    private static final MCVersion LATEST_VERSION = MCVersion.of(26, 1, 0);
 
     private final Gson gson = new Gson();
     @Getter
@@ -143,6 +143,8 @@ public class MCVersionMappingRegistry {
 
         boolean hexColor = major >= 1 && minor >= 16;
         boolean nmsPrefix = major < 1 || minor < 17;
+        if (major > 1)
+            nmsPrefix = false;
 
         this.register(new MCVersionMapping(major, minor, patch, nmsPrefix, hexColor, protocolVersion));
     }

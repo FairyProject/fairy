@@ -6,7 +6,7 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.21.3-R0.1-SNAPSHOT")
 
     api("io.fairyproject:core-command")
-    api("com.github.cryptomorin:XSeries:13.6.0")
+    api("io.github.almighty-satan:XSeries:13.6.0+26.1")
 
     implementation("com.google.code.findbugs:jsr305:3.0.2")
 }

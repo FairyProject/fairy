@@ -142,6 +142,7 @@ public class MCVersionMappingRegistryTest {
             Assertions.assertTrue(registry.findMapping(1, 15, 2).isNmsPrefix());
             Assertions.assertTrue(registry.findMapping(1, 16, 0).isNmsPrefix());
             Assertions.assertFalse(registry.findMapping(1, 17, 0).isNmsPrefix());
+            Assertions.assertFalse(registry.findMapping(26, 1, 0).isNmsPrefix());
         }
 
     }
