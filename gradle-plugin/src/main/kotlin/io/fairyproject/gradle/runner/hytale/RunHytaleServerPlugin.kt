@@ -94,7 +94,7 @@ open class RunHytaleServerPlugin : Plugin<Project> {
 
         val artifact = HytaleServerArtifact(workDir)
 
-        configurePrepareHytaleDownloader(downloaderDir)
+        configurePrepareHytaleDownloader(downloaderDir, artifact)
         configurePrepareHytaleBuild(downloaderDir, downloadsDir, workDir, artifact)
         configureCopyHytaleModJar(workDir)
         configureCleanHytaleServer(workDir)
@@ -102,11 +102,12 @@ open class RunHytaleServerPlugin : Plugin<Project> {
         configureRunHytaleServer(artifact, workDir, snapshotDir)
     }
 
-    private fun configurePrepareHytaleDownloader(downloaderDir: Path) {
+    private fun configurePrepareHytaleDownloader(downloaderDir: Path, artifact: HytaleServerArtifact) {
         project.tasks.register(
             "prepareHytaleDownloader",
             PrepareHytaleDownloaderTask::class.java,
             downloaderDir,
+            artifact,
             extension
         ).configure {
             it.group = PLUGIN_NAME

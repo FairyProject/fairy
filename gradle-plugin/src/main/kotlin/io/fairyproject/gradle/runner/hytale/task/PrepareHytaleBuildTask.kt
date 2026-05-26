@@ -63,6 +63,14 @@ open class PrepareHytaleBuildTask @Inject constructor(
             return
         }
 
+        // No native Hytale downloader is published for macOS — it cannot download the server.
+        if (isMacOS()) {
+            error(
+                "macOS detected: no Hytale downloader is available for macOS. " +
+                    "Please manually place the Hytale server files (Server/HytaleServer.jar and Assets.zip) in: $workDirectory"
+            )
+        }
+
         // Run the downloader
         val downloaderPath = PrepareHytaleDownloaderTask.getDownloaderPath(downloaderDirectory, extension)
         if (!downloaderPath.exists()) {
@@ -223,6 +231,11 @@ open class PrepareHytaleBuildTask @Inject constructor(
         modsDir.createDirectories()
         modsBackup.toFile().copyRecursively(modsDir.toFile(), overwrite = true)
         modsBackup.toFile().deleteRecursively()
+    }
+
+    private fun isMacOS(): Boolean {
+        val osName = System.getProperty("os.name").lowercase()
+        return osName.contains("mac") || osName.contains("darwin")
     }
 
 }

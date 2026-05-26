@@ -24,6 +24,7 @@
 
 package io.fairyproject.gradle.runner.hytale.task
 
+import io.fairyproject.gradle.runner.hytale.HytaleServerArtifact
 import io.fairyproject.gradle.runner.hytale.RunHytaleServerExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
@@ -44,6 +45,7 @@ import kotlin.io.path.exists
  */
 open class PrepareHytaleDownloaderTask @Inject constructor(
     private val downloaderDirectory: Path,
+    private val artifact: HytaleServerArtifact,
     private val extension: RunHytaleServerExtension
 ) : DefaultTask() {
 
@@ -85,6 +87,21 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
     fun prepareDownloader() {
         if (extension.downloaderPath.isPresent) {
             println("Using custom downloader path: ${extension.downloaderPath.get()}")
+            return
+        }
+
+        // No native Hytale downloader is published for macOS.
+        // Fall back to detecting a pre-existing HytaleServer.jar instead.
+        if (isMacOS()) {
+            if (artifact.serverJarPath.exists()) {
+                println("macOS detected: no downloader available, using existing server jar at: ${artifact.serverJarPath}")
+            } else {
+                error(
+                    "macOS detected: no Hytale downloader is available for macOS, and no existing " +
+                        "HytaleServer.jar was found at: ${artifact.serverJarPath}. " +
+                        "Please manually place the Hytale server files there before running the server."
+                )
+            }
             return
         }
 
@@ -166,5 +183,10 @@ open class PrepareHytaleDownloaderTask @Inject constructor(
 
     private fun isWindows(): Boolean {
         return System.getProperty(OS_NAME_PROPERTY).lowercase().contains("win")
+    }
+
+    private fun isMacOS(): Boolean {
+        val osName = System.getProperty(OS_NAME_PROPERTY).lowercase()
+        return osName.contains("mac") || osName.contains("darwin")
     }
 }
