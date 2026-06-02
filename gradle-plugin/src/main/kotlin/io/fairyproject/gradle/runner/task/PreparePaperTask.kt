@@ -58,11 +58,10 @@ open class PreparePaperTask @Inject constructor(
     @TaskAction
     fun preparePaper() {
         val version = extension.version.get()
-        val response = downloadsAPI.version(projectName, version)
-        val buildNumber = response.builds.last()
-        val download = downloadsAPI.build(projectName, version, buildNumber).downloads["application"]
-            ?: error("No application download found for $projectName $version $buildNumber")
-        val downloadURL = URL(downloadsAPI.downloadURL(projectName, version, buildNumber, download))
+        val build = downloadsAPI.latestBuild(projectName, version)
+        val download = build.downloads[DownloadsAPI.SERVER_DOWNLOAD]
+            ?: error("No ${DownloadsAPI.SERVER_DOWNLOAD} download found for $projectName $version ${build.id}")
+        val downloadURL = URL(download.url)
 
         println("Downloading Paper jar... ($downloadURL)")
         downloadURL.openStream().use { input ->

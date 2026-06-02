@@ -23,7 +23,7 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import java.net.URL
 
 /**
- * Paper Download API.
+ * Paper Fill (v3) Download API.
  *
  * @since 0.7.0
  * @author Jason Penilla
@@ -31,7 +31,18 @@ import java.net.URL
  */
 class DownloadsAPI(private val endpoint: String) {
   companion object {
-    const val PAPER_ENDPOINT: String = "https://api.papermc.io/v2/"
+    const val PAPER_ENDPOINT: String = "https://fill.papermc.io/v3/"
+
+    /**
+     * Download key for the default server jar in a build's downloads map.
+     */
+    const val SERVER_DOWNLOAD: String = "server:default"
+
+    /**
+     * Fill requires a descriptive User-Agent, otherwise requests may be rejected.
+     */
+    private const val USER_AGENT: String = "fairy-gradle-plugin"
+
     private val MAPPER: JsonMapper = JsonMapper.builder()
       .addModule(kotlinModule())
       .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
@@ -39,56 +50,30 @@ class DownloadsAPI(private val endpoint: String) {
   }
 
   private inline fun <reified R> makeQuery(query: String): R {
-    val response = URL(endpoint + query).readText(Charsets.UTF_8)
+    val connection = URL(endpoint + query).openConnection()
+    connection.setRequestProperty("User-Agent", USER_AGENT)
+    val response = connection.getInputStream().use { it.readBytes().toString(Charsets.UTF_8) }
     return MAPPER.readValue(response)
   }
 
   /**
-   * Get all projects.
-   */
-  fun projects(): ProjectsResponse {
-    return makeQuery("projects")
-  }
-
-  /**
-   * Get a specific project.
-   */
-  fun project(projectName: String): ProjectResponse {
-    return makeQuery("projects/$projectName")
-  }
-
-  /**
-   * Get all versions for a project.
-   */
-  fun versionGroup(projectName: String, versionGroup: String): VersionGroupResponse {
-    return makeQuery("projects/$projectName/version_group/$versionGroup")
-  }
-
-  /**
-   * Get all builds for a project group.
-   */
-  fun versionGroupBuilds(projectName: String, versionGroup: String): VersionGroupBuildsResponse {
-    return makeQuery("projects/$projectName/version_group/$versionGroup/builds")
-  }
-
-  /**
-   * Get all builds for a project.
+   * Get a version, including the list of available builds (newest first).
    */
   fun version(projectName: String, version: String): VersionResponse {
     return makeQuery("projects/$projectName/versions/$version")
   }
 
   /**
-   * Get all downloads for a build.
+   * Get the downloads for a specific build.
    */
   fun build(projectName: String, version: String, build: Int): BuildResponse {
     return makeQuery("projects/$projectName/versions/$version/builds/$build")
   }
 
   /**
-   * Get the download URL for a download.
+   * Get the downloads for the latest build of a version.
    */
-  fun downloadURL(projectName: String, version: String, build: Int, download: Download): String {
-    return endpoint + "projects/$projectName/versions/$version/builds/$build/downloads/${download.name}"
+  fun latestBuild(projectName: String, version: String): BuildResponse {
+    return makeQuery("projects/$projectName/versions/$version/builds/latest")
   }
 }
