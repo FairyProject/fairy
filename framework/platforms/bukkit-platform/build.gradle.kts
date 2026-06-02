@@ -6,7 +6,7 @@ dependencies {
     api(project(":mc-platform"))
     api("net.kyori:adventure-platform-bukkit:4.4.1")
     api("net.kyori:adventure-text-serializer-bungeecord:4.4.1")
-    api("com.github.retrooper:packetevents-spigot:2.12.1") {
+    api("com.github.retrooper:packetevents-spigot:2.12.2") {
         exclude(group = "net.kyori")
     }
     compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT") {
