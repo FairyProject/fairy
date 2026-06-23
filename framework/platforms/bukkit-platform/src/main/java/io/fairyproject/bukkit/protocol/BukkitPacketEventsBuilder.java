@@ -36,13 +36,24 @@ import org.bukkit.plugin.Plugin;
 @RequiredArgsConstructor
 public class BukkitPacketEventsBuilder implements PacketEventsBuilder {
 
+    /**
+     * Controls PacketEvents' {@code reEncodeByDefault} setting, toggleable at startup via the
+     * system property {@code -Dfairy.packetevents.re-encode=true|false}.
+     * <p>
+     * Defaults to {@code false}: packets are passed through untouched unless a listener modifies them.
+     * Set it to {@code true} when relying on BungeeCord/Velocity legacy IP-forwarding on 1.8.x backends,
+     * where the handshake must be re-encoded for the forwarded {@code host\0ip\0uuid\0textures} payload
+     * to reach the backend (otherwise the player logs in with a random offline UUID and no skin).
+     */
+    private static final boolean RE_ENCODE_BY_DEFAULT = Boolean.getBoolean("fairy.packetevents.re-encode");
+
     public final FairyPlatform platform;
 
     @Override
     public PacketEventsAPI<?> build() {
         PacketEventsAPI<Plugin> packetEventsAPI = SpigotPacketEventsBuilder.buildNoCache(FairyBukkitPlatform.PLUGIN);
         PacketEventsSettings settings = packetEventsAPI.getSettings();
-        settings.reEncodeByDefault(false);
+        settings.reEncodeByDefault(RE_ENCODE_BY_DEFAULT);
 
         return packetEventsAPI;
     }
