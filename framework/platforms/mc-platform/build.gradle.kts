@@ -15,7 +15,7 @@ dependencies {
     api("net.kyori:adventure-text-serializer-gson-legacy-impl:4.25.0")
     api("net.kyori:adventure-text-serializer-plain:4.25.0")
 
-    api("com.github.retrooper:packetevents-api:2.12.2") {
+    api("com.github.retrooper:packetevents-api:2.13.0") {
         exclude(group = "net.kyori")
     }
 
