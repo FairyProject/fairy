@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-    api("io.github.classgraph:classgraph:4.8.173")
+    api("io.github.classgraph:classgraph:4.8.180")
     api("io.github.toolfactory:jvm-driver:9.9.10")
     api("javax.annotation:javax.annotation-api:1.3.2")
     api("javax.persistence:javax.persistence-api:2.2")
