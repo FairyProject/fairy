@@ -14,18 +14,22 @@ import java.util.ListIterator;
 public class HandlerListCollection extends ArrayList<HandlerList> implements Listener, EventExecutor {
 
     private static final boolean HAS_HANDSHAKE_EVENT;
+    private static final HandlerList HANDSHAKE_HANDLER_LIST;
 
     private final ArrayList<HandlerList> forward;
     private final GlobalEventListener globalEventListener;
 
     static {
         boolean hasHandshakeEvent = false;
+        HandlerList handshakeHandlerList = null;
         try {
             Class.forName("com.destroystokyo.paper.event.player.PlayerHandshakeEvent");
+            handshakeHandlerList = com.destroystokyo.paper.event.player.PlayerHandshakeEvent.getHandlerList();
             hasHandshakeEvent = true;
-        } catch (ClassNotFoundException ignored) {
+        } catch (Throwable ignored) {
         }
         HAS_HANDSHAKE_EVENT = hasHandshakeEvent;
+        HANDSHAKE_HANDLER_LIST = handshakeHandlerList;
     }
 
     public HandlerListCollection(ArrayList<HandlerList> forward, GlobalEventListener globalEventListener) {
@@ -48,6 +52,10 @@ public class HandlerListCollection extends ArrayList<HandlerList> implements Lis
     }
 
     private void registerHandlerList(HandlerList handlerList) {
+        if (HAS_HANDSHAKE_EVENT && handlerList == HANDSHAKE_HANDLER_LIST) {
+            return;
+        }
+
         handlerList.register(new RegisteredListener(
                 this,
                 this,
@@ -84,16 +92,11 @@ public class HandlerListCollection extends ArrayList<HandlerList> implements Lis
 
     @Override
     public void execute(@NotNull Listener listener, @NotNull Event event) {
-        if (HAS_HANDSHAKE_EVENT) {
-            if (event instanceof com.destroystokyo.paper.event.player.PlayerHandshakeEvent) {
-                com.destroystokyo.paper.event.player.PlayerHandshakeEvent handshakeEvent = (com.destroystokyo.paper.event.player.PlayerHandshakeEvent) event;
-                HandlerList handlers = handshakeEvent.getHandlers();
-                if (handlers.getRegisteredListeners().length == 1) {
-                    handshakeEvent.setCancelled(true);
-                    handlers.unregister(this);
-                    return;
-                }
-            }
+        // Defensive: we never register on the PlayerHandshakeEvent handler list (see
+        // registerHandlerList), so this should never fire for it. If it somehow does, stay out of
+        // the way entirely instead of cancelling, so proxy IP-forwarding keeps working.
+        if (HAS_HANDSHAKE_EVENT && event instanceof com.destroystokyo.paper.event.player.PlayerHandshakeEvent) {
+            return;
         }
 
         globalEventListener.onEventFired(event);
