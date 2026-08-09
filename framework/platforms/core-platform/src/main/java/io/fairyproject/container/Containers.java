@@ -24,6 +24,7 @@
 
 package io.fairyproject.container;
 
+import io.fairyproject.container.type.TypeDescriptor;
 import lombok.experimental.UtilityClass;
 
 /**
@@ -39,5 +40,9 @@ public class Containers {
         return type.cast(CONTAINER_CONTEXT.singletonObjectRegistry().getSingleton(type));
     }
 
+    @SuppressWarnings("unchecked")
+    public <T> T get(TypeDescriptor typeDescriptor) {
+        return (T) CONTAINER_CONTEXT.singletonObjectRegistry().getSingleton(typeDescriptor);
+    }
 
 }

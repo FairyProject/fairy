@@ -31,7 +31,9 @@ import io.fairyproject.container.node.loader.collection.InstanceCollection;
 import io.fairyproject.container.node.loader.collection.InstanceEntry;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.container.object.provider.ConstructorInstanceProvider;
 import io.fairyproject.container.object.provider.InstanceProvider;
+import io.fairyproject.container.object.provider.MethodInvokeInstanceProvider;
 import io.fairyproject.container.object.resolver.ContainerObjectFactory;
 import io.fairyproject.container.object.resolver.ContainerObjectResolver;
 import io.fairyproject.container.object.singleton.SingletonObjectRegistry;
@@ -47,7 +49,6 @@ import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -63,46 +64,48 @@ public class ContainerNodeLoader {
     private ContainerObjectResolver containerObjectResolver;
     private InstanceCollection collection;
 
+    @NotNull
+    private static Object createInstance(ContainerObj obj, Object[] dependencies, InstanceProvider instanceProvider) {
+        Object instance;
+        try {
+            instance = instanceProvider.provide(dependencies);
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to provide instance for " + obj.getType().getName(), ex);
+        }
+
+        return instance;
+    }
+
     public boolean load() {
-        this.containerObjectResolver = ContainerObjectResolver.create(
-                this.context.containerObjectBinder(),
-                new ContainerObjectFactory() {
-                    @Override
-                    public CompletableFuture<Object> createInstance(Class<?> type) throws Exception {
-                        return findSingletonInstance(type);
-                    }
-                    
-                    @Override
-                    public CompletableFuture<Object> createInstance(TypeDescriptor typeDescriptor) throws Exception {
-                        return findSingletonInstance(typeDescriptor);
-                    }
-                },
-                new ContainerObjectFactory() {
-                    @Override
-                    public CompletableFuture<Object> createInstance(Class<?> type) throws Exception {
-                        return findPrototypeInstance(type);
-                    }
-                    
-                    @Override
-                    public CompletableFuture<Object> createInstance(TypeDescriptor typeDescriptor) throws Exception {
-                        return findPrototypeInstance(typeDescriptor);
-                    }
-                }
-        );
+        this.containerObjectResolver = ContainerObjectResolver.create(this.context.containerObjectBinder(), new ContainerObjectFactory() {
+            @Override
+            public CompletableFuture<Object> createInstance(Class<?> type) throws Exception {
+                return findSingletonInstance(type);
+            }
+
+            @Override
+            public CompletableFuture<Object> createInstance(TypeDescriptor typeDescriptor) throws Exception {
+                return findSingletonInstance(typeDescriptor);
+            }
+        }, new ContainerObjectFactory() {
+            @Override
+            public CompletableFuture<Object> createInstance(Class<?> type) throws Exception {
+                return findPrototypeInstance(type);
+            }
+
+            @Override
+            public CompletableFuture<Object> createInstance(TypeDescriptor typeDescriptor) throws Exception {
+                return findPrototypeInstance(typeDescriptor);
+            }
+        });
         this.collection = InstanceCollection.create();
 
         BlockingThreadAwaitQueue queue = BlockingThreadAwaitQueue.create();
 
         this.node.resolve();
-        if (!this.node.isResolved())
-            return false;
+        if (!this.node.isResolved()) return false;
 
-        CompletableFuture<?> completableFuture = this.provideInstances()
-                .thenRun(this::callNodePreInitProcessors)
-                .thenComposeAsync(directlyCompose(this::callPreInitProcessors), queue)
-                .thenRun(this::handleObjCollector)
-                .thenComposeAsync(directlyCompose(this::callPostInitProcessors), queue)
-                .thenRun(this::callNodePostInitProcessors);
+        CompletableFuture<?> completableFuture = this.provideInstances().thenRun(this::callNodePreInitProcessors).thenComposeAsync(directlyCompose(this::callPreInitProcessors), queue).thenRun(this::handleObjCollector).thenComposeAsync(directlyCompose(this::callPostInitProcessors), queue).thenRun(this::callNodePostInitProcessors);
 
         queue.await(completableFuture::isDone);
         ThrowingRunnable.sneaky(completableFuture::get).run();
@@ -124,16 +127,14 @@ public class ContainerNodeLoader {
     private CompletableFuture<Object> findSingletonInstance(Class<?> type) {
         SingletonObjectRegistry singletonObjectRegistry = this.context.singletonObjectRegistry();
         Object instance = singletonObjectRegistry.getSingleton(type);
-        if (instance == null)
-            throw new IllegalStateException("Singleton instance for " + type.getName() + " is null!");
+        if (instance == null) throw new IllegalStateException("Singleton instance for " + type.getName() + " is null!");
 
         return CompletableFuture.completedFuture(instance);
     }
 
     private CompletableFuture<Object> findPrototypeInstance(Class<?> type) {
         ContainerObj obj = this.context.containerObjectBinder().getBinding(type);
-        if (obj == null)
-            throw new IllegalStateException("Container object for " + type.getName() + " is null!");
+        if (obj == null) throw new IllegalStateException("Container object for " + type.getName() + " is null!");
 
         try {
             return this.provideInstance(obj);
@@ -144,18 +145,15 @@ public class ContainerNodeLoader {
 
     private CompletableFuture<Object> findSingletonInstance(TypeDescriptor typeDescriptor) {
         SingletonObjectRegistry singletonObjectRegistry = this.context.singletonObjectRegistry();
-        // 注意：当前 SingletonObjectRegistry 可能还没有支持 TypeDescriptor，这里先使用 rawType
-        Object instance = singletonObjectRegistry.getSingleton(typeDescriptor.getRawType());
-        if (instance == null)
-            throw new IllegalStateException("Singleton instance for " + typeDescriptor + " is null!");
+        Object instance = singletonObjectRegistry.getSingleton(typeDescriptor);
+        if (instance == null) throw new IllegalStateException("Singleton instance for " + typeDescriptor + " is null!");
 
         return CompletableFuture.completedFuture(instance);
     }
 
     private CompletableFuture<Object> findPrototypeInstance(TypeDescriptor typeDescriptor) {
         ContainerObj obj = this.context.containerObjectBinder().getBinding(typeDescriptor);
-        if (obj == null)
-            throw new IllegalStateException("Container object for " + typeDescriptor + " is null!");
+        if (obj == null) throw new IllegalStateException("Container object for " + typeDescriptor + " is null!");
 
         try {
             return this.provideInstance(obj);
@@ -174,24 +172,20 @@ public class ContainerNodeLoader {
         for (InstanceEntry entry : snapshot) {
             Object instance = entry.getInstance();
             ContainerObj object = entry.getContainerObject();
-            if (!this.trySetLifeCycle(object, LifeCycle.PRE_INIT))
-                continue;
+            if (!this.trySetLifeCycle(object, LifeCycle.PRE_INIT)) continue;
 
             CompletableFuture<?> chain = null;
             for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
                 try {
                     Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPreInitialization(object, instance, this.containerObjectResolver);
-                    if (chain == null)
-                        chain = callback.get();
-                    else
-                        chain = chain.thenCompose($ -> callback.get());
+                    if (chain == null) chain = callback.get();
+                    else chain = chain.thenCompose($ -> callback.get());
                 } catch (Throwable throwable) {
                     ContainerLogger.report(this.node, object, throwable, "processing pre initialization");
                 }
             }
 
-            if (chain != null)
-                futures.add(chain);
+            if (chain != null) futures.add(chain);
         }
 
         return AsyncUtils.allOf(futures);
@@ -203,24 +197,20 @@ public class ContainerNodeLoader {
         for (InstanceEntry entry : this.collection) {
             Object instance = entry.getInstance();
             ContainerObj object = entry.getContainerObject();
-            if (!this.trySetLifeCycle(object, LifeCycle.POST_INIT))
-                continue;
+            if (!this.trySetLifeCycle(object, LifeCycle.POST_INIT)) continue;
 
             CompletableFuture<?> chain = null;
             for (ContainerObjInitProcessor initProcessor : this.context.initProcessors()) {
                 try {
                     Supplier<CompletableFuture<?>> callback = () -> initProcessor.processPostInitialization(object, instance);
-                    if (chain == null)
-                        chain = callback.get();
-                    else
-                        chain = chain.thenCompose($ -> callback.get());
+                    if (chain == null) chain = callback.get();
+                    else chain = chain.thenCompose($ -> callback.get());
                 } catch (Throwable throwable) {
                     ContainerLogger.report(this.node, object, throwable, "processing post initialization");
                 }
             }
 
-            if (chain != null)
-                futures.add(chain);
+            if (chain != null) futures.add(chain);
         }
 
         return AsyncUtils.allOf(futures);
@@ -228,8 +218,7 @@ public class ContainerNodeLoader {
 
     private CompletableFuture<?> provideInstances() {
         return this.node.forEachClockwiseAwait(obj -> {
-            if (obj.isPrototypeScope())
-                return AsyncUtils.empty();
+            if (obj.isPrototypeScope()) return AsyncUtils.empty();
 
             try {
                 return this.provideInstance(obj);
@@ -249,8 +238,8 @@ public class ContainerNodeLoader {
                 return AsyncUtils.empty();
             }
 
-            if (singletonObjectRegistry.containsSingleton(objectType)) {
-                Object instance = singletonObjectRegistry.getSingleton(objectType);
+            if (singletonObjectRegistry.containsSingleton(obj.getTypeDescriptor())) {
+                Object instance = singletonObjectRegistry.getSingleton(obj.getTypeDescriptor());
                 this.postInstanceConstruct(instance, obj);
 
                 return AsyncUtils.empty();
@@ -262,34 +251,29 @@ public class ContainerNodeLoader {
             throw new IllegalStateException("Instance provider for " + objectType.getName() + " is null!");
         }
 
-        CompletableFuture<Object[]> future = this.containerObjectResolver.resolveInstances(instanceProvider.getDependencies());
-        return future
-                .thenApplyAsync(objects -> createInstance(obj, objects, instanceProvider), obj.getThreadingMode().getExecutor())
-                .thenCompose(this::callConstructProcessors)
-                .thenApply(instance -> {
-                    if (obj.isSingletonScope()) {
-                        singletonObjectRegistry.registerSingleton(objectType, instance);
-                    }
+        CompletableFuture<Object[]> future;
+        if (instanceProvider instanceof ConstructorInstanceProvider) {
+            ConstructorInstanceProvider constructorProvider = (ConstructorInstanceProvider) instanceProvider;
+            future = this.resolveInstancesByTypeDescriptors(constructorProvider.getParameterTypeDescriptors());
+        } else if (instanceProvider instanceof MethodInvokeInstanceProvider) {
+            MethodInvokeInstanceProvider methodProvider = (MethodInvokeInstanceProvider) instanceProvider;
+            future = this.resolveInstancesByTypeDescriptors(methodProvider.getParameterTypeDescriptors());
+        } else {
+            future = this.containerObjectResolver.resolveInstances(instanceProvider.getDependencies());
+        }
 
-                    this.postInstanceConstruct(instance, obj);
-                    return instance;
-                });
+        return future.thenApplyAsync(objects -> createInstance(obj, objects, instanceProvider), obj.getThreadingMode().getExecutor()).thenCompose(this::callConstructProcessors).thenApply(instance -> {
+            if (obj.isSingletonScope()) {
+                singletonObjectRegistry.registerSingleton(obj.getTypeDescriptor(), instance);
+            }
+
+            this.postInstanceConstruct(instance, obj);
+            return instance;
+        });
     }
 
     private void postInstanceConstruct(Object instance, ContainerObj obj) {
         this.collection.add(instance, obj);
-    }
-
-    @NotNull
-    private static Object createInstance(ContainerObj obj, Object[] dependencies, InstanceProvider instanceProvider) {
-        Object instance;
-        try {
-            instance = instanceProvider.provide(dependencies);
-        } catch (Exception ex) {
-            throw new IllegalStateException("Failed to provide instance for " + obj.getType().getName(), ex);
-        }
-
-        return instance;
     }
 
     private CompletableFuture<Object> callConstructProcessors(Object instance) {
@@ -303,16 +287,14 @@ public class ContainerNodeLoader {
     }
 
     private boolean trySetLifeCycle(ContainerObj obj, LifeCycle lifeCycle) {
-        if (obj.getScope() != InjectableScope.SINGLETON)
-            return true;
+        if (obj.getScope() != InjectableScope.SINGLETON) return true;
 
-        Class<?> type = obj.getType();
+        TypeDescriptor typeDescriptor = obj.getTypeDescriptor();
         SingletonObjectRegistry singletonObjectRegistry = this.context.singletonObjectRegistry();
-        LifeCycle current = singletonObjectRegistry.getSingletonLifeCycle(type);
-        if (current.isAfter(lifeCycle))
-            return false;
+        LifeCycle current = singletonObjectRegistry.getSingletonLifeCycle(typeDescriptor);
+        if (current.isAfter(lifeCycle)) return false;
 
-        singletonObjectRegistry.setSingletonLifeCycle(type, lifeCycle);
+        singletonObjectRegistry.setSingletonLifeCycle(typeDescriptor, lifeCycle);
         return true;
     }
 
@@ -339,6 +321,20 @@ public class ContainerNodeLoader {
             ContainerLogger.report(this.node, obj, throwable, "initializing");
             return null;
         }
+    }
+
+    private CompletableFuture<Object[]> resolveInstancesByTypeDescriptors(TypeDescriptor[] typeDescriptors) throws Exception {
+        Object[] args = new Object[typeDescriptors.length];
+        CompletableFuture<?>[] futures = new CompletableFuture<?>[typeDescriptors.length];
+
+        for (int i = 0; i < args.length; i++) {
+            TypeDescriptor typeDescriptor = typeDescriptors[i];
+            int index = i;
+
+            futures[i] = this.containerObjectResolver.resolveInstance(typeDescriptor).thenAccept(instance -> args[index] = instance);
+        }
+
+        return CompletableFuture.allOf(futures).thenApply($ -> args);
     }
 
 }
