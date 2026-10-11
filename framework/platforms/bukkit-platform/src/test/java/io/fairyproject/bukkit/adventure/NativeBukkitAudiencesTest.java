@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -20,6 +21,7 @@ class NativeBukkitAudiencesTest {
     private Server server;
     private ConsoleCommandSender console;
     private BukkitAudiences fallback;
+    private Supplier<BukkitAudiences> fallbackFactory;
     private NativeBukkitAudiences audiences;
 
     @BeforeEach
@@ -27,9 +29,11 @@ class NativeBukkitAudiencesTest {
         server = mock(Server.class);
         console = mock(ConsoleCommandSender.class);
         fallback = mock(BukkitAudiences.class);
+        fallbackFactory = mock(Supplier.class);
+        when(fallbackFactory.get()).thenReturn(fallback);
         when(server.getConsoleSender()).thenReturn(console);
         when(server.getOnlinePlayers()).thenReturn(Collections.emptyList());
-        audiences = new NativeBukkitAudiences(server, fallback);
+        audiences = new NativeBukkitAudiences(server, fallbackFactory);
     }
 
     @Test
@@ -75,7 +79,26 @@ class NativeBukkitAudiencesTest {
         audiences.close();
         all.sendMessage(Component.text("closed"));
         verify(console, never()).sendMessage(any(Component.class));
-        verify(fallback).close();
+        verify(fallbackFactory, never()).get();
+        verifyNoInteractions(fallback);
         assertSame(Audience.empty(), audiences.console());
+    }
+
+    @Test
+    void nativeMessagesDoNotLoadIncompatibleLegacyAdapter() {
+        when(fallbackFactory.get()).thenThrow(new NoSuchMethodError("old Paper Adventure"));
+        audiences.console().sendMessage(Component.text("native"));
+        audiences.close();
+        verify(fallbackFactory, never()).get();
+    }
+
+    @Test
+    void initializedFallbackIsReusedAndClosed() {
+        audiences.flattener();
+        audiences.flattener();
+        verify(fallbackFactory).get();
+        audiences.close();
+        verify(fallback).close();
+        assertThrows(IllegalStateException.class, audiences::flattener);
     }
 }

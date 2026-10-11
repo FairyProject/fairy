@@ -15,6 +15,8 @@ import io.fairyproject.mc.MCPlayer;
 import io.fairyproject.mc.util.Position;
 import io.fairyproject.mc.version.MCVersion;
 import io.github.retrooper.packetevents.impl.netty.NettyManagerImpl;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,13 +30,14 @@ import static org.mockito.Mockito.*;
 
 class FakeEntityDeathAnimationTest {
     private PacketEventsAPI<?> previousApi;
+    private PacketEventsAPI<?> api;
     private MCPlayer entity;
     private FakeEntityDeathAnimation animation;
 
     @BeforeEach
     void setup() {
         previousApi = PacketEvents.getAPI();
-        PacketEventsAPI<?> api = mock(PacketEventsAPI.class, RETURNS_DEEP_STUBS);
+        api = mock(PacketEventsAPI.class, RETURNS_DEEP_STUBS);
         when(api.getServerManager().getVersion()).thenReturn(ServerVersion.V_26_3);
         when(api.getSettings()).thenReturn(new PacketEventsSettings());
         when(api.getNettyManager()).thenReturn(new NettyManagerImpl());
@@ -54,11 +57,13 @@ class FakeEntityDeathAnimationTest {
 
     @Test
     void minecraft263UsesEntitySpawnAndSeparateMetadata() {
+        when(api.getServerManager().getVersion()).thenReturn(ServerVersion.V_26_3);
         assertModernSpawn(MCVersion.of(26, 3, 0));
     }
 
     @Test
     void minecraft1202UsesEntitySpawnAndSeparateMetadata() {
+        when(api.getServerManager().getVersion()).thenReturn(ServerVersion.V_1_20_2);
         assertModernSpawn(MCVersion.of(20, 2));
     }
 
@@ -74,10 +79,12 @@ class FakeEntityDeathAnimationTest {
         WrapperPlayServerEntityMetadata metadata = (WrapperPlayServerEntityMetadata) packets.get(1);
         assertEquals(42, metadata.getEntityId());
         assertEquals(entity.data(), metadata.getEntityMetadata());
+        packets.forEach(this::assertSerializable);
     }
 
     @Test
     void minecraft1201RetainsDedicatedPlayerSpawn() {
+        when(api.getServerManager().getVersion()).thenReturn(ServerVersion.V_1_20_1);
         List<PacketWrapper<?>> packets = animation.createSpawnPackets(42, MCVersion.of(20, 1));
         assertEquals(1, packets.size());
         assertTrue(packets.get(0) instanceof WrapperPlayServerSpawnPlayer);
@@ -85,5 +92,42 @@ class FakeEntityDeathAnimationTest {
         assertEquals(42, spawn.getEntityId());
         assertEquals(entity.getUUID(), spawn.getUUID());
         assertEquals(entity.data(), spawn.getEntityMetadata());
+        assertSerializable(spawn);
+    }
+
+    @Test
+    void olderServerProtocolsRetainSerializablePlayerSpawn() {
+        ServerVersion[] versions = {ServerVersion.V_1_8_8, ServerVersion.V_1_12_2,
+                ServerVersion.V_1_16_5, ServerVersion.V_1_19_4};
+        MCVersion[] mcVersions = {MCVersion.of(8, 8), MCVersion.of(12, 2),
+                MCVersion.of(16, 5), MCVersion.of(19, 4)};
+        for (int i = 0; i < versions.length; i++) {
+            when(api.getServerManager().getVersion()).thenReturn(versions[i]);
+            List<PacketWrapper<?>> packets = animation.createSpawnPackets(42, mcVersions[i]);
+            assertEquals(1, packets.size());
+            assertTrue(packets.get(0) instanceof WrapperPlayServerSpawnPlayer);
+            assertSerializable(packets.get(0));
+        }
+    }
+
+    @Test
+    void otherModernServerProtocolsUseSerializableEntitySpawn() {
+        when(api.getServerManager().getVersion()).thenReturn(ServerVersion.V_1_21_3);
+        assertModernSpawn(MCVersion.of(21, 3));
+        when(api.getServerManager().getVersion()).thenReturn(ServerVersion.V_26_2);
+        assertModernSpawn(MCVersion.of(26, 2, 0));
+    }
+
+    private void assertSerializable(PacketWrapper<?> packet) {
+        assertTrue(packet.getPacketTypeData().getPacketType().getId(
+                api.getServerManager().getVersion().toClientVersion()) >= 0);
+        ByteBuf buffer = Unpooled.buffer();
+        try {
+            packet.setBuffer(buffer);
+            packet.write();
+            assertTrue(buffer.isReadable());
+        } finally {
+            buffer.release();
+        }
     }
 }

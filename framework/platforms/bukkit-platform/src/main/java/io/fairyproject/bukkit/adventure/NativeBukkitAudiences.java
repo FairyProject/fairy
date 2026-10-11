@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * Uses Paper's native audiences when the server and plugin share Adventure classes.
@@ -21,18 +22,21 @@ import java.util.function.Predicate;
  */
 public final class NativeBukkitAudiences implements BukkitAudiences {
     private final Server server;
-    private final BukkitAudiences fallback;
+    private final Supplier<BukkitAudiences> fallbackFactory;
+    private BukkitAudiences fallback;
     private volatile boolean closed;
 
-    NativeBukkitAudiences(Server server, BukkitAudiences fallback) {
+    NativeBukkitAudiences(Server server, Supplier<BukkitAudiences> fallbackFactory) {
         this.server = server;
-        this.fallback = fallback;
+        this.fallbackFactory = fallbackFactory;
     }
 
     public static BukkitAudiences create(Plugin plugin) {
         Server server = plugin.getServer();
         if (server.getConsoleSender() instanceof Audience) {
-            return new NativeBukkitAudiences(server, BukkitAudiences.create(plugin));
+            // Older Paper bundles Adventure APIs incompatible with the adapter.
+            // Native senders do not need the adapter at all.
+            return new NativeBukkitAudiences(server, () -> BukkitAudiences.create(plugin));
         }
         return BukkitAudiences.create(plugin);
     }
@@ -42,7 +46,7 @@ public final class NativeBukkitAudiences implements BukkitAudiences {
         if (this.closed) {
             return Audience.empty();
         }
-        return sender instanceof Audience ? (Audience) sender : this.fallback.sender(sender);
+        return sender instanceof Audience ? (Audience) sender : this.fallback().sender(sender);
     }
 
     @Override
@@ -105,17 +109,29 @@ public final class NativeBukkitAudiences implements BukkitAudiences {
 
     @Override
     public Audience server(String serverName) {
-        return this.fallback.server(serverName);
+        return this.closed ? Audience.empty() : this.fallback().server(serverName);
     }
 
     @Override
     public ComponentFlattener flattener() {
-        return this.fallback.flattener();
+        return this.fallback().flattener();
+    }
+
+    private synchronized BukkitAudiences fallback() {
+        if (this.closed) {
+            throw new IllegalStateException("Audience provider is closed");
+        }
+        if (this.fallback == null) {
+            this.fallback = this.fallbackFactory.get();
+        }
+        return this.fallback;
     }
 
     @Override
-    public void close() {
+    public synchronized void close() {
         this.closed = true;
-        this.fallback.close();
+        if (this.fallback != null) {
+            this.fallback.close();
+        }
     }
 }
