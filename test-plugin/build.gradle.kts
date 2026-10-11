@@ -23,11 +23,13 @@ dependencies {
 }
 
 runServer {
-    version = "26.1"
+    version = "26.3"
     javaVersion.set(JavaVersion.VERSION_25)
 }
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
     toolchain {
         languageVersion.set(JavaLanguageVersion.of(8))
     }

@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.configuration;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.adventure.NativeBukkitAudiences;
 import io.fairyproject.bukkit.mc.BukkitMCServer;
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.bukkit.mc.entity.BukkitEntityIDCounter;
@@ -50,6 +51,9 @@ import io.fairyproject.mc.version.MCVersionMappingRegistry;
 import lombok.Getter;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.serializer.gson.legacyimpl.NBTLegacyHoverEventSerializer;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.nbt.api.BinaryTagHolder;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
 
@@ -89,6 +93,13 @@ public class BukkitMCConfiguration {
 
     @InjectableComponent
     public MCAdventure.AdventureHook provideAdventureHook() {
+        try {
+            HoverEvent.ShowItem.class.getMethod("showItem", Key.class, int.class, BinaryTagHolder.class);
+        } catch (NoSuchMethodException oldAdventure) {
+            // Keep the native Gson builder on old Paper. The bundled hover serializer
+            // requires the newer BinaryTagHolder API and must not override its defaults.
+            return MCAdventure.AdventureHook.builder().build();
+        }
         return MCAdventure.AdventureHook.builder()
                 .serializer(NBTLegacyHoverEventSerializer.get())
                 .build();
@@ -122,6 +133,6 @@ public class BukkitMCConfiguration {
 
     @InjectableComponent
     public BukkitAudiences provideBukkitAudiences() {
-        return BukkitAudiences.create(FairyBukkitPlatform.PLUGIN);
+        return NativeBukkitAudiences.create(FairyBukkitPlatform.PLUGIN);
     }
 }

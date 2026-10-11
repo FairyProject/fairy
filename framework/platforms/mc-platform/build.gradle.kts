@@ -7,15 +7,15 @@ dependencies {
     compileOnly("io.netty:netty-all:4.1.100.Final")
 
     // Adventure, for user-interface
-    api("net.kyori:adventure-api:4.25.0")
-    api("net.kyori:adventure-text-serializer-gson:4.25.0")
-    api("net.kyori:adventure-text-serializer-legacy:4.25.0")
-    api("net.kyori:adventure-nbt:4.25.0")
-    api("net.kyori:adventure-text-minimessage:4.25.0")
-    api("net.kyori:adventure-text-serializer-gson-legacy-impl:4.25.0")
-    api("net.kyori:adventure-text-serializer-plain:4.25.0")
+    api("net.kyori:adventure-api:4.26.1")
+    api("net.kyori:adventure-text-serializer-gson:4.26.1")
+    api("net.kyori:adventure-text-serializer-legacy:4.26.1")
+    api("net.kyori:adventure-nbt:4.26.1")
+    api("net.kyori:adventure-text-minimessage:4.26.1")
+    api("net.kyori:adventure-text-serializer-gson-legacy-impl:4.26.1")
+    api("net.kyori:adventure-text-serializer-plain:4.26.1")
 
-    api("com.github.retrooper:packetevents-api:2.13.0") {
+    api("com.github.retrooper:packetevents-api:2.14.0") {
         exclude(group = "net.kyori")
     }
 

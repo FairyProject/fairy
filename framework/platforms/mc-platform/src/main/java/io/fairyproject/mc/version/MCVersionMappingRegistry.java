@@ -47,7 +47,7 @@ import java.util.TreeSet;
 public class MCVersionMappingRegistry {
 
     // Hardcoded latest version to validate cache
-    private static final MCVersion LATEST_VERSION = MCVersion.of(26, 2, 0);
+    private static final MCVersion LATEST_VERSION = MCVersion.of(26, 3, 0);
 
     private final Gson gson = new Gson();
     @Getter

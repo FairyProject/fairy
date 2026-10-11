@@ -121,3 +121,11 @@ run/
 .gradle
 /build/
 **/build/
+
+# Local test resources, server artifacts and databases
+/test-plugin/server/
+/test-hytale-plugin/server/
+/test-hytale-plugin/src/main/resources/Server/Models/Pets/Dog.json
+/test-hytale-plugin/src/main/resources/fairy.json
+/test-hytale-plugin/src/main/resources/manifest.json
+**/h2test.mv.db
