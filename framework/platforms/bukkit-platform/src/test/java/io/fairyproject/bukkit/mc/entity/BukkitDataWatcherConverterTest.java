@@ -68,6 +68,13 @@ class BukkitDataWatcherConverterTest {
     }
 
     private static class MapWatcher {
+        // NMS also has static maps; only this watcher's instance entries belong in the packet.
+        private static final Map<Integer, DataItem> REGISTRY = new LinkedHashMap<>();
+
+        static {
+            REGISTRY.put(100, new DataItem("unrelated registry entry"));
+        }
+
         private final Map<Integer, DataItem> items = new LinkedHashMap<>();
     }
 }

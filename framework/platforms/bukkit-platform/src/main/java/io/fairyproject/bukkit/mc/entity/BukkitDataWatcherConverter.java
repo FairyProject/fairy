@@ -6,6 +6,7 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.reflection.resolver.FieldResolver;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.RequiredArgsConstructor;
@@ -80,27 +81,22 @@ public class BukkitDataWatcherConverter {
 
     static List<Object> collectDataValues(Object watcher, Class<?> itemClass, Method getValue)
             throws ReflectiveOperationException {
-        for (Field field : watcher.getClass().getDeclaredFields()) {
-            if (Modifier.isStatic(field.getModifiers())) {
-                continue;
+        Field storageField = Arrays.stream(watcher.getClass().getDeclaredFields())
+                .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                .filter(field -> (field.getType().isArray() && field.getType().getComponentType() == itemClass)
+                        || Map.class.isAssignableFrom(field.getType()))
+                .findFirst()
+                .orElseThrow(() -> new NoSuchFieldException("Entity metadata storage in " + watcher.getClass().getName()));
+        Object storage = new FieldResolver(watcher.getClass()).resolve(storageField.getName()).get(watcher);
+        Collection<?> items = storageField.getType().isArray()
+                ? Arrays.asList((Object[]) storage) : ((Map<?, ?>) storage).values();
+        List<Object> values = new ArrayList<>(items.size());
+        for (Object item : items) {
+            if (item != null) {
+                values.add(getValue == null ? item : getValue.invoke(item));
             }
-            Class<?> type = field.getType();
-            boolean array = type.isArray() && type.getComponentType() == itemClass;
-            if (!array && !Map.class.isAssignableFrom(type)) {
-                continue;
-            }
-            field.setAccessible(true);
-            Object storage = field.get(watcher);
-            Collection<?> items = array ? Arrays.asList((Object[]) storage) : ((Map<?, ?>) storage).values();
-            List<Object> values = new ArrayList<>(items.size());
-            for (Object item : items) {
-                if (item != null) {
-                    values.add(getValue == null ? item : getValue.invoke(item));
-                }
-            }
-            return values;
         }
-        throw new NoSuchFieldException("Entity metadata storage in " + watcher.getClass().getName());
+        return values;
     }
 
 }
