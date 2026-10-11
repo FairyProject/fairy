@@ -25,6 +25,7 @@
 package io.fairyproject.bukkit.configuration;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.bukkit.adventure.NativeBukkitAudiences;
 import io.fairyproject.bukkit.mc.BukkitMCServer;
 import io.fairyproject.bukkit.mc.entity.BukkitDataWatcherConverter;
 import io.fairyproject.bukkit.mc.entity.BukkitEntityIDCounter;
@@ -122,6 +123,6 @@ public class BukkitMCConfiguration {
 
     @InjectableComponent
     public BukkitAudiences provideBukkitAudiences() {
-        return BukkitAudiences.create(FairyBukkitPlatform.PLUGIN);
+        return NativeBukkitAudiences.create(FairyBukkitPlatform.PLUGIN);
     }
 }
