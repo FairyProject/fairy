@@ -28,6 +28,7 @@ import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.object.ContainerObj;
 import io.fairyproject.container.processor.ContainerObjDestroyProcessor;
+import io.fairyproject.log.Log;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -57,7 +58,12 @@ public class ContainerNodeDestroyer {
             return;
 
         for (ContainerObjDestroyProcessor destroyProcessor : this.context.destroyProcessors()) {
-            destroyProcessor.processPreDestroy(object, instance);
+            // one failing component must not stop the rest of the graph from being destroyed
+            try {
+                destroyProcessor.processPreDestroy(object, instance);
+            } catch (Throwable throwable) {
+                Log.error("An error occurred while pre-destroying %s", throwable, object.getType().getName());
+            }
         }
     }
 
@@ -81,7 +87,12 @@ public class ContainerNodeDestroyer {
             return;
 
         for (ContainerObjDestroyProcessor destroyProcessor : this.context.destroyProcessors()) {
-            destroyProcessor.processPostDestroy(object, instance);
+            // one failing component must not stop the rest of the graph from being destroyed
+            try {
+                destroyProcessor.processPostDestroy(object, instance);
+            } catch (Throwable throwable) {
+                Log.error("An error occurred while post-destroying %s", throwable, object.getType().getName());
+            }
         }
     }
 
