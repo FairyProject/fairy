@@ -82,10 +82,21 @@ public class Gui {
         this.titleUpdating = true;
 
         MCPlayer mcPlayer = MCPlayer.from(player);
+        Inventory previous = this.inventory;
         try {
             this.inventory = Bukkit.createInventory(null, this.getRows() * 9, MCAdventure.asLegacyString(this.title, mcPlayer.getLocale()));
             this.renderSlots(player);
             player.openInventory(this.inventory);
+
+            // the open was refused, this.inventory is no longer the one the player could be viewing,
+            // so nothing would match it to unregister the listeners
+            Inventory opened = this.getOpenedTopInventory(player);
+            if (!this.isInventory(opened)) {
+                // the listeners protecting the old inventory are about to go away
+                if (previous.equals(opened))
+                    player.closeInventory();
+                this.close(player);
+            }
         } finally {
             this.titleUpdating = false;
         }
@@ -117,6 +128,13 @@ public class Gui {
         this.update(player);
         player.openInventory(this.inventory);
 
+        // the open was refused (e.g. InventoryOpenEvent cancelled), every close path checks
+        // that the player is viewing this inventory, so nothing would ever unregister the listeners
+        if (!this.isInventory(this.getOpenedTopInventory(player))) {
+            this.reset();
+            return;
+        }
+
         this.onOpen(player);
     }
 
@@ -134,17 +152,21 @@ public class Gui {
     }
 
     private void close(Player player) {
+        this.reset();
+
+        new GuiCloseEvent(player, this).call();
+
+        // For some reason when you try to open an inventory immediately after closing one, it makes bukkit events not being called...
+        MCSchedulers.getGlobalScheduler().schedule(() -> this.onClose(player), 1L);
+    }
+
+    private void reset() {
         Arrays.fill(this.usedSlots, false);
         if (this.eventNode != null)
             this.eventNode.closeAndReportException();
         this.eventNode = null;
         this.inventory = null;
         this.guiSlots = null;
-
-        new GuiCloseEvent(player, this).call();
-
-        // For some reason when you try to open an inventory immediately after closing one, it makes bukkit events not being called...
-        MCSchedulers.getGlobalScheduler().schedule(() -> this.onClose(player), 1L);
     }
 
     public void onOpenCallback(Consumer<Player> callback) {
