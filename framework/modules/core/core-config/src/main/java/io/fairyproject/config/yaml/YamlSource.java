@@ -29,12 +29,21 @@ import io.fairyproject.config.ConfigurationSource;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.nio.file.attribute.AclFileAttributeView;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -46,6 +55,8 @@ import java.util.stream.Stream;
 import static java.util.stream.Collectors.joining;
 
 final class YamlSource implements ConfigurationSource<YamlConfiguration> {
+    private static final int MAX_SYMBOLIC_LINKS = 40;
+
     private final Path configPath;
     private final YamlConfiguration.YamlProperties props;
     private final Yaml yaml;
@@ -73,19 +84,79 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
     /**
      * Writes to a temporary file next to the config and moves it over the config, so a crash
      * in the middle of a save leaves either the old or the new file, never a truncated one.
+     * The file can't always be replaced (bind mounted file, directory that isn't writable, owner
+     * that can't be kept), it is then written in place instead of failing the save.
      */
     private void writeAtomically(byte[] content) throws IOException {
-        // not Files.createTempFile: it would leave the config with owner-only permissions after the move
-        Path temporary = configPath.toAbsolutePath().resolveSibling(configPath.getFileName() + "." + UUID.randomUUID() + ".tmp");
+        Path target = resolveSymbolicLinks(configPath.toAbsolutePath());
+        Path temporary = target.resolveSibling(target.getFileName() + "." + UUID.randomUUID() + ".tmp");
         try {
-            Files.write(temporary, content);
-            try {
-                Files.move(temporary, configPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            } catch (AtomicMoveNotSupportedException e) {
-                Files.move(temporary, configPath, StandardCopyOption.REPLACE_EXISTING);
-            }
+            writeTemporary(temporary, target, content);
+            Files.move(temporary, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (FileSystemException e) {
+            Files.write(target, content);
         } finally {
             Files.deleteIfExists(temporary);
+        }
+    }
+
+    /**
+     * Moving over a symbolic link would replace the link itself and detach it from its target.
+     * Not {@link Path#toRealPath}: the target may not exist yet.
+     */
+    private static Path resolveSymbolicLinks(Path path) throws IOException {
+        Path current = path;
+        for (int i = 0; i < MAX_SYMBOLIC_LINKS && Files.isSymbolicLink(current); i++) {
+            current = current.resolveSibling(Files.readSymbolicLink(current));
+        }
+        return current;
+    }
+
+    private static void writeTemporary(Path temporary, Path target, byte[] content) throws IOException {
+        // created with the permissions already, the content may be a password
+        PosixFileAttributes attributes = readPosixAttributes(target);
+        FileAttribute<?>[] creationAttributes = attributes == null
+                ? new FileAttribute<?>[0]
+                : new FileAttribute<?>[]{PosixFilePermissions.asFileAttribute(attributes.permissions())};
+
+        try (FileChannel channel = FileChannel.open(temporary, EnumSet.of(StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE), creationAttributes)) {
+            if (attributes != null) {
+                copyPosixAttributes(attributes, temporary);
+            } else {
+                copyAcl(target, temporary);
+            }
+
+            ByteBuffer buffer = ByteBuffer.wrap(content);
+            while (buffer.hasRemaining()) {
+                channel.write(buffer);
+            }
+            channel.force(true);
+        }
+    }
+
+    private static PosixFileAttributes readPosixAttributes(Path path) throws IOException {
+        PosixFileAttributeView view = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+        return view != null && Files.exists(path) ? view.readAttributes() : null;
+    }
+
+    private static void copyPosixAttributes(PosixFileAttributes attributes, Path path) throws IOException {
+        PosixFileAttributeView view = Files.getFileAttributeView(path, PosixFileAttributeView.class);
+        PosixFileAttributes current = view.readAttributes();
+        if (!attributes.owner().equals(current.owner())) {
+            view.setOwner(attributes.owner());
+        }
+        if (!attributes.group().equals(current.group())) {
+            view.setGroup(attributes.group());
+        }
+        // the umask may have narrowed the permissions given on creation
+        view.setPermissions(attributes.permissions());
+    }
+
+    private static void copyAcl(Path source, Path destination) throws IOException {
+        AclFileAttributeView sourceView = Files.getFileAttributeView(source, AclFileAttributeView.class);
+        AclFileAttributeView destinationView = Files.getFileAttributeView(destination, AclFileAttributeView.class);
+        if (sourceView != null && destinationView != null && Files.exists(source)) {
+            destinationView.setAcl(sourceView.getAcl());
         }
     }
 
