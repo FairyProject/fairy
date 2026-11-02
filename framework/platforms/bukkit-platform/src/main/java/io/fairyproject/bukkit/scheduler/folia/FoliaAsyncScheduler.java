@@ -63,6 +63,14 @@ public class FoliaAsyncScheduler extends FoliaAbstractScheduler implements MCMil
     }
 
     @Override
+    public ScheduledTask<?> schedule(Runnable runnable, Duration delay) {
+        return schedule(() -> {
+            runnable.run();
+            return null;
+        }, delay);
+    }
+
+    @Override
     public ScheduledTask<?> scheduleAtFixedRate(Runnable runnable, long delayTicks, long intervalTicks) {
         return scheduleAtFixedRate(runnable, Duration.ofMillis(delayTicks * 50), Duration.ofMillis(intervalTicks * 50));
     }

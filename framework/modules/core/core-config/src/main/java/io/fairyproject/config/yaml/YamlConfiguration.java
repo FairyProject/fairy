@@ -50,8 +50,13 @@ public abstract class YamlConfiguration extends Configuration<YamlConfiguration>
         this.source = new YamlSource(path, properties);
     }
 
+    /**
+     * Uses a fresh {@link YamlProperties} for this configuration. The snakeyaml
+     * {@code Representer}/{@code Constructor} inside it are not thread-safe, so sharing one
+     * instance across configurations breaks as soon as two of them are saved concurrently.
+     */
     protected YamlConfiguration(Path path) {
-        this(path, YamlProperties.DEFAULT);
+        this(path, YamlProperties.builder().build());
     }
 
     @Override
@@ -83,6 +88,10 @@ public abstract class YamlConfiguration extends Configuration<YamlConfiguration>
     }
 
     public static class YamlProperties extends Properties {
+        /**
+         * A shared instance. Its snakeyaml objects are not thread-safe: do not pass it to configurations
+         * that may be saved or loaded from different threads at the same time.
+         */
         public static final YamlProperties DEFAULT = builder().build();
         private final List<String> prependedComments;
         private final List<String> appendedComments;

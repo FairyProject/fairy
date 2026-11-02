@@ -264,8 +264,9 @@ public abstract class BaseCommand implements ICommand {
 
         List<String> result = pair.getKey();
         if (pair.getValue()) {
-            result = new ArrayList<>(result);
-            result.addAll(this.getCommandsForCompletion(commandContext));
+            Set<String> merged = new LinkedHashSet<>(result);
+            merged.addAll(this.getCommandsForCompletion(commandContext));
+            result = new ArrayList<>(merged);
         }
 
         return result;
@@ -282,10 +283,15 @@ public abstract class BaseCommand implements ICommand {
             return new Entry<>(base, false);
         }
 
+        final String[] args = commandContext.getArgs();
         final Entry<ICommand, String[]> subCommand = this.findSubCommand(commandContext, true);
         if (subCommand != null) {
             commandContext.setArgs(subCommand.getValue());
-            return new Entry<>(subCommand.getKey().completeCommand(commandContext), false);
+            List<String> completions = subCommand.getKey().completeCommand(commandContext);
+            // what is being typed may still be another sub command name: the no-arg command is matched
+            // whenever no name is, and "sell" is matched while "sellall" is being typed
+            commandContext.setArgs(args);
+            return new Entry<>(completions, true);
         }
         return new Entry<>(Collections.emptyList(), true);
     }
@@ -324,7 +330,7 @@ public abstract class BaseCommand implements ICommand {
 
     public List<String> getCommandsForCompletion(CommandContext commandContext) {
         final String[] args = commandContext.getArgs();
-        final Set<String> commands = new HashSet<>();
+        final Set<String> commands = new TreeSet<>();
         final int cmdIndex = Math.max(0, args.length - 1);
         String argString = joinStringArray(args, args.length);
         for (Map.Entry<String, Set<ICommand>> entry : subCommands.entrySet()) {
