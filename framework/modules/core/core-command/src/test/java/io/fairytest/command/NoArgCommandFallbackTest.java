@@ -45,6 +45,35 @@ public class NoArgCommandFallbackTest extends JUnitJupiterBase {
         assertEquals(1, command.helpCalls);
     }
 
+    @Test
+    public void extraArgumentsStillRunCommandWithoutSubCommands() {
+        NoArgOnlyCommand noArgOnly = new NoArgOnlyCommand();
+        noArgOnly.init();
+
+        noArgOnly.execute(new CommandContext(new String[]{"foo"}));
+
+        assertEquals(1, noArgOnly.noArgCalls);
+        assertEquals(0, noArgOnly.helpCalls);
+    }
+
+    @Command("noarg")
+    public static class NoArgOnlyCommand extends BaseCommand {
+
+        private int noArgCalls;
+        private int helpCalls;
+
+        @Command("#")
+        public void noArg(CommandContext context) {
+            noArgCalls++;
+        }
+
+        @Override
+        public void onHelp(CommandContext context) {
+            helpCalls++;
+        }
+
+    }
+
     @Command("test")
     public static class TestCommand extends BaseCommand {
 
