@@ -3,6 +3,7 @@ package io.fairyproject.container;
 import io.fairyproject.container.node.ContainerNode;
 import io.fairyproject.container.node.scanner.ContainerNodeClassScanner;
 import io.fairytest.container.destroy.DestroyTrackingComponent;
+import io.fairytest.container.destroy.ErrorDestroyComponent;
 import io.fairytest.container.destroy.FailingDestroyComponent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,8 @@ public class ContainerNodeDestroyerTest {
 
         assertFalse(context.containerObjectBinder().isBound(FailingDestroyComponent.class));
         assertFalse(context.singletonObjectRegistry().containsSingleton(FailingDestroyComponent.class));
+        assertFalse(context.containerObjectBinder().isBound(ErrorDestroyComponent.class));
+        assertFalse(context.singletonObjectRegistry().containsSingleton(ErrorDestroyComponent.class));
         assertFalse(context.singletonObjectRegistry().containsSingleton(DestroyTrackingComponent.class));
     }
 

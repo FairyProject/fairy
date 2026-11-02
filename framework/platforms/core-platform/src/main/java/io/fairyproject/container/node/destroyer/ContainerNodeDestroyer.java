@@ -61,8 +61,8 @@ public class ContainerNodeDestroyer {
             // one failing component must not stop the rest of the graph from being destroyed
             try {
                 destroyProcessor.processPreDestroy(object, instance);
-            } catch (Exception exception) {
-                Log.error("An error occurred while pre-destroying %s", exception, object.getType().getName());
+            } catch (Throwable throwable) {
+                Log.error("An error occurred while pre-destroying %s", throwable, object.getType().getName());
             }
         }
     }
@@ -90,8 +90,8 @@ public class ContainerNodeDestroyer {
             // one failing component must not stop the rest of the graph from being destroyed
             try {
                 destroyProcessor.processPostDestroy(object, instance);
-            } catch (Exception exception) {
-                Log.error("An error occurred while post-destroying %s", exception, object.getType().getName());
+            } catch (Throwable throwable) {
+                Log.error("An error occurred while post-destroying %s", throwable, object.getType().getName());
             }
         }
     }
