@@ -48,7 +48,9 @@ class BukkitCommandExecutorTest {
 
     @Test
     void presenceProviderIsAppliedBeforeCheckingAccess() {
-        executor.testPermissionSilent(sender);
+        Mockito.when(command.canAccess(any())).thenReturn(true);
+
+        assertTrue(executor.testPermissionSilent(sender));
 
         InOrder inOrder = Mockito.inOrder(command);
         inOrder.verify(command).applyPresenceProvider(any());
