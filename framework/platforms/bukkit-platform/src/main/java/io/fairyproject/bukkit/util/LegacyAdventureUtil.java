@@ -72,6 +72,10 @@ public class LegacyAdventureUtil {
         if (text == null)
             return "";
 
+        return replaceLegacyCodes(replaceHexColors(text, code), code);
+    }
+
+    private String replaceHexColors(String text, char code) {
         StringBuilder stringBuilder = new StringBuilder();
         int lastIndex = 0;
 
@@ -86,9 +90,12 @@ public class LegacyAdventureUtil {
             stringBuilder.append(text.substring(lastIndex));
         }
 
-        text = stringBuilder.toString();
-        stringBuilder.setLength(0);
-        lastIndex = 0;
+        return stringBuilder.toString();
+    }
+
+    private String replaceLegacyCodes(String text, char code) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int lastIndex = 0;
 
         char[] b = text.toCharArray();
         for (int i = 0; i < b.length - 1; ++i) {
