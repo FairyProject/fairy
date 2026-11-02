@@ -27,6 +27,22 @@ public class LegacyAdventureUtilTest {
     }
 
     @Test
+    public void nullTextIsEmpty() {
+        assertEquals("", LegacyAdventureUtil.fromLegacy(null, '&'));
+    }
+
+    @Test
+    public void invalidHexStaysLiteral() {
+        assertEquals("&#ff00Hello", LegacyAdventureUtil.fromLegacy("&#ff00Hello", '&'));
+    }
+
+    @Test
+    public void codeIsNotTreatedAsRegex() {
+        assertEquals("<#ff0000>Hello", LegacyAdventureUtil.fromLegacy("*#ff0000Hello", '*'));
+        assertEquals("x#ff0000Hello", LegacyAdventureUtil.fromLegacy("x#ff0000Hello", '.'));
+    }
+
+    @Test
     public void complexTestcases() {
         assertEquals(
                 LegacyAdventureUtil.decode("&7[&r&#b92b27&lW&#aa235a&lO&#9a1b8d&lR&#8b13c0&lK&7]"),

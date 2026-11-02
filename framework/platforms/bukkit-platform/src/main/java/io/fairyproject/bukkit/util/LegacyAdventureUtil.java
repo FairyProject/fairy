@@ -69,6 +69,9 @@ public class LegacyAdventureUtil {
     }
 
     public String fromLegacy(String text, char code) {
+        if (text == null)
+            return "";
+
         StringBuilder stringBuilder = new StringBuilder();
         int lastIndex = 0;
 
@@ -110,7 +113,7 @@ public class LegacyAdventureUtil {
     }
 
     private Pattern getHexPattern(char code) {
-        return Pattern.compile(code + "#([A-Fa-f0-9]{6})");
+        return Pattern.compile(Pattern.quote(String.valueOf(code)) + "#([A-Fa-f0-9]{6})");
     }
 
 }
