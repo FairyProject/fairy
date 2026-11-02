@@ -24,13 +24,9 @@ import java.util.stream.Collectors;
 public class EventNodeImpl<T> implements EventNode<T> {
     static final Object GLOBAL_CHILD_LOCK = new Object();
 
-    private final ClassValue<Handle<T>> handleMap = new ClassValue<Handle<T>>() {
-        @Override
-        protected Handle<T> computeValue(Class<?> type) {
-            //noinspection unchecked
-            return new Handle<>((Class<T>) type);
-        }
-    };
+    // Not a ClassValue: its values live inside the event Class objects, and a Handle references this node,
+    // which references the ClassValue key, so nodes (and everything their listeners capture) were never collected.
+    private final Map<Class<?>, Handle<T>> handleMap = new ConcurrentHashMap<>();
     final Map<Class<? extends T>, ListenerEntry<T>> listenerMap = new ConcurrentHashMap<>();
     final Set<EventNodeImpl<T>> children = new CopyOnWriteArraySet<>();
     final Map<Object, EventNodeImpl<T>> mappedNodeCache = new WeakHashMap<>();
@@ -59,7 +55,7 @@ public class EventNodeImpl<T> implements EventNode<T> {
     @Override
     @SuppressWarnings("unchecked")
     public <E extends T> @NotNull ListenerHandle<E> getHandle(@NotNull Class<E> handleType) {
-        return (ListenerHandle<E>) handleMap.get(handleType);
+        return (ListenerHandle<E>) handleMap.computeIfAbsent(handleType, type -> new Handle<>((Class<T>) type));
     }
 
     @Override
@@ -312,7 +308,10 @@ public class EventNodeImpl<T> implements EventNode<T> {
     private void invalidateEvent(Class<? extends T> eventClass) {
         forTargetEvents(eventClass, type -> {
             Handle<T> handle = handleMap.get(type);
-            handle.invalidate();
+            // no handle has been requested for this type yet, so there is no cached consumer to invalidate
+            if (handle != null) {
+                handle.invalidate();
+            }
         });
         final EventNodeImpl<? super T> parent = this.parent;
         if (parent != null) parent.invalidateEvent(eventClass);

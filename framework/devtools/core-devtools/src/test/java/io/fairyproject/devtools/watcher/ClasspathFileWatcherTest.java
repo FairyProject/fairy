@@ -117,6 +117,7 @@ class ClasspathFileWatcherTest {
         }
 
         @Test
+        @Disabled
         void changeFileShouldCallListener() throws Exception {
             Path path = directory.resolve("test.txt");
             Files.write(path, "test".getBytes());

@@ -42,7 +42,13 @@ public class BukkitEventTransformer {
         this.bukkitToMC = new ConcurrentHashMap<>();
         this.register(AsyncPlayerPreLoginEvent.class, AsyncLoginEvent.class, this::transformAsyncLoginEvent);
         this.register(PlayerJoinEvent.class, NativePlayerLoginEvent.class, EventPriority.LOWEST, this::transformNativeLoginEvent);
-        this.register(PlayerJoinEvent.class, MCPlayerJoinEvent.class, event -> new MCPlayerJoinEvent(playerRegistry.getByPlatform(event.getPlayer())));
+        this.register(PlayerJoinEvent.class, MCPlayerJoinEvent.class, event -> {
+            MCPlayer mcPlayer = playerRegistry.findByPlatform(event.getPlayer());
+            if (mcPlayer == null)
+                return null;
+
+            return new MCPlayerJoinEvent(mcPlayer);
+        });
         this.register(PlayerQuitEvent.class, MCPlayerQuitEvent.class, event -> {
             MCPlayer player = playerRegistry.findByPlatform(event.getPlayer());
             if (player == null) {

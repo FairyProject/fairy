@@ -59,7 +59,7 @@ public class ItemBuilderImpl implements ItemBuilder {
     }
 
     public ItemBuilderImpl(final ItemStack itemStack) {
-        this.itemStack = itemStack;
+        this.itemStack = itemStack.clone();
     }
 
     @Override
@@ -205,7 +205,7 @@ public class ItemBuilderImpl implements ItemBuilder {
     @Override
     public ItemBuilderImpl shiny() {
         return this.editMeta(meta -> {
-            meta.addEnchant(Enchantment.UNBREAKING, 1, false);
+            this.enchantment(XEnchantment.UNBREAKING, 1);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
         });
     }

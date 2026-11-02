@@ -45,10 +45,10 @@ public final class Comments {
         this.fieldComments = fieldComments;
     }
 
-    static Comments ofClass(Class<?> cls) {
+    static Comments ofClass(Class<?> cls, Configuration.Properties properties) {
         List<String> classComments = getComments(cls);
         Map<String, List<String>> fieldComments = new HashMap<>();
-        Arrays.stream(cls.getDeclaredFields())
+        properties.getFilter().filterDeclaredFieldsOf(cls).stream()
                 .filter(field -> isCommented(field) || isNestedCommented(field))
                 .forEach(field -> {
                     if (isCommented(field)) {

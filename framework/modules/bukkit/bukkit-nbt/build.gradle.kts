@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation("de.tr7zw:item-nbt-api:2.13.2")
+    implementation("de.tr7zw:item-nbt-api:2.16.1")
 }

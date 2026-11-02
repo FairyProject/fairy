@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.experimental.UtilityClass;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.gson.LegacyHoverEventSerializer;
+import net.kyori.adventure.text.serializer.json.LegacyHoverEventSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 
@@ -31,16 +31,25 @@ public class MCAdventure {
             builder.downsampleColors();
         }
 
+        // Paper before Adventure 4.14 only exposes the Gson serializer overload.
+        // Prefer the JSON overload, since Adventure 5 removes the old Gson API.
+        LegacyHoverEventSerializer serializer = adventureHook.getSerializer();
+        if (serializer != null) {
+            try {
+                builder.legacyHoverEventSerializer(serializer);
+            } catch (NoSuchMethodError oldAdventure) {
+                builder.legacyHoverEventSerializer((net.kyori.adventure.text.serializer.gson.LegacyHoverEventSerializer) serializer);
+            }
+        }
+
         if (version.isHigherOrEqual(MCVersion.of(16))) {
             legacyBuilder
                     .hexColors()
                     .useUnusualXRepeatedCharacterHexFormat();
-            builder.legacyHoverEventSerializer(adventureHook.getSerializer());
         } else {
             legacyBuilder
                     .character(LegacyComponentSerializer.SECTION_CHAR);
             builder
-                    .legacyHoverEventSerializer(adventureHook.getSerializer())
                     .emitLegacyHoverEvent()
                     .downsampleColors();
         }

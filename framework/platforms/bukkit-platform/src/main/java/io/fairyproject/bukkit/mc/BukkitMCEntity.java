@@ -70,7 +70,7 @@ public class BukkitMCEntity implements MCEntity {
     }
 
     @Override
-    public @NotNull List<EntityData> data() {
+    public @NotNull List<EntityData<?>> data() {
         return ThrowingSupplier.sneaky(() -> this.dataWatcherConverter.convert(this.entity)).get();
     }
 

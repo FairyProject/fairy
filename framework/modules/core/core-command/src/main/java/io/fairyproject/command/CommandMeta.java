@@ -235,7 +235,7 @@ public class CommandMeta implements ICommand {
         }
 
         if (!this.canAccess(commandContext)) {
-            commandContext.sendMessage(MessageType.ERROR, "You don't have permission to execute this command!");
+            baseCommand.onAccessDenied(commandContext);
             return;
         }
 
@@ -289,7 +289,8 @@ public class CommandMeta implements ICommand {
             return Collections.emptyList();
         }
 
-        final ArgMeta argMeta = this.arguments.get(args.length - 1);
+        // a wildcard argument keeps going past the last parameter
+        final ArgMeta argMeta = this.arguments.get(Math.min(args.length, this.arguments.size()) - 1);
         if (argMeta.getTabCompletion().length > 0) {
             List<String> list = new ArrayList<>();
 

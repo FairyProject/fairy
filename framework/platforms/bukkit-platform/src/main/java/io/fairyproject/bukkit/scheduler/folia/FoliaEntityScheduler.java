@@ -35,30 +35,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 @RequiredArgsConstructor
 public class FoliaEntityScheduler extends FoliaAbstractScheduler implements MCTickBasedScheduler {
-
-    private static Method isOwnedByCurrentRegion;
 
     private final Entity entity;
     private final Plugin bukkitPlugin;
 
     @Override
     public boolean isCurrentThread() {
-        if (isOwnedByCurrentRegion == null) {
-            try {
-                isOwnedByCurrentRegion = Bukkit.class.getMethod("isOwnedByCurrentRegion", Entity.class);
-            } catch (NoSuchMethodException e) {
-                throw new IllegalStateException("Cannot find isOwnedByCurrentRegion method in Bukkit", e);
-            }
-        }
-
         try {
-            return (boolean) isOwnedByCurrentRegion.invoke(null, entity);
-        } catch (Exception e) {
+            return Bukkit.isOwnedByCurrentRegion(entity);
+        } catch (Throwable e) {
             throw new IllegalStateException("Cannot invoke isOwnedByCurrentRegion method in Bukkit", e);
         }
     }

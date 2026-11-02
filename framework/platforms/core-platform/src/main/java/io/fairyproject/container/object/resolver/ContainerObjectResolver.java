@@ -25,6 +25,7 @@
 package io.fairyproject.container.object.resolver;
 
 import io.fairyproject.container.binder.ContainerObjectBinder;
+import io.fairyproject.container.type.TypeDescriptor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -38,8 +39,13 @@ public interface ContainerObjectResolver {
         return new ContainerObjectResolverImpl(binder, singletonObjectFactory, prototypeObjectFactory);
     }
 
-    @NotNull CompletableFuture<Object[]> resolveInstances(@NotNull Class<?>[] types) throws Exception;
+    @NotNull
+    CompletableFuture<Object[]> resolveInstances(@NotNull Class<?>[] types) throws Exception;
 
-    @NotNull CompletableFuture<Object> resolveInstance(@NotNull Class<?> type) throws Exception;
+    @NotNull
+    CompletableFuture<Object> resolveInstance(@NotNull Class<?> type) throws Exception;
+
+    @NotNull
+    CompletableFuture<Object> resolveInstance(@NotNull TypeDescriptor typeDescriptor) throws Exception;
 
 }

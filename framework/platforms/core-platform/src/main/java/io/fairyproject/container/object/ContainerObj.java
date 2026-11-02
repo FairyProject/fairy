@@ -3,6 +3,7 @@ package io.fairyproject.container.object;
 import io.fairyproject.container.Threading;
 import io.fairyproject.container.object.provider.InstanceProvider;
 import io.fairyproject.container.scope.InjectableScope;
+import io.fairyproject.container.type.TypeDescriptor;
 import io.fairyproject.data.MetaStorage;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,13 +16,16 @@ public interface ContainerObj {
         return new ContainerObjImpl(objClass);
     }
 
-    @NotNull Class<?> getType();
+    @NotNull
+    Class<?> getType();
 
-    @NotNull Threading.Mode getThreadingMode();
+    @NotNull
+    Threading.Mode getThreadingMode();
 
     void setThreadingMode(@NotNull Threading.Mode threadingMode);
 
-    @NotNull InjectableScope getScope();
+    @NotNull
+    InjectableScope getScope();
 
     void setScope(@NotNull InjectableScope scope);
 
@@ -29,11 +33,13 @@ public interface ContainerObj {
 
     void setInstanceProvider(InstanceProvider instanceProvider);
 
-    @NotNull Collection<Class<?>> getDependencies();
+    @NotNull
+    Collection<Class<?>> getDependencies();
 
     void addDependency(@NotNull Class<?> dependClass);
 
-    @NotNull MetaStorage getMetadata();
+    @NotNull
+    MetaStorage getMetadata();
 
     default boolean isSingletonScope() {
         return this.getScope() == InjectableScope.SINGLETON;
@@ -45,4 +51,8 @@ public interface ContainerObj {
 
     CompletableFuture<Object> createInstanceFromProvider(Object[] objects);
 
+    @NotNull
+    TypeDescriptor getTypeDescriptor();
+
+    void setTypeDescriptor(@NotNull TypeDescriptor typeDescriptor);
 }

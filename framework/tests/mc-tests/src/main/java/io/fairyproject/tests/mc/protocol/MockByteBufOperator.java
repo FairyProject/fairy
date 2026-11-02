@@ -115,6 +115,11 @@ public class MockByteBufOperator implements ByteBufOperator {
     }
 
     @Override
+    public void writeShortLE(Object o, int i) {
+        // do nothing
+    }
+
+    @Override
     public void writeMedium(Object o, int i) {
         // do nothing
     }
@@ -246,6 +251,11 @@ public class MockByteBufOperator implements ByteBufOperator {
 
     @Override
     public Object resetWriterIndex(Object o) {
+        return null;
+    }
+
+    @Override
+    public Object allocateNewBuffer(Object o) {
         return null;
     }
 }

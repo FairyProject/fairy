@@ -24,10 +24,23 @@
 
 package io.fairyproject.container.object.resolver;
 
+import io.fairyproject.container.type.TypeDescriptor;
+
 import java.util.concurrent.CompletableFuture;
 
 public interface ContainerObjectFactory {
 
     CompletableFuture<Object> createInstance(Class<?> type) throws Exception;
+    
+    /**
+     * Create an instance based on the given type descriptor.
+     *
+     * @param typeDescriptor The type descriptor of the instance to create
+     * @return A future that will resolve to the instance
+     * @throws Exception If an error occurs while creating the instance
+     */
+    default CompletableFuture<Object> createInstance(TypeDescriptor typeDescriptor) throws Exception {
+        return createInstance(typeDescriptor.getRawType());
+    }
 
 }

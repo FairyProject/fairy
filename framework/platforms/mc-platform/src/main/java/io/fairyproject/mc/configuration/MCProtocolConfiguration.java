@@ -42,10 +42,9 @@ public class MCProtocolConfiguration {
             ContainerContext context,
             MCPlayerRegistry playerRegistry,
             MCVersionMappingRegistry versionMappingRegistry,
-            PacketEventsBuilder packetEventsBuilder,
             PacketSender packetSender
     ) {
-        return new MCProtocol(context, playerRegistry, versionMappingRegistry, packetEventsBuilder, packetSender);
+        return new MCProtocol(context, playerRegistry, versionMappingRegistry, packetSender);
     }
 
     @InjectableComponent

@@ -23,4 +23,10 @@ open class FairyExtension(objectFactory: ObjectFactory) {
      */
     fun bukkitProperties(): BukkitProperties = this.properties.computeIfAbsent(PlatformType.BUKKIT) { BukkitProperties() } as BukkitProperties
 
+    /**
+     * Get properties for bukkit platform in raw format
+     */
+    fun bukkitPropertiesRaw(): Map<String, Any> = this.properties.computeIfAbsent(PlatformType.BUKKIT) { BukkitProperties() }
+
+
 }

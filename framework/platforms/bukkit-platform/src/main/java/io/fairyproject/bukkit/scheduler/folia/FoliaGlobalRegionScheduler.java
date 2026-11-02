@@ -24,7 +24,6 @@
 
 package io.fairyproject.bukkit.scheduler.folia;
 
-import io.fairyproject.bukkit.reflection.wrapper.ObjectWrapper;
 import io.fairyproject.bukkit.scheduler.folia.wrapper.WrapperScheduledTask;
 import io.fairyproject.mc.scheduler.MCTickBasedScheduler;
 import io.fairyproject.scheduler.ScheduledTask;
@@ -34,31 +33,24 @@ import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
-import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 public class FoliaGlobalRegionScheduler extends FoliaAbstractScheduler implements MCTickBasedScheduler {
 
     private final Plugin bukkitPlugin;
     private final GlobalRegionScheduler scheduler;
-    private final Method isGlobalTickThread;
 
     public FoliaGlobalRegionScheduler(Plugin bukkitPlugin) {
         this.bukkitPlugin = bukkitPlugin;
         this.scheduler = Bukkit.getGlobalRegionScheduler();
-        try {
-            isGlobalTickThread = Bukkit.class.getMethod("isGlobalTickThread");
-        } catch (Throwable e) {
-            throw new IllegalStateException("Cannot find isGlobalTickThread method in Bukkit", e);
-        }
     }
 
     @Override
     public boolean isCurrentThread() {
         try {
-            return (boolean) isGlobalTickThread.invoke(null);
-        } catch (Throwable e) {
-            throw new IllegalStateException("Cannot invoke isGlobalTickThread method in Bukkit", e);
+            return Bukkit.isGlobalTickThread();
+        } catch (Throwable t) {
+            throw new IllegalStateException("Cannot invoke isGlobalTickThread method in Bukkit", t);
         }
     }
 

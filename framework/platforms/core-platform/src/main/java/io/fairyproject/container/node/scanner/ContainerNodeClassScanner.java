@@ -106,7 +106,11 @@ public class ContainerNodeClassScanner {
                 continue;
             }
 
-            this.loadConfigurationClass(javaClass, override);
+            try {
+                this.loadConfigurationClass(javaClass, override);
+            } catch (Throwable t) {
+                Log.error(t);
+            }
         }
     }
 

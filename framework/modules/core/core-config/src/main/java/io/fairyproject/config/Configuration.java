@@ -56,7 +56,7 @@ public abstract class Configuration<C extends Configuration<C>> {
      */
     protected Configuration(Properties properties) {
         this.props = Objects.requireNonNull(properties);
-        this.comments = Comments.ofClass(getClass());
+        this.comments = Comments.ofClass(getClass(), properties);
     }
 
     /**

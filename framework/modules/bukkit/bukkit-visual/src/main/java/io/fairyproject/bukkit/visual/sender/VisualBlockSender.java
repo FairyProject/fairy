@@ -26,10 +26,12 @@ package io.fairyproject.bukkit.visual.sender;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
 import com.google.common.collect.HashMultimap;
 import io.fairyproject.Fairy;
 import io.fairyproject.bukkit.nms.BukkitNMSManager;
+import io.fairyproject.bukkit.visual.VisualBlock;
 import io.fairyproject.bukkit.visual.sender.impl.BukkitVisualData;
 import io.fairyproject.bukkit.visual.sender.impl.NewVisualData;
 import io.fairyproject.bukkit.visual.sender.impl.OldVisualData;
@@ -118,6 +120,13 @@ public class VisualBlockSender {
                 MCProtocol.sendPacket(mcPlayer, packet);
             }
         }
+    }
+
+    public void sendBlock(Player player, VisualBlock block) {
+        BlockPosition location = block.getLocation();
+        WrapperPlayServerBlockChange packet = new WrapperPlayServerBlockChange(new Vector3i(location.getX(), location.getY(), location.getZ()), getIdByMaterial(block.getMaterial()));
+
+        MCProtocol.sendPacket(MCPlayer.from(player), packet);
     }
 
     public void clearFakeBlocks(Player player, boolean send) {

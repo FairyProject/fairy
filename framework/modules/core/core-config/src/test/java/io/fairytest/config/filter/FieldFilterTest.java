@@ -14,8 +14,8 @@ public class FieldFilterTest {
     @Test
     public void filterDeclaredFieldsOf() throws NoSuchFieldException {
         List<? extends Field> fields = Arrays.asList(
-                DummyClassB.class.getDeclaredField("c"),
-                DummyClassA.class.getDeclaredField("a")
+                DummyClassA.class.getDeclaredField("a"),
+                DummyClassB.class.getDeclaredField("c")
         );
 
         final List<? extends Field> result = FieldFilters.DEFAULT.filterDeclaredFieldsOf(DummyClassB.class);

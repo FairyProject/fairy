@@ -1,6 +1,7 @@
 package io.fairyproject.tests.bukkit;
 
 import io.fairyproject.bukkit.FairyBukkitPlatform;
+import io.fairyproject.mc.protocol.PacketEventsBuilder;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -23,5 +24,15 @@ public class FairyBukkitTestingPlatform extends FairyBukkitPlatform {
         final Field field = type.getDeclaredField("INSTANCE");
         field.setAccessible(true);
         field.set(null, plugin);
+    }
+
+    @Override
+    protected void loadProtocol() {
+        // Do nothing
+    }
+
+    @Override
+    public PacketEventsBuilder providePacketEventBuilder() {
+        throw new IllegalStateException("providePacketEventBuilder() should not be called in tests");
     }
 }

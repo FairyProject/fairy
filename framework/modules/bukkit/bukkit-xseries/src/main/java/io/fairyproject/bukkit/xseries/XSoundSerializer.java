@@ -37,7 +37,7 @@ public class XSoundSerializer implements ObjectSerializer<XSound, String> {
 
     @Override
     public XSound deserialize(String output) {
-        return XSound.valueOf(output.toUpperCase());
+        return XSound.matchXSound(output.toUpperCase()).orElse(null);
     }
 
     @Override

@@ -35,11 +35,14 @@ import io.fairyproject.bukkit.listener.RegisterAsListener;
 import io.fairyproject.bukkit.listener.events.Events;
 import io.fairyproject.bukkit.metadata.Metadata;
 import io.fairyproject.bukkit.plugin.impl.RootJavaPluginIdentifier;
+import io.fairyproject.bukkit.protocol.BukkitPacketEventsBuilder;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.bukkit.util.SpigotUtil;
 import io.fairyproject.container.PreInitialize;
 import io.fairyproject.container.collection.ContainerObjCollector;
 import io.fairyproject.log.Log;
+import io.fairyproject.mc.protocol.MCProtocol;
+import io.fairyproject.mc.protocol.PacketEventsBuilder;
 import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.util.URLClassLoaderAccess;
@@ -91,6 +94,7 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @Override
     public void load(Plugin plugin) {
         super.load(plugin);
+        this.loadProtocol();
     }
 
     @Override
@@ -125,6 +129,14 @@ public class FairyBukkitPlatform extends FairyPlatform implements TerminableCons
     @Override
     public void onPostServicesInitial() {
         Events.call(new PostServicesInitialEvent());
+    }
+
+    protected void loadProtocol() {
+        MCProtocol.loadProtocol(this.providePacketEventBuilder());
+    }
+
+    protected PacketEventsBuilder providePacketEventBuilder() {
+        return new BukkitPacketEventsBuilder(this);
     }
 
     @Override

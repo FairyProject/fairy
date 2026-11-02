@@ -6,6 +6,7 @@ import io.fairyproject.bukkit.gui.pane.Pane;
 import io.fairyproject.bukkit.gui.slot.GuiSlot;
 import io.fairyproject.bukkit.events.BukkitEventFilter;
 import io.fairyproject.bukkit.events.BukkitEventNode;
+import io.fairyproject.bukkit.util.inventoryview.WrappedInventoryView;
 import io.fairyproject.data.MetaStorage;
 import io.fairyproject.event.EventNode;
 import io.fairyproject.mc.MCAdventure;
@@ -24,7 +25,6 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryView;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,10 +82,21 @@ public class Gui {
         this.titleUpdating = true;
 
         MCPlayer mcPlayer = MCPlayer.from(player);
+        Inventory previous = this.inventory;
         try {
             this.inventory = Bukkit.createInventory(null, this.getRows() * 9, MCAdventure.asLegacyString(this.title, mcPlayer.getLocale()));
             this.renderSlots(player);
             player.openInventory(this.inventory);
+
+            // the open was refused, this.inventory is no longer the one the player could be viewing,
+            // so nothing would match it to unregister the listeners
+            Inventory opened = this.getOpenedTopInventory(player);
+            if (!this.isInventory(opened)) {
+                // the listeners protecting the old inventory are about to go away
+                if (previous.equals(opened))
+                    player.closeInventory();
+                this.close(player);
+            }
         } finally {
             this.titleUpdating = false;
         }
@@ -117,6 +128,13 @@ public class Gui {
         this.update(player);
         player.openInventory(this.inventory);
 
+        // the open was refused (e.g. InventoryOpenEvent cancelled), every close path checks
+        // that the player is viewing this inventory, so nothing would ever unregister the listeners
+        if (!this.isInventory(this.getOpenedTopInventory(player))) {
+            this.reset();
+            return;
+        }
+
         this.onOpen(player);
     }
 
@@ -134,17 +152,21 @@ public class Gui {
     }
 
     private void close(Player player) {
+        this.reset();
+
+        new GuiCloseEvent(player, this).call();
+
+        // For some reason when you try to open an inventory immediately after closing one, it makes bukkit events not being called...
+        MCSchedulers.getGlobalScheduler().schedule(() -> this.onClose(player), 1L);
+    }
+
+    private void reset() {
         Arrays.fill(this.usedSlots, false);
         if (this.eventNode != null)
             this.eventNode.closeAndReportException();
         this.eventNode = null;
         this.inventory = null;
         this.guiSlots = null;
-
-        new GuiCloseEvent(player, this).call();
-
-        // For some reason when you try to open an inventory immediately after closing one, it makes bukkit events not being called...
-        MCSchedulers.getGlobalScheduler().schedule(() -> this.onClose(player), 1L);
     }
 
     public void onOpenCallback(Consumer<Player> callback) {
@@ -340,6 +362,14 @@ public class Gui {
             return;
 
         guiSlot.onInventoryClick(event, this);
+
+        // If the inventory was closed during the click callback (e.g., player.closeInventory() was called),
+        // we need to update the player's inventory to prevent "fake items" from appearing in their cursor.
+        // This commonly happens with shift-click operations where Bukkit's internal processing is interrupted.
+        if (!this.isOpening()) {
+            Player player = (Player) event.getWhoClicked();
+            player.updateInventory();
+        }
     }
 
     private boolean isNotClickingGuiInvWhileOpenIt(InventoryClickEvent event) {
@@ -366,15 +396,15 @@ public class Gui {
     }
 
     private Inventory getOpenedTopInventory(HumanEntity player) {
-        InventoryView view = player.getOpenInventory();
-        return view == null ? null : view.getTopInventory();
+        Object view = player.getOpenInventory();
+        return view == null ? null : WrappedInventoryView.of(view).getTopInventory();
     }
 
     private void onInventoryDrag(@NotNull InventoryDragEvent event) {
         if (!this.isInventory(event.getInventory()))
             return;
 
-        InventoryView view = event.getView();
+        Object view = event.getView();
         for (int slot : event.getRawSlots()) {
             Inventory currentInventory = getInventory(view, slot);
             if (!this.isInventory(currentInventory))
@@ -391,17 +421,19 @@ public class Gui {
         }
     }
 
-    public final Inventory getInventory(InventoryView view, int rawSlot) {
+    public final Inventory getInventory(Object view, int rawSlot) {
         // Slot may be -1 if not properly detected due to client bug
         // e.g. dropping an item into part of the enchantment list section of an enchanting table
         if (rawSlot == -1) {
             return null;
         }
 
-        if (rawSlot < view.getTopInventory().getSize()) {
-            return view.getTopInventory();
+        WrappedInventoryView inventoryView = WrappedInventoryView.of(view);
+        Inventory topInventory = inventoryView.getTopInventory();
+        if (rawSlot < topInventory.getSize()) {
+            return topInventory;
         } else {
-            return view.getBottomInventory();
+            return inventoryView.getBottomInventory();
         }
     }
 

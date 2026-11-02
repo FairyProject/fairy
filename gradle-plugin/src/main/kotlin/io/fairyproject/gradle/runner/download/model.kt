@@ -19,101 +19,53 @@ package io.fairyproject.gradle.runner.download
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
 /**
- * Build Response from Paper API.
+ * Version Response from the Paper Fill (v3) API.
+ *
+ * @property version the queried version metadata
+ * @property builds the available build numbers, newest first
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class VersionResponse(
+  val version: Version,
+  val builds: List<Int>,
+)
+
+/**
+ * Version metadata from the Paper Fill (v3) API.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class Version(
+  val id: String,
+)
+
+/**
+ * Build Response from the Paper Fill (v3) API.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class BuildResponse(
-  val projectId: String,
-  val projectName: String,
-  val version: String,
-  val build: Int,
+  val id: Int,
   val time: String,
-  val changes: List<Change>,
-  val downloads: Map<String, Download>,
   val channel: String,
-  val promoted: Boolean,
+  val downloads: Map<String, Download>,
 )
 
 /**
- * Change Response from Paper API.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Change(
-  val commit: String,
-  val summary: String,
-  val message: String,
-)
-
-/**
- * Download Response from Paper API.
+ * Download Response from the Paper Fill (v3) API.
+ *
+ * @property url the direct download URL for this artifact
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class Download(
   val name: String,
+  val checksums: Checksums,
+  val size: Long,
+  val url: String,
+)
+
+/**
+ * Checksums for a download from the Paper Fill (v3) API.
+ */
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class Checksums(
   val sha256: String,
-)
-
-/**
- * Projects Response from Paper API.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class ProjectsResponse(
-  val projects: List<String>,
-)
-
-/**
- * Project Response from Paper API.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class ProjectResponse(
-  val projectId: String,
-  val projectName: String,
-  val versionGroups: List<String>,
-  val versions: List<String>,
-)
-
-/**
- * Version Group Build Response from Paper API.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class VersionGroupBuild(
-  val build: Int,
-  val time: String,
-  val changes: List<Change>,
-  val version: String,
-  val downloads: Map<String, Download>,
-)
-
-/**
- * Version Group Builds Response from Paper API.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class VersionGroupBuildsResponse(
-  val projectId: String,
-  val projectName: String,
-  val versionGroup: String,
-  val versions: List<String>,
-  val builds: List<VersionGroupBuild>,
-)
-
-/**
- * Version Group Response from Paper API.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class VersionGroupResponse(
-  val projectId: String,
-  val projectName: String,
-  val versionGroup: String,
-  val versions: List<String>,
-)
-
-/**
- * Version Response from Paper API.
- */
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class VersionResponse(
-  val projectId: String,
-  val projectName: String,
-  val version: String,
-  val builds: List<Int>,
 )

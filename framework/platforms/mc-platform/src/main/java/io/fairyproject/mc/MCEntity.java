@@ -29,7 +29,7 @@ public interface MCEntity extends MCObject {
 
     boolean teleport(Position pos);
 
-    @NotNull List<EntityData> data();
+    @NotNull List<EntityData<?>> data();
 
     @NotNull MCScheduler getScheduler();
 

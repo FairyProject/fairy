@@ -49,6 +49,7 @@ import io.fairyproject.plugin.Plugin;
 import io.fairyproject.plugin.PluginListenerAdapter;
 import io.fairyproject.plugin.PluginManager;
 import io.fairyproject.scheduler.response.TaskResponse;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -78,6 +79,7 @@ public class VisualBlockService implements Listener {
     private final BukkitNMSManager nmsManager;
     private final MCSchedulerProvider mcSchedulerProvider;
 
+    @Getter
     private VisualBlockSender visualBlockSender;
     private VisualBlockGenerator mainGenerator;
 
@@ -299,6 +301,14 @@ public class VisualBlockService implements Listener {
         }
         this.visualBlockSender.send(player, sendToClient, removeFromClient, send);
         return sendToClient;
+    }
+
+    public boolean isVisualBlock(Player player, int x, int y, int z) {
+        return table.contains(player.getUniqueId(), new VisualPosition(x, y, z, player.getWorld().getName(), null));
+    }
+
+    public VisualBlock getVisualBlock(Player player, int x, int y, int z) {
+        return table.get(player.getUniqueId(), new VisualPosition(x, y, z, player.getWorld().getName(), null));
     }
 
     private void removeBlockFromSolid(Player player, Collection<VisualPosition> locations) {

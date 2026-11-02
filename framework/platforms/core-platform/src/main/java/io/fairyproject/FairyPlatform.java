@@ -60,7 +60,25 @@ public abstract class FairyPlatform implements TerminableConsumer {
     private ContainerContext containerContext;
 
     public FairyPlatform() {
-        ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.JVM_DRIVER;
+        // jvm-driver relies on sun.misc.Unsafe memory access, which Java 24+ (JEP 498)
+        // warns on or denies entirely; ClassGraph would then fall back to standard
+        // reflection and print a warning to stderr, triggering Paper's System.err nag.
+        // Use standard reflection directly on those JVMs.
+        if (getJavaMajorVersion() < 24) {
+            ClassGraph.CIRCUMVENT_ENCAPSULATION = ClassGraph.CircumventEncapsulationMethod.JVM_DRIVER;
+        }
+    }
+
+    private static int getJavaMajorVersion() {
+        String version = System.getProperty("java.specification.version", "");
+        if (version.startsWith("1.")) {
+            version = version.substring(2);
+        }
+        try {
+            return Integer.parseInt(version);
+        } catch (NumberFormatException ex) {
+            return -1;
+        }
     }
 
     public void preload() {

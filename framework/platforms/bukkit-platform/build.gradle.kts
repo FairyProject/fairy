@@ -4,12 +4,12 @@ plugins {
 
 dependencies {
     api(project(":mc-platform"))
-    api("net.kyori:adventure-platform-bukkit:4.3.4")
-    api("net.kyori:adventure-text-serializer-bungeecord:4.3.4")
-    api("com.github.retrooper:packetevents-spigot:2.5.0-SNAPSHOT") {
+    api("net.kyori:adventure-platform-bukkit:4.4.1")
+    api("net.kyori:adventure-text-serializer-bungeecord:4.4.1")
+    api("com.github.retrooper:packetevents-spigot:2.14.0") {
         exclude(group = "net.kyori")
     }
-    compileOnly("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT") {
+    compileOnly("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT") {
         exclude(group = "org.yaml", module = "snakeyaml")
         exclude(group = "net.kyori")
     }
@@ -22,7 +22,7 @@ dependencies {
     }
 
     testImplementation("com.github.seeseemelk:MockBukkit-v1.20:3.89.0")
-    testImplementation("io.papermc.paper:paper-api:1.20.6-R0.1-SNAPSHOT") {
+    testImplementation("io.papermc.paper:paper-api:1.21.3-R0.1-SNAPSHOT") {
         exclude(group = "org.yaml", module = "snakeyaml")
         exclude(group = "net.kyori")
     }

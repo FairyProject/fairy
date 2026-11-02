@@ -39,7 +39,11 @@ To achieve this it's nearly impossible for a single person or a small team, that
 - RaytraceAntiXray - [SpigotMC](https://www.spigotmc.org/resources/raytraceantixray-ores-entities-tiles.116253/), [BuiltByBit](https://builtbybit.com/resources/raytraceantixray-ores-entities-tiles.41896/)
 - CraftGens - [BuiltByBit](https://builtbybit.com/resources/craftgens-generators-gui-editor.30062/)
 - Brew - [GitHub](https://github.com/FairyProject/brew)
+- legacy-lands-library - [GitHub](https://github.com/LegacyLands/legacy-lands-library)
 - *Feel free to open a PR to add your project to here!*
+
+## Prerequisites
+- **Java 21** or higher is required for development and compilation.
 
 ## Getting Started
 If you are interested in creating a project using Fairy framework, please start with [project template](https://github.com/FairyProject/fairy-bukkit-template) and give our [documentation](https://docs.fairyproject.io/) a read!. 

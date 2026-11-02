@@ -123,44 +123,44 @@ public class ArmorStandHologramEntity extends AbstractHologramEntity {
         MCProtocol.sendPacket(player, packet);
     }
 
-    private List<EntityData> createEntityData(MCPlayer player) {
+    private List<EntityData<?>> createEntityData(MCPlayer player) {
         MCServer server = hologram.getServer();
-        List<EntityData> entityDataList = new ArrayList<>();
+        List<EntityData<?>> entityDataList = new ArrayList<>();
 
         // entity data bit mask
-        entityDataList.add(new EntityData(0, EntityDataTypes.BYTE, (byte) 0x20));
+        entityDataList.add(new EntityData<>(0, EntityDataTypes.BYTE, (byte) 0x20));
 
         // custom name
         MCVersion version = server.getVersion();
         if (version.isHigherOrEqual(MCVersion.of(13))) {
-            entityDataList.add(new EntityData(
+            entityDataList.add(new EntityData<>(
                     2,
                     EntityDataTypes.OPTIONAL_COMPONENT,
                     Optional.ofNullable(this.line.render(player))
                             .map(e -> MCAdventure.asItemString(e, player.getLocale()))
             ));
         } else {
-            entityDataList.add(new EntityData(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale())));
+            entityDataList.add(new EntityData<>(2, EntityDataTypes.STRING, MCAdventure.asLegacyString(this.line.render(player), player.getLocale())));
         }
 
         // always show name tag
         if (version.isHigherOrEqual(MCVersion.of(9))) {
-            entityDataList.add(new EntityData(3, EntityDataTypes.BOOLEAN, true));
+            entityDataList.add(new EntityData<>(3, EntityDataTypes.BOOLEAN, true));
         } else {
-            entityDataList.add(new EntityData(3, EntityDataTypes.BYTE, (byte) 1));
+            entityDataList.add(new EntityData<>(3, EntityDataTypes.BYTE, (byte) 1));
         }
 
         // armorstand status bit mask
         if (version.isHigherOrEqual(MCVersion.of(17)))
-            entityDataList.add(new EntityData(15, EntityDataTypes.BYTE, (byte) 0x11));
+            entityDataList.add(new EntityData<>(15, EntityDataTypes.BYTE, (byte) 0x11));
         else if (version.isHigherOrEqual(MCVersion.of(15)))
-            entityDataList.add(new EntityData(14, EntityDataTypes.BYTE, (byte) 0x11));
+            entityDataList.add(new EntityData<>(14, EntityDataTypes.BYTE, (byte) 0x11));
         else if (version.isHigherOrEqual(MCVersion.of(14)))
-            entityDataList.add(new EntityData(13, EntityDataTypes.BYTE, (byte) 0x11));
+            entityDataList.add(new EntityData<>(13, EntityDataTypes.BYTE, (byte) 0x11));
         else if (version.isHigherOrEqual(MCVersion.of(10)))
-            entityDataList.add(new EntityData(11, EntityDataTypes.BYTE, (byte) 0x11));
+            entityDataList.add(new EntityData<>(11, EntityDataTypes.BYTE, (byte) 0x11));
         else
-            entityDataList.add(new EntityData(10, EntityDataTypes.BYTE, (byte) 0x11));
+            entityDataList.add(new EntityData<>(10, EntityDataTypes.BYTE, (byte) 0x11));
 
         return entityDataList;
     }

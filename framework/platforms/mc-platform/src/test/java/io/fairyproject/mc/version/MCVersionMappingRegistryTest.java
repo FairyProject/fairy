@@ -128,6 +128,7 @@ public class MCVersionMappingRegistryTest {
             Assertions.assertEquals(735, registry.findMapping(1, 16, 0).getProtocolVersion());
             Assertions.assertEquals(340, registry.findMapping(1, 12, 2).getProtocolVersion());
             Assertions.assertEquals(47, registry.findMapping(1, 8, 9).getProtocolVersion());
+            Assertions.assertEquals(777, registry.findMapping(26, 3, 0).getProtocolVersion());
         }
 
         @Test
@@ -142,6 +143,7 @@ public class MCVersionMappingRegistryTest {
             Assertions.assertTrue(registry.findMapping(1, 15, 2).isNmsPrefix());
             Assertions.assertTrue(registry.findMapping(1, 16, 0).isNmsPrefix());
             Assertions.assertFalse(registry.findMapping(1, 17, 0).isNmsPrefix());
+            Assertions.assertFalse(registry.findMapping(26, 1, 0).isNmsPrefix());
         }
 
     }

@@ -24,29 +24,35 @@
 
 package io.fairyproject.tests.mc.configuration;
 
+import io.fairyproject.container.ContainerContext;
 import io.fairyproject.container.InjectableComponent;
 import io.fairyproject.container.configuration.TestConfiguration;
 import io.fairyproject.mc.MCServer;
+import io.fairyproject.mc.protocol.MCProtocol;
 import io.fairyproject.mc.protocol.PacketEventsBuilder;
 import io.fairyproject.mc.protocol.packet.PacketSender;
-import io.fairyproject.tests.mc.protocol.PacketSenderMock;
+import io.fairyproject.mc.registry.player.MCPlayerRegistry;
 import io.fairyproject.mc.version.MCVersionMappingRegistry;
+import io.fairyproject.tests.mc.protocol.MockMCProtocol;
 import io.fairyproject.tests.mc.protocol.MockPacketEventsBuilder;
+import io.fairyproject.tests.mc.protocol.PacketSenderMock;
 
 @TestConfiguration
 public class MCProtocolTestConfiguration {
 
     @InjectableComponent
-    public PacketEventsBuilder providePacketEventsBuilder(
-            MCServer mcServer,
-            MCVersionMappingRegistry versionMappingRegistry
-    ) {
+    public PacketSender providePacketSender() {
+        return new PacketSenderMock();
+    }
+
+    @InjectableComponent
+    public PacketEventsBuilder providePacketEventsBuilder(MCServer mcServer, MCVersionMappingRegistry versionMappingRegistry) {
         return new MockPacketEventsBuilder(mcServer, versionMappingRegistry);
     }
 
     @InjectableComponent
-    public PacketSender providePacketSender() {
-        return new PacketSenderMock();
+    public MCProtocol provideMCProtocol(ContainerContext context, MCPlayerRegistry mcPlayerRegistry, MCVersionMappingRegistry versionMappingRegistry, PacketSender packetSender, PacketEventsBuilder packetEventsBuilder) {
+        return new MockMCProtocol(context, mcPlayerRegistry, versionMappingRegistry, packetSender, packetEventsBuilder);
     }
 
 }

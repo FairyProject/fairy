@@ -1,6 +1,7 @@
 package io.fairyproject.mc.hologram;
 
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAttack;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import io.fairyproject.event.EventListener;
 import io.fairyproject.event.EventNode;
@@ -304,6 +305,14 @@ public class HologramImpl implements Hologram {
         eventNode.addListener(MCPlayerChangedWorldEvent.class, event -> this.removeViewer(event.getPlayer()));
         // listen packet for interaction detection
         eventNode.addListener(MCPlayerPacketReceiveEvent.class, event -> {
+            // 26.1+ sends attacks as a separate packet instead of an INTERACT_ENTITY action
+            if (event.packetType() == PacketType.Play.Client.ATTACK) {
+                WrapperPlayClientAttack packet = new WrapperPlayClientAttack(event.getEvent());
+                if (this.isEntity(packet.getEntityId()))
+                    this.attackHandlers.forEach(consumer -> consumer.accept(player));
+                return;
+            }
+
             if (event.packetType() != PacketType.Play.Client.INTERACT_ENTITY)
                 return;
 

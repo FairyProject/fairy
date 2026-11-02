@@ -114,6 +114,19 @@ public abstract class BaseCommand implements ICommand {
     }
 
     /**
+     * Method called when the executor does not have permission to execute the
+     * command.
+     * <p>
+     * Servers that build their command tree from the permission, such as Paper, may reject the
+     * command before it gets here, the player then sees the server's own message instead.
+     *
+     * @param commandContext Context of the command
+     */
+    public void onAccessDenied(CommandContext commandContext) {
+        commandContext.sendMessage(MessageType.ERROR, "You don't have permission to execute this command!");
+    }
+
+    /**
      * In the context in which none of the sub-commands match, this method will be
      * called if all arguments match the parameters.
      * @param commandContext Context of the command
@@ -172,16 +185,26 @@ public abstract class BaseCommand implements ICommand {
         new BaseCommandInitializer(this).init(names, permission);
     }
 
-    @Override
-    public void execute(CommandContext commandContext) {
+    /**
+     * Sets the presence provider on the context, required before anything that may send a message
+     * through it, such as an overridden {@link #canAccess(CommandContext)}.
+     *
+     * @param commandContext Context of the command
+     */
+    public void applyPresenceProvider(CommandContext commandContext) {
         if (this.presenceProvider != null) {
             commandContext.setPresenceProvider(this.presenceProvider);
         } else {
             commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
         }
+    }
+
+    @Override
+    public void execute(CommandContext commandContext) {
+        this.applyPresenceProvider(commandContext);
 
         if (!this.canAccess(commandContext)) {
-            commandContext.sendMessage(MessageType.ERROR, "You don't have permission to execute this command!");
+            this.onAccessDenied(commandContext);
             return;
         }
 
@@ -244,18 +267,15 @@ public abstract class BaseCommand implements ICommand {
 
     @Override
     public List<String> completeCommand(CommandContext commandContext) {
-        if (this.presenceProvider != null) {
-            commandContext.setPresenceProvider(this.presenceProvider);
-        } else {
-            commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
-        }
+        this.applyPresenceProvider(commandContext);
 
         final Entry<List<String>, Boolean> pair = this.completeArguments(commandContext);
 
         List<String> result = pair.getKey();
         if (pair.getValue()) {
-            result = new ArrayList<>(result);
-            result.addAll(this.getCommandsForCompletion(commandContext));
+            Set<String> merged = new LinkedHashSet<>(result);
+            merged.addAll(this.getCommandsForCompletion(commandContext));
+            result = new ArrayList<>(merged);
         }
 
         return result;
@@ -272,10 +292,15 @@ public abstract class BaseCommand implements ICommand {
             return new Entry<>(base, false);
         }
 
+        final String[] args = commandContext.getArgs();
         final Entry<ICommand, String[]> subCommand = this.findSubCommand(commandContext, true);
         if (subCommand != null) {
             commandContext.setArgs(subCommand.getValue());
-            return new Entry<>(subCommand.getKey().completeCommand(commandContext), false);
+            List<String> completions = subCommand.getKey().completeCommand(commandContext);
+            // what is being typed may still be another sub command name: the no-arg command is matched
+            // whenever no name is, and "sell" is matched while "sellall" is being typed
+            commandContext.setArgs(args);
+            return new Entry<>(completions, true);
         }
         return new Entry<>(Collections.emptyList(), true);
     }
@@ -314,7 +339,7 @@ public abstract class BaseCommand implements ICommand {
 
     public List<String> getCommandsForCompletion(CommandContext commandContext) {
         final String[] args = commandContext.getArgs();
-        final Set<String> commands = new HashSet<>();
+        final Set<String> commands = new TreeSet<>();
         final int cmdIndex = Math.max(0, args.length - 1);
         String argString = joinStringArray(args, args.length);
         for (Map.Entry<String, Set<ICommand>> entry : subCommands.entrySet()) {
@@ -382,7 +407,9 @@ public abstract class BaseCommand implements ICommand {
                 }
             }
         }
-        if (this.noArgCommand != null) {
+        // only fall back to the no-arg command when it can take these arguments, otherwise a typo
+        // in a sub command name would silently run it. Without sub commands there is nothing to mistype
+        if (this.noArgCommand != null && (this.subCommands.isEmpty() || args.length <= this.noArgCommand.getMaxParameterCount())) {
             return new PossibleSearches(Collections.singleton(this.noArgCommand), args, "");
         }
         return null;

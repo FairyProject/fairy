@@ -59,7 +59,7 @@ final class YamlSource implements ConfigurationSource<YamlConfiguration> {
             throws IOException {
         createParentDirectories();
         CommentAdder adder = new CommentAdder(
-                yaml.dump(map), config.getComments(), props
+                yaml.dump(UnsharedCopy.of(map)), config.getComments(), props
         );
         String commentedDump = adder.getCommentedDump();
         Files.write(configPath, commentedDump.getBytes());

@@ -11,6 +11,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.function.Supplier;
 
 /**
  * Provides access to {@link URLClassLoader}#addURL.
@@ -36,12 +37,28 @@ public abstract class URLClassLoaderAccess {
         if (Reflection.isSupported()) {
             Debug.log("Using Reflection URL class loader access");
             return new Reflection(classLoader);
-        } else if (JvmDriver.isSupported()) {
-            Debug.log("Using Narcissus Unsafe URL class loader access");
-            return new JvmDriver(classLoader);
-        } else {
-            Debug.log("Using NoOp URL class loader access");
-            return Noop.INSTANCE;
+        }
+
+        URLClassLoaderAccess access = URLClassLoaderAccess.tryCreate("JVM driver", () -> new JvmDriver(classLoader));
+        if (access != null)
+            return access;
+
+        access = URLClassLoaderAccess.tryCreate("Unsafe", () -> new Unsafe(classLoader));
+        if (access != null)
+            return access;
+
+        Debug.log("Using NoOp URL class loader access");
+        return Noop.INSTANCE;
+    }
+
+    private static URLClassLoaderAccess tryCreate(String name, Supplier<URLClassLoaderAccess> supplier) {
+        try {
+            URLClassLoaderAccess access = supplier.get();
+            Debug.log("Using %s URL class loader access", name);
+            return access;
+        } catch (Throwable throwable) {
+            Debug.warn("%s URL class loader access is unavailable: %s", name, throwable.toString());
+            return null;
         }
     }
 
@@ -67,7 +84,7 @@ public abstract class URLClassLoaderAccess {
             try {
                 addUrlMethod = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
                 addUrlMethod.setAccessible(true);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 addUrlMethod = null;
             }
             ADD_URL_METHOD = addUrlMethod;
@@ -93,35 +110,28 @@ public abstract class URLClassLoaderAccess {
 
     private static class JvmDriver extends URLClassLoaderAccess {
 
-        private static final Driver DRIVER = Driver.Factory.getNew();
+        private final Driver driver;
         private final Collection<URL> unopenedURLs;
         private final Collection<URL> pathURLs;
 
+        @SuppressWarnings("unchecked")
         protected JvmDriver(URLClassLoader classLoader) {
             super(classLoader);
 
-            Collection<URL> unopenedURLs;
-            Collection<URL> pathURLs;
             try {
-                Object ucp = JvmDriver.fetchField(URLClassLoader.class, classLoader, "ucp");
-                unopenedURLs = (Collection<URL>) JvmDriver.fetchField(ucp.getClass(), ucp, "unopenedUrls");
-                pathURLs = (Collection<URL>) JvmDriver.fetchField(ucp.getClass(), ucp, "path");
+                this.driver = Driver.Factory.getNew();
+                Object ucp = this.fetchField(URLClassLoader.class, classLoader, "ucp");
+                this.unopenedURLs = (Collection<URL>) this.fetchField(ucp.getClass(), ucp, "unopenedUrls");
+                this.pathURLs = (Collection<URL>) this.fetchField(ucp.getClass(), ucp, "path");
             } catch (Throwable e) {
-                unopenedURLs = null;
-                pathURLs = null;
+                throw new IllegalStateException("Unable to access URLClassLoader internals through jvm-driver.", e);
             }
-            this.unopenedURLs = unopenedURLs;
-            this.pathURLs = pathURLs;
         }
 
-        public static boolean isSupported() {
-            return true;
-        }
-
-        private static Object fetchField(final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
-            for (Field field : DRIVER.getDeclaredFields(clazz)) {
+        private Object fetchField(final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
+            for (Field field : this.driver.getDeclaredFields(clazz)) {
                 if (field.getName().equals(name)) {
-                    return DRIVER.getFieldValue(object, field);
+                    return this.driver.getFieldValue(object, field);
                 }
             }
             throw new NoSuchFieldException(name);
@@ -139,58 +149,67 @@ public abstract class URLClassLoaderAccess {
      *
      * @author Vaishnav Anil (https://github.com/slimjar/slimjar)
      */
-//    private static class Unsafe extends URLClassLoaderAccess {
-//        private static final sun.misc.Unsafe UNSAFE;
-//
-//        static {
-//            sun.misc.Unsafe unsafe;
-//            try {
-//                Field unsafeField = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-//                unsafeField.setAccessible(true);
-//                unsafe = (sun.misc.Unsafe) unsafeField.get(null);
-//            } catch (Throwable t) {
-//                unsafe = null;
-//            }
-//            UNSAFE = unsafe;
-//        }
-//
-//        private static boolean isSupported() {
-//            return UNSAFE != null;
-//        }
-//
-//        private final Collection<URL> unopenedURLs;
-//        private final Collection<URL> pathURLs;
-//
-//        @SuppressWarnings("unchecked")
-//        Unsafe(URLClassLoader classLoader) {
-//            super(classLoader);
-//
-//            Collection<URL> unopenedURLs;
-//            Collection<URL> pathURLs;
-//            try {
-//                Object ucp = fetchField(URLClassLoader.class, classLoader, "ucp");
-//                unopenedURLs = (Collection<URL>) fetchField(ucp.getClass(), ucp, "unopenedUrls");
-//                pathURLs = (Collection<URL>) fetchField(ucp.getClass(), ucp, "path");
-//            } catch (Throwable e) {
-//                unopenedURLs = null;
-//                pathURLs = null;
-//            }
-//            this.unopenedURLs = unopenedURLs;
-//            this.pathURLs = pathURLs;
-//        }
-//
-//        private static Object fetchField(final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
-//            Field field = clazz.getDeclaredField(name);
-//            long offset = UNSAFE.objectFieldOffset(field);
-//            return UNSAFE.getObject(object, offset);
-//        }
-//
-//        @Override
-//        public void addURL(@NotNull URL url) {
-//            this.unopenedURLs.add(url);
-//            this.pathURLs.add(url);
-//        }
-//    }
+    private static class Unsafe extends URLClassLoaderAccess {
+        private static final Object UNSAFE;
+        private static final Method OBJECT_FIELD_OFFSET_METHOD;
+        private static final Method GET_OBJECT_METHOD;
+
+        static {
+            Object unsafe;
+            Method objectFieldOffsetMethod;
+            Method getObjectMethod;
+            try {
+                Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+                Field unsafeField = unsafeClass.getDeclaredField("theUnsafe");
+                unsafeField.setAccessible(true);
+                unsafe = unsafeField.get(null);
+                objectFieldOffsetMethod = unsafeClass.getMethod("objectFieldOffset", Field.class);
+                getObjectMethod = unsafeClass.getMethod("getObject", Object.class, long.class);
+            } catch (Throwable t) {
+                unsafe = null;
+                objectFieldOffsetMethod = null;
+                getObjectMethod = null;
+            }
+            UNSAFE = unsafe;
+            OBJECT_FIELD_OFFSET_METHOD = objectFieldOffsetMethod;
+            GET_OBJECT_METHOD = getObjectMethod;
+        }
+
+        private final Collection<URL> unopenedURLs;
+        private final Collection<URL> pathURLs;
+
+        @SuppressWarnings("unchecked")
+        Unsafe(URLClassLoader classLoader) {
+            super(classLoader);
+
+            if (UNSAFE == null)
+                throw new IllegalStateException("sun.misc.Unsafe is not available.");
+
+            try {
+                Object ucp = fetchField(URLClassLoader.class, classLoader, "ucp");
+                this.unopenedURLs = (Collection<URL>) fetchField(ucp.getClass(), ucp, "unopenedUrls");
+                this.pathURLs = (Collection<URL>) fetchField(ucp.getClass(), ucp, "path");
+            } catch (Throwable e) {
+                throw new IllegalStateException("Unable to access URLClassLoader internals through Unsafe.", e);
+            }
+        }
+
+        private static Object fetchField(final Class<?> clazz, final Object object, final String name) throws NoSuchFieldException {
+            Field field = clazz.getDeclaredField(name);
+            try {
+                long offset = (long) OBJECT_FIELD_OFFSET_METHOD.invoke(UNSAFE, field);
+                return GET_OBJECT_METHOD.invoke(UNSAFE, object, offset);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalStateException("Failed to read field through Unsafe.", e);
+            }
+        }
+
+        @Override
+        public void addURL(@NotNull URL url) {
+            this.unopenedURLs.add(url);
+            this.pathURLs.add(url);
+        }
+    }
 
     private static class Noop extends URLClassLoaderAccess {
         private static final Noop INSTANCE = new Noop();
