@@ -12,6 +12,8 @@ import org.bukkit.ChatColor;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @UtilityClass
 public class LegacyAdventureUtil {
@@ -69,17 +71,42 @@ public class LegacyAdventureUtil {
     public String fromLegacy(String text, char code) {
         if (text == null)
             return "";
+
+        return replaceLegacyCodes(replaceHexColors(text, code), code);
+    }
+
+    private String replaceHexColors(String text, char code) {
         StringBuilder stringBuilder = new StringBuilder();
-        char[] b = text.toCharArray();
-
         int lastIndex = 0;
-        for(int i = 0; i < b.length - 1; ++i) {
-            if ((b[i] == '§' || b[i] == code) && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i + 1]) > -1) {
-                if (i > 0)
-                    stringBuilder.append(text, lastIndex, i);
-                final ChatColor chatColor = ChatColor.getByChar(b[i + 1]);
-                final String s = INDEX.get(chatColor);
 
+        Matcher matcher = getHexPattern(code).matcher(text);
+        while (matcher.find()) {
+            stringBuilder.append(text, lastIndex, matcher.start());
+            stringBuilder.append("<#").append(matcher.group(1)).append(">");
+            lastIndex = matcher.end();
+        }
+
+        if (lastIndex < text.length()) {
+            stringBuilder.append(text.substring(lastIndex));
+        }
+
+        return stringBuilder.toString();
+    }
+
+    private String replaceLegacyCodes(String text, char code) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int lastIndex = 0;
+
+        char[] b = text.toCharArray();
+        for (int i = 0; i < b.length - 1; ++i) {
+            if ((b[i] == 167 || b[i] == code) && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i + 1]) > -1) {
+
+                if (i > 0) {
+                    stringBuilder.append(text, lastIndex, i);
+                }
+
+                ChatColor chatColor = ChatColor.getByChar(b[i + 1]);
+                String s = INDEX.get(chatColor);
                 stringBuilder.append("<").append(s).append(">");
                 lastIndex = i + 2;
             }
@@ -88,7 +115,12 @@ public class LegacyAdventureUtil {
         if (lastIndex < text.length()) {
             stringBuilder.append(text.substring(lastIndex));
         }
+
         return stringBuilder.toString();
+    }
+
+    private Pattern getHexPattern(char code) {
+        return Pattern.compile(Pattern.quote(String.valueOf(code)) + "#([A-Fa-f0-9]{6})");
     }
 
 }
