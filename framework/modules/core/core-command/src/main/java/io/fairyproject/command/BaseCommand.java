@@ -116,6 +116,9 @@ public abstract class BaseCommand implements ICommand {
     /**
      * Method called when the executor does not have permission to execute the
      * command.
+     * <p>
+     * Servers that build their command tree from the permission, such as Paper, may reject the
+     * command before it gets here, the player then sees the server's own message instead.
      *
      * @param commandContext Context of the command
      */
@@ -182,13 +185,23 @@ public abstract class BaseCommand implements ICommand {
         new BaseCommandInitializer(this).init(names, permission);
     }
 
-    @Override
-    public void execute(CommandContext commandContext) {
+    /**
+     * Sets the presence provider on the context, required before anything that may send a message
+     * through it, such as an overridden {@link #canAccess(CommandContext)}.
+     *
+     * @param commandContext Context of the command
+     */
+    public void applyPresenceProvider(CommandContext commandContext) {
         if (this.presenceProvider != null) {
             commandContext.setPresenceProvider(this.presenceProvider);
         } else {
             commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
         }
+    }
+
+    @Override
+    public void execute(CommandContext commandContext) {
+        this.applyPresenceProvider(commandContext);
 
         if (!this.canAccess(commandContext)) {
             this.onAccessDenied(commandContext);
@@ -254,11 +267,7 @@ public abstract class BaseCommand implements ICommand {
 
     @Override
     public List<String> completeCommand(CommandContext commandContext) {
-        if (this.presenceProvider != null) {
-            commandContext.setPresenceProvider(this.presenceProvider);
-        } else {
-            commandContext.setPresenceProvider(COMMAND_SERVICE.getPresenceProviderByType(commandContext.getClass()));
-        }
+        this.applyPresenceProvider(commandContext);
 
         final Entry<List<String>, Boolean> pair = this.completeArguments(commandContext);
 

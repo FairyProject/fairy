@@ -4,6 +4,7 @@ import io.fairyproject.bukkit.command.event.BukkitCommandContext;
 import io.fairyproject.bukkit.util.JavaPluginUtil;
 import io.fairyproject.command.BaseCommand;
 import io.fairyproject.command.CommandContext;
+import io.fairyproject.log.Log;
 import lombok.Getter;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -41,6 +42,17 @@ public class BukkitCommandExecutor extends Command {
         return this.command.getDescription();
     }
 
+    /**
+     * Bukkit uses this to decide whether the command is listed in the client's command tree
+     * (the suggestions after {@code /}); some servers also check it before running the command.
+     */
+    @Override
+    public boolean testPermissionSilent(@NotNull CommandSender target) {
+        CommandContext commandContext = new BukkitCommandContext(target, new String[0]);
+        this.command.applyPresenceProvider(commandContext);
+        return this.command.canAccess(commandContext);
+    }
+
     @Override
     public boolean execute(@NotNull CommandSender commandSender, @NotNull String mainCommand, String[] args) {
         CommandContext commandContext = new BukkitCommandContext(commandSender, args);
@@ -57,8 +69,9 @@ public class BukkitCommandExecutor extends Command {
         CommandContext commandContext = new BukkitCommandContext(sender, args);
         try {
             return this.command.completeCommand(commandContext);
-        } catch (Throwable throwable) {
-            this.command.onError(commandContext, throwable);
+        } catch (Exception exception) {
+            // not onError: the sender should not get an error message every time they press tab
+            Log.error("An error occurred while tab completing command %s", exception, this.getName());
             return Collections.emptyList();
         }
     }
