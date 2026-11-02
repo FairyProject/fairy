@@ -8,6 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -43,6 +44,15 @@ class BukkitCommandExecutorTest {
 
         Mockito.when(command.canAccess(any())).thenReturn(true);
         assertTrue(executor.testPermissionSilent(sender));
+    }
+
+    @Test
+    void presenceProviderIsAppliedBeforeCheckingAccess() {
+        executor.testPermissionSilent(sender);
+
+        InOrder inOrder = Mockito.inOrder(command);
+        inOrder.verify(command).applyPresenceProvider(any());
+        inOrder.verify(command).canAccess(any());
     }
 
     @Test

@@ -48,7 +48,9 @@ public class BukkitCommandExecutor extends Command {
      */
     @Override
     public boolean testPermissionSilent(@NotNull CommandSender target) {
-        return this.command.canAccess(new BukkitCommandContext(target, new String[0]));
+        CommandContext commandContext = new BukkitCommandContext(target, new String[0]);
+        this.command.applyPresenceProvider(commandContext);
+        return this.command.canAccess(commandContext);
     }
 
     @Override
