@@ -82,10 +82,21 @@ public class Gui {
         this.titleUpdating = true;
 
         MCPlayer mcPlayer = MCPlayer.from(player);
+        Inventory previous = this.inventory;
         try {
             this.inventory = Bukkit.createInventory(null, this.getRows() * 9, MCAdventure.asLegacyString(this.title, mcPlayer.getLocale()));
             this.renderSlots(player);
             player.openInventory(this.inventory);
+
+            // the open was refused, this.inventory is no longer the one the player could be viewing,
+            // so nothing would match it to unregister the listeners
+            Inventory opened = this.getOpenedTopInventory(player);
+            if (!this.isInventory(opened)) {
+                // the listeners protecting the old inventory are about to go away
+                if (previous.equals(opened))
+                    player.closeInventory();
+                this.close(player);
+            }
         } finally {
             this.titleUpdating = false;
         }
