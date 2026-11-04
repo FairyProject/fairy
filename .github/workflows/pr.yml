@@ -52,7 +52,8 @@ jobs:
       run: >-
         ./gradlew :framework:platforms:core-platform:classLoaderCompatibilityTest
         -PcompactObjectHeaders=${{ matrix.compact-headers }}
-        "-Dorg.gradle.java.installations.paths=$TEST_JAVA_HOME"
+        "-Porg.gradle.java.installations.paths=$TEST_JAVA_HOME,$JAVA_HOME"
+        -Porg.gradle.java.installations.auto-detect=false
     - name: Upload compatibility test reports
       if: always()
       uses: actions/upload-artifact@v4
