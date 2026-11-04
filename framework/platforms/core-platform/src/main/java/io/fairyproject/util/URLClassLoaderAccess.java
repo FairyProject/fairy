@@ -39,11 +39,13 @@ public abstract class URLClassLoaderAccess {
             return new Reflection(classLoader);
         }
 
-        URLClassLoaderAccess access = URLClassLoaderAccess.tryCreate("JVM driver", () -> new JvmDriver(classLoader));
+        // jvm-driver uses fixed offsets for JDK internals and can crash the JVM with compact object headers.
+        // Prefer the Unsafe accessor, which asks the JVM for the actual field offsets.
+        URLClassLoaderAccess access = URLClassLoaderAccess.tryCreate("Unsafe", () -> new Unsafe(classLoader));
         if (access != null)
             return access;
 
-        access = URLClassLoaderAccess.tryCreate("Unsafe", () -> new Unsafe(classLoader));
+        access = URLClassLoaderAccess.tryCreate("JVM driver", () -> new JvmDriver(classLoader));
         if (access != null)
             return access;
 

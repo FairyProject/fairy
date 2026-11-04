@@ -14,3 +14,19 @@ dependencies {
     testImplementation("io.fairyproject:core-tests")
     testImplementation("javax.el:javax.el-api:3.0.1-b04")
 }
+
+tasks.register<Test>("classLoaderCompatibilityTest") {
+    description = "Tests URL class loader access on Java 25 with compact headers enabled or disabled."
+    group = "verification"
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    javaLauncher.set(javaToolchains.launcherFor {
+        languageVersion.set(JavaLanguageVersion.of(25))
+    })
+    useJUnitPlatform()
+    filter {
+        includeTestsMatching("io.fairyproject.util.URLClassLoaderAccessTest")
+    }
+    val compactHeaders = providers.gradleProperty("compactObjectHeaders").getOrElse("true").toBoolean()
+    jvmArgs("-XX:${if (compactHeaders) "+" else "-"}UseCompactObjectHeaders", "-XX:-CreateCoredumpOnCrash")
+}
