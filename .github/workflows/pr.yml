@@ -23,3 +23,39 @@ jobs:
       
     - name: Test with Gradle
       run: ./gradlew test
+
+  class-loader-compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        distribution: [temurin, graalvm]
+        compact-headers: ['true', 'false']
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Java 25 for compatibility tests
+      id: test_java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '25'
+        distribution: ${{ matrix.distribution }}
+    - name: Set up Java 21 for Gradle
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: gradle
+    - name: Test class and resource loading
+      env:
+        TEST_JAVA_HOME: ${{ steps.test_java.outputs.path }}
+      run: >-
+        ./gradlew :framework:platforms:core-platform:classLoaderCompatibilityTest
+        -PcompactObjectHeaders=${{ matrix.compact-headers }}
+        "-Dorg.gradle.java.installations.paths=$TEST_JAVA_HOME"
+    - name: Upload compatibility test reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: class-loader-${{ matrix.distribution }}-${{ matrix.compact-headers }}
+        path: framework/platforms/core-platform/build/reports/tests/classLoaderCompatibilityTest
