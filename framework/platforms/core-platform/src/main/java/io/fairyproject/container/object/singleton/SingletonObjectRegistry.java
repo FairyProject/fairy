@@ -25,6 +25,9 @@
 package io.fairyproject.container.object.singleton;
 
 import io.fairyproject.container.object.LifeCycle;
+import io.fairyproject.container.type.TypeDescriptor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
 
@@ -47,5 +50,22 @@ public interface SingletonObjectRegistry {
     LifeCycle getSingletonLifeCycle(Class<?> type);
 
     void setSingletonLifeCycle(Class<?> type, LifeCycle lifeCycle);
+
+    void registerSingleton(@NotNull TypeDescriptor typeDescriptor, @NotNull Object instance);
+
+    @Nullable
+    Object getSingleton(@NotNull TypeDescriptor typeDescriptor);
+
+    boolean containsSingleton(@NotNull TypeDescriptor typeDescriptor);
+
+    void removeSingleton(@NotNull TypeDescriptor typeDescriptor);
+
+    @NotNull
+    Set<TypeDescriptor> getSingletonTypeDescriptors();
+
+    @NotNull
+    LifeCycle getSingletonLifeCycle(@NotNull TypeDescriptor typeDescriptor);
+
+    void setSingletonLifeCycle(@NotNull TypeDescriptor typeDescriptor, @NotNull LifeCycle lifeCycle);
 
 }

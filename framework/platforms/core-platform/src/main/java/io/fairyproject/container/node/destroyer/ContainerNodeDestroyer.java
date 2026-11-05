@@ -50,12 +50,10 @@ public class ContainerNodeDestroyer {
     }
 
     private void callPreDestroyProcessor(ContainerObj object) {
-        if (!object.isSingletonScope())
-            return;
+        if (!object.isSingletonScope()) return;
 
-        Object instance = context.singletonObjectRegistry().getSingleton(object.getType());
-        if (instance == null)
-            return;
+        Object instance = context.singletonObjectRegistry().getSingleton(object.getTypeDescriptor());
+        if (instance == null) return;
 
         for (ContainerObjDestroyProcessor destroyProcessor : this.context.destroyProcessors()) {
             // one failing component must not stop the rest of the graph from being destroyed
@@ -75,16 +73,14 @@ public class ContainerNodeDestroyer {
 
         this.context.containerObjectBinder().unbind(type);
         this.context.objectCollectorRegistry().removeFromCollectors(object);
-        this.context.singletonObjectRegistry().removeSingleton(type);
+        this.context.singletonObjectRegistry().removeSingleton(object.getTypeDescriptor());
     }
 
     private void callPostDestroyProcessor(ContainerObj object) {
-        if (!object.isSingletonScope())
-            return;
+        if (!object.isSingletonScope()) return;
 
-        Object instance = context.singletonObjectRegistry().getSingleton(object.getType());
-        if (instance == null)
-            return;
+        Object instance = context.singletonObjectRegistry().getSingleton(object.getTypeDescriptor());
+        if (instance == null) return;
 
         for (ContainerObjDestroyProcessor destroyProcessor : this.context.destroyProcessors()) {
             // one failing component must not stop the rest of the graph from being destroyed
